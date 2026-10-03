@@ -1,61 +1,218 @@
 import 'package:flutter/material.dart';
 import '../../core/config/app_config.dart';
 import '../../core/theme/migo_colors.dart';
+import '../../widgets/intention_chip.dart';
+import '../../widgets/offer_card.dart';
+import '../../widgets/section_header.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String _selectedIntention = 'Eat';
+
+  static const _intentions = <({String label, IconData icon})>[
+    (label: 'Eat', icon: Icons.restaurant_outlined),
+    (label: 'Coffee', icon: Icons.local_cafe_outlined),
+    (label: 'Family', icon: Icons.family_restroom_outlined),
+    (label: 'Save Money', icon: Icons.savings_outlined),
+    (label: 'Celebrate', icon: Icons.celebration_outlined),
+    (label: 'Shop', icon: Icons.shopping_bag_outlined),
+    (label: 'Relax', icon: Icons.spa_outlined),
+    (label: 'Service', icon: Icons.build_outlined),
+    (label: 'Explore', icon: Icons.explore_outlined),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 24),
-              Text(
-                AppConfig.appName,
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      color: MigoColors.primary,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 2,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                AppConfig.tagline,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const Spacer(),
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+        child: CustomScrollView(
+          slivers: [
+            // Top bar: MIGO logo + location + notification
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: Row(
                   children: [
+                    Text(
+                      AppConfig.appName,
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(
+                            color: MigoColors.primary,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 2,
+                          ),
+                    ),
+                    const SizedBox(width: 12),
                     const Icon(
-                      Icons.storefront_outlined,
-                      size: 72,
+                      Icons.place,
+                      size: 16,
                       color: MigoColors.primary,
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'MIGO is being built.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.titleLarge,
+                    const SizedBox(width: 4),
+                    const Text(
+                      'Doha, Qatar',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: MigoColors.textPrimaryLight,
+                      ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Step 10 complete: bottom navigation ready.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                    const Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 18,
+                      color: MigoColors.textSecondaryLight,
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.notifications_outlined),
                     ),
                   ],
                 ),
               ),
-              const Spacer(),
-            ],
-          ),
+            ),
+
+            // Greeting
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(20, 8, 20, 4),
+                child: Text(
+                  'What can you discover or save today?',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: MigoColors.textPrimaryLight,
+                  ),
+                ),
+              ),
+            ),
+
+            // Search bar
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                child: TextField(
+                  readOnly: true,
+                  onTap: () {},
+                  decoration: InputDecoration(
+                    hintText: 'Search businesses, deals, cuisines...',
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    fillColor: MigoColors.surfaceLight,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Intention chips
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 44,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: _intentions.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
+                  itemBuilder: (context, i) {
+                    final item = _intentions[i];
+                    return IntentionChip(
+                      label: item.label,
+                      icon: item.icon,
+                      selected: _selectedIntention == item.label,
+                      onTap: () => setState(
+                        () => _selectedIntention = item.label,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+            // Nearby Deals section
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: SectionHeader(
+                  title: 'Nearby Deals',
+                  actionLabel: 'See all',
+                ),
+              ),
+            ),
+
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 360,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: 3,
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
+                  itemBuilder: (context, i) {
+                    final samples = [
+                      (
+                        business: 'Karak House',
+                        title: 'Family Meal Deal',
+                        original: 42.0,
+                        offer: 35.0,
+                        distance: 1.8,
+                        time: 'Ends in 2h 15m',
+                        verified: 92,
+                      ),
+                      (
+                        business: 'Shawarma Station',
+                        title: 'Chicken Shawarma Combo',
+                        original: 25.0,
+                        offer: 18.0,
+                        distance: 0.9,
+                        time: 'Ends in 45m',
+                        verified: 88,
+                      ),
+                      (
+                        business: 'Cafe Mocha',
+                        title: 'Breakfast for Two',
+                        original: 60.0,
+                        offer: 45.0,
+                        distance: 2.4,
+                        time: null,
+                        verified: 95,
+                      ),
+                    ];
+                    final s = samples[i];
+                    return SizedBox(
+                      width: 280,
+                      child: OfferCard(
+                        businessName: s.business,
+                        title: s.title,
+                        originalPrice: s.original,
+                        offerPrice: s.offer,
+                        currency: AppConfig.defaultCurrency,
+                        distanceKm: s.distance,
+                        timeLeft: s.time,
+                        verifiedPercent: s.verified,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          ],
         ),
       ),
     );
