@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/config/app_config.dart';
 import '../../core/theme/migo_colors.dart';
+import '../../widgets/category_grid.dart';
+import '../../widgets/flash_deal_card.dart';
 import '../../widgets/intention_chip.dart';
 import '../../widgets/offer_card.dart';
 import '../../widgets/section_header.dart';
@@ -141,7 +143,66 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+
+            // Flash Deals section
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: SectionHeader(
+                  title: '⚡ Flash Deals',
+                  actionLabel: 'See all',
+                ),
+              ),
+            ),
+
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 180,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: 3,
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
+                  itemBuilder: (context, i) {
+                    final samples = [
+                      (
+                        business: 'Shawarma Station',
+                        title: 'Chicken Shawarma Combo',
+                        original: 25.0,
+                        offer: 15.0,
+                        time: '45m left',
+                      ),
+                      (
+                        business: 'Karak House',
+                        title: 'Karak + Snack Box',
+                        original: 18.0,
+                        offer: 10.0,
+                        time: '1h 20m left',
+                      ),
+                      (
+                        business: 'Burger Bros',
+                        title: 'Double Burger Meal',
+                        original: 55.0,
+                        offer: 32.0,
+                        time: '2h left',
+                      ),
+                    ];
+                    final s = samples[i];
+                    return FlashDealCard(
+                      businessName: s.business,
+                      title: s.title,
+                      originalPrice: s.original,
+                      offerPrice: s.offer,
+                      currency: AppConfig.defaultCurrency,
+                      timeLeft: s.time,
+                    );
+                  },
+                ),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
             // Nearby Deals section
             const SliverToBoxAdapter(
@@ -211,7 +272,21 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            const SliverToBoxAdapter(child: SizedBox(height: 28)),
+
+            // Categories section
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: SectionHeader(title: 'Browse Categories'),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 12)),
+
+            const SliverToBoxAdapter(child: CategoryGrid()),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         ),
       ),
