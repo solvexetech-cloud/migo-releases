@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../core/config/app_config.dart';
 import '../../core/theme/migo_colors.dart';
@@ -10,6 +11,7 @@ import '../../widgets/offer_card.dart';
 import '../../widgets/pick_for_me_sheet.dart';
 import '../../widgets/section_header.dart';
 import '../deals/offer_detail_screen.dart';
+import '../notifications/notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -74,9 +76,57 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: MigoColors.textSecondaryLight,
                     ),
                     const Spacer(),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.notifications_outlined),
+                                        IconButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const NotificationsScreen(),
+                          ),
+                        );
+                      },
+                      icon: StreamBuilder<int>(
+                        stream: FirestoreService.instance
+                            .streamUnreadNotificationCount(
+                          FirebaseAuth.instance.currentUser?.uid ?? '',
+                        ),
+                        builder: (context, snap) {
+                          final count = snap.data ?? 0;
+                          if (count == 0) {
+                            return const Icon(
+                              Icons.notifications_outlined,
+                            );
+                          }
+                          return Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              const Icon(Icons.notifications_outlined),
+                              Positioned(
+                                right: -4,
+                                top: -4,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: MigoColors.error,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    count > 9 ? '9+' : '$count',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),

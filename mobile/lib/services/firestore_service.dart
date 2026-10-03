@@ -4,6 +4,7 @@ import '../models/business_model.dart';
 import '../models/claim_model.dart';
 import '../models/coin_transaction_model.dart';
 import '../models/group_deal_model.dart';
+import '../models/notification_model.dart';
 import '../models/offer_model.dart';
 import '../models/referral_model.dart';
 import '../models/review_model.dart';
@@ -263,12 +264,25 @@ class FirestoreService {
       'claimedCount': FieldValue.increment(1),
       'updatedAt': FieldValue.serverTimestamp(),
     });
-    await addCoins(
+        await addCoins(
       uid: claim.userUid,
       amount: 5,
       reason: 'Claimed "${claim.offerTitle}"',
     );
+
+    await createNotification(
+      NotificationModel.newDraft(
+        userUid: claim.userUid,
+        type: NotifType.coinEarned,
+        title: '+5 MIGO Coins',
+        body: 'You claimed "${claim.offerTitle}" at ${claim.businessName}.',
+        targetRoute: 'claim',
+        targetId: ref.id,
+      ),
+    );
+
     await _maybeRewardReferral(claim.userUid);
+
     return ref.id;
   }
 
@@ -340,10 +354,21 @@ class FirestoreService {
       'redeemedAt': FieldValue.serverTimestamp(),
       'redeemedBy': businessId,
     });
-    await addCoins(
+        await addCoins(
       uid: claim.userUid,
       amount: 25,
       reason: 'Redeemed "${claim.offerTitle}"',
+    );
+
+    await createNotification(
+      NotificationModel.newDraft(
+        userUid: claim.userUid,
+        type: NotifType.coinEarned,
+        title: '+25 MIGO Coins',
+        body:
+            'Your "${claim.offerTitle}" was redeemed at ${claim.businessName}.',
+        targetRoute: 'wallet',
+      ),
     );
   }
 
@@ -351,7 +376,7 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> get _reviews =>
       _db.collection('reviews');
 
-  Future<String> createReview(ReviewModel review) async {
+    Future<String> createReview(ReviewModel review) async {
     final ref = await _reviews.add(review.toMap());
 
     // Award +10 coins for a useful review
@@ -360,6 +385,32 @@ class FirestoreService {
       amount: 10,
       reason: 'Wrote review for ${review.businessName}',
     );
+
+    await createNotification(
+      NotificationModel.newDraft(
+        userUid: review.userUid,
+        type: NotifType.coinEarned,
+        title: '+10 MIGO Coins',
+        body: 'Thanks for reviewing ${review.businessName}.',
+        targetRoute: 'wallet',
+      ),
+    );
+
+    // Notify the business owner about the new review
+    final bizSnap = await _businesses.doc(review.businessId).get();
+    final ownerUid = bizSnap.data()?['ownerUid'] as String?;
+    if (ownerUid != null && ownerUid.isNotEmpty) {
+      await createNotification(
+        NotificationModel.newDraft(
+          userUid: ownerUid,
+          type: NotifType.newReview,
+          title: 'New review on ${review.businessName}',
+          body:
+              '${review.userDisplayName} rated ${review.rating}★ — "${review.comment}"',
+          targetRoute: 'business',
+        ),
+      );
+    }
 
     return ref.id;
   }
@@ -525,10 +576,87 @@ class FirestoreService {
       amount: referral.referrerReward,
       reason: 'Referral bonus (${map['email'] ?? uid})',
     );
-    await addCoins(
+        await addCoins(
       uid: uid,
       amount: referral.referredReward,
       reason: 'Welcome referral bonus',
     );
+
+    // Notify both sides about the reward
+    await createNotification(
+      NotificationModel.newDraft(
+        userUid: referredBy,
+        type: NotifType.referralReward,
+        title: 'Referral reward received',
+        body:
+            '+${referral.referrerReward} coins — your friend just made their first claim.',
+        targetRoute: 'wallet',
+      ),
+    );
+    await createNotification(
+      NotificationModel.newDraft(
+        userUid: uid,
+        type: NotifType.referralReward,
+        title: 'Welcome bonus unlocked',
+        body: '+${referral.referredReward} coins from your referral.',
+        targetRoute: 'wallet',
+      ),
+    );
+  }
+
+  // ---------- NOTIFICATIONS ----------
+
+  CollectionReference<Map<String, dynamic>> get _notifications =>
+      _db.collection('notifications');
+
+  Future<String> createNotification(NotificationModel n) async {
+    final ref = await _notifications.add(n.toMap());
+    return ref.id;
+  }
+
+  Stream<List<NotificationModel>> streamMyNotifications(
+    String userUid, {
+    int limit = 50,
+  }) {
+    return _notifications
+        .where('userUid', isEqualTo: userUid)
+        .limit(limit)
+        .snapshots()
+        .map((snap) {
+      final list = snap.docs
+          .map((d) => NotificationModel.fromMap(d.id, d.data()))
+          .toList();
+      list.sort((a, b) {
+        final ad = a.createdAt ?? DateTime(2000);
+        final bd = b.createdAt ?? DateTime(2000);
+        return bd.compareTo(ad);
+      });
+      return list;
+    });
+  }
+
+  Stream<int> streamUnreadNotificationCount(String userUid) {
+    return _notifications
+        .where('userUid', isEqualTo: userUid)
+        .where('read', isEqualTo: false)
+        .snapshots()
+        .map((snap) => snap.docs.length);
+  }
+
+  Future<void> markNotificationRead(String id) async {
+    await _notifications.doc(id).update({'read': true});
+  }
+
+  Future<void> markAllNotificationsRead(String userUid) async {
+    final snap = await _notifications
+        .where('userUid', isEqualTo: userUid)
+        .where('read', isEqualTo: false)
+        .limit(100)
+        .get();
+    final batch = _db.batch();
+    for (final doc in snap.docs) {
+      batch.update(doc.reference, {'read': true});
+    }
+    await batch.commit();
   }
 }
