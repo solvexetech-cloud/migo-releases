@@ -1,36 +1,23 @@
 import 'package:flutter/material.dart';
 import '../core/theme/migo_colors.dart';
+import '../models/offer_model.dart';
 
-/// Decision-focused offer card.
-/// Shows business, deal title, original price crossed, MIGO price,
-/// savings amount, distance, and time left.
+/// Decision-focused offer card built from an OfferModel.
 class OfferCard extends StatelessWidget {
   const OfferCard({
     super.key,
-    required this.businessName,
-    required this.title,
-    required this.originalPrice,
-    required this.offerPrice,
-    required this.currency,
-    required this.distanceKm,
-    this.timeLeft,
-    this.verifiedPercent,
-    this.imageUrl,
+    required this.offer,
+    this.distanceKm = 1.5,
+    this.verifiedPercent = 92,
     this.onTap,
   });
 
-  final String businessName;
-  final String title;
-  final double originalPrice;
-  final double offerPrice;
-  final String currency;
+  final OfferModel offer;
   final double distanceKm;
-  final String? timeLeft;
-  final int? verifiedPercent;
-  final String? imageUrl;
+  final int verifiedPercent;
   final VoidCallback? onTap;
 
-  double get _savings => originalPrice - offerPrice;
+  double get _savings => offer.savings;
 
   @override
   Widget build(BuildContext context) {
@@ -41,12 +28,11 @@ class OfferCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image / placeholder
             AspectRatio(
               aspectRatio: 16 / 9,
               child: Container(
                 color: MigoColors.primary.withValues(alpha: 0.08),
-                child: imageUrl == null
+                child: offer.imageUrl == null
                     ? const Center(
                         child: Icon(
                           Icons.image_outlined,
@@ -54,7 +40,7 @@ class OfferCard extends StatelessWidget {
                           color: MigoColors.primary,
                         ),
                       )
-                    : Image.network(imageUrl!, fit: BoxFit.cover),
+                    : Image.network(offer.imageUrl!, fit: BoxFit.cover),
               ),
             ),
             Padding(
@@ -63,7 +49,7 @@ class OfferCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    businessName.toUpperCase(),
+                    offer.businessName.toUpperCase(),
                     style: const TextStyle(
                       fontSize: 11,
                       letterSpacing: 1.2,
@@ -73,7 +59,7 @@ class OfferCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    title,
+                    offer.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -87,7 +73,7 @@ class OfferCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '$currency ${originalPrice.toStringAsFixed(0)}',
+                        '${offer.currency} ${offer.originalPrice.toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontSize: 13,
                           decoration: TextDecoration.lineThrough,
@@ -96,7 +82,7 @@ class OfferCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '$currency ${offerPrice.toStringAsFixed(0)}',
+                        '${offer.currency} ${offer.offerPrice.toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
@@ -116,7 +102,7 @@ class OfferCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      'SAVE $currency ${_savings.toStringAsFixed(0)}',
+                      'SAVE ${offer.currency} ${_savings.toStringAsFixed(0)}',
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -140,40 +126,21 @@ class OfferCard extends StatelessWidget {
                           color: MigoColors.textSecondaryLight,
                         ),
                       ),
-                      if (timeLeft != null) ...[
-                        const SizedBox(width: 12),
-                        const Icon(
-                          Icons.schedule,
-                          size: 14,
-                          color: MigoColors.warning,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          timeLeft!,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: MigoColors.warning,
-                          ),
-                        ),
-                      ],
-                      if (verifiedPercent != null) ...[
-                        const Spacer(),
-                        const Icon(
-                          Icons.verified,
-                          size: 14,
+                      const Spacer(),
+                      const Icon(
+                        Icons.verified,
+                        size: 14,
+                        color: MigoColors.success,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '$verifiedPercent%',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                           color: MigoColors.success,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '$verifiedPercent%',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: MigoColors.success,
-                          ),
-                        ),
-                      ],
+                      ),
                     ],
                   ),
                 ],

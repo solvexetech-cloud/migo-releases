@@ -1,30 +1,24 @@
 import 'package:flutter/material.dart';
 import '../core/theme/migo_colors.dart';
+import '../models/offer_model.dart';
 
-/// Urgent flash deal card. Red accent, countdown, big savings.
+/// Urgent flash deal card. Built from an OfferModel.
 class FlashDealCard extends StatelessWidget {
-  const FlashDealCard({
-    super.key,
-    required this.businessName,
-    required this.title,
-    required this.originalPrice,
-    required this.offerPrice,
-    required this.currency,
-    required this.timeLeft,
-    this.onTap,
-  });
+  const FlashDealCard({super.key, required this.offer, this.onTap});
 
-  final String businessName;
-  final String title;
-  final double originalPrice;
-  final double offerPrice;
-  final String currency;
-  final String timeLeft;
+  final OfferModel offer;
   final VoidCallback? onTap;
 
-  double get _savings => originalPrice - offerPrice;
-  int get _percentOff =>
-      originalPrice > 0 ? (((originalPrice - offerPrice) / originalPrice) * 100).round() : 0;
+  String _timeLeft() {
+    final now = DateTime.now();
+    final diff = offer.endAt.difference(now);
+    if (diff.isNegative) return 'Expired';
+    if (diff.inHours >= 24) return '${diff.inDays}d left';
+    if (diff.inHours >= 1) {
+      return '${diff.inHours}h ${diff.inMinutes % 60}m left';
+    }
+    return '${diff.inMinutes}m left';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +30,18 @@ class FlashDealCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: MigoColors.surfaceLight,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: MigoColors.error.withValues(alpha: 0.3)),
+          border: Border.all(
+            color: MigoColors.error.withValues(alpha: 0.3),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top strip with FLASH badge
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 6,
+              ),
               decoration: const BoxDecoration(
                 color: MigoColors.error,
                 borderRadius: BorderRadius.only(
@@ -70,7 +68,7 @@ class FlashDealCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
-                    timeLeft,
+                    _timeLeft(),
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -86,7 +84,7 @@ class FlashDealCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    businessName.toUpperCase(),
+                    offer.businessName.toUpperCase(),
                     style: const TextStyle(
                       fontSize: 10,
                       letterSpacing: 1.1,
@@ -96,7 +94,7 @@ class FlashDealCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    title,
+                    offer.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -110,7 +108,7 @@ class FlashDealCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '$currency ${originalPrice.toStringAsFixed(0)}',
+                        '${offer.currency} ${offer.originalPrice.toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontSize: 12,
                           decoration: TextDecoration.lineThrough,
@@ -119,7 +117,7 @@ class FlashDealCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        '$currency ${offerPrice.toStringAsFixed(0)}',
+                        '${offer.currency} ${offer.offerPrice.toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
@@ -141,7 +139,7 @@ class FlashDealCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          '$_percentOff% OFF',
+                          '${offer.percentOff}% OFF',
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
@@ -151,7 +149,7 @@ class FlashDealCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Save $currency ${_savings.toStringAsFixed(0)}',
+                        'Save ${offer.currency} ${offer.savings.toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,

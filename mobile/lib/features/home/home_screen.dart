@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/config/app_config.dart';
 import '../../core/theme/migo_colors.dart';
+import '../../models/offer_model.dart';
+import '../../services/firestore_service.dart';
 import '../../widgets/category_grid.dart';
 import '../../widgets/flash_deal_card.dart';
 import '../../widgets/intention_chip.dart';
@@ -98,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Pick For Me button
+            // Pick For Me
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
@@ -113,7 +115,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    icon: const Icon(Icons.auto_awesome, color: MigoColors.accent),
+                    icon: const Icon(
+                      Icons.auto_awesome,
+                      color: MigoColors.accent,
+                    ),
                     label: const Text(
                       'Pick For Me',
                       style: TextStyle(
@@ -126,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Search bar
+            // Search
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
@@ -138,7 +143,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     prefixIcon: const Icon(Icons.search),
                     filled: true,
                     fillColor: MigoColors.surfaceLight,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 14),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -174,129 +180,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
-            // Flash Deals
+            // Flash Deals（real data）
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
-                child: SectionHeader(
-                  title: '⚡ Flash Deals',
-                  actionLabel: 'See all',
-                ),
+                child: SectionHeader(title: '⚡ Flash Deals'),
               ),
             ),
             SliverToBoxAdapter(
-              child: SizedBox(
-                height: 180,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: 3,
-                  separatorBuilder: (_, _) => const SizedBox(width: 12),
-                  itemBuilder: (context, i) {
-                    final samples = [
-                      (
-                        business: 'Shawarma Station',
-                        title: 'Chicken Shawarma Combo',
-                        original: 25.0,
-                        offer: 15.0,
-                        time: '45m left',
-                      ),
-                      (
-                        business: 'Karak House',
-                        title: 'Karak + Snack Box',
-                        original: 18.0,
-                        offer: 10.0,
-                        time: '1h 20m left',
-                      ),
-                      (
-                        business: 'Burger Bros',
-                        title: 'Double Burger Meal',
-                        original: 55.0,
-                        offer: 32.0,
-                        time: '2h left',
-                      ),
-                    ];
-                    final s = samples[i];
-                    return FlashDealCard(
-                      businessName: s.business,
-                      title: s.title,
-                      originalPrice: s.original,
-                      offerPrice: s.offer,
-                      currency: AppConfig.defaultCurrency,
-                      timeLeft: s.time,
-                    );
-                  },
-                ),
-              ),
+              child: _FlashDealsRow(),
             ),
 
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-            // Nearby Deals
+            // Nearby Deals（real data）
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
-                child: SectionHeader(
-                  title: 'Nearby Deals',
-                  actionLabel: 'See all',
-                ),
+                child: SectionHeader(title: 'Nearby Deals'),
               ),
             ),
             SliverToBoxAdapter(
-              child: SizedBox(
-                height: 360,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: 3,
-                  separatorBuilder: (_, _) => const SizedBox(width: 12),
-                  itemBuilder: (context, i) {
-                    final samples = [
-                      (
-                        business: 'Karak House',
-                        title: 'Family Meal Deal',
-                        original: 42.0,
-                        offer: 35.0,
-                        distance: 1.8,
-                        time: 'Ends in 2h 15m',
-                        verified: 92,
-                      ),
-                      (
-                        business: 'Shawarma Station',
-                        title: 'Chicken Shawarma Combo',
-                        original: 25.0,
-                        offer: 18.0,
-                        distance: 0.9,
-                        time: 'Ends in 45m',
-                        verified: 88,
-                      ),
-                      (
-                        business: 'Cafe Mocha',
-                        title: 'Breakfast for Two',
-                        original: 60.0,
-                        offer: 45.0,
-                        distance: 2.4,
-                        time: null,
-                        verified: 95,
-                      ),
-                    ];
-                    final s = samples[i];
-                    return SizedBox(
-                      width: 280,
-                      child: OfferCard(
-                        businessName: s.business,
-                        title: s.title,
-                        originalPrice: s.original,
-                        offerPrice: s.offer,
-                        currency: AppConfig.defaultCurrency,
-                        distanceKm: s.distance,
-                        timeLeft: s.time,
-                        verifiedPercent: s.verified,
-                      ),
-                    );
-                  },
-                ),
-              ),
+              child: _NearbyDealsRow(),
             ),
 
             const SliverToBoxAdapter(child: SizedBox(height: 28)),
@@ -314,6 +219,114 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _FlashDealsRow extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<OfferModel>>(
+      stream: FirestoreService.instance.streamLiveOffersByType('flash'),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const SizedBox(
+            height: 180,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final offers = snap.data ?? [];
+        if (offers.isEmpty) {
+          return const SizedBox(
+            height: 100,
+            child: Center(
+              child: Text(
+                'No flash deals right now',
+                style: TextStyle(color: MigoColors.textSecondaryLight),
+              ),
+            ),
+          );
+        }
+        return SizedBox(
+          height: 180,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: offers.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            itemBuilder: (context, i) => FlashDealCard(offer: offers[i]),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _NearbyDealsRow extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<OfferModel>>(
+      stream: FirestoreService.instance.streamLiveOffers(limit: 10),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const SizedBox(
+            height: 360,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final offers = snap.data ?? [];
+        if (offers.isEmpty) {
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: MigoColors.surfaceLight,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: MigoColors.dividerLight),
+            ),
+            child: const Column(
+              children: [
+                Icon(
+                  Icons.local_offer_outlined,
+                  size: 48,
+                  color: MigoColors.primary,
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'No offers yet',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: MigoColors.textPrimaryLight,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Check back soon — new deals are on the way.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: MigoColors.textSecondaryLight,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        return SizedBox(
+          height: 360,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: offers.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            itemBuilder: (context, i) => SizedBox(
+              width: 280,
+              child: OfferCard(offer: offers[i]),
+            ),
+          ),
+        );
+      },
     );
   }
 }

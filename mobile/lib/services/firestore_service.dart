@@ -128,10 +128,25 @@ class FirestoreService {
             .toList());
   }
 
-  /// Stream all live offers（used by Home screen）.
+    /// Stream all live offers（used by Home screen）.
   Stream<List<OfferModel>> streamLiveOffers({int limit = 20}) {
     return _offers
         .where('status', isEqualTo: 'live')
+        .limit(limit)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((d) => OfferModel.fromMap(d.id, d.data()))
+            .toList());
+  }
+
+  /// Stream live offers by type（flash, group, etc.）.
+  Stream<List<OfferModel>> streamLiveOffersByType(
+    String type, {
+    int limit = 10,
+  }) {
+    return _offers
+        .where('status', isEqualTo: 'live')
+        .where('type', isEqualTo: type)
         .limit(limit)
         .snapshots()
         .map((snap) => snap.docs
