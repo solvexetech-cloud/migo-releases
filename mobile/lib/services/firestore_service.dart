@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/business_model.dart';
 import '../models/claim_model.dart';
+import '../models/coin_transaction_model.dart';
 import '../models/offer_model.dart';
 import '../models/user_model.dart';
 
@@ -61,6 +62,26 @@ class FirestoreService {
       'amount': amount,
       'reason': reason,
       'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // ---------- COIN TRANSACTIONS ----------
+
+  Stream<List<CoinTransactionModel>> streamCoinTransactions(
+    String uid, {
+    int limit = 30,
+  }) {
+    return _db
+        .collection('coin_transactions')
+        .where('uid', isEqualTo: uid)
+        .limit(limit)
+        .snapshots()
+        .map((snap) {
+      final list = snap.docs
+          .map((d) => CoinTransactionModel.fromMap(d.id, d.data()))
+          .toList();
+      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return list;
     });
   }
 
@@ -217,7 +238,6 @@ class FirestoreService {
     await _claims.doc(id).update(data);
   }
 
-  /// Redeem a claim by its Firestore ID.
   Future<void> redeemClaim({
     required String claimId,
     required String businessId,
