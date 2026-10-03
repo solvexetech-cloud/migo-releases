@@ -5,6 +5,7 @@ import '../../models/claim_model.dart';
 import '../../models/group_deal_model.dart';
 import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
+import '../reviews/business_reviews_screen.dart';
 
 class OfferDetailScreen extends StatefulWidget {
   const OfferDetailScreen({super.key, required this.offer});
@@ -148,13 +149,37 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.arrow_back),
                   ),
-                  Expanded(
-                    child: Text(
-                      o.businessName,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                                    Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => BusinessReviewsScreen(
+                              businessId: o.businessId,
+                              businessName: o.businessName,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              o.businessName,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(
+                            Icons.star,
+                            size: 14,
+                            color: MigoColors.accent,
+                          ),
+                        ],
                       ),
                     ),
                   ),

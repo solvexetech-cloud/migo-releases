@@ -6,6 +6,7 @@ import '../models/coin_transaction_model.dart';
 import '../models/group_deal_model.dart';
 import '../models/offer_model.dart';
 import '../models/referral_model.dart';
+import '../models/review_model.dart';
 import '../models/user_model.dart';
 
 class FirestoreService {
@@ -300,7 +301,6 @@ class FirestoreService {
             .toList());
   }
 
-  /// Stream all claims for a business (used by business analytics).
   Stream<List<ClaimModel>> streamBusinessClaims(String businessId) {
     return _claims
         .where('businessId', isEqualTo: businessId)
@@ -345,6 +345,74 @@ class FirestoreService {
       amount: 25,
       reason: 'Redeemed "${claim.offerTitle}"',
     );
+  }
+
+  // ---------- REVIEWS ----------
+  CollectionReference<Map<String, dynamic>> get _reviews =>
+      _db.collection('reviews');
+
+  Future<String> createReview(ReviewModel review) async {
+    final ref = await _reviews.add(review.toMap());
+
+    // Award +10 coins for a useful review
+    await addCoins(
+      uid: review.userUid,
+      amount: 10,
+      reason: 'Wrote review for ${review.businessName}',
+    );
+
+    return ref.id;
+  }
+
+  /// Has this user already reviewed this claim?
+  Future<bool> hasReviewedClaim(String claimId) async {
+    final snap =
+        await _reviews.where('claimId', isEqualTo: claimId).limit(1).get();
+    return snap.docs.isNotEmpty;
+  }
+
+  Stream<List<ReviewModel>> streamBusinessReviews(String businessId) {
+    return _reviews
+        .where('businessId', isEqualTo: businessId)
+        .limit(50)
+        .snapshots()
+        .map((snap) {
+      final list = snap.docs
+          .map((d) => ReviewModel.fromMap(d.id, d.data()))
+          .toList();
+      list.sort((a, b) {
+        final ad = a.createdAt ?? DateTime(2000);
+        final bd = b.createdAt ?? DateTime(2000);
+        return bd.compareTo(ad);
+      });
+      return list;
+    });
+  }
+
+  Stream<List<ReviewModel>> streamMyReviews(String uid) {
+    return _reviews
+        .where('userUid', isEqualTo: uid)
+        .limit(50)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((d) => ReviewModel.fromMap(d.id, d.data()))
+            .toList());
+  }
+
+  /// Compute average rating and count for a business (client-side).
+  Future<({double average, int count})> getBusinessRating(
+    String businessId,
+  ) async {
+    final snap = await _reviews
+        .where('businessId', isEqualTo: businessId)
+        .limit(200)
+        .get();
+    if (snap.docs.isEmpty) return (average: 0.0, count: 0);
+    double sum = 0;
+    for (final d in snap.docs) {
+      sum += ((d.data()['rating'] as num?) ?? 0).toDouble();
+    }
+    return (average: sum / snap.docs.length, count: snap.docs.length);
   }
 
   // ---------- REFERRALS ----------
