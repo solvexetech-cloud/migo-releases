@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/business_model.dart';
+import '../models/claim_model.dart';
 import '../models/offer_model.dart';
 import '../models/user_model.dart';
 
@@ -106,7 +107,6 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> get _offers =>
       _db.collection('offers');
 
-  /// Create a new offer. Returns the new document ID.
   Future<String> createOffer(OfferModel offer) async {
     final ref = await _offers.add(offer.toMap());
     return ref.id;
@@ -118,7 +118,6 @@ class FirestoreService {
     return OfferModel.fromMap(id, snap.data()!);
   }
 
-  /// Stream offers belonging to a specific business, newest first.
   Stream<List<OfferModel>> streamMyOffers(String businessId) {
     return _offers
         .where('businessId', isEqualTo: businessId)
@@ -128,7 +127,6 @@ class FirestoreService {
             .toList());
   }
 
-    /// Stream all live offers（used by Home screen）.
   Stream<List<OfferModel>> streamLiveOffers({int limit = 20}) {
     return _offers
         .where('status', isEqualTo: 'live')
@@ -139,7 +137,6 @@ class FirestoreService {
             .toList());
   }
 
-  /// Stream live offers by type（flash, group, etc.）.
   Stream<List<OfferModel>> streamLiveOffersByType(
     String type, {
     int limit = 10,
@@ -162,5 +159,69 @@ class FirestoreService {
       },
       SetOptions(merge: true),
     );
+  }
+
+  // ---------- CLAIMS ----------
+
+  CollectionReference<Map<String, dynamic>> get _claims =>
+      _db.collection('claims');
+
+  /// Create a claim. Returns the new claim ID.
+  /// Also increments offer's claimedCount and awards coins to user.
+  Future<String> createClaim(ClaimModel claim) async {
+    final ref = await _claims.add(claim.toMap());
+
+    // Increment claimed count on the offer
+    await _offers.doc(claim.offerId).update({
+      'claimedCount': FieldValue.increment(1),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+
+    // Award coins for claiming
+    await addCoins(
+      uid: claim.userUid,
+      amount: 5,
+      reason: 'Claimed "${claim.offerTitle}"',
+    );
+
+    return ref.id;
+  }
+
+  /// Has this user already claimed this offer (active or redeemed)?
+  Future<ClaimModel?> findActiveClaim({
+    required String userUid,
+    required String offerId,
+  }) async {
+    final snap = await _claims
+        .where('userUid', isEqualTo: userUid)
+        .where('offerId', isEqualTo: offerId)
+        .limit(10)
+        .get();
+
+    for (final doc in snap.docs) {
+      final claim = ClaimModel.fromMap(doc.id, doc.data());
+      if (claim.status == ClaimStatus.active ||
+          claim.status == ClaimStatus.redeemed) {
+        return claim;
+      }
+    }
+    return null;
+  }
+
+  /// Stream all claims for a user (newest first not guaranteed without index).
+  Stream<List<ClaimModel>> streamMyClaims(String userUid) {
+    return _claims
+        .where('userUid', isEqualTo: userUid)
+        .limit(50)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((d) => ClaimModel.fromMap(d.id, d.data()))
+            .toList());
+  }
+
+  Future<void> updateClaim(String id, Map<String, dynamic> data) async {
+    await _claims.doc(id).update({
+      ...data,
+    });
   }
 }

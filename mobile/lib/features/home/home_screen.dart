@@ -9,6 +9,7 @@ import '../../widgets/intention_chip.dart';
 import '../../widgets/offer_card.dart';
 import '../../widgets/pick_for_me_sheet.dart';
 import '../../widgets/section_header.dart';
+import '../deals/offer_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -38,7 +39,6 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // Top bar
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
@@ -46,14 +46,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       AppConfig.appName,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(
-                            color: MigoColors.primary,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 2,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: MigoColors.primary,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 2,
+                              ),
                     ),
                     const SizedBox(width: 12),
                     const Icon(
@@ -84,8 +82,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
-            // Greeting
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(20, 8, 20, 4),
@@ -99,8 +95,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
-            // Pick For Me
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
@@ -130,8 +124,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
-            // Search
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
@@ -153,8 +145,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
-            // Intention chips
             SliverToBoxAdapter(
               child: SizedBox(
                 height: 44,
@@ -177,36 +167,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
-
-            // Flash Deals（real data）
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: SectionHeader(title: '⚡ Flash Deals'),
               ),
             ),
-            SliverToBoxAdapter(
-              child: _FlashDealsRow(),
-            ),
-
+            const SliverToBoxAdapter(child: _FlashDealsRow()),
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-            // Nearby Deals（real data）
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: SectionHeader(title: 'Nearby Deals'),
               ),
             ),
-            SliverToBoxAdapter(
-              child: _NearbyDealsRow(),
-            ),
-
+            const SliverToBoxAdapter(child: _NearbyDealsRow()),
             const SliverToBoxAdapter(child: SizedBox(height: 28)),
-
-            // Categories
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
@@ -224,6 +201,8 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _FlashDealsRow extends StatelessWidget {
+  const _FlashDealsRow();
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<OfferModel>>(
@@ -254,7 +233,16 @@ class _FlashDealsRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: offers.length,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder: (context, i) => FlashDealCard(offer: offers[i]),
+            itemBuilder: (context, i) => FlashDealCard(
+              offer: offers[i],
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => OfferDetailScreen(offer: offers[i]),
+                  ),
+                );
+              },
+            ),
           ),
         );
       },
@@ -263,6 +251,8 @@ class _FlashDealsRow extends StatelessWidget {
 }
 
 class _NearbyDealsRow extends StatelessWidget {
+  const _NearbyDealsRow();
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<OfferModel>>(
@@ -322,7 +312,16 @@ class _NearbyDealsRow extends StatelessWidget {
             separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, i) => SizedBox(
               width: 280,
-              child: OfferCard(offer: offers[i]),
+              child: OfferCard(
+                offer: offers[i],
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => OfferDetailScreen(offer: offers[i]),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         );
