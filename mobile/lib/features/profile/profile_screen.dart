@@ -4,6 +4,7 @@ import '../../core/theme/migo_colors.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
+import '../business/my_business_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -46,7 +47,7 @@ class ProfileScreen extends StatelessWidget {
         stream: FirestoreService.instance.streamUser(firebaseUser.uid),
         builder: (context, snapshot) {
           final user = snapshot.data;
-          return Padding(
+          return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -90,7 +91,28 @@ class ProfileScreen extends StatelessWidget {
                   value: '${user?.city ?? 'Doha'}, ${user?.country ?? 'QA'}',
                   color: MigoColors.success,
                 ),
-                const Spacer(),
+                const SizedBox(height: 24),
+                const Text(
+                  'Business',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: MigoColors.textSecondaryLight,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _MenuTile(
+                  icon: Icons.storefront_outlined,
+                  label: 'My Business',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MyBusinessScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
                 OutlinedButton.icon(
                   onPressed: () => _signOut(context),
                   icon: const Icon(Icons.logout),
@@ -150,6 +172,54 @@ class _StatCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MenuTile extends StatelessWidget {
+  const _MenuTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: MigoColors.surfaceLight,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: MigoColors.dividerLight),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: MigoColors.primary, size: 22),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: MigoColors.textPrimaryLight,
+                ),
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              color: MigoColors.textSecondaryLight,
+            ),
+          ],
+        ),
       ),
     );
   }
