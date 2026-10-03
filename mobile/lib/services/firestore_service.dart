@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/business_model.dart';
+import '../models/offer_model.dart';
 import '../models/user_model.dart';
 
 /// All Firestore reads/writes for MIGO go through here.
@@ -67,7 +68,6 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> get _businesses =>
       _db.collection('businesses');
 
-  /// Create a new business. Returns the new document ID.
   Future<String> createBusiness(BusinessModel business) async {
     final ref = await _businesses.add(business.toMap());
     return ref.id;
@@ -79,7 +79,6 @@ class FirestoreService {
     return BusinessModel.fromMap(id, snap.data()!);
   }
 
-  /// Stream the current owner's business（one per owner for now）.
   Stream<BusinessModel?> streamMyBusiness(String ownerUid) {
     return _businesses
         .where('ownerUid', isEqualTo: ownerUid)
@@ -92,11 +91,56 @@ class FirestoreService {
     });
   }
 
-  Future<void> updateBusiness(
-    String id,
-    Map<String, dynamic> data,
-  ) async {
+  Future<void> updateBusiness(String id, Map<String, dynamic> data) async {
     await _businesses.doc(id).set(
+      {
+        ...data,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  // ---------- OFFERS ----------
+
+  CollectionReference<Map<String, dynamic>> get _offers =>
+      _db.collection('offers');
+
+  /// Create a new offer. Returns the new document ID.
+  Future<String> createOffer(OfferModel offer) async {
+    final ref = await _offers.add(offer.toMap());
+    return ref.id;
+  }
+
+  Future<OfferModel?> getOffer(String id) async {
+    final snap = await _offers.doc(id).get();
+    if (!snap.exists || snap.data() == null) return null;
+    return OfferModel.fromMap(id, snap.data()!);
+  }
+
+  /// Stream offers belonging to a specific business, newest first.
+  Stream<List<OfferModel>> streamMyOffers(String businessId) {
+    return _offers
+        .where('businessId', isEqualTo: businessId)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((d) => OfferModel.fromMap(d.id, d.data()))
+            .toList());
+  }
+
+  /// Stream all live offers（used by Home screen）.
+  Stream<List<OfferModel>> streamLiveOffers({int limit = 20}) {
+    return _offers
+        .where('status', isEqualTo: 'live')
+        .limit(limit)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((d) => OfferModel.fromMap(d.id, d.data()))
+            .toList());
+  }
+
+  Future<void> updateOffer(String id, Map<String, dynamic> data) async {
+    await _offers.doc(id).set(
       {
         ...data,
         'updatedAt': FieldValue.serverTimestamp(),
