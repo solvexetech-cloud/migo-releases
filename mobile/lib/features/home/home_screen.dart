@@ -46,7 +46,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Step 4 complete: theme & structure ready.',
+                      'Step 10 complete: bottom navigation ready.',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
