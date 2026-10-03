@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/config/app_config.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../services/auth_service.dart';
+import '../../services/firestore_service.dart';
 import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
+  final _referralController = TextEditingController();
   bool _loading = false;
   bool _obscure = true;
   String? _error;
@@ -24,6 +26,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
+    _referralController.dispose();
     super.dispose();
   }
 
@@ -33,6 +36,7 @@ class _SignupScreenState extends State<SignupScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     final confirm = _confirmController.text;
+    final referralCode = _referralController.text.trim().toUpperCase();
 
     if (email.isEmpty || password.isEmpty) {
       setState(() => _error = 'Please fill in all fields.');
@@ -49,7 +53,34 @@ class _SignupScreenState extends State<SignupScreen> {
 
     setState(() => _loading = true);
     try {
-      await AuthService.instance.signUp(email: email, password: password);
+      String? referrerUid;
+      if (referralCode.isNotEmpty) {
+        referrerUid = await FirestoreService.instance
+            .findUidByReferralCode(referralCode);
+        if (referrerUid == null) {
+          if (!mounted) return;
+          setState(() {
+            _error = 'Referral code not found.';
+            _loading = false;
+          });
+          return;
+        }
+      }
+
+      final cred = await AuthService.instance.signUp(
+        email: email,
+        password: password,
+      );
+
+      final newUid = cred.user?.uid;
+      if (newUid != null && referrerUid != null && referrerUid.isNotEmpty) {
+        await FirestoreService.instance.recordReferral(
+          referrerUid: referrerUid,
+          referredUid: newUid,
+          referredEmail: email,
+          referralCode: referralCode,
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = AuthService.instance.describeError(e));
@@ -115,6 +146,16 @@ class _SignupScreenState extends State<SignupScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Confirm password',
                   prefixIcon: Icon(Icons.lock_outline),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _referralController,
+                textCapitalization: TextCapitalization.characters,
+                decoration: const InputDecoration(
+                  labelText: 'Referral code (optional)',
+                  prefixIcon: Icon(Icons.card_giftcard),
                   border: OutlineInputBorder(),
                 ),
               ),

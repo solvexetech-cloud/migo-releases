@@ -6,6 +6,7 @@ import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../business/my_business_screen.dart';
 import '../deals/my_claims_screen.dart';
+import '../referrals/referral_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -89,7 +90,8 @@ class ProfileScreen extends StatelessWidget {
                 _StatCard(
                   icon: Icons.place_outlined,
                   label: 'Location',
-                  value: '${user?.city ?? 'Doha'}, ${user?.country ?? 'QA'}',
+                  value:
+                      '${user?.city ?? 'Doha'}, ${user?.country ?? 'QA'}',
                   color: MigoColors.success,
                 ),
                 const SizedBox(height: 24),
@@ -109,6 +111,18 @@ class ProfileScreen extends StatelessWidget {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => const MyClaimsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                _MenuTile(
+                  icon: Icons.card_giftcard,
+                  label: 'Invite Friends',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ReferralScreen(),
                       ),
                     );
                   },

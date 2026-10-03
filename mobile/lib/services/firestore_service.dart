@@ -1,8 +1,10 @@
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/business_model.dart';
 import '../models/claim_model.dart';
 import '../models/coin_transaction_model.dart';
 import '../models/offer_model.dart';
+import '../models/referral_model.dart';
 import '../models/user_model.dart';
 
 /// All Firestore reads/writes for MIGO go through here.
@@ -201,6 +203,8 @@ class FirestoreService {
       reason: 'Claimed "${claim.offerTitle}"',
     );
 
+    await _maybeRewardReferral(claim.userUid);
+
     return ref.id;
   }
 
@@ -270,6 +274,137 @@ class FirestoreService {
       uid: claim.userUid,
       amount: 25,
       reason: 'Redeemed "${claim.offerTitle}"',
+    );
+  }
+
+  // ---------- REFERRALS ----------
+
+  CollectionReference<Map<String, dynamic>> get _referrals =>
+      _db.collection('referrals');
+
+  String generateReferralCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final rand = Random.secure();
+    return List.generate(6, (_) => chars[rand.nextInt(chars.length)]).join();
+  }
+
+  Future<String> ensureReferralCode(String uid) async {
+    final snap = await _users.doc(uid).get();
+    final existing = (snap.data()?['referralCode'] as String?) ?? '';
+    if (existing.isNotEmpty) return existing;
+
+    final code = generateReferralCode();
+    await _users.doc(uid).set(
+      {
+        'referralCode': code,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+    return code;
+  }
+
+  Future<String?> findUidByReferralCode(String code) async {
+    final snap = await _users
+        .where('referralCode', isEqualTo: code.toUpperCase())
+        .limit(1)
+        .get();
+    if (snap.docs.isEmpty) return null;
+    return snap.docs.first.id;
+  }
+
+  Future<void> recordReferral({
+    required String referrerUid,
+    required String referredUid,
+    required String referredEmail,
+    required String referralCode,
+  }) async {
+    if (referrerUid == referredUid) {
+      throw Exception('You cannot refer yourself.');
+    }
+
+    final existing = await _referrals
+        .where('referredUid', isEqualTo: referredUid)
+        .limit(1)
+        .get();
+    if (existing.docs.isNotEmpty) {
+      return;
+    }
+
+    final ref = ReferralModel(
+      id: '',
+      referrerUid: referrerUid,
+      referralCode: referralCode.toUpperCase(),
+      referredUid: referredUid,
+      referredEmail: referredEmail,
+      createdAt: DateTime.now(),
+    );
+
+    await _referrals.add(ref.toMap());
+
+    await _users.doc(referredUid).set(
+      {
+        'referredBy': referrerUid,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+  }
+
+  Stream<List<ReferralModel>> streamMyReferrals(String referrerUid) {
+    return _referrals
+        .where('referrerUid', isEqualTo: referrerUid)
+        .limit(50)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((d) => ReferralModel.fromMap(d.id, d.data()))
+            .toList());
+  }
+
+  Future<void> _maybeRewardReferral(String uid) async {
+    final userSnap = await _users.doc(uid).get();
+    if (!userSnap.exists) return;
+    final map = userSnap.data()!;
+    final already = (map['hasCompletedFirstClaim'] ?? false) as bool;
+    if (already) return;
+
+    await _users.doc(uid).set(
+      {
+        'hasCompletedFirstClaim': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+
+    final referredBy = map['referredBy'] as String?;
+    if (referredBy == null || referredBy.isEmpty) return;
+
+    final refSnap = await _referrals
+        .where('referredUid', isEqualTo: uid)
+        .where('referrerUid', isEqualTo: referredBy)
+        .limit(1)
+        .get();
+    if (refSnap.docs.isEmpty) return;
+
+    final refDoc = refSnap.docs.first;
+    final referral = ReferralModel.fromMap(refDoc.id, refDoc.data());
+    if (referral.status != ReferralStatus.pending) return;
+
+    await _referrals.doc(refDoc.id).update({
+      'status': ReferralStatus.rewarded.id,
+      'rewardedAt': FieldValue.serverTimestamp(),
+      'referredFirstClaimAt': FieldValue.serverTimestamp(),
+    });
+
+    await addCoins(
+      uid: referredBy,
+      amount: referral.referrerReward,
+      reason: 'Referral bonus (${map['email'] ?? uid})',
+    );
+    await addCoins(
+      uid: uid,
+      amount: referral.referredReward,
+      reason: 'Welcome referral bonus',
     );
   }
 }
