@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../core/theme/migo_colors.dart';
+import '../core/theme/migo_gradients.dart';
+import '../core/theme/migo_shadows.dart';
 import '../models/offer_model.dart';
 
-/// Decision-focused offer card built from an OfferModel.
+/// Decision-focused offer card. Gradient image placeholder,
+/// big price, savings badge, elevated soft shadow.
 class OfferCard extends StatelessWidget {
   const OfferCard({
     super.key,
@@ -17,136 +20,243 @@ class OfferCard extends StatelessWidget {
   final int verifiedPercent;
   final VoidCallback? onTap;
 
-  double get _savings => offer.savings;
+  /// Map category → gradient color for placeholder image.
+  LinearGradient _placeholderGradient() {
+    final c = offer.category.toLowerCase();
+    if (c.contains('food')) {
+      return const LinearGradient(
+        colors: [Color(0xFFFFE0B2), Color(0xFFFFB74D)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    }
+    if (c.contains('beauty')) {
+      return const LinearGradient(
+        colors: [Color(0xFFF8BBD0), Color(0xFFE91E63)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    }
+    if (c.contains('auto')) {
+      return const LinearGradient(
+        colors: [Color(0xFFB0BEC5), Color(0xFF546E7A)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    }
+    if (c.contains('fitness')) {
+      return const LinearGradient(
+        colors: [Color(0xFFA5D6A7), Color(0xFF43A047)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    }
+    return MigoGradients.heroBlue;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Container(
-                color: MigoColors.primary.withValues(alpha: 0.08),
-                child: offer.imageUrl == null
-                    ? const Center(
-                        child: Icon(
-                          Icons.image_outlined,
-                          size: 48,
-                          color: MigoColors.primary,
-                        ),
-                      )
-                    : Image.network(offer.imageUrl!, fit: BoxFit.cover),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    offer.businessName.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 11,
-                      letterSpacing: 1.2,
-                      fontWeight: FontWeight.w700,
-                      color: MigoColors.textSecondaryLight,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    offer.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: MigoColors.textPrimaryLight,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+    return Container(
+      decoration: BoxDecoration(
+        color: MigoColors.surfaceLight,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: MigoShadows.soft,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onTap,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image / gradient placeholder with type badge
+                AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Stack(
+                    fit: StackFit.expand,
                     children: [
-                      Text(
-                        '${offer.currency} ${offer.originalPrice.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          decoration: TextDecoration.lineThrough,
-                          color: MigoColors.textSecondaryLight,
+                      if (offer.imageUrl != null)
+                        Image.network(offer.imageUrl!, fit: BoxFit.cover)
+                      else
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: _placeholderGradient(),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.local_offer,
+                              size: 44,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      // Type badge (top-left)
+                      Positioned(
+                        top: 10,
+                        left: 10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.95),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            offer.type.label.toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1,
+                              color: MigoColors.primary,
+                            ),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      // Discount badge (top-right)
+                      Positioned(
+                        top: 10,
+                        right: 10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: MigoGradients.success,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '${offer.percentOff}% OFF',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        '${offer.currency} ${offer.offerPrice.toStringAsFixed(0)}',
+                        offer.businessName.toUpperCase(),
                         style: const TextStyle(
-                          fontSize: 22,
+                          fontSize: 10,
+                          letterSpacing: 1.2,
                           fontWeight: FontWeight.w800,
-                          color: MigoColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: MigoColors.success.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      'SAVE ${offer.currency} ${_savings.toStringAsFixed(0)}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: MigoColors.success,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.place_outlined,
-                        size: 14,
-                        color: MigoColors.textSecondaryLight,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${distanceKm.toStringAsFixed(1)} km',
-                        style: const TextStyle(
-                          fontSize: 12,
                           color: MigoColors.textSecondaryLight,
                         ),
                       ),
-                      const Spacer(),
-                      const Icon(
-                        Icons.verified,
-                        size: 14,
-                        color: MigoColors.success,
-                      ),
-                      const SizedBox(width: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        '$verifiedPercent%',
+                        offer.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: MigoColors.success,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: MigoColors.textPrimaryLight,
+                          height: 1.2,
                         ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '${offer.currency} ${offer.offerPrice.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w900,
+                              color: MigoColors.primary,
+                              height: 1,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 3),
+                            child: Text(
+                              '${offer.currency} ${offer.originalPrice.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                decoration: TextDecoration.lineThrough,
+                                color: MigoColors.textSecondaryLight,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: MigoColors.success.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'SAVE ${offer.currency} ${offer.savings.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            color: MigoColors.success,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.place_outlined,
+                            size: 13,
+                            color: MigoColors.textSecondaryLight,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${distanceKm.toStringAsFixed(1)} km',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: MigoColors.textSecondaryLight,
+                            ),
+                          ),
+                          const Spacer(),
+                          const Icon(
+                            Icons.verified,
+                            size: 13,
+                            color: MigoColors.success,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            '$verifiedPercent%',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: MigoColors.success,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

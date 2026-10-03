@@ -2,11 +2,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../core/config/app_config.dart';
 import '../../core/theme/migo_colors.dart';
+import '../../core/theme/migo_gradients.dart';
+import '../../core/theme/migo_shadows.dart';
 import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
 import '../../widgets/category_grid.dart';
 import '../../widgets/flash_deal_card.dart';
 import '../../widgets/intention_chip.dart';
+import '../../widgets/migo_gold_button.dart';
 import '../../widgets/offer_card.dart';
 import '../../widgets/pick_for_me_sheet.dart';
 import '../../widgets/section_header.dart';
@@ -38,164 +41,193 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: Row(
-                  children: [
-                    Text(
-                      AppConfig.appName,
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: MigoColors.primary,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 2,
-                              ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Icon(
-                      Icons.place,
-                      size: 16,
-                      color: MigoColors.primary,
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      'Doha, Qatar',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: MigoColors.textPrimaryLight,
-                      ),
-                    ),
-                    const Icon(
-                      Icons.keyboard_arrow_down,
-                      size: 18,
-                      color: MigoColors.textSecondaryLight,
-                    ),
-                    const Spacer(),
-                                        IconButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                const NotificationsScreen(),
+      body: CustomScrollView(
+        slivers: [
+          // Gradient hero header
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: MigoGradients.heroBlue,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(28),
+                  bottomRight: Radius.circular(28),
+                ),
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Top row — MIGO + location + notification
+                      Row(
+                        children: [
+                          const Text(
+                            AppConfig.appName,
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: 2.5,
+                            ),
                           ),
-                        );
-                      },
-                      icon: StreamBuilder<int>(
-                        stream: FirestoreService.instance
-                            .streamUnreadNotificationCount(
-                          FirebaseAuth.instance.currentUser?.uid ?? '',
-                        ),
-                        builder: (context, snap) {
-                          final count = snap.data ?? 0;
-                          if (count == 0) {
-                            return const Icon(
-                              Icons.notifications_outlined,
-                            );
-                          }
-                          return Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              const Icon(Icons.notifications_outlined),
-                              Positioned(
-                                right: -4,
-                                top: -4,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 5,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: MigoColors.error,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    count > 9 ? '9+' : '$count',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                          const SizedBox(width: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.place,
+                                  size: 12,
+                                  color: MigoColors.accent,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Doha',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
                                   ),
                                 ),
+                                Icon(
+                                  Icons.keyboard_arrow_down,
+                                  size: 14,
+                                  color: Colors.white70,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const NotificationsScreen(),
+                                ),
+                              );
+                            },
+                            icon: StreamBuilder<int>(
+                              stream: FirestoreService.instance
+                                  .streamUnreadNotificationCount(
+                                FirebaseAuth.instance.currentUser?.uid ?? '',
                               ),
-                            ],
-                          );
-                        },
+                              builder: (context, snap) {
+                                final count = snap.data ?? 0;
+                                if (count == 0) {
+                                  return const Icon(
+                                    Icons.notifications_outlined,
+                                    color: Colors.white,
+                                  );
+                                }
+                                return Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    const Icon(
+                                      Icons.notifications_outlined,
+                                      color: Colors.white,
+                                    ),
+                                    Positioned(
+                                      right: -4,
+                                      top: -4,
+                                      child: Container(
+                                        padding:
+                                            const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: MigoColors.error,
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: Text(
+                                          count > 9 ? '9+' : '$count',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(20, 8, 20, 4),
-                child: Text(
-                  'What can you discover or save today?',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: MigoColors.textPrimaryLight,
+                      const SizedBox(height: 18),
+                      const Text(
+                        'What can you discover\nor save today?',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          height: 1.25,
+                          letterSpacing: -0.4,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      MigoGoldButton(
+                        label: 'Pick For Me',
+                        icon: Icons.auto_awesome,
+                        onPressed: () => PickForMeSheet.show(context),
+                      ),
+                      const SizedBox(height: 12),
+                      // Search bar（white on gradient）
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: MigoShadows.soft,
+                        ),
+                        child: TextField(
+                          readOnly: true,
+                          onTap: () {},
+                          decoration: InputDecoration(
+                            hintText:
+                                'Search businesses, deals, cuisines...',
+                            hintStyle: const TextStyle(
+                              color: MigoColors.textSecondaryLight,
+                              fontSize: 14,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.search,
+                              color: MigoColors.primary,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 14),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-                child: SizedBox(
-                  height: 52,
-                  child: ElevatedButton.icon(
-                    onPressed: () => PickForMeSheet.show(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: MigoColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: const Icon(
-                      Icons.auto_awesome,
-                      color: MigoColors.accent,
-                    ),
-                    label: const Text(
-                      'Pick For Me',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-                child: TextField(
-                  readOnly: true,
-                  onTap: () {},
-                  decoration: InputDecoration(
-                    hintText: 'Search businesses, deals, cuisines...',
-                    prefixIcon: const Icon(Icons.search),
-                    filled: true,
-                    fillColor: MigoColors.surfaceLight,
-                    contentPadding:
-                        const EdgeInsets.symmetric(vertical: 14),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
+          ),
+
+          // Intention chips — overlapping the hero
+          SliverToBoxAdapter(
+            child: Transform.translate(
+              offset: const Offset(0, -14),
               child: SizedBox(
                 height: 44,
                 child: ListView.separated(
@@ -217,34 +249,43 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 20)),
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: SectionHeader(title: '⚡ Flash Deals'),
-              ),
+          ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 8)),
+
+          // Flash Deals
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: SectionHeader(title: '⚡ Flash Deals'),
             ),
-            const SliverToBoxAdapter(child: _FlashDealsRow()),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: SectionHeader(title: 'Nearby Deals'),
-              ),
+          ),
+          const SliverToBoxAdapter(child: _FlashDealsRow()),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+          // Nearby Deals
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: SectionHeader(title: 'Nearby Deals'),
             ),
-            const SliverToBoxAdapter(child: _NearbyDealsRow()),
-            const SliverToBoxAdapter(child: SizedBox(height: 28)),
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: SectionHeader(title: 'Browse Categories'),
-              ),
+          ),
+          const SliverToBoxAdapter(child: _NearbyDealsRow()),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 28)),
+
+          // Categories
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: SectionHeader(title: 'Browse Categories'),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 12)),
-            const SliverToBoxAdapter(child: CategoryGrid()),
-            const SliverToBoxAdapter(child: SizedBox(height: 32)),
-          ],
-        ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 12)),
+          const SliverToBoxAdapter(child: CategoryGrid()),
+          const SliverToBoxAdapter(child: SizedBox(height: 32)),
+        ],
       ),
     );
   }

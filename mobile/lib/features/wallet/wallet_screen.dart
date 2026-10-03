@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../core/theme/migo_colors.dart';
+import '../../core/theme/migo_gradients.dart';
+import '../../core/theme/migo_shadows.dart';
 import '../../models/claim_model.dart';
 import '../../models/coin_transaction_model.dart';
 import '../../models/user_model.dart';
@@ -28,55 +30,90 @@ class WalletScreen extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             children: [
               // Coin balance card
-              Container(
+                            Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [MigoColors.primary, MigoColors.primaryLight],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
+                  gradient: MigoGradients.heroBlue,
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: MigoShadows.strong,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Stack(
                   children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.monetization_on,
-                          color: MigoColors.accent,
-                          size: 22,
+                    // Decorative circle top-right
+                    Positioned(
+                      right: -30,
+                      top: -30,
+                      child: Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: MigoColors.accent.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(width: 8),
+                      ),
+                    ),
+                    Positioned(
+                      right: 30,
+                      bottom: -20,
+                      child: Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.05),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                gradient: MigoGradients.gold,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.monetization_on,
+                                color: Colors.black,
+                                size: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            const Text(
+                              'MIGO COINS',
+                              style: TextStyle(
+                                fontSize: 11,
+                                letterSpacing: 2.5,
+                                fontWeight: FontWeight.w900,
+                                color: MigoColors.accent,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          '${user?.coins ?? 0}',
+                          style: const TextStyle(
+                            fontSize: 52,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            height: 1,
+                            letterSpacing: -1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
                         const Text(
-                          'MIGO COINS',
+                          'Earn more by claiming and redeeming deals',
                           style: TextStyle(
-                            fontSize: 11,
-                            letterSpacing: 2,
-                            fontWeight: FontWeight.w800,
-                            color: MigoColors.accent,
+                            fontSize: 12,
+                            color: Colors.white70,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      '${user?.coins ?? 0}',
-                      style: const TextStyle(
-                        fontSize: 44,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        height: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Earn more by claiming and redeeming deals',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white70,
-                      ),
                     ),
                   ],
                 ),
