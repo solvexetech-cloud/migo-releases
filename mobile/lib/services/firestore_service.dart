@@ -166,18 +166,14 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> get _claims =>
       _db.collection('claims');
 
-  /// Create a claim. Returns the new claim ID.
-  /// Also increments offer's claimedCount and awards coins to user.
   Future<String> createClaim(ClaimModel claim) async {
     final ref = await _claims.add(claim.toMap());
 
-    // Increment claimed count on the offer
     await _offers.doc(claim.offerId).update({
       'claimedCount': FieldValue.increment(1),
       'updatedAt': FieldValue.serverTimestamp(),
     });
 
-    // Award coins for claiming
     await addCoins(
       uid: claim.userUid,
       amount: 5,
@@ -187,7 +183,6 @@ class FirestoreService {
     return ref.id;
   }
 
-  /// Has this user already claimed this offer (active or redeemed)?
   Future<ClaimModel?> findActiveClaim({
     required String userUid,
     required String offerId,
@@ -208,7 +203,6 @@ class FirestoreService {
     return null;
   }
 
-  /// Stream all claims for a user (newest first not guaranteed without index).
   Stream<List<ClaimModel>> streamMyClaims(String userUid) {
     return _claims
         .where('userUid', isEqualTo: userUid)
@@ -220,8 +214,42 @@ class FirestoreService {
   }
 
   Future<void> updateClaim(String id, Map<String, dynamic> data) async {
-    await _claims.doc(id).update({
-      ...data,
+    await _claims.doc(id).update(data);
+  }
+
+  /// Redeem a claim by its Firestore ID.
+  Future<void> redeemClaim({
+    required String claimId,
+    required String businessId,
+  }) async {
+    final snap = await _claims.doc(claimId).get();
+    if (!snap.exists || snap.data() == null) {
+      throw Exception('Claim not found');
+    }
+    final claim = ClaimModel.fromMap(claimId, snap.data()!);
+
+    if (claim.businessId != businessId) {
+      throw Exception('This claim belongs to a different business.');
+    }
+    if (claim.status != ClaimStatus.active) {
+      throw Exception(
+        'Claim is already ${claim.status.label.toLowerCase()}.',
+      );
+    }
+    if (claim.expiresAt.isBefore(DateTime.now())) {
+      throw Exception('This claim has expired.');
+    }
+
+    await _claims.doc(claimId).update({
+      'status': ClaimStatus.redeemed.id,
+      'redeemedAt': FieldValue.serverTimestamp(),
+      'redeemedBy': businessId,
     });
+
+    await addCoins(
+      uid: claim.userUid,
+      amount: 25,
+      reason: 'Redeemed "${claim.offerTitle}"',
+    );
   }
 }

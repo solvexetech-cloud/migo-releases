@@ -5,6 +5,7 @@ import '../../models/business_model.dart';
 import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
 import 'create_offer_screen.dart';
+import 'redeem_screen.dart';
 import 'register_business_screen.dart';
 
 class MyBusinessScreen extends StatelessWidget {
@@ -214,12 +215,27 @@ class MyBusinessScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                SizedBox(
+                                SizedBox(
                   height: 52,
                   child: ElevatedButton.icon(
                     onPressed: () => _openCreateOffer(context, biz),
                     icon: const Icon(Icons.add),
                     label: const Text('Create offer'),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 52,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => RedeemScreen(business: biz),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.qr_code_scanner),
+                    label: const Text('Redeem claim'),
                   ),
                 ),
               ],

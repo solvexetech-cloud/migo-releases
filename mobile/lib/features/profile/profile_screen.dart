@@ -5,6 +5,7 @@ import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../business/my_business_screen.dart';
+import '../deals/my_claims_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -90,6 +91,27 @@ class ProfileScreen extends StatelessWidget {
                   label: 'Location',
                   value: '${user?.city ?? 'Doha'}, ${user?.country ?? 'QA'}',
                   color: MigoColors.success,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Activity',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: MigoColors.textSecondaryLight,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _MenuTile(
+                  icon: Icons.receipt_long_outlined,
+                  label: 'My Claims',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MyClaimsScreen(),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 24),
                 const Text(
