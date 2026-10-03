@@ -21,183 +21,215 @@ class WalletScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Wallet')),
       body: StreamBuilder<UserModel?>(
         stream: FirestoreService.instance.streamUser(uid),
         builder: (context, userSnap) {
           final user = userSnap.data;
-          return ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              // Coin balance card
-                            Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: MigoGradients.heroBlue,
-                  borderRadius: BorderRadius.circular(22),
-                  boxShadow: MigoShadows.strong,
-                ),
-                child: Stack(
-                  children: [
-                    // Decorative circle top-right
-                    Positioned(
-                      right: -30,
-                      top: -30,
-                      child: Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: MigoColors.accent.withValues(alpha: 0.15),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
+          return CustomScrollView(
+            slivers: [
+              // Deep Blue gradient header with coin card
+              SliverToBoxAdapter(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: MigoGradients.heroBlue,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(28),
+                      bottomRight: Radius.circular(28),
                     ),
-                    Positioned(
-                      right: 30,
-                      bottom: -20,
-                      child: Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.05),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                gradient: MigoGradients.gold,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(
-                                Icons.monetization_on,
-                                color: Colors.black,
-                                size: 16,
+                  ),
+                  child: SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Wallet',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: -0.4,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          // Coin card
+                          Container(
+                            padding: const EdgeInsets.all(22),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                width: 1,
                               ),
                             ),
-                            const SizedBox(width: 10),
-                            const Text(
-                              'MIGO COINS',
-                              style: TextStyle(
-                                fontSize: 11,
-                                letterSpacing: 2.5,
-                                fontWeight: FontWeight.w900,
-                                color: MigoColors.accent,
-                              ),
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  right: -20,
+                                  top: -20,
+                                  child: Container(
+                                    width: 100,
+                                    height: 100,
+                                    decoration: BoxDecoration(
+                                      color: MigoColors.accent
+                                          .withValues(alpha: 0.15),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                                Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
+                                            gradient: MigoGradients.gold,
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: const Icon(
+                                            Icons.monetization_on,
+                                            color: Colors.black,
+                                            size: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        const Text(
+                                          'MIGO COINS',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            letterSpacing: 2.5,
+                                            fontWeight: FontWeight.w900,
+                                            color: MigoColors.accent,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 14),
+                                    Text(
+                                      '${user?.coins ?? 0}',
+                                      style: const TextStyle(
+                                        fontSize: 54,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white,
+                                        height: 1,
+                                        letterSpacing: -2,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    const Text(
+                                      'Earn more by claiming and redeeming deals',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Stats grid
+                      _StatsGrid(uid: uid),
+                      const SizedBox(height: 20),
+                      // Savings
+                      _SavingsCard(uid: uid),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Recent activity',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: MigoColors.textPrimaryLight,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      _ActivityList(uid: uid),
+                      const SizedBox(height: 24),
+                      // Earn more
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              MigoColors.accent.withValues(alpha: 0.12),
+                              MigoColors.accent.withValues(alpha: 0.04),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: MigoColors.accent.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.tips_and_updates_outlined,
+                                  color: MigoColors.accentDark,
+                                  size: 20,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Earn more coins',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    color: MigoColors.textPrimaryLight,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 10),
+                            _EarnRow(
+                              icon: Icons.redeem,
+                              text: 'Claim a deal  +5',
+                            ),
+                            SizedBox(height: 6),
+                            _EarnRow(
+                              icon: Icons.qr_code_scanner,
+                              text: 'Redeem at business  +25',
+                            ),
+                            SizedBox(height: 6),
+                            _EarnRow(
+                              icon: Icons.person_add_alt,
+                              text: 'Refer a friend  +50',
+                            ),
+                            SizedBox(height: 6),
+                            _EarnRow(
+                              icon: Icons.star_outline,
+                              text: 'Write useful review  +10',
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          '${user?.coins ?? 0}',
-                          style: const TextStyle(
-                            fontSize: 52,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            height: 1,
-                            letterSpacing: -1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Earn more by claiming and redeeming deals',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white70,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Stats grid（from real claims）
-              _StatsGrid(uid: uid),
-
-              const SizedBox(height: 20),
-
-              // Savings card（derived from claims）
-              _SavingsCard(uid: uid),
-
-              const SizedBox(height: 24),
-
-              const Text(
-                'Recent activity',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: MigoColors.textPrimaryLight,
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              _ActivityList(uid: uid),
-
-              const SizedBox(height: 24),
-
-              // How to earn more
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: MigoColors.accent.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: MigoColors.accent.withValues(alpha: 0.3),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                   ),
                 ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.tips_and_updates_outlined,
-                          color: MigoColors.accent,
-                          size: 20,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Earn more coins',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: MigoColors.textPrimaryLight,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 10),
-                    _EarnRow(icon: Icons.redeem, text: 'Claim a deal  +5'),
-                    SizedBox(height: 6),
-                    _EarnRow(
-                      icon: Icons.qr_code_scanner,
-                      text: 'Redeem at business  +25',
-                    ),
-                    SizedBox(height: 6),
-                    _EarnRow(
-                      icon: Icons.person_add_alt,
-                      text: 'Refer a friend  +50',
-                    ),
-                    SizedBox(height: 6),
-                    _EarnRow(
-                      icon: Icons.star_outline,
-                      text: 'Write useful review  +10',
-                    ),
-                  ],
-                ),
               ),
-
-              const SizedBox(height: 20),
             ],
           );
         },
@@ -216,15 +248,14 @@ class _StatsGrid extends StatelessWidget {
       stream: FirestoreService.instance.streamMyClaims(uid),
       builder: (context, snap) {
         final claims = snap.data ?? [];
-        final redeemed = claims
-            .where((c) => c.status == ClaimStatus.redeemed)
-            .toList();
+        final redeemed =
+            claims.where((c) => c.status == ClaimStatus.redeemed).toList();
         final businesses = redeemed.map((c) => c.businessId).toSet().length;
 
         return Row(
           children: [
             Expanded(
-              child: _StatBox(
+              child: _StatTile(
                 label: 'Deals used',
                 value: '${redeemed.length}',
                 icon: Icons.check_circle_outline,
@@ -233,7 +264,7 @@ class _StatsGrid extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: _StatBox(
+              child: _StatTile(
                 label: 'Businesses',
                 value: '$businesses',
                 icon: Icons.storefront_outlined,
@@ -242,7 +273,7 @@ class _StatsGrid extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: _StatBox(
+              child: _StatTile(
                 label: 'Claims',
                 value: '${claims.length}',
                 icon: Icons.receipt_long_outlined,
@@ -256,8 +287,8 @@ class _StatsGrid extends StatelessWidget {
   }
 }
 
-class _StatBox extends StatelessWidget {
-  const _StatBox({
+class _StatTile extends StatelessWidget {
+  const _StatTile({
     required this.label,
     required this.value,
     required this.icon,
@@ -276,26 +307,36 @@ class _StatBox extends StatelessWidget {
       decoration: BoxDecoration(
         color: MigoColors.surfaceLight,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: MigoColors.dividerLight),
+        boxShadow: MigoShadows.soft,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 16),
+          ),
+          const SizedBox(height: 10),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 22,
+              fontSize: 24,
               fontWeight: FontWeight.w900,
               color: MigoColors.textPrimaryLight,
+              height: 1,
             ),
           ),
+          const SizedBox(height: 2),
           Text(
             label,
             style: const TextStyle(
               fontSize: 11,
               color: MigoColors.textSecondaryLight,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -314,9 +355,8 @@ class _SavingsCard extends StatelessWidget {
       stream: FirestoreService.instance.streamMyClaims(uid),
       builder: (context, snap) {
         final claims = snap.data ?? [];
-        final redeemed = claims
-            .where((c) => c.status == ClaimStatus.redeemed)
-            .toList();
+        final redeemed =
+            claims.where((c) => c.status == ClaimStatus.redeemed).toList();
 
         final now = DateTime.now();
         final monthStart = DateTime(now.year, now.month, 1);
@@ -328,34 +368,37 @@ class _SavingsCard extends StatelessWidget {
         final currency = claims.isNotEmpty ? claims.first.currency : 'QAR';
 
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: MigoColors.surfaceLight,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: MigoColors.dividerLight),
+            gradient: MigoGradients.success,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: MigoColors.success.withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              const Row(
                 children: [
-                  const Icon(
-                    Icons.savings_outlined,
-                    color: MigoColors.success,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Savings',
+                  Icon(Icons.savings, color: Colors.white, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'YOUR SAVINGS',
                     style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: MigoColors.textPrimaryLight,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2,
+                      color: Colors.white,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
@@ -366,15 +409,19 @@ class _SavingsCard extends StatelessWidget {
                           'This month',
                           style: TextStyle(
                             fontSize: 11,
-                            color: MigoColors.textSecondaryLight,
+                            color: Colors.white70,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
+                        const SizedBox(height: 2),
                         Text(
                           '$currency ${thisMonth.toStringAsFixed(0)}',
                           style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: MigoColors.success,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            height: 1,
+                            letterSpacing: -0.5,
                           ),
                         ),
                       ],
@@ -383,7 +430,7 @@ class _SavingsCard extends StatelessWidget {
                   Container(
                     height: 40,
                     width: 1,
-                    color: MigoColors.dividerLight,
+                    color: Colors.white.withValues(alpha: 0.3),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -394,15 +441,19 @@ class _SavingsCard extends StatelessWidget {
                           'Lifetime',
                           style: TextStyle(
                             fontSize: 11,
-                            color: MigoColors.textSecondaryLight,
+                            color: Colors.white70,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
+                        const SizedBox(height: 2),
                         Text(
                           '$currency ${lifetime.toStringAsFixed(0)}',
                           style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: MigoColors.success,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            height: 1,
+                            letterSpacing: -0.5,
                           ),
                         ),
                       ],
@@ -440,7 +491,7 @@ class _ActivityList extends StatelessWidget {
             decoration: BoxDecoration(
               color: MigoColors.surfaceLight,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: MigoColors.dividerLight),
+              boxShadow: MigoShadows.soft,
             ),
             child: const Center(
               child: Text(
@@ -454,8 +505,8 @@ class _ActivityList extends StatelessWidget {
         return Container(
           decoration: BoxDecoration(
             color: MigoColors.surfaceLight,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: MigoColors.dividerLight),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: MigoShadows.soft,
           ),
           child: Column(
             children: List.generate(txs.length, (i) {
@@ -470,17 +521,15 @@ class _ActivityList extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: t.isEarned
-                                ? MigoColors.success.withValues(alpha: 0.15)
-                                : MigoColors.error.withValues(alpha: 0.15),
+                            gradient: t.isEarned
+                                ? MigoGradients.success
+                                : MigoGradients.flash,
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             t.isEarned ? Icons.add : Icons.remove,
-                            color: t.isEarned
-                                ? MigoColors.success
-                                : MigoColors.error,
-                            size: 16,
+                            color: Colors.white,
+                            size: 14,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -513,7 +562,7 @@ class _ActivityList extends StatelessWidget {
                           '${t.isEarned ? '+' : ''}${t.amount}',
                           style: TextStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w900,
                             color: t.isEarned
                                 ? MigoColors.success
                                 : MigoColors.error,
@@ -556,13 +605,14 @@ class _EarnRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: MigoColors.textSecondaryLight),
+        Icon(icon, size: 16, color: MigoColors.accentDark),
         const SizedBox(width: 8),
         Text(
           text,
           style: const TextStyle(
             fontSize: 12,
-            color: MigoColors.textSecondaryLight,
+            color: MigoColors.textPrimaryLight,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],

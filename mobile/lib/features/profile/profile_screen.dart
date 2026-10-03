@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../core/theme/migo_colors.dart';
+import '../../core/theme/migo_gradients.dart';
+import '../../core/theme/migo_shadows.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
@@ -44,119 +46,193 @@ class ProfileScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
       body: StreamBuilder<UserModel?>(
         stream: FirestoreService.instance.streamUser(firebaseUser.uid),
         builder: (context, snapshot) {
           final user = snapshot.data;
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 8),
-                const CircleAvatar(
-                  radius: 44,
-                  child: Icon(Icons.person_outline, size: 44),
-                ),
-                const SizedBox(height: 16),
-                Center(
-                  child: Text(
-                    user?.displayName ?? firebaseUser.email ?? 'MIGO User',
-                    style: Theme.of(context).textTheme.titleMedium,
+          return CustomScrollView(
+            slivers: [
+              // Gradient hero header
+              SliverToBoxAdapter(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: MigoGradients.heroBlue,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(28),
+                      bottomRight: Radius.circular(28),
+                    ),
                   ),
-                ),
-                Center(
-                  child: Text(
-                    firebaseUser.email ?? '',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                _StatCard(
-                  icon: Icons.monetization_on_outlined,
-                  label: 'MIGO Coins',
-                  value: '${user?.coins ?? 0}',
-                  color: MigoColors.accent,
-                ),
-                const SizedBox(height: 10),
-                _StatCard(
-                  icon: Icons.emoji_events_outlined,
-                  label: 'Loyalty Level',
-                  value: user?.loyaltyLevel ?? 'Bronze',
-                  color: MigoColors.primary,
-                ),
-                const SizedBox(height: 10),
-                _StatCard(
-                  icon: Icons.place_outlined,
-                  label: 'Location',
-                  value:
-                      '${user?.city ?? 'Doha'}, ${user?.country ?? 'QA'}',
-                  color: MigoColors.success,
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Activity',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: MigoColors.textSecondaryLight,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _MenuTile(
-                  icon: Icons.receipt_long_outlined,
-                  label: 'My Claims',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const MyClaimsScreen(),
+                  child: SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                      child: Column(
+                        children: [
+                          const Text(
+                            'Profile',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: -0.4,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          // Avatar with gold ring
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              gradient: MigoGradients.gold,
+                              shape: BoxShape.circle,
+                            ),
+                            child: CircleAvatar(
+                              radius: 42,
+                              backgroundColor: Colors.white,
+                              child: Text(
+                                (user?.displayName ??
+                                        firebaseUser.email ??
+                                        'M')
+                                    .substring(0, 1)
+                                    .toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 34,
+                                  fontWeight: FontWeight.w900,
+                                  color: MigoColors.primary,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            user?.displayName ??
+                                firebaseUser.email ??
+                                'MIGO User',
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            firebaseUser.email ?? '',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Stat chips row
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _HeroStat(
+                                  label: 'Coins',
+                                  value: '${user?.coins ?? 0}',
+                                  icon: Icons.monetization_on,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _HeroStat(
+                                  label: 'Level',
+                                  value: user?.loyaltyLevel ?? 'Bronze',
+                                  icon: Icons.emoji_events,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _HeroStat(
+                                  label: 'City',
+                                  value: user?.city ?? 'Doha',
+                                  icon: Icons.place,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 8),
-                _MenuTile(
-                  icon: Icons.card_giftcard,
-                  label: 'Invite Friends',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const ReferralScreen(),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Business',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: MigoColors.textSecondaryLight,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                _MenuTile(
-                  icon: Icons.storefront_outlined,
-                  label: 'My Business',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const MyBusinessScreen(),
+              ),
+
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        'ACTIVITY',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.5,
+                          color: MigoColors.textSecondaryLight,
+                        ),
                       ),
-                    );
-                  },
+                      const SizedBox(height: 8),
+                      _MenuTile(
+                        icon: Icons.receipt_long_outlined,
+                        label: 'My Claims',
+                        color: MigoColors.primary,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const MyClaimsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      _MenuTile(
+                        icon: Icons.card_giftcard,
+                        label: 'Invite Friends',
+                        color: MigoColors.accent,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const ReferralScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'BUSINESS',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.5,
+                          color: MigoColors.textSecondaryLight,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _MenuTile(
+                        icon: Icons.storefront_outlined,
+                        label: 'My Business',
+                        color: MigoColors.success,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const MyBusinessScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 32),
+                      OutlinedButton.icon(
+                        onPressed: () => _signOut(context),
+                        icon: const Icon(Icons.logout),
+                        label: const Text('Sign out'),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 24),
-                OutlinedButton.icon(
-                  onPressed: () => _signOut(context),
-                  icon: const Icon(Icons.logout),
-                  label: const Text('Sign out'),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
@@ -164,47 +240,47 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.icon,
+class _HeroStat extends StatelessWidget {
+  const _HeroStat({
     required this.label,
     required this.value,
-    required this.color,
+    required this.icon,
   });
 
-  final IconData icon;
   final String label;
   final String value;
-  final Color color;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       decoration: BoxDecoration(
-        color: MigoColors.surfaceLight,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: MigoColors.dividerLight),
+        color: Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.15),
+        ),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Icon(icon, color: color, size: 22),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                color: MigoColors.textSecondaryLight,
-              ),
-            ),
-          ),
+          Icon(icon, color: MigoColors.accent, size: 16),
+          const SizedBox(height: 4),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: MigoColors.textPrimaryLight,
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              color: Colors.white70,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -218,43 +294,55 @@ class _MenuTile extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
+    this.color = MigoColors.primary,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: MigoColors.surfaceLight,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: MigoColors.dividerLight),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: MigoColors.primary, size: 22),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: MigoColors.textPrimaryLight,
+    return Material(
+      color: MigoColors.surfaceLight,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: MigoShadows.soft,
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: MigoColors.textPrimaryLight,
+                  ),
                 ),
               ),
-            ),
-            const Icon(
-              Icons.chevron_right,
-              color: MigoColors.textSecondaryLight,
-            ),
-          ],
+              const Icon(
+                Icons.chevron_right,
+                color: MigoColors.textSecondaryLight,
+              ),
+            ],
+          ),
         ),
       ),
     );
