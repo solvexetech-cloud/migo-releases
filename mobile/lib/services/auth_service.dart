@@ -1,47 +1,73 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/user_model.dart';
+import 'firestore_service.dart';
 
 /// Central auth service. All signup/login/logout calls go through here.
-/// No screen should call FirebaseAuth directly.
 class AuthService {
   AuthService._();
   static final AuthService instance = AuthService._();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  /// Current signed-in user (null if not signed in).
   User? get currentUser => _auth.currentUser;
 
-  /// Stream of auth state changes — used to auto-route between login/home.
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   /// Sign up a new user with email + password.
+  /// Also creates a MIGO user document in Firestore.
   Future<UserCredential> signUp({
     required String email,
     required String password,
+    String? displayName,
   }) async {
-    return await _auth.createUserWithEmailAndPassword(
+    final cred = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
       password: password,
     );
+
+    final user = cred.user;
+    if (user != null) {
+      await FirestoreService.instance.createUser(
+        UserModel.fresh(
+          uid: user.uid,
+          email: user.email ?? email.trim(),
+          displayName: displayName,
+        ),
+      );
+    }
+    return cred;
   }
 
-  /// Sign in an existing user.
+  /// Sign in an existing user. Ensures a Firestore doc exists.
   Future<UserCredential> signIn({
     required String email,
     required String password,
   }) async {
-    return await _auth.signInWithEmailAndPassword(
+    final cred = await _auth.signInWithEmailAndPassword(
       email: email.trim(),
       password: password,
     );
+
+    final user = cred.user;
+    if (user != null) {
+      final existing = await FirestoreService.instance.getUser(user.uid);
+      if (existing == null) {
+        // Legacy user from before Firestore was enabled — backfill.
+        await FirestoreService.instance.createUser(
+          UserModel.fresh(
+            uid: user.uid,
+            email: user.email ?? email.trim(),
+          ),
+        );
+      }
+    }
+    return cred;
   }
 
-  /// Sign out the current user.
   Future<void> signOut() async {
     await _auth.signOut();
   }
 
-  /// Send password reset email.
   Future<void> sendPasswordReset(String email) async {
     await _auth.sendPasswordResetEmail(email: email.trim());
   }
