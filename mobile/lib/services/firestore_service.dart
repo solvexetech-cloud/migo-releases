@@ -8,7 +8,6 @@ import '../models/offer_model.dart';
 import '../models/referral_model.dart';
 import '../models/user_model.dart';
 
-/// All Firestore reads/writes for MIGO go through here.
 class FirestoreService {
   FirestoreService._();
   static final FirestoreService instance = FirestoreService._();
@@ -16,7 +15,6 @@ class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   // ---------- USERS ----------
-
   CollectionReference<Map<String, dynamic>> get _users =>
       _db.collection('users');
 
@@ -39,10 +37,7 @@ class FirestoreService {
 
   Future<void> updateUser(String uid, Map<String, dynamic> data) async {
     await _users.doc(uid).set(
-      {
-        ...data,
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
+      {...data, 'updatedAt': FieldValue.serverTimestamp()},
       SetOptions(merge: true),
     );
   }
@@ -59,7 +54,6 @@ class FirestoreService {
       },
       SetOptions(merge: true),
     );
-
     await _db.collection('coin_transactions').add({
       'uid': uid,
       'amount': amount,
@@ -69,7 +63,6 @@ class FirestoreService {
   }
 
   // ---------- COIN TRANSACTIONS ----------
-
   Stream<List<CoinTransactionModel>> streamCoinTransactions(
     String uid, {
     int limit = 30,
@@ -89,7 +82,6 @@ class FirestoreService {
   }
 
   // ---------- BUSINESSES ----------
-
   CollectionReference<Map<String, dynamic>> get _businesses =>
       _db.collection('businesses');
 
@@ -118,16 +110,12 @@ class FirestoreService {
 
   Future<void> updateBusiness(String id, Map<String, dynamic> data) async {
     await _businesses.doc(id).set(
-      {
-        ...data,
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
+      {...data, 'updatedAt': FieldValue.serverTimestamp()},
       SetOptions(merge: true),
     );
   }
 
   // ---------- OFFERS ----------
-
   CollectionReference<Map<String, dynamic>> get _offers =>
       _db.collection('offers');
 
@@ -177,20 +165,15 @@ class FirestoreService {
 
   Future<void> updateOffer(String id, Map<String, dynamic> data) async {
     await _offers.doc(id).set(
-      {
-        ...data,
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
+      {...data, 'updatedAt': FieldValue.serverTimestamp()},
       SetOptions(merge: true),
     );
   }
 
   // ---------- GROUP DEALS ----------
-
   CollectionReference<Map<String, dynamic>> get _groupDeals =>
       _db.collection('group_deals');
 
-  /// Create a group-deal record tied to an offer.
   Future<void> createGroupDeal(GroupDealModel deal) async {
     await _groupDeals.doc(deal.offerId).set(deal.toMap());
   }
@@ -208,8 +191,6 @@ class FirestoreService {
     });
   }
 
-  /// Join a group deal. Adds user to participantUids.
-  /// Auto-unlocks if minimum reached.
   Future<void> joinGroupDeal({
     required String offerId,
     required String userUid,
@@ -221,7 +202,6 @@ class FirestoreService {
         throw Exception('Group deal not found.');
       }
       final deal = GroupDealModel.fromMap(offerId, snap.data()!);
-
       if (deal.status == GroupDealStatus.unlocked) {
         throw Exception('This deal is already unlocked.');
       }
@@ -238,11 +218,8 @@ class FirestoreService {
       if (deal.participantUids.contains(userUid)) {
         throw Exception('You already joined this group.');
       }
-
-      final updated = List<String>.from(deal.participantUids)
-        ..add(userUid);
+      final updated = List<String>.from(deal.participantUids)..add(userUid);
       final meetsMin = updated.length >= deal.minParticipants;
-
       tx.update(ref, {
         'participantUids': updated,
         'updatedAt': FieldValue.serverTimestamp(),
@@ -254,7 +231,6 @@ class FirestoreService {
     });
   }
 
-  /// Leave a group deal before unlock.
   Future<void> leaveGroupDeal({
     required String offerId,
     required String userUid,
@@ -264,11 +240,9 @@ class FirestoreService {
       final snap = await tx.get(ref);
       if (!snap.exists || snap.data() == null) return;
       final deal = GroupDealModel.fromMap(offerId, snap.data()!);
-
       if (deal.status == GroupDealStatus.unlocked) {
         throw Exception('Cannot leave after the deal is unlocked.');
       }
-
       final updated = List<String>.from(deal.participantUids)
         ..remove(userUid);
       tx.update(ref, {
@@ -279,26 +253,21 @@ class FirestoreService {
   }
 
   // ---------- CLAIMS ----------
-
   CollectionReference<Map<String, dynamic>> get _claims =>
       _db.collection('claims');
 
   Future<String> createClaim(ClaimModel claim) async {
     final ref = await _claims.add(claim.toMap());
-
     await _offers.doc(claim.offerId).update({
       'claimedCount': FieldValue.increment(1),
       'updatedAt': FieldValue.serverTimestamp(),
     });
-
     await addCoins(
       uid: claim.userUid,
       amount: 5,
       reason: 'Claimed "${claim.offerTitle}"',
     );
-
     await _maybeRewardReferral(claim.userUid);
-
     return ref.id;
   }
 
@@ -311,7 +280,6 @@ class FirestoreService {
         .where('offerId', isEqualTo: offerId)
         .limit(10)
         .get();
-
     for (final doc in snap.docs) {
       final claim = ClaimModel.fromMap(doc.id, doc.data());
       if (claim.status == ClaimStatus.active ||
@@ -332,6 +300,17 @@ class FirestoreService {
             .toList());
   }
 
+  /// Stream all claims for a business (used by business analytics).
+  Stream<List<ClaimModel>> streamBusinessClaims(String businessId) {
+    return _claims
+        .where('businessId', isEqualTo: businessId)
+        .limit(200)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((d) => ClaimModel.fromMap(d.id, d.data()))
+            .toList());
+  }
+
   Future<void> updateClaim(String id, Map<String, dynamic> data) async {
     await _claims.doc(id).update(data);
   }
@@ -345,7 +324,6 @@ class FirestoreService {
       throw Exception('Claim not found');
     }
     final claim = ClaimModel.fromMap(claimId, snap.data()!);
-
     if (claim.businessId != businessId) {
       throw Exception('This claim belongs to a different business.');
     }
@@ -357,13 +335,11 @@ class FirestoreService {
     if (claim.expiresAt.isBefore(DateTime.now())) {
       throw Exception('This claim has expired.');
     }
-
     await _claims.doc(claimId).update({
       'status': ClaimStatus.redeemed.id,
       'redeemedAt': FieldValue.serverTimestamp(),
       'redeemedBy': businessId,
     });
-
     await addCoins(
       uid: claim.userUid,
       amount: 25,
@@ -372,7 +348,6 @@ class FirestoreService {
   }
 
   // ---------- REFERRALS ----------
-
   CollectionReference<Map<String, dynamic>> get _referrals =>
       _db.collection('referrals');
 
@@ -386,7 +361,6 @@ class FirestoreService {
     final snap = await _users.doc(uid).get();
     final existing = (snap.data()?['referralCode'] as String?) ?? '';
     if (existing.isNotEmpty) return existing;
-
     final code = generateReferralCode();
     await _users.doc(uid).set(
       {
@@ -416,15 +390,11 @@ class FirestoreService {
     if (referrerUid == referredUid) {
       throw Exception('You cannot refer yourself.');
     }
-
     final existing = await _referrals
         .where('referredUid', isEqualTo: referredUid)
         .limit(1)
         .get();
-    if (existing.docs.isNotEmpty) {
-      return;
-    }
-
+    if (existing.docs.isNotEmpty) return;
     final ref = ReferralModel(
       id: '',
       referrerUid: referrerUid,
@@ -433,9 +403,7 @@ class FirestoreService {
       referredEmail: referredEmail,
       createdAt: DateTime.now(),
     );
-
     await _referrals.add(ref.toMap());
-
     await _users.doc(referredUid).set(
       {
         'referredBy': referrerUid,
@@ -461,7 +429,6 @@ class FirestoreService {
     final map = userSnap.data()!;
     final already = (map['hasCompletedFirstClaim'] ?? false) as bool;
     if (already) return;
-
     await _users.doc(uid).set(
       {
         'hasCompletedFirstClaim': true,
@@ -469,27 +436,22 @@ class FirestoreService {
       },
       SetOptions(merge: true),
     );
-
     final referredBy = map['referredBy'] as String?;
     if (referredBy == null || referredBy.isEmpty) return;
-
     final refSnap = await _referrals
         .where('referredUid', isEqualTo: uid)
         .where('referrerUid', isEqualTo: referredBy)
         .limit(1)
         .get();
     if (refSnap.docs.isEmpty) return;
-
     final refDoc = refSnap.docs.first;
     final referral = ReferralModel.fromMap(refDoc.id, refDoc.data());
     if (referral.status != ReferralStatus.pending) return;
-
     await _referrals.doc(refDoc.id).update({
       'status': ReferralStatus.rewarded.id,
       'rewardedAt': FieldValue.serverTimestamp(),
       'referredFirstClaimAt': FieldValue.serverTimestamp(),
     });
-
     await addCoins(
       uid: referredBy,
       amount: referral.referrerReward,

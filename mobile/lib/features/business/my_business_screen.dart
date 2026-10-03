@@ -4,6 +4,7 @@ import '../../core/theme/migo_colors.dart';
 import '../../models/business_model.dart';
 import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
+import 'business_analytics_screen.dart';
 import 'create_offer_screen.dart';
 import 'redeem_screen.dart';
 import 'register_business_screen.dart';
@@ -223,7 +224,7 @@ class MyBusinessScreen extends StatelessWidget {
                     label: const Text('Create offer'),
                   ),
                 ),
-                const SizedBox(height: 10),
+                                const SizedBox(height: 10),
                 SizedBox(
                   height: 52,
                   child: OutlinedButton.icon(
@@ -236,6 +237,22 @@ class MyBusinessScreen extends StatelessWidget {
                     },
                     icon: const Icon(Icons.qr_code_scanner),
                     label: const Text('Redeem claim'),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 52,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              BusinessAnalyticsScreen(business: biz),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.analytics_outlined),
+                    label: const Text('View analytics'),
                   ),
                 ),
               ],
