@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/business_model.dart';
 import '../models/claim_model.dart';
 import '../models/coin_transaction_model.dart';
+import '../models/group_deal_model.dart';
 import '../models/offer_model.dart';
 import '../models/referral_model.dart';
 import '../models/user_model.dart';
@@ -182,6 +183,99 @@ class FirestoreService {
       },
       SetOptions(merge: true),
     );
+  }
+
+  // ---------- GROUP DEALS ----------
+
+  CollectionReference<Map<String, dynamic>> get _groupDeals =>
+      _db.collection('group_deals');
+
+  /// Create a group-deal record tied to an offer.
+  Future<void> createGroupDeal(GroupDealModel deal) async {
+    await _groupDeals.doc(deal.offerId).set(deal.toMap());
+  }
+
+  Future<GroupDealModel?> getGroupDeal(String offerId) async {
+    final snap = await _groupDeals.doc(offerId).get();
+    if (!snap.exists || snap.data() == null) return null;
+    return GroupDealModel.fromMap(offerId, snap.data()!);
+  }
+
+  Stream<GroupDealModel?> streamGroupDeal(String offerId) {
+    return _groupDeals.doc(offerId).snapshots().map((snap) {
+      if (!snap.exists || snap.data() == null) return null;
+      return GroupDealModel.fromMap(offerId, snap.data()!);
+    });
+  }
+
+  /// Join a group deal. Adds user to participantUids.
+  /// Auto-unlocks if minimum reached.
+  Future<void> joinGroupDeal({
+    required String offerId,
+    required String userUid,
+  }) async {
+    final ref = _groupDeals.doc(offerId);
+    await _db.runTransaction((tx) async {
+      final snap = await tx.get(ref);
+      if (!snap.exists || snap.data() == null) {
+        throw Exception('Group deal not found.');
+      }
+      final deal = GroupDealModel.fromMap(offerId, snap.data()!);
+
+      if (deal.status == GroupDealStatus.unlocked) {
+        throw Exception('This deal is already unlocked.');
+      }
+      if (deal.status == GroupDealStatus.failed ||
+          deal.status == GroupDealStatus.expired) {
+        throw Exception('This group deal is closed.');
+      }
+      if (deal.deadline.isBefore(DateTime.now())) {
+        throw Exception('This group deal has expired.');
+      }
+      if (deal.isFull) {
+        throw Exception('This group deal is full.');
+      }
+      if (deal.participantUids.contains(userUid)) {
+        throw Exception('You already joined this group.');
+      }
+
+      final updated = List<String>.from(deal.participantUids)
+        ..add(userUid);
+      final meetsMin = updated.length >= deal.minParticipants;
+
+      tx.update(ref, {
+        'participantUids': updated,
+        'updatedAt': FieldValue.serverTimestamp(),
+        if (meetsMin) ...{
+          'status': GroupDealStatus.unlocked.id,
+          'unlockedAt': FieldValue.serverTimestamp(),
+        },
+      });
+    });
+  }
+
+  /// Leave a group deal before unlock.
+  Future<void> leaveGroupDeal({
+    required String offerId,
+    required String userUid,
+  }) async {
+    final ref = _groupDeals.doc(offerId);
+    await _db.runTransaction((tx) async {
+      final snap = await tx.get(ref);
+      if (!snap.exists || snap.data() == null) return;
+      final deal = GroupDealModel.fromMap(offerId, snap.data()!);
+
+      if (deal.status == GroupDealStatus.unlocked) {
+        throw Exception('Cannot leave after the deal is unlocked.');
+      }
+
+      final updated = List<String>.from(deal.participantUids)
+        ..remove(userUid);
+      tx.update(ref, {
+        'participantUids': updated,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
   }
 
   // ---------- CLAIMS ----------

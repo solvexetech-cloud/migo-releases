@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../models/business_model.dart';
+import '../../models/group_deal_model.dart';
 import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
 
@@ -19,6 +20,8 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
   final _offerPrice = TextEditingController();
   final _terms = TextEditingController();
   final _dailyLimit = TextEditingController();
+  final _minGroup = TextEditingController(text: '5');
+  final _maxGroup = TextEditingController();
 
   OfferType _type = OfferType.standard;
   int _durationDays = 7;
@@ -33,6 +36,8 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
     _offerPrice.dispose();
     _terms.dispose();
     _dailyLimit.dispose();
+    _minGroup.dispose();
+    _maxGroup.dispose();
     super.dispose();
   }
 
@@ -57,6 +62,13 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
       return;
     }
 
+    final minGroup = int.tryParse(_minGroup.text.trim()) ?? 5;
+    final maxGroup = int.tryParse(_maxGroup.text.trim());
+    if (_type == OfferType.group && minGroup < 2) {
+      setState(() => _error = 'Minimum group size must be at least 2.');
+      return;
+    }
+
     setState(() => _loading = true);
     try {
       final now = DateTime.now();
@@ -75,7 +87,20 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
         terms: _terms.text.trim().isEmpty ? null : _terms.text.trim(),
         dailyLimit: int.tryParse(_dailyLimit.text.trim()),
       );
-      await FirestoreService.instance.createOffer(offer);
+
+      final offerId = await FirestoreService.instance.createOffer(offer);
+
+      if (_type == OfferType.group) {
+        await FirestoreService.instance.createGroupDeal(
+          GroupDealModel.newDraft(
+            offerId: offerId,
+            minParticipants: minGroup,
+            maxParticipants: maxGroup,
+            deadline: now.add(Duration(days: _durationDays)),
+          ),
+        );
+      }
+
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
@@ -114,7 +139,6 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                 maxLines: 3,
                 decoration: const InputDecoration(
                   labelText: 'Description',
-                  hintText: 'What is included in the offer',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -133,6 +157,34 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                     .toList(),
                 onChanged: (v) => setState(() => _type = v ?? _type),
               ),
+              if (_type == OfferType.group) ...[
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _minGroup,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Min people',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextField(
+                        controller: _maxGroup,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Max people (opt)',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -175,8 +227,11 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.check_circle,
-                          size: 18, color: MigoColors.success),
+                      const Icon(
+                        Icons.check_circle,
+                        size: 18,
+                        color: MigoColors.success,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Customer saves ${widget.business.currency} '
@@ -213,7 +268,6 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
                   labelText: 'Daily limit (optional)',
-                  hintText: 'Max redemptions per day',
                   border: OutlineInputBorder(),
                 ),
               ),
