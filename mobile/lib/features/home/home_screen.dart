@@ -5,6 +5,7 @@ import '../../widgets/category_grid.dart';
 import '../../widgets/flash_deal_card.dart';
 import '../../widgets/intention_chip.dart';
 import '../../widgets/offer_card.dart';
+import '../../widgets/pick_for_me_sheet.dart';
 import '../../widgets/section_header.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -35,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // Top bar: MIGO logo + location + notification
+            // Top bar
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
@@ -97,6 +98,34 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
+            // Pick For Me button
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+                child: SizedBox(
+                  height: 52,
+                  child: ElevatedButton.icon(
+                    onPressed: () => PickForMeSheet.show(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: MigoColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: const Icon(Icons.auto_awesome, color: MigoColors.accent),
+                    label: const Text(
+                      'Pick For Me',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
             // Search bar
             SliverToBoxAdapter(
               child: Padding(
@@ -145,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
 
-            // Flash Deals section
+            // Flash Deals
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
@@ -155,7 +184,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
             SliverToBoxAdapter(
               child: SizedBox(
                 height: 180,
@@ -204,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-            // Nearby Deals section
+            // Nearby Deals
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
@@ -214,7 +242,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
             SliverToBoxAdapter(
               child: SizedBox(
                 height: 360,
@@ -274,18 +301,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-            // Categories section
+            // Categories
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: SectionHeader(title: 'Browse Categories'),
               ),
             ),
-
             const SliverToBoxAdapter(child: SizedBox(height: 12)),
-
             const SliverToBoxAdapter(child: CategoryGrid()),
-
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         ),
