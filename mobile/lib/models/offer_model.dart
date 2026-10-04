@@ -182,4 +182,36 @@ class OfferModel {
       'updatedAt': FieldValue.serverTimestamp(),
     };
   }
+
+  OfferModel copyWith({
+    String? imageUrl,
+    String? status,
+    int? claimedCount,
+    String? terms,
+    int? dailyLimit,
+    int? totalLimit,
+  }) {
+    return OfferModel(
+      id: id,
+      businessId: businessId,
+      businessName: businessName,
+      title: title,
+      description: description,
+      originalPrice: originalPrice,
+      offerPrice: offerPrice,
+      currency: currency,
+      type: type,
+      startAt: startAt,
+      endAt: endAt,
+      category: category,
+      imageUrl: imageUrl ?? this.imageUrl,
+      terms: terms ?? this.terms,
+      dailyLimit: dailyLimit ?? this.dailyLimit,
+      totalLimit: totalLimit ?? this.totalLimit,
+      claimedCount: claimedCount ?? this.claimedCount,
+      status: status ?? this.status,
+      createdAt: createdAt,
+      updatedAt: DateTime.now(),
+    );
+  }
 }

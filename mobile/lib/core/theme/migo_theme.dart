@@ -17,8 +17,6 @@ class MigoTheme {
           onSecondary: Colors.black,
           onSurface: MigoColors.textPrimaryLight,
         ),
-
-        // App bar
         appBarTheme: const AppBarTheme(
           backgroundColor: MigoColors.backgroundLight,
           foregroundColor: MigoColors.textPrimaryLight,
@@ -32,8 +30,6 @@ class MigoTheme {
             letterSpacing: -0.3,
           ),
         ),
-
-        // Typography
         textTheme: const TextTheme(
           displayLarge: TextStyle(
             fontSize: 40,
@@ -86,14 +82,15 @@ class MigoTheme {
             height: 1.4,
           ),
         ),
-
-        // Buttons
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: MigoColors.primary,
             foregroundColor: Colors.white,
             elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 14,
+            ),
             minimumSize: const Size(0, 52),
             textStyle: const TextStyle(
               fontSize: 15,
@@ -105,11 +102,13 @@ class MigoTheme {
             ),
           ),
         ),
-
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
             foregroundColor: MigoColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 14,
+            ),
             minimumSize: const Size(0, 52),
             side: BorderSide(
               color: MigoColors.primary.withValues(alpha: 0.3),
@@ -124,7 +123,6 @@ class MigoTheme {
             ),
           ),
         ),
-
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
             foregroundColor: MigoColors.primary,
@@ -134,8 +132,6 @@ class MigoTheme {
             ),
           ),
         ),
-
-        // Card
         cardTheme: CardThemeData(
           color: MigoColors.surfaceLight,
           elevation: 0,
@@ -144,8 +140,6 @@ class MigoTheme {
             borderRadius: BorderRadius.circular(18),
           ),
         ),
-
-        // Input
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: MigoColors.surfaceLight,
@@ -176,38 +170,32 @@ class MigoTheme {
               width: 1.6,
             ),
           ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: MigoColors.error),
-          ),
         ),
-
-        // Divider
         dividerTheme: DividerThemeData(
           color: MigoColors.dividerLight,
           thickness: 1,
           space: 1,
         ),
-
-        // Chips
         chipTheme: ChipThemeData(
           backgroundColor: MigoColors.surfaceLight,
-          side: BorderSide(color: MigoColors.dividerLight),
+          side: const BorderSide(color: MigoColors.dividerLight),
           labelStyle: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: MigoColors.textPrimaryLight,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 6,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
         ),
-
-        // NavigationBar（bottom nav）
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: MigoColors.surfaceLight,
           indicatorColor: MigoColors.accent.withValues(alpha: 0.18),
+          elevation: 0,
           height: 68,
           labelTextStyle: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
@@ -225,7 +213,10 @@ class MigoTheme {
           }),
           iconTheme: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
-              return const IconThemeData(color: MigoColors.primary, size: 24);
+              return const IconThemeData(
+                color: MigoColors.primary,
+                size: 24,
+              );
             }
             return const IconThemeData(
               color: MigoColors.textSecondaryLight,
@@ -235,6 +226,7 @@ class MigoTheme {
         ),
       );
 
+  // ---------- DARK THEME ----------
   static ThemeData get dark => ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
@@ -252,6 +244,7 @@ class MigoTheme {
           backgroundColor: MigoColors.backgroundDark,
           foregroundColor: MigoColors.textPrimaryDark,
           elevation: 0,
+          scrolledUnderElevation: 0,
           centerTitle: false,
           titleTextStyle: TextStyle(
             fontSize: 20,
@@ -260,12 +253,67 @@ class MigoTheme {
             letterSpacing: -0.3,
           ),
         ),
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(
+            fontSize: 40,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -1.2,
+            color: MigoColors.textPrimaryDark,
+          ),
+          headlineLarge: TextStyle(
+            fontSize: 30,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.8,
+            color: MigoColors.textPrimaryDark,
+          ),
+          headlineMedium: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+            color: MigoColors.textPrimaryDark,
+          ),
+          headlineSmall: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.3,
+            color: MigoColors.textPrimaryDark,
+          ),
+          titleLarge: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.2,
+            color: MigoColors.textPrimaryDark,
+          ),
+          titleMedium: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: MigoColors.textPrimaryDark,
+          ),
+          bodyLarge: TextStyle(
+            fontSize: 15,
+            color: MigoColors.textPrimaryDark,
+            height: 1.5,
+          ),
+          bodyMedium: TextStyle(
+            fontSize: 14,
+            color: MigoColors.textPrimaryDark,
+            height: 1.5,
+          ),
+          bodySmall: TextStyle(
+            fontSize: 12,
+            color: MigoColors.textSecondaryDark,
+            height: 1.4,
+          ),
+        ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: MigoColors.accent,
             foregroundColor: Colors.black,
             elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 14,
+            ),
             minimumSize: const Size(0, 52),
             textStyle: const TextStyle(
               fontSize: 15,
@@ -273,6 +321,36 @@ class MigoTheme {
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: MigoColors.accent,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 14,
+            ),
+            minimumSize: const Size(0, 52),
+            side: BorderSide(
+              color: MigoColors.accent.withValues(alpha: 0.4),
+              width: 1.5,
+            ),
+            textStyle: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: MigoColors.accent,
+            textStyle: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
             ),
           ),
         ),
@@ -284,10 +362,62 @@ class MigoTheme {
             borderRadius: BorderRadius.circular(18),
           ),
         ),
-        dividerColor: MigoColors.dividerDark,
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: MigoColors.surfaceDark,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
+          hintStyle: const TextStyle(
+            color: MigoColors.textSecondaryDark,
+            fontSize: 14,
+          ),
+          labelStyle: const TextStyle(
+            color: MigoColors.textSecondaryDark,
+            fontSize: 14,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(
+              color: MigoColors.accent,
+              width: 1.6,
+            ),
+          ),
+        ),
+        dividerTheme: const DividerThemeData(
+          color: MigoColors.dividerDark,
+          thickness: 1,
+          space: 1,
+        ),
+        chipTheme: ChipThemeData(
+          backgroundColor: MigoColors.surfaceDark,
+          side: const BorderSide(color: MigoColors.dividerDark),
+          labelStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: MigoColors.textPrimaryDark,
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 6,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
         navigationBarTheme: NavigationBarThemeData(
           backgroundColor: MigoColors.surfaceDark,
-          indicatorColor: MigoColors.accent.withValues(alpha: 0.2),
+          indicatorColor: MigoColors.accent.withValues(alpha: 0.22),
+          elevation: 0,
           height: 68,
           labelTextStyle: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
@@ -301,6 +431,18 @@ class MigoTheme {
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: MigoColors.textSecondaryDark,
+            );
+          }),
+          iconTheme: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const IconThemeData(
+                color: MigoColors.accent,
+                size: 24,
+              );
+            }
+            return const IconThemeData(
+              color: MigoColors.textSecondaryDark,
+              size: 24,
             );
           }),
         ),

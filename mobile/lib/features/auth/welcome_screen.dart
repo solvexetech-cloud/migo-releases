@@ -64,7 +64,7 @@ class WelcomeScreen extends StatelessWidget {
                     letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 40),
+              const SizedBox(height: 28),
                 // Feature bullets
                 const _FeatureRow(
                   icon: Icons.search,

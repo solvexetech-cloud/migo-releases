@@ -1,8 +1,13 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb, Uint8List;
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../core/theme/migo_colors.dart';
+import '../../core/theme/migo_gradients.dart';
 import '../../models/business_model.dart';
 import '../../models/group_deal_model.dart';
 import '../../models/offer_model.dart';
+import '../../services/cloudinary_service.dart';
 import '../../services/firestore_service.dart';
 
 class CreateOfferScreen extends StatefulWidget {
@@ -28,6 +33,15 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
   bool _loading = false;
   String? _error;
 
+  // Image handling
+  File? _pickedFile;
+  Uint8List? _pickedBytes;
+  String? _pickedFilename;
+  String? _uploadedImageUrl;
+  bool _uploadingImage = false;
+
+  final _picker = ImagePicker();
+
   @override
   void dispose() {
     _title.dispose();
@@ -39,6 +53,47 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
     _minGroup.dispose();
     _maxGroup.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final picked = await _picker.pickImage(
+        source: source,
+        maxWidth: 1600,
+        maxHeight: 1600,
+        imageQuality: 85,
+      );
+      if (picked == null) return;
+
+      if (kIsWeb) {
+        final bytes = await picked.readAsBytes();
+        setState(() {
+          _pickedBytes = bytes;
+          _pickedFilename = picked.name;
+          _pickedFile = null;
+        });
+      } else {
+        setState(() {
+          _pickedFile = File(picked.path);
+          _pickedBytes = null;
+          _pickedFilename = null;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to pick image: $e')),
+      );
+    }
+  }
+
+  void _clearImage() {
+    setState(() {
+      _pickedFile = null;
+      _pickedBytes = null;
+      _pickedFilename = null;
+      _uploadedImageUrl = null;
+    });
   }
 
   Future<void> _submit() async {
@@ -58,7 +113,9 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
       return;
     }
     if (offPrice >= origPrice) {
-      setState(() => _error = 'Offer price must be less than original price.');
+      setState(
+        () => _error = 'Offer price must be less than original price.',
+      );
       return;
     }
 
@@ -71,6 +128,27 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
 
     setState(() => _loading = true);
     try {
+      String? imageUrl = _uploadedImageUrl;
+      if (_pickedFile != null || _pickedBytes != null) {
+        setState(() => _uploadingImage = true);
+        final uploaded = await CloudinaryService.instance.upload(
+          file: _pickedFile,
+          bytes: _pickedBytes,
+          filename: _pickedFilename,
+        );
+        setState(() => _uploadingImage = false);
+
+        if (uploaded == null) {
+          if (!mounted) return;
+          setState(() {
+            _error = 'Failed to upload image. Try again.';
+            _loading = false;
+          });
+          return;
+        }
+        imageUrl = uploaded;
+      }
+
       final now = DateTime.now();
       final offer = OfferModel.newDraft(
         businessId: widget.business.id,
@@ -86,7 +164,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
         category: widget.business.category,
         terms: _terms.text.trim().isEmpty ? null : _terms.text.trim(),
         dailyLimit: int.tryParse(_dailyLimit.text.trim()),
-      );
+      ).copyWith(imageUrl: imageUrl);
 
       final offerId = await FirestoreService.instance.createOffer(offer);
 
@@ -113,8 +191,9 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final previewSavings = (double.tryParse(_originalPrice.text) ?? 0) -
-        (double.tryParse(_offerPrice.text) ?? 0);
+    final previewSavings =
+        (double.tryParse(_originalPrice.text) ?? 0) -
+            (double.tryParse(_offerPrice.text) ?? 0);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Create offer')),
@@ -124,6 +203,9 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              _imagePickerCard(),
+              const SizedBox(height: 20),
+
               TextField(
                 controller: _title,
                 onChanged: (_) => setState(() {}),
@@ -150,10 +232,12 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                   border: OutlineInputBorder(),
                 ),
                 items: OfferType.values
-                    .map((t) => DropdownMenuItem(
-                          value: t,
-                          child: Text(t.label),
-                        ))
+                    .map(
+                      (t) => DropdownMenuItem(
+                        value: t,
+                        child: Text(t.label),
+                      ),
+                    )
                     .toList(),
                 onChanged: (v) => setState(() => _type = v ?? _type),
               ),
@@ -191,9 +275,8 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                   Expanded(
                     child: TextField(
                       controller: _originalPrice,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       onChanged: (_) => setState(() {}),
                       decoration: const InputDecoration(
                         labelText: 'Original price',
@@ -205,9 +288,8 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                   Expanded(
                     child: TextField(
                       controller: _offerPrice,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       onChanged: (_) => setState(() {}),
                       decoration: const InputDecoration(
                         labelText: 'MIGO price',
@@ -293,13 +375,28 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                 child: ElevatedButton(
                   onPressed: _loading ? null : _submit,
                   child: _loading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            ),
+                            if (_uploadingImage) ...[
+                              const SizedBox(width: 12),
+                              const Text(
+                                'Uploading image…',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ],
                         )
                       : const Text('Create offer'),
                 ),
@@ -316,6 +413,128 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _imagePickerCard() {
+    final hasImage = _pickedFile != null || _pickedBytes != null;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: MigoColors.surface(context),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MigoColors.divider(context)),
+      ),
+      child: Column(
+        children: [
+          if (hasImage)
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: kIsWeb && _pickedBytes != null
+                    ? Image.memory(_pickedBytes!, fit: BoxFit.cover)
+                    : _pickedFile != null
+                        ? Image.file(_pickedFile!, fit: BoxFit.cover)
+                        : const SizedBox(),
+              ),
+            )
+          else
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: MigoGradients.softBlue,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.image_outlined,
+                      size: 48,
+                      color: MigoColors.primary,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Add a photo to your offer',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: MigoColors.textPrimaryLight,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Businesses with photos get 3× more claims',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: MigoColors.textSecondaryLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _pickImage(ImageSource.gallery),
+                    icon: const Icon(
+                      Icons.photo_library_outlined,
+                      size: 16,
+                    ),
+                    label: Text(
+                      hasImage ? 'Change' : 'Gallery',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _pickImage(ImageSource.camera),
+                    icon: const Icon(
+                      Icons.camera_alt_outlined,
+                      size: 16,
+                    ),
+                    label: const Text(
+                      'Camera',
+                      style: TextStyle(fontSize: 13),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                  ),
+                ),
+                if (hasImage) ...[
+                  const SizedBox(width: 4),
+                  IconButton(
+                    onPressed: _clearImage,
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: MigoColors.error,
+                    ),
+                    tooltip: 'Remove image',
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

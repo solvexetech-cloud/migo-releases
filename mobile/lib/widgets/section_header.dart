@@ -22,20 +22,23 @@ class SectionHeader extends StatelessWidget {
         Text(
           title,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: MigoColors.textPrimaryLight,
+                fontWeight: FontWeight.w800,
+                color: MigoColors.textPrimary(context),
               ),
         ),
         if (actionLabel != null)
           TextButton(
             onPressed: onActionTap,
             style: TextButton.styleFrom(
-              foregroundColor: MigoColors.primary,
+              foregroundColor: MigoColors.accent,
               padding: EdgeInsets.zero,
               minimumSize: const Size(0, 0),
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            child: Text(actionLabel!),
+            child: Text(
+              actionLabel!,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
       ],
     );

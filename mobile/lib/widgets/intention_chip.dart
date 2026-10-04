@@ -19,6 +19,16 @@ class IntentionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final unselectedBg = isDark
+        ? MigoColors.surfaceVariantDark
+        : Colors.white;
+    final unselectedBorder = isDark
+        ? MigoColors.dividerDark
+        : const Color(0xFFECE7DE);
+    final unselectedFg =
+        isDark ? MigoColors.textPrimaryDark : MigoColors.textPrimaryLight;
+
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(24),
@@ -27,32 +37,28 @@ class IntentionChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 10,
+          ),
           decoration: BoxDecoration(
             gradient: selected ? MigoGradients.primaryButton : null,
-            color: selected ? null : Colors.white,
+            color: selected ? null : unselectedBg,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: selected
-                  ? MigoColors.primary
-                  : const Color(0xFFECE7DE),
+              color: selected ? MigoColors.primary : unselectedBorder,
               width: 1.2,
             ),
             boxShadow: selected
                 ? [
                     BoxShadow(
-                      color: MigoColors.primary.withValues(alpha: 0.25),
+                      color:
+                          MigoColors.primary.withValues(alpha: 0.35),
                       blurRadius: 14,
                       offset: const Offset(0, 6),
                     ),
                   ]
-                : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+                : null,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -60,7 +66,9 @@ class IntentionChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 16,
-                color: selected ? Colors.white : MigoColors.primary,
+                color: selected
+                    ? Colors.white
+                    : (isDark ? MigoColors.accent : MigoColors.primary),
               ),
               const SizedBox(width: 6),
               Text(
@@ -68,8 +76,7 @@ class IntentionChip extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color:
-                      selected ? Colors.white : MigoColors.textPrimaryLight,
+                  color: selected ? Colors.white : unselectedFg,
                 ),
               ),
             ],

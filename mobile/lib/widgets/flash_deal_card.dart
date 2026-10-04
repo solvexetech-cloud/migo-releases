@@ -4,7 +4,7 @@ import '../core/theme/migo_gradients.dart';
 import '../core/theme/migo_shadows.dart';
 import '../models/offer_model.dart';
 
-/// Urgent flash deal card with red gradient top strip and glow.
+/// Urgent flash deal card with red gradient top strip.
 class FlashDealCard extends StatelessWidget {
   const FlashDealCard({super.key, required this.offer, this.onTap});
 
@@ -24,10 +24,14 @@ class FlashDealCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final surface = MigoColors.surface(context);
+    final textPrimary = MigoColors.textPrimary(context);
+    final textSecondary = MigoColors.textSecondary(context);
+
     return Container(
       width: 220,
       decoration: BoxDecoration(
-        color: MigoColors.surfaceLight,
+        color: surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: MigoShadows.redGlow,
       ),
@@ -94,11 +98,11 @@ class FlashDealCard extends StatelessWidget {
                     children: [
                       Text(
                         offer.businessName.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 9,
                           letterSpacing: 1.1,
                           fontWeight: FontWeight.w800,
-                          color: MigoColors.textSecondaryLight,
+                          color: textSecondary,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -106,10 +110,10 @@ class FlashDealCard extends StatelessWidget {
                         offer.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w800,
-                          color: MigoColors.textPrimaryLight,
+                          color: textPrimary,
                           height: 1.2,
                         ),
                       ),
@@ -122,7 +126,7 @@ class FlashDealCard extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w900,
-                              color: MigoColors.primary,
+                              color: MigoColors.primaryLight,
                               height: 1,
                               letterSpacing: -0.4,
                             ),
@@ -132,10 +136,11 @@ class FlashDealCard extends StatelessWidget {
                             padding: const EdgeInsets.only(bottom: 3),
                             child: Text(
                               '${offer.currency} ${offer.originalPrice.toStringAsFixed(0)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
-                                decoration: TextDecoration.lineThrough,
-                                color: MigoColors.textSecondaryLight,
+                                decoration:
+                                    TextDecoration.lineThrough,
+                                color: textSecondary,
                               ),
                             ),
                           ),

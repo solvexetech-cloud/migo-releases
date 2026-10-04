@@ -4,8 +4,6 @@ import '../core/theme/migo_gradients.dart';
 import '../core/theme/migo_shadows.dart';
 import '../models/offer_model.dart';
 
-/// Decision-focused offer card. Gradient image placeholder,
-/// big price, savings badge, elevated soft shadow.
 class OfferCard extends StatelessWidget {
   const OfferCard({
     super.key,
@@ -20,7 +18,6 @@ class OfferCard extends StatelessWidget {
   final int verifiedPercent;
   final VoidCallback? onTap;
 
-  /// Map category → gradient color for placeholder image.
   LinearGradient _placeholderGradient() {
     final c = offer.category.toLowerCase();
     if (c.contains('food')) {
@@ -56,9 +53,13 @@ class OfferCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final surface = MigoColors.surface(context);
+    final textPrimary = MigoColors.textPrimary(context);
+    final textSecondary = MigoColors.textSecondary(context);
+
     return Container(
       decoration: BoxDecoration(
-        color: MigoColors.surfaceLight,
+        color: surface,
         borderRadius: BorderRadius.circular(18),
         boxShadow: MigoShadows.soft,
       ),
@@ -73,14 +74,16 @@ class OfferCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Image / gradient placeholder with type badge
                 AspectRatio(
                   aspectRatio: 16 / 9,
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
                       if (offer.imageUrl != null)
-                        Image.network(offer.imageUrl!, fit: BoxFit.cover)
+                        Image.network(
+                          offer.imageUrl!,
+                          fit: BoxFit.cover,
+                        )
                       else
                         Container(
                           decoration: BoxDecoration(
@@ -94,7 +97,6 @@ class OfferCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                      // Type badge (top-left)
                       Positioned(
                         top: 10,
                         left: 10,
@@ -118,7 +120,6 @@ class OfferCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      // Discount badge (top-right)
                       Positioned(
                         top: 10,
                         right: 10,
@@ -151,11 +152,11 @@ class OfferCard extends StatelessWidget {
                     children: [
                       Text(
                         offer.businessName.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
                           letterSpacing: 1.2,
                           fontWeight: FontWeight.w800,
-                          color: MigoColors.textSecondaryLight,
+                          color: textSecondary,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -163,10 +164,10 @@ class OfferCard extends StatelessWidget {
                         offer.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
-                          color: MigoColors.textPrimaryLight,
+                          color: textPrimary,
                           height: 1.2,
                         ),
                       ),
@@ -179,7 +180,7 @@ class OfferCard extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.w900,
-                              color: MigoColors.primary,
+                              color: MigoColors.primaryLight,
                               height: 1,
                               letterSpacing: -0.5,
                             ),
@@ -189,10 +190,11 @@ class OfferCard extends StatelessWidget {
                             padding: const EdgeInsets.only(bottom: 3),
                             child: Text(
                               '${offer.currency} ${offer.originalPrice.toStringAsFixed(0)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                decoration: TextDecoration.lineThrough,
-                                color: MigoColors.textSecondaryLight,
+                                decoration:
+                                    TextDecoration.lineThrough,
+                                color: textSecondary,
                               ),
                             ),
                           ),
@@ -205,7 +207,8 @@ class OfferCard extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: MigoColors.success.withValues(alpha: 0.15),
+                          color: MigoColors.success
+                              .withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -221,17 +224,17 @@ class OfferCard extends StatelessWidget {
                       const SizedBox(height: 10),
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.place_outlined,
                             size: 13,
-                            color: MigoColors.textSecondaryLight,
+                            color: textSecondary,
                           ),
                           const SizedBox(width: 3),
                           Text(
                             '${distanceKm.toStringAsFixed(1)} km',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: MigoColors.textSecondaryLight,
+                              color: textSecondary,
                             ),
                           ),
                           const Spacer(),

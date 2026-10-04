@@ -1,0 +1,93 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
+import 'package:http/http.dart' as http;
+
+/// Cloudinary upload service — unsigned uploads (no API secret in app).
+class CloudinaryService {
+  CloudinaryService._();
+  static final CloudinaryService instance = CloudinaryService._();
+
+  static const String _cloudName = 'zxl1kb8h';
+  static const String _uploadPreset = 'migo_unsigned';
+
+  String get _uploadUrl =>
+      'https://api.cloudinary.com/v1_1/$_cloudName/image/upload';
+
+  /// Upload a File (mobile/desktop). Returns secure URL or null on failure.
+  Future<String?> uploadFile(File file) async {
+    try {
+      final uri = Uri.parse(_uploadUrl);
+      final request = http.MultipartRequest('POST', uri);
+
+      request.fields['upload_preset'] = _uploadPreset;
+
+      request.files.add(
+        await http.MultipartFile.fromPath('file', file.path),
+      );
+
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
+
+      debugPrint('Cloudinary status: ${response.statusCode}');
+      debugPrint('Cloudinary body: ${response.body}');
+
+      if (response.statusCode != 200) return null;
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return data['secure_url'] as String?;
+    } catch (e) {
+      debugPrint('Cloudinary uploadFile error: $e');
+      return null;
+    }
+  }
+
+  /// Upload raw bytes (works on web too).
+  Future<String?> uploadBytes({
+    required List<int> bytes,
+    required String filename,
+  }) async {
+    try {
+      final uri = Uri.parse(_uploadUrl);
+      final request = http.MultipartRequest('POST', uri);
+
+      request.fields['upload_preset'] = _uploadPreset;
+
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          bytes,
+          filename: filename,
+        ),
+      );
+
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
+
+      debugPrint('Cloudinary status: ${response.statusCode}');
+      debugPrint('Cloudinary body: ${response.body}');
+
+      if (response.statusCode != 200) return null;
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return data['secure_url'] as String?;
+    } catch (e) {
+      debugPrint('Cloudinary uploadBytes error: $e');
+      return null;
+    }
+  }
+
+  Future<String?> upload({
+    File? file,
+    List<int>? bytes,
+    String? filename,
+  }) async {
+    if (kIsWeb && bytes != null && filename != null) {
+      return uploadBytes(bytes: bytes, filename: filename);
+    }
+    if (file != null) {
+      return uploadFile(file);
+    }
+    return null;
+  }
+}
