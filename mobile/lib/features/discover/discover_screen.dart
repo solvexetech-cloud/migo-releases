@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
+import '../../widgets/migo_empty_state.dart';
 import '../deals/offer_detail_screen.dart';
 
 enum SortMode { newest, bestSavings, expiringSoon }
@@ -29,7 +30,7 @@ class DiscoverScreen extends StatefulWidget {
 class _DiscoverScreenState extends State<DiscoverScreen> {
   final _searchController = TextEditingController();
   String _query = '';
-  String? _category; // null = all
+  String? _category;
   SortMode _sort = SortMode.newest;
 
   static const _categories = [
@@ -105,7 +106,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     contentPadding:
                         const EdgeInsets.symmetric(vertical: 12),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide.none,
                     ),
                   ),
@@ -122,7 +123,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                             _CategoryPill(
                               label: 'All',
                               selected: _category == null,
-                              onTap: () => setState(() => _category = null),
+                              onTap: () =>
+                                  setState(() => _category = null),
                             ),
                             const SizedBox(width: 6),
                             ..._categories.map((c) => Padding(
@@ -170,8 +172,17 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           final filtered = _applyFilters(all);
 
           if (filtered.isEmpty) {
-            return _EmptyState(
-              hasFilters: _query.isNotEmpty || _category != null,
+            final hasFilters = _query.isNotEmpty || _category != null;
+            return MigoEmptyState(
+              icon: hasFilters
+                  ? Icons.search_off
+                  : Icons.explore_outlined,
+              title: hasFilters
+                  ? 'No offers match your filters'
+                  : 'No offers yet',
+              body: hasFilters
+                  ? 'Try a different search or category.'
+                  : 'Check back soon for new deals.',
             );
           }
 
@@ -218,7 +229,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => OfferDetailScreen(offer: o),
+                            builder: (_) =>
+                                OfferDetailScreen(offer: o),
                           ),
                         );
                       },
@@ -293,7 +305,6 @@ class _OfferTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image / placeholder
             ClipRRect(
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(14),
@@ -394,52 +405,6 @@ class _OfferTile extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.hasFilters});
-  final bool hasFilters;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              hasFilters ? Icons.search_off : Icons.explore_outlined,
-              size: 64,
-              color: MigoColors.textSecondaryLight,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              hasFilters
-                  ? 'No offers match your filters'
-                  : 'No offers yet',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: MigoColors.textPrimaryLight,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              hasFilters
-                  ? 'Try a different search or category.'
-                  : 'Check back soon for new deals.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 13,
-                color: MigoColors.textSecondaryLight,
               ),
             ),
           ],

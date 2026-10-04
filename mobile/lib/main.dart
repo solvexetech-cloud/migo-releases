@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'core/config/app_config.dart';
 import 'core/theme/migo_theme.dart';
-import 'features/auth/login_screen.dart';
+import 'features/auth/welcome_screen.dart';
 import 'features/main/main_shell.dart';
 import 'firebase_options.dart';
 
@@ -32,9 +32,6 @@ class MigoApp extends StatelessWidget {
   }
 }
 
-/// Watches Firebase auth state and routes:
-/// - logged out → LoginScreen
-/// - logged in  → MainShell
 class _AuthGate extends StatelessWidget {
   const _AuthGate();
 
@@ -51,7 +48,7 @@ class _AuthGate extends StatelessWidget {
         if (snapshot.hasData && snapshot.data != null) {
           return const MainShell();
         }
-        return const LoginScreen();
+        return const WelcomeScreen();
       },
     );
   }
