@@ -98,6 +98,13 @@ class FirestoreService {
     return BusinessModel.fromMap(id, snap.data()!);
   }
 
+  Stream<BusinessModel?> streamMyBusinessById(String businessId) {
+    return _businesses.doc(businessId).snapshots().map((snap) {
+      if (!snap.exists || snap.data() == null) return null;
+      return BusinessModel.fromMap(businessId, snap.data()!);
+    });
+  }
+
   Stream<BusinessModel?> streamMyBusiness(String ownerUid) {
     return _businesses
         .where('ownerUid', isEqualTo: ownerUid)

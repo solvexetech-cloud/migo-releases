@@ -8,7 +8,8 @@ class RegisterBusinessScreen extends StatefulWidget {
   const RegisterBusinessScreen({super.key});
 
   @override
-  State<RegisterBusinessScreen> createState() => _RegisterBusinessScreenState();
+  State<RegisterBusinessScreen> createState() =>
+      _RegisterBusinessScreenState();
 }
 
 class _RegisterBusinessScreenState extends State<RegisterBusinessScreen> {
@@ -17,8 +18,11 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen> {
   final _description = TextEditingController();
   final _phone = TextEditingController();
   final _whatsapp = TextEditingController();
+  final _mapUrl = TextEditingController();
 
   String _category = 'Food';
+  TimeOfDay _openTime = const TimeOfDay(hour: 9, minute: 0);
+  TimeOfDay _closeTime = const TimeOfDay(hour: 23, minute: 0);
   bool _loading = false;
   String? _error;
 
@@ -41,7 +45,27 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen> {
     _description.dispose();
     _phone.dispose();
     _whatsapp.dispose();
+    _mapUrl.dispose();
     super.dispose();
+  }
+
+  String _formatTime(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  Future<void> _pickTime(bool isOpen) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: isOpen ? _openTime : _closeTime,
+    );
+    if (picked != null) {
+      setState(() {
+        if (isOpen) {
+          _openTime = picked;
+        } else {
+          _closeTime = picked;
+        }
+      });
+    }
   }
 
   Future<void> _submit() async {
@@ -72,7 +96,12 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen> {
             ? null
             : _description.text.trim(),
         phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
-        whatsapp: _whatsapp.text.trim().isEmpty ? null : _whatsapp.text.trim(),
+        whatsapp:
+            _whatsapp.text.trim().isEmpty ? null : _whatsapp.text.trim(),
+        openTime: _formatTime(_openTime),
+        closeTime: _formatTime(_closeTime),
+        mapUrl:
+            _mapUrl.text.trim().isEmpty ? null : _mapUrl.text.trim(),
       );
       await FirestoreService.instance.createBusiness(business);
       if (!mounted) return;
@@ -123,9 +152,11 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen> {
                   border: OutlineInputBorder(),
                 ),
                 items: _categories
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .map((c) =>
+                        DropdownMenuItem(value: c, child: Text(c)))
                     .toList(),
-                onChanged: (v) => setState(() => _category = v ?? _category),
+                onChanged: (v) =>
+                    setState(() => _category = v ?? _category),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -135,6 +166,36 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen> {
                   hintText: 'Street, area, Doha',
                   border: OutlineInputBorder(),
                 ),
+              ),
+              const SizedBox(height: 16),
+              // Business hours
+              const Text(
+                'Business hours',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: MigoColors.textPrimaryLight,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: _TimeField(
+                      label: 'Opens at',
+                      time: _openTime,
+                      onTap: () => _pickTime(true),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _TimeField(
+                      label: 'Closes at',
+                      time: _closeTime,
+                      onTap: () => _pickTime(false),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               TextField(
@@ -160,6 +221,15 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen> {
                 keyboardType: TextInputType.phone,
                 decoration: const InputDecoration(
                   labelText: 'WhatsApp (optional)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _mapUrl,
+                decoration: const InputDecoration(
+                  labelText: 'Google Maps link (optional)',
+                  hintText: 'https://maps.google.com/...',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -189,6 +259,57 @@ class _RegisterBusinessScreenState extends State<RegisterBusinessScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TimeField extends StatelessWidget {
+  const _TimeField({
+    required this.label,
+    required this.time,
+    required this.onTap,
+  });
+
+  final String label;
+  final TimeOfDay time;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final text =
+        '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: MigoColors.dividerLight),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                color: MigoColors.textSecondaryLight,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              text,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: MigoColors.textPrimaryLight,
+              ),
+            ),
+          ],
         ),
       ),
     );
