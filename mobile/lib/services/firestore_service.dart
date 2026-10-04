@@ -264,7 +264,8 @@ class FirestoreService {
       'claimedCount': FieldValue.increment(1),
       'updatedAt': FieldValue.serverTimestamp(),
     });
-        await addCoins(
+
+    await addCoins(
       uid: claim.userUid,
       amount: 5,
       reason: 'Claimed "${claim.offerTitle}"',
@@ -354,7 +355,8 @@ class FirestoreService {
       'redeemedAt': FieldValue.serverTimestamp(),
       'redeemedBy': businessId,
     });
-        await addCoins(
+
+    await addCoins(
       uid: claim.userUid,
       amount: 25,
       reason: 'Redeemed "${claim.offerTitle}"',
@@ -376,10 +378,9 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> get _reviews =>
       _db.collection('reviews');
 
-    Future<String> createReview(ReviewModel review) async {
+  Future<String> createReview(ReviewModel review) async {
     final ref = await _reviews.add(review.toMap());
 
-    // Award +10 coins for a useful review
     await addCoins(
       uid: review.userUid,
       amount: 10,
@@ -396,7 +397,6 @@ class FirestoreService {
       ),
     );
 
-    // Notify the business owner about the new review
     final bizSnap = await _businesses.doc(review.businessId).get();
     final ownerUid = bizSnap.data()?['ownerUid'] as String?;
     if (ownerUid != null && ownerUid.isNotEmpty) {
@@ -415,7 +415,6 @@ class FirestoreService {
     return ref.id;
   }
 
-  /// Has this user already reviewed this claim?
   Future<bool> hasReviewedClaim(String claimId) async {
     final snap =
         await _reviews.where('claimId', isEqualTo: claimId).limit(1).get();
@@ -450,7 +449,6 @@ class FirestoreService {
             .toList());
   }
 
-  /// Compute average rating and count for a business (client-side).
   Future<({double average, int count})> getBusinessRating(
     String businessId,
   ) async {
@@ -576,13 +574,12 @@ class FirestoreService {
       amount: referral.referrerReward,
       reason: 'Referral bonus (${map['email'] ?? uid})',
     );
-        await addCoins(
+    await addCoins(
       uid: uid,
       amount: referral.referredReward,
       reason: 'Welcome referral bonus',
     );
 
-    // Notify both sides about the reward
     await createNotification(
       NotificationModel.newDraft(
         userUid: referredBy,
@@ -658,5 +655,101 @@ class FirestoreService {
       batch.update(doc.reference, {'read': true});
     }
     await batch.commit();
+  }
+
+  // ---------- SAVED OFFERS & BUSINESSES ----------
+
+  CollectionReference<Map<String, dynamic>> get _savedOffers =>
+      _db.collection('saved_offers');
+
+  CollectionReference<Map<String, dynamic>> get _savedBusinesses =>
+      _db.collection('saved_businesses');
+
+  String _savedOfferId(String uid, String offerId) => '${uid}_$offerId';
+  String _savedBizId(String uid, String businessId) =>
+      '${uid}_$businessId';
+
+  Future<bool> isOfferSaved(String uid, String offerId) async {
+    final snap =
+        await _savedOffers.doc(_savedOfferId(uid, offerId)).get();
+    return snap.exists;
+  }
+
+  Future<void> toggleSaveOffer({
+    required String uid,
+    required String offerId,
+  }) async {
+    final doc = _savedOffers.doc(_savedOfferId(uid, offerId));
+    final existing = await doc.get();
+    if (existing.exists) {
+      await doc.delete();
+    } else {
+      await doc.set({
+        'userUid': uid,
+        'offerId': offerId,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
+  }
+
+  Future<bool> isBusinessSaved(String uid, String businessId) async {
+    final snap =
+        await _savedBusinesses.doc(_savedBizId(uid, businessId)).get();
+    return snap.exists;
+  }
+
+  Future<void> toggleSaveBusiness({
+    required String uid,
+    required String businessId,
+  }) async {
+    final doc = _savedBusinesses.doc(_savedBizId(uid, businessId));
+    final existing = await doc.get();
+    if (existing.exists) {
+      await doc.delete();
+    } else {
+      await doc.set({
+        'userUid': uid,
+        'businessId': businessId,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
+  }
+
+  Stream<List<OfferModel>> streamMySavedOffers(String uid) {
+    return _savedOffers
+        .where('userUid', isEqualTo: uid)
+        .limit(50)
+        .snapshots()
+        .asyncMap((snap) async {
+      final ids = snap.docs
+          .map((d) => (d.data()['offerId'] ?? '') as String)
+          .where((s) => s.isNotEmpty)
+          .toList();
+      final results = <OfferModel>[];
+      for (final id in ids) {
+        final o = await getOffer(id);
+        if (o != null) results.add(o);
+      }
+      return results;
+    });
+  }
+
+  Stream<List<BusinessModel>> streamMySavedBusinesses(String uid) {
+    return _savedBusinesses
+        .where('userUid', isEqualTo: uid)
+        .limit(50)
+        .snapshots()
+        .asyncMap((snap) async {
+      final ids = snap.docs
+          .map((d) => (d.data()['businessId'] ?? '') as String)
+          .where((s) => s.isNotEmpty)
+          .toList();
+      final results = <BusinessModel>[];
+      for (final id in ids) {
+        final b = await getBusiness(id);
+        if (b != null) results.add(b);
+      }
+      return results;
+    });
   }
 }

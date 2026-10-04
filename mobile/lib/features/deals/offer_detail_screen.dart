@@ -177,7 +177,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          const Icon(
+                                                    const Icon(
                             Icons.star,
                             size: 14,
                             color: MigoColors.accent,
@@ -185,6 +185,11 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                         ],
                       ),
                     ),
+                  ),
+                  _SaveButton(
+                    uid: _uid ?? '',
+                    offerId: o.id,
+                    businessId: o.businessId,
                   ),
                 ],
               ),
@@ -626,7 +631,77 @@ class _GroupProgressCard extends StatelessWidget {
               color: MigoColors.textSecondaryLight,
             ),
           ),
-        ],
+                ],
+      ),
+    );
+  }
+}
+
+class _SaveButton extends StatefulWidget {
+  const _SaveButton({
+    required this.uid,
+    required this.offerId,
+    required this.businessId,
+  });
+
+  final String uid;
+  final String offerId;
+  final String businessId;
+
+  @override
+  State<_SaveButton> createState() => _SaveButtonState();
+}
+
+class _SaveButtonState extends State<_SaveButton> {
+  bool _saved = false;
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    if (widget.uid.isEmpty) return;
+    final saved = await FirestoreService.instance
+        .isOfferSaved(widget.uid, widget.offerId);
+    if (!mounted) return;
+    setState(() {
+      _saved = saved;
+      _loaded = true;
+    });
+  }
+
+  Future<void> _toggle() async {
+    if (widget.uid.isEmpty) return;
+    await FirestoreService.instance.toggleSaveOffer(
+      uid: widget.uid,
+      offerId: widget.offerId,
+    );
+    await FirestoreService.instance.toggleSaveBusiness(
+      uid: widget.uid,
+      businessId: widget.businessId,
+    );
+    if (!mounted) return;
+    setState(() => _saved = !_saved);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_saved ? 'Saved to My Deals' : 'Removed from saved'),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_loaded) {
+      return const SizedBox(width: 44, height: 44);
+    }
+    return IconButton(
+      onPressed: _toggle,
+      icon: Icon(
+        _saved ? Icons.favorite : Icons.favorite_border,
+        color: _saved ? MigoColors.error : MigoColors.textPrimaryLight,
       ),
     );
   }
