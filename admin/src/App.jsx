@@ -7,6 +7,7 @@ import AdminLayout from './components/AdminLayout';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import PendingBusinesses from './pages/PendingBusinesses';
+import PendingOffers from './pages/PendingOffers';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -68,9 +69,9 @@ export default function App() {
                     path="/businesses"
                     element={<PendingBusinesses />}
                   />
-                  <Route
+                                    <Route
                     path="/offers"
-                    element={<Placeholder title="Pending Offers" />}
+                    element={<PendingOffers />}
                   />
                   <Route
                     path="/users"
