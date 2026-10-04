@@ -6,6 +6,7 @@ import { auth, db } from './firebase';
 import AdminLayout from './components/AdminLayout';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import PendingBusinesses from './pages/PendingBusinesses';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -63,9 +64,9 @@ export default function App() {
               <AdminLayout user={user}>
                 <Routes>
                   <Route path="/" element={<AdminDashboard />} />
-                  <Route
+                                    <Route
                     path="/businesses"
-                    element={<Placeholder title="Pending Businesses" />}
+                    element={<PendingBusinesses />}
                   />
                   <Route
                     path="/offers"
