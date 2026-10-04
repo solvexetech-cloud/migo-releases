@@ -8,6 +8,7 @@ import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import PendingBusinesses from './pages/PendingBusinesses';
 import PendingOffers from './pages/PendingOffers';
+import UsersPage from './pages/UsersPage';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -73,10 +74,7 @@ export default function App() {
                     path="/offers"
                     element={<PendingOffers />}
                   />
-                  <Route
-                    path="/users"
-                    element={<Placeholder title="Users" />}
-                  />
+                                    <Route path="/users" element={<UsersPage />} />
                 </Routes>
               </AdminLayout>
             ) : (
@@ -89,20 +87,3 @@ export default function App() {
   );
 }
 
-function Placeholder({ title }) {
-  return (
-    <div style={{ padding: 32 }}>
-      <h1
-        style={{
-          fontSize: 28,
-          fontWeight: 900,
-          color: '#0B2B5B',
-          marginBottom: 8,
-        }}
-      >
-        {title}
-      </h1>
-      <p style={{ color: '#6B7280' }}>Coming in the next step.</p>
-    </div>
-  );
-}
