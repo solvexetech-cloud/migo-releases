@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// MIGO Brand Colors
-/// Deep Blue (primary) + Gold (accent) + Green (success)
+/// Deep Blue (primary) + Gold (accent) + Cream background
 class MigoColors {
   MigoColors._();
 
@@ -21,12 +21,12 @@ class MigoColors {
   static const Color error = Color(0xFFD64545);
   static const Color info = Color(0xFF2A7FBF);
 
-  // Light theme
-  static const Color backgroundLight = Color(0xFFF7F8FA);
+  // Light theme — WARM cream background
+  static const Color backgroundLight = Color(0xFFF6F3EE);
   static const Color surfaceLight = Color(0xFFFFFFFF);
   static const Color textPrimaryLight = Color(0xFF111418);
   static const Color textSecondaryLight = Color(0xFF6B7280);
-  static const Color dividerLight = Color(0xFFE5E7EB);
+  static const Color dividerLight = Color(0xFFECE7DE);
 
   // Dark theme
   static const Color backgroundDark = Color(0xFF0E1116);

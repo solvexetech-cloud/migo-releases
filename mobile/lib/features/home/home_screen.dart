@@ -4,6 +4,7 @@ import '../../core/config/app_config.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../core/theme/migo_gradients.dart';
 import '../../core/theme/migo_shadows.dart';
+import '../../core/utils/migo_animations.dart';
 import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
 import '../../widgets/category_grid.dart';
@@ -43,43 +44,43 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // Gradient hero header
+          // ---------- HERO HEADER ----------
           SliverToBoxAdapter(
             child: Container(
               decoration: const BoxDecoration(
                 gradient: MigoGradients.heroBlue,
                 borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(28),
-                  bottomRight: Radius.circular(28),
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
                 ),
               ),
               child: SafeArea(
                 bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 26),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Top row — MIGO + location + notification
+                      // Top row: MIGO + location + bell
                       Row(
                         children: [
                           const Text(
                             AppConfig.appName,
                             style: TextStyle(
-                              fontSize: 22,
+                              fontSize: 24,
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
-                              letterSpacing: 2.5,
+                              letterSpacing: 3,
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 12),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
+                              horizontal: 10,
+                              vertical: 5,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
+                              color: Colors.white.withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: const Row(
@@ -98,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: Colors.white,
                                   ),
                                 ),
+                                SizedBox(width: 2),
                                 Icon(
                                   Icons.keyboard_arrow_down,
                                   size: 14,
@@ -119,7 +121,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             icon: StreamBuilder<int>(
                               stream: FirestoreService.instance
                                   .streamUnreadNotificationCount(
-                                FirebaseAuth.instance.currentUser?.uid ?? '',
+                                FirebaseAuth
+                                        .instance.currentUser?.uid ??
+                                    '',
                               ),
                               builder: (context, snap) {
                                 final count = snap.data ?? 0;
@@ -167,25 +171,27 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 22),
+                      // Headline
                       const Text(
                         'What can you discover\nor save today?',
                         style: TextStyle(
-                          fontSize: 22,
+                          fontSize: 24,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                           height: 1.25,
                           letterSpacing: -0.4,
                         ),
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 20),
+                      // Pick For Me
                       MigoGoldButton(
                         label: 'Pick For Me',
                         icon: Icons.auto_awesome,
                         onPressed: () => PickForMeSheet.show(context),
                       ),
-                      const SizedBox(height: 12),
-                      // Search bar（white on gradient）
+                      const SizedBox(height: 14),
+                      // Search bar
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -200,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 'Search businesses, deals, cuisines...',
                             hintStyle: const TextStyle(
                               color: MigoColors.textSecondaryLight,
-                              fontSize: 14,
+                              fontSize: 13,
                             ),
                             prefixIcon: const Icon(
                               Icons.search,
@@ -224,12 +230,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Intention chips — overlapping the hero
+          // ---------- INTENTION CHIPS (clean, below hero) ----------
           SliverToBoxAdapter(
-            child: Transform.translate(
-              offset: const Offset(0, -14),
+            child: Container(
+              color: MigoColors.backgroundLight,
+              padding: const EdgeInsets.fromLTRB(0, 20, 0, 8),
               child: SizedBox(
-                height: 44,
+                height: 42,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -251,9 +258,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          const SliverToBoxAdapter(child: SizedBox(height: 8)),
-
-          // Flash Deals
+          // ---------- FLASH DEALS ----------
+          const SliverToBoxAdapter(child: SizedBox(height: 16)),
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -264,7 +270,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-          // Nearby Deals
+          // ---------- NEARBY DEALS ----------
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -275,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-          // Categories
+          // ---------- CATEGORIES ----------
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -300,9 +306,19 @@ class _FlashDealsRow extends StatelessWidget {
       stream: FirestoreService.instance.streamLiveOffersByType('flash'),
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return const SizedBox(
+          return SizedBox(
             height: 180,
-            child: Center(child: CircularProgressIndicator()),
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: 2,
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              itemBuilder: (_, _) => const ShimmerBox(
+                width: 220,
+                height: 180,
+                radius: 16,
+              ),
+            ),
           );
         }
         final offers = snap.data ?? [];
@@ -324,15 +340,15 @@ class _FlashDealsRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: offers.length,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder: (context, i) => FlashDealCard(
-              offer: offers[i],
+            itemBuilder: (context, i) => TapScale(
               onTap: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => OfferDetailScreen(offer: offers[i]),
+                  FadeSlideRoute(
+                    child: OfferDetailScreen(offer: offers[i]),
                   ),
                 );
               },
+              child: FlashDealCard(offer: offers[i]),
             ),
           ),
         );
@@ -350,9 +366,18 @@ class _NearbyDealsRow extends StatelessWidget {
       stream: FirestoreService.instance.streamLiveOffers(limit: 10),
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return const SizedBox(
+          return SizedBox(
             height: 360,
-            child: Center(child: CircularProgressIndicator()),
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: 2,
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              itemBuilder: (_, _) => const SizedBox(
+                width: 280,
+                child: ShimmerBox(height: 360, radius: 18),
+              ),
+            ),
           );
         }
         final offers = snap.data ?? [];
@@ -403,15 +428,15 @@ class _NearbyDealsRow extends StatelessWidget {
             separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, i) => SizedBox(
               width: 280,
-              child: OfferCard(
-                offer: offers[i],
+              child: TapScale(
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => OfferDetailScreen(offer: offers[i]),
+                    FadeSlideRoute(
+                      child: OfferDetailScreen(offer: offers[i]),
                     ),
                   );
                 },
+                child: OfferCard(offer: offers[i]),
               ),
             ),
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/config/app_config.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../services/auth_service.dart';
+import '../main/main_shell.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -39,6 +40,12 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _loading = true);
     try {
       await AuthService.instance.signIn(email: email, password: password);
+      if (!mounted) return;
+      // Hard-route to MainShell, clearing the auth stack.
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MainShell()),
+        (route) => false,
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = AuthService.instance.describeError(e));

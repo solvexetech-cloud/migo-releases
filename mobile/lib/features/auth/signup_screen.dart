@@ -3,6 +3,7 @@ import '../../core/config/app_config.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
+import '../main/main_shell.dart';
 import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -67,7 +68,7 @@ class _SignupScreenState extends State<SignupScreen> {
         }
       }
 
-      final cred = await AuthService.instance.signUp(
+            final cred = await AuthService.instance.signUp(
         email: email,
         password: password,
       );
@@ -81,6 +82,12 @@ class _SignupScreenState extends State<SignupScreen> {
           referralCode: referralCode,
         );
       }
+
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MainShell()),
+        (route) => false,
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = AuthService.instance.describeError(e));

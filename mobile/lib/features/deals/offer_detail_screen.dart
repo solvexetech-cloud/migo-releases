@@ -6,6 +6,7 @@ import '../../models/group_deal_model.dart';
 import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
 import '../reviews/business_reviews_screen.dart';
+import 'claim_success_screen.dart';
 
 class OfferDetailScreen extends StatefulWidget {
   const OfferDetailScreen({super.key, required this.offer});
@@ -83,8 +84,11 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
 
       await FirestoreService.instance.createClaim(claim);
       if (!mounted) return;
-      _snack('Claimed! Check My Claims in your Profile.');
-      Navigator.of(context).pop(true);
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => ClaimSuccessScreen(offer: widget.offer),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       _snack('Failed to claim: $e');
@@ -130,9 +134,8 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
     final o = widget.offer;
     final isGroup = o.type == OfferType.group;
     final deal = _groupDeal;
-    final joined = deal != null &&
-        _uid != null &&
-        deal.participantUids.contains(_uid);
+    final joined =
+        deal != null && _uid != null && deal.participantUids.contains(_uid);
 
     return Scaffold(
       body: SafeArea(
@@ -149,7 +152,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.arrow_back),
                   ),
-                                    Expanded(
+                  Expanded(
                     child: InkWell(
                       onTap: () {
                         Navigator.of(context).push(
@@ -279,7 +282,8 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: MigoColors.primary.withValues(alpha: 0.05),
+                            color:
+                                MigoColors.primary.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: Row(
@@ -298,7 +302,8 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                     '${o.currency} ${o.originalPrice.toStringAsFixed(0)}',
                                     style: const TextStyle(
                                       fontSize: 14,
-                                      decoration: TextDecoration.lineThrough,
+                                      decoration:
+                                          TextDecoration.lineThrough,
                                       color: MigoColors.textSecondaryLight,
                                     ),
                                   ),

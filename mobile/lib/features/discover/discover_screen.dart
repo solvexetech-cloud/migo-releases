@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
+import '../../core/utils/migo_animations.dart';
 import '../../widgets/migo_empty_state.dart';
 import '../deals/offer_detail_screen.dart';
 
@@ -223,17 +224,25 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   ),
                   itemCount: filtered.length,
                   itemBuilder: (context, i) {
-                    final o = filtered[i];
-                    return _OfferTile(
-                      offer: o,
+                                        final o = filtered[i];
+                    return TapScale(
                       onTap: () {
                         Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                OfferDetailScreen(offer: o),
+                          FadeSlideRoute(
+                            child: OfferDetailScreen(offer: o),
                           ),
                         );
                       },
+                      child: _OfferTile(
+                        offer: o,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            FadeSlideRoute(
+                              child: OfferDetailScreen(offer: o),
+                            ),
+                          );
+                        },
+                      ),
                     );
                   },
                 ),
