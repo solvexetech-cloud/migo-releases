@@ -14,13 +14,16 @@ class CloudinaryService {
   String get _uploadUrl =>
       'https://api.cloudinary.com/v1_1/$_cloudName/image/upload';
 
-  /// Upload a File (mobile/desktop). Returns secure URL or null on failure.
-  Future<String?> uploadFile(File file) async {
+    /// Upload a File (mobile/desktop). Returns secure URL or null on failure.
+  Future<String?> uploadFile(File file, {String? folder}) async {
     try {
       final uri = Uri.parse(_uploadUrl);
       final request = http.MultipartRequest('POST', uri);
 
       request.fields['upload_preset'] = _uploadPreset;
+      if (folder != null && folder.isNotEmpty) {
+        request.fields['folder'] = folder;
+      }
 
       request.files.add(
         await http.MultipartFile.fromPath('file', file.path),
@@ -42,16 +45,20 @@ class CloudinaryService {
     }
   }
 
-  /// Upload raw bytes (works on web too).
+    /// Upload raw bytes (works on web too).
   Future<String?> uploadBytes({
     required List<int> bytes,
     required String filename,
+    String? folder,
   }) async {
     try {
       final uri = Uri.parse(_uploadUrl);
       final request = http.MultipartRequest('POST', uri);
 
       request.fields['upload_preset'] = _uploadPreset;
+      if (folder != null && folder.isNotEmpty) {
+        request.fields['folder'] = folder;
+      }
 
       request.files.add(
         http.MultipartFile.fromBytes(
@@ -77,16 +84,21 @@ class CloudinaryService {
     }
   }
 
-  Future<String?> upload({
+    Future<String?> upload({
     File? file,
     List<int>? bytes,
     String? filename,
+    String? folder,
   }) async {
     if (kIsWeb && bytes != null && filename != null) {
-      return uploadBytes(bytes: bytes, filename: filename);
+      return uploadBytes(
+        bytes: bytes,
+        filename: filename,
+        folder: folder,
+      );
     }
     if (file != null) {
-      return uploadFile(file);
+      return uploadFile(file, folder: folder);
     }
     return null;
   }
