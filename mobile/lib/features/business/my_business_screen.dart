@@ -267,7 +267,7 @@ class MyBusinessScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              _MyOffersList(businessId: biz.id),
+             _MyOffersList(businessId: biz.id, business: biz),
             ],
           );
         },
@@ -277,8 +277,12 @@ class MyBusinessScreen extends StatelessWidget {
 }
 
 class _MyOffersList extends StatelessWidget {
-  const _MyOffersList({required this.businessId});
+  const _MyOffersList({
+    required this.businessId,
+    required this.business,
+  });
   final String businessId;
+  final BusinessModel business;
 
   @override
   Widget build(BuildContext context) {
@@ -388,7 +392,7 @@ class _MyOffersList extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      Container(
+                                            Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6,
                           vertical: 2,
@@ -404,6 +408,56 @@ class _MyOffersList extends StatelessWidget {
                             fontWeight: FontWeight.w800,
                             color: MigoColors.success,
                           ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      if (o.isExpired)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: MigoColors.error.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'EXPIRED',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: MigoColors.error,
+                            ),
+                          ),
+                        ),
+                      const Spacer(),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => CreateOfferScreen(
+                                business: business,
+                                initialOffer: o,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.copy_outlined, size: 14),
+                        label: const Text(
+                          'Duplicate',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          minimumSize: const Size(0, 32),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                       ),
                     ],

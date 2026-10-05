@@ -93,6 +93,23 @@ class OfferModel {
       ? (((originalPrice - offerPrice) / originalPrice) * 100).round()
       : 0;
 
+  // കാലഹരണപ്പെട്ടോ എന്ന് പരിശോധിക്കാൻ
+  bool get isExpired => endAt.isBefore(DateTime.now());
+
+  // ഓഫർ ഇപ്പോൾ സജീവമാണോ എന്ന് പരിശോധിക്കാൻ
+  bool get isActiveNow {
+    final now = DateTime.now();
+    return status == 'live' &&
+        startAt.isBefore(now) &&
+        endAt.isAfter(now);
+  }
+
+  // എത്ര ദിവസം ബാക്കിയുണ്ട്
+  int get daysRemaining {
+    final diff = endAt.difference(DateTime.now()).inDays;
+    return diff < 0 ? 0 : diff;
+  }
+
   factory OfferModel.newDraft({
     required String businessId,
     required String businessName,

@@ -11,8 +11,13 @@ import '../../services/cloudinary_service.dart';
 import '../../services/firestore_service.dart';
 
 class CreateOfferScreen extends StatefulWidget {
-  const CreateOfferScreen({super.key, required this.business});
+  const CreateOfferScreen({
+    super.key,
+    required this.business,
+    this.initialOffer,
+  });
   final BusinessModel business;
+  final OfferModel? initialOffer;
 
   @override
   State<CreateOfferScreen> createState() => _CreateOfferScreenState();
@@ -40,7 +45,23 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
   String? _uploadedImageUrl;
   bool _uploadingImage = false;
 
-  final _picker = ImagePicker();
+    final _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialOffer;
+    if (initial != null) {
+      _title.text = initial.title;
+      _description.text = initial.description;
+      _originalPrice.text = initial.originalPrice.toStringAsFixed(0);
+      _offerPrice.text = initial.offerPrice.toStringAsFixed(0);
+      _terms.text = initial.terms ?? '';
+      _dailyLimit.text = initial.dailyLimit?.toString() ?? '';
+      _type = initial.type;
+      _uploadedImageUrl = initial.imageUrl;
+    }
+  }
 
   @override
   void dispose() {
@@ -196,7 +217,11 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
             (double.tryParse(_offerPrice.text) ?? 0);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Create offer')),
+            appBar: AppBar(
+        title: Text(
+          widget.initialOffer == null ? 'Create offer' : 'Duplicate offer',
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -398,7 +423,11 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                             ],
                           ],
                         )
-                      : const Text('Create offer'),
+                                            : Text(
+                          widget.initialOffer == null
+                              ? 'Create offer'
+                              : 'Duplicate offer',
+                        ),
                 ),
               ),
               const SizedBox(height: 8),

@@ -148,17 +148,23 @@ class FirestoreService {
             .toList());
   }
 
-  Stream<List<OfferModel>> streamLiveOffers({int limit = 20}) {
+    Stream<List<OfferModel>> streamLiveOffers({int limit = 20}) {
     return _offers
         .where('status', isEqualTo: 'live')
         .limit(limit)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => OfferModel.fromMap(d.id, d.data()))
-            .toList());
+        .map((snap) {
+      final now = DateTime.now();
+      final list = snap.docs
+          .map((d) => OfferModel.fromMap(d.id, d.data()))
+          .where((o) => o.endAt.isAfter(now))
+          .toList();
+      list.sort((a, b) => b.startAt.compareTo(a.startAt));
+      return list;
+    });
   }
 
-  Stream<List<OfferModel>> streamLiveOffersByType(
+    Stream<List<OfferModel>> streamLiveOffersByType(
     String type, {
     int limit = 10,
   }) {
@@ -167,9 +173,15 @@ class FirestoreService {
         .where('type', isEqualTo: type)
         .limit(limit)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => OfferModel.fromMap(d.id, d.data()))
-            .toList());
+        .map((snap) {
+      final now = DateTime.now();
+      final list = snap.docs
+          .map((d) => OfferModel.fromMap(d.id, d.data()))
+          .where((o) => o.endAt.isAfter(now))
+          .toList();
+      list.sort((a, b) => b.startAt.compareTo(a.startAt));
+      return list;
+    });
   }
 
   Future<void> updateOffer(String id, Map<String, dynamic> data) async {
