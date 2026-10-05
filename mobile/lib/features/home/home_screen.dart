@@ -15,6 +15,7 @@ import '../../widgets/offer_card.dart';
 import '../../widgets/pick_for_me_sheet.dart';
 import '../../widgets/section_header.dart';
 import '../deals/offer_detail_screen.dart';
+import '../discover/discover_screen.dart';
 import '../notifications/notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -230,13 +231,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // ---------- INTENTION CHIPS (clean, below hero) ----------
+          // ---------- INTENTION CHIPS (height 52, was 42) ----------
           SliverToBoxAdapter(
             child: Container(
               color: MigoColors.backgroundLight,
               padding: const EdgeInsets.fromLTRB(0, 20, 0, 8),
               child: SizedBox(
-                height: 42,
+                height: 52,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -281,16 +282,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-          // ---------- CATEGORIES ----------
-          const SliverToBoxAdapter(
+          // ---------- CATEGORIES (with See all + tap callback) ----------
+          SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: SectionHeader(title: 'Browse Categories'),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: SectionHeader(
+                title: 'Browse Categories',
+                actionLabel: 'See all',
+                onActionTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const DiscoverScreen(),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 12)),
-          const SliverToBoxAdapter(child: CategoryGrid()),
-          const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                    SliverToBoxAdapter(
+            child: CategoryGrid(
+              maxItems: 6,
+              onCategoryTap: (name) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => DiscoverScreen(initialCategory: name),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ),
     );
@@ -307,7 +329,7 @@ class _FlashDealsRow extends StatelessWidget {
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
           return SizedBox(
-            height: 180,
+            height: 200,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -315,7 +337,7 @@ class _FlashDealsRow extends StatelessWidget {
               separatorBuilder: (_, _) => const SizedBox(width: 12),
               itemBuilder: (_, _) => const ShimmerBox(
                 width: 220,
-                height: 180,
+                height: 200,
                 radius: 16,
               ),
             ),
@@ -334,7 +356,7 @@ class _FlashDealsRow extends StatelessWidget {
           );
         }
         return SizedBox(
-          height: 180,
+          height: 200,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -367,7 +389,7 @@ class _NearbyDealsRow extends StatelessWidget {
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
           return SizedBox(
-            height: 360,
+            height: 400,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -375,7 +397,7 @@ class _NearbyDealsRow extends StatelessWidget {
               separatorBuilder: (_, _) => const SizedBox(width: 12),
               itemBuilder: (_, _) => const SizedBox(
                 width: 280,
-                child: ShimmerBox(height: 360, radius: 18),
+                child: ShimmerBox(height: 400, radius: 18),
               ),
             ),
           );
@@ -420,7 +442,7 @@ class _NearbyDealsRow extends StatelessWidget {
           );
         }
         return SizedBox(
-          height: 360,
+          height: 400,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),

@@ -22,7 +22,9 @@ extension SortModeX on SortMode {
 }
 
 class DiscoverScreen extends StatefulWidget {
-  const DiscoverScreen({super.key});
+  const DiscoverScreen({super.key, this.initialCategory});
+
+  final String? initialCategory;
 
   @override
   State<DiscoverScreen> createState() => _DiscoverScreenState();
@@ -33,6 +35,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   String _query = '';
   String? _category;
   SortMode _sort = SortMode.newest;
+
+  @override
+  void initState() {
+    super.initState();
+    _category = widget.initialCategory;
+  }
 
   static const _categories = [
     'Food',
