@@ -41,6 +41,22 @@
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
+  <script>
+    // Register Firebase Messaging service worker before Flutter loads
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+          scope: '/',
+        })
+        .then(function (registration) {
+          console.log('MIGO SW registered:', registration.scope);
+        })
+        .catch(function (error) {
+          console.error('MIGO SW registration failed:', error);
+        });
+      });
+    }
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

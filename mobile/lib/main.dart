@@ -7,12 +7,19 @@ import 'core/theme/migo_theme.dart';
 import 'features/auth/welcome_screen.dart';
 import 'features/main/main_shell.dart';
 import 'firebase_options.dart';
+import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize push notifications (FCM)
+  // Only after user signs in — but init is safe to call here too.
+  // The service handles the "no user" case gracefully.
+  NotificationService.instance.init();
+
   runApp(const MigoApp());
 }
 
@@ -32,8 +39,26 @@ class MigoApp extends StatelessWidget {
   }
 }
 
-class _AuthGate extends StatelessWidget {
+class _AuthGate extends StatefulWidget {
   const _AuthGate();
+
+  @override
+  State<_AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<_AuthGate> {
+  @override
+  void initState() {
+    super.initState();
+    // Listen for auth changes to init/clear FCM token
+    FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user != null) {
+        NotificationService.instance.init();
+      } else {
+        NotificationService.instance.clearToken();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
