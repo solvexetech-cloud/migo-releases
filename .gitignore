@@ -30,3 +30,8 @@ npm-debug.log*
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
+# FCM test folder (contains service account reference)
+fcm-test/
+
+# Firebase service account keys (never commit!)
+*-firebase-adminsdk-*.json
