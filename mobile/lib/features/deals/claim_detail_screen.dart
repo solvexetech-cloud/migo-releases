@@ -20,9 +20,12 @@ class ClaimDetailScreen extends StatelessWidget {
     }
   }
 
-  @override
+    @override
   Widget build(BuildContext context) {
-    final canRedeem = claim.status == ClaimStatus.active;
+    final now = DateTime.now();
+    final isExpiredByTime = claim.expiresAt.isBefore(now);
+    final canRedeem =
+        claim.status == ClaimStatus.active && !isExpiredByTime;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Claim')),
@@ -40,12 +43,17 @@ class ClaimDetailScreen extends StatelessWidget {
                   color: _statusColor().withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(
-                  claim.status.label.toUpperCase(),
+                                child: Text(
+                  isExpiredByTime && claim.status == ClaimStatus.active
+                      ? 'EXPIRED'
+                      : claim.status.label.toUpperCase(),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: _statusColor(),
+                    color: isExpiredByTime &&
+                            claim.status == ClaimStatus.active
+                        ? MigoColors.error
+                        : _statusColor(),
                   ),
                 ),
               ),
@@ -77,12 +85,14 @@ class ClaimDetailScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    Text(
+                                        Text(
                       canRedeem
                           ? 'Show this to the business'
                           : claim.status == ClaimStatus.redeemed
                               ? 'Already redeemed'
-                              : 'Not valid',
+                              : isExpiredByTime
+                                  ? 'This claim has expired'
+                                  : 'Not valid',
                       style: const TextStyle(
                         fontSize: 13,
                         color: MigoColors.textSecondaryLight,
@@ -213,11 +223,15 @@ class ClaimDetailScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                '1. Visit the business during your claim validity period.\n'
-                '2. Show this QR code (or the short code) to the staff.\n'
-                '3. They will scan it to confirm your redemption.\n'
-                '4. You will earn +25 MIGO Coins after redemption.',
+                            Text(
+                isExpiredByTime && claim.status == ClaimStatus.active
+                    ? 'This claim expired on '
+                        '${claim.expiresAt.toLocal().toString().split('.').first}.\n'
+                        'You can no longer redeem this offer.'
+                    : '1. Visit the business during your claim validity period.\n'
+                        '2. Show this QR code (or the short code) to the staff.\n'
+                        '3. They will scan it to confirm your redemption.\n'
+                        '4. You will earn +25 MIGO Coins after redemption.',
                 style: TextStyle(
                   fontSize: 13,
                   color: MigoColors.textSecondaryLight,
