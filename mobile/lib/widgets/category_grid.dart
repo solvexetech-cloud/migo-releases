@@ -1,41 +1,56 @@
 import 'package:flutter/material.dart';
 import '../core/theme/migo_colors.dart';
+import '../models/category_model.dart';
+import '../services/firestore_service.dart';
 
-class CategoryItem {
-  const CategoryItem({required this.name, required this.icon});
-  final String name;
-  final IconData icon;
-}
-
-/// Grid of MIGO categories.
-/// Shows first 6 on the home screen.
+/// Grid of MIGO categories — dynamically loaded from Firestore.
 class CategoryGrid extends StatelessWidget {
   const CategoryGrid({super.key, this.onCategoryTap, this.maxItems});
 
   final void Function(String name)? onCategoryTap;
   final int? maxItems;
 
-  static const _allCategories = <CategoryItem>[
-    CategoryItem(name: 'Food', icon: Icons.restaurant_outlined),
-    CategoryItem(name: 'Beauty', icon: Icons.spa_outlined),
-    CategoryItem(name: 'Auto', icon: Icons.directions_car_outlined),
-    CategoryItem(name: 'Events', icon: Icons.celebration_outlined),
-    CategoryItem(name: 'Photography', icon: Icons.camera_alt_outlined),
-    CategoryItem(name: 'Fitness', icon: Icons.fitness_center_outlined),
-    CategoryItem(name: 'Shopping', icon: Icons.shopping_bag_outlined),
-    CategoryItem(name: 'Education', icon: Icons.school_outlined),
-    CategoryItem(
-      name: 'Home Services',
-      icon: Icons.home_repair_service_outlined,
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final items = maxItems != null
-        ? _allCategories.take(maxItems!).toList()
-        : _allCategories;
+    return StreamBuilder<List<CategoryModel>>(
+      stream: FirestoreService.instance.streamCategories(),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return _buildLoading();
+        }
 
+        final all = snap.data ?? [];
+        if (all.isEmpty) {
+          return _buildEmpty();
+        }
+
+        final items =
+            maxItems != null ? all.take(maxItems!).toList() : all;
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 0.95,
+          ),
+          itemCount: items.length,
+          itemBuilder: (context, i) {
+            final c = items[i];
+            return _CategoryTile(
+              item: c,
+              onTap: () => onCategoryTap?.call(c.name),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildLoading() {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -46,14 +61,39 @@ class CategoryGrid extends StatelessWidget {
         crossAxisSpacing: 12,
         childAspectRatio: 0.95,
       ),
-      itemCount: items.length,
-      itemBuilder: (context, i) {
-        final c = items[i];
-        return _CategoryTile(
-          item: c,
-          onTap: () => onCategoryTap?.call(c.name),
-        );
-      },
+      itemCount: 6,
+      itemBuilder: (_, _) => Container(
+        decoration: BoxDecoration(
+          color: MigoColors.surfaceLight,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: MigoColors.dividerLight),
+        ),
+        child: const Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmpty() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: MigoColors.surfaceLight,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: MigoColors.dividerLight),
+      ),
+      child: const Center(
+        child: Text(
+          'No categories yet',
+          style: TextStyle(color: MigoColors.textSecondaryLight),
+        ),
+      ),
     );
   }
 }
@@ -61,7 +101,7 @@ class CategoryGrid extends StatelessWidget {
 class _CategoryTile extends StatelessWidget {
   const _CategoryTile({required this.item, this.onTap});
 
-  final CategoryItem item;
+  final CategoryModel item;
   final VoidCallback? onTap;
 
   @override
@@ -85,7 +125,7 @@ class _CategoryTile extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                item.icon,
+                item.iconData,
                 size: 22,
                 color: MigoColors.primary,
               ),

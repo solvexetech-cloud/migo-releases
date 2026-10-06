@@ -36,23 +36,28 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   String? _category;
   SortMode _sort = SortMode.newest;
 
-  @override
+    @override
   void initState() {
     super.initState();
     _category = widget.initialCategory;
+    _loadCategories();
   }
 
-  static const _categories = [
-    'Food',
-    'Beauty',
-    'Auto',
-    'Events',
-    'Photography',
-    'Fitness',
-    'Shopping',
-    'Education',
-    'Home Services',
-  ];
+  Future<void> _loadCategories() async {
+    try {
+      final cats =
+          await FirestoreService.instance.getCategories();
+      if (!mounted) return;
+      setState(() {
+        _categories = cats.map((c) => c.name).toList();
+      });
+    } catch (e) {
+      // Silent fail — categories remain empty
+    }
+  }
+
+    // Loaded dynamically from Firestore
+  List<String> _categories = [];
 
   @override
   void dispose() {

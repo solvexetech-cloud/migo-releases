@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/business_model.dart';
+import '../models/category_model.dart';
 import '../models/claim_model.dart';
 import '../models/coin_transaction_model.dart';
 import '../models/group_deal_model.dart';
@@ -123,6 +124,66 @@ class FirestoreService {
       SetOptions(merge: true),
     );
   }
+
+  // ---------- CATEGORIES ----------
+  CollectionReference<Map<String, dynamic>> get _categories =>
+      _db.collection('categories');
+
+  Stream<List<CategoryModel>> streamCategories({
+    bool onlyActive = true,
+  }) {
+    return _categories.snapshots().map((snap) {
+      final list = snap.docs
+          .map((d) => CategoryModel.fromMap(d.id, d.data()))
+          .where((c) => !onlyActive || c.active)
+          .toList();
+      list.sort((a, b) => a.order.compareTo(b.order));
+      return list;
+    });
+  }
+
+  Future<List<CategoryModel>> getCategories({
+    bool onlyActive = true,
+  }) async {
+    final snap = await _categories.limit(50).get();
+    final list = snap.docs
+        .map((d) => CategoryModel.fromMap(d.id, d.data()))
+        .where((c) => !onlyActive || c.active)
+        .toList();
+    list.sort((a, b) => a.order.compareTo(b.order));
+    return list;
+  }
+
+  Future<void> createCategory({
+    required String name,
+    required String icon,
+    int order = 99,
+  }) async {
+    final docId = name.toLowerCase().replaceAll(RegExp(r'\s+'), '-');
+    await _categories.doc(docId).set({
+      'name': name,
+      'icon': icon,
+      'order': order,
+      'active': true,
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> updateCategory(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    await _categories.doc(id).set(
+      {...data, 'updatedAt': FieldValue.serverTimestamp()},
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<void> deleteCategory(String id) async {
+    await _categories.doc(id).delete();
+  }
+
 
   // ---------- OFFERS ----------
   CollectionReference<Map<String, dynamic>> get _offers =>
