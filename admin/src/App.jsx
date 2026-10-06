@@ -9,6 +9,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import PendingBusinesses from './pages/PendingBusinesses';
 import PendingOffers from './pages/PendingOffers';
 import UsersPage from './pages/UsersPage';
+import CategoriesPage from './pages/CategoriesPage';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -74,7 +75,11 @@ export default function App() {
                     path="/offers"
                     element={<PendingOffers />}
                   />
-                                    <Route path="/users" element={<UsersPage />} />
+          <Route path="/users" element={<UsersPage />} />
+                      <Route
+  path="/categories"
+  element={<CategoriesPage />}
+/>
                 </Routes>
               </AdminLayout>
             ) : (

@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { to: '/businesses', label: 'Pending Businesses', icon: '🏪' },
   { to: '/offers', label: 'Pending Offers', icon: '🏷️' },
   { to: '/users', label: 'Users', icon: '👥' },
+  { to: '/categories', label: 'Categories', icon: '📁' },
 ];
 
 export default function AdminLayout({ user, children }) {
