@@ -8,11 +8,13 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 export default function PendingBusinesses() {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState({});
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const q = query(
@@ -60,7 +62,12 @@ export default function PendingBusinesses() {
   }
 
   return (
-    <div style={{ padding: 32, maxWidth: 1100 }}>
+    <div
+  style={{
+    padding: isMobile ? 16 : 32,
+    maxWidth: 1100,
+  }}
+>
       <header style={{ marginBottom: 24 }}>
         <h1
           style={{

@@ -11,6 +11,7 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 // Icon options — must match CategoryModel.iconData switch in Flutter
 const ICON_OPTIONS = [
@@ -72,6 +73,7 @@ export default function CategoriesPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const q = query(
@@ -182,7 +184,12 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div style={{ padding: 32, maxWidth: 1200 }}>
+    <div
+  style={{
+    padding: isMobile ? 16 : 32,
+    maxWidth: 1200,
+  }}
+>
       <header
         style={{
           marginBottom: 24,
@@ -252,118 +259,131 @@ export default function CategoriesPage() {
             overflow: 'hidden',
           }}
         >
-          {/* Header row */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '60px 2fr 1fr 80px 100px 180px',
-              padding: '14px 20px',
-              background: '#F6F3EE',
-              fontSize: 11,
-              fontWeight: 800,
-              color: '#6B7280',
-              letterSpacing: 0.5,
-              borderBottom: '1px solid #ECE7DE',
-            }}
-          >
-            <div>ICON</div>
-            <div>NAME</div>
-            <div>ICON KEY</div>
-            <div>ORDER</div>
-            <div>STATUS</div>
-            <div>ACTIONS</div>
-          </div>
-
-          {/* Data rows */}
-          {categories.map((c, i) => (
+                    {/* Header row — hide on mobile */}
+          {!isMobile && (
             <div
-              key={c.id}
               style={{
                 display: 'grid',
                 gridTemplateColumns: '60px 2fr 1fr 80px 100px 180px',
                 padding: '14px 20px',
-                fontSize: 13,
-                color: '#374151',
-                borderBottom:
-                  i < categories.length - 1
-                    ? '1px solid #F1EEEA'
-                    : 'none',
-                alignItems: 'center',
+                background: '#F6F3EE',
+                fontSize: 11,
+                fontWeight: 800,
+                color: '#6B7280',
+                letterSpacing: 0.5,
+                borderBottom: '1px solid #ECE7DE',
               }}
             >
-              <div>
-                <span style={{ fontSize: 20 }}>
-                  {getEmojiForIcon(c.icon)}
-                </span>
-              </div>
+              <div>ICON</div>
+              <div>NAME</div>
+              <div>ICON KEY</div>
+              <div>ORDER</div>
+              <div>STATUS</div>
+              <div>ACTIONS</div>
+            </div>
+          )}
 
-              <div
-                style={{
-                  fontWeight: 800,
-                  color: '#0B2B5B',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {c.name}
-              </div>
-
-              <div
-                style={{
-                  fontFamily: 'monospace',
-                  fontSize: 11,
-                  color: '#6B7280',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {c.icon}
-              </div>
-
-              <div style={{ fontWeight: 700 }}>{c.order ?? 0}</div>
-
-              <div>
-                <span
+                    {/* Data rows — Card on mobile, Grid on desktop */}
+          {isMobile
+            ? categories.map((c, i) => (
+                <MobileCategoryCard
+                  key={c.id}
+                  category={c}
+                  isLast={i === categories.length - 1}
+                  onEdit={() => openEdit(c)}
+                  onToggle={() => handleToggleActive(c)}
+                  onDelete={() => handleDelete(c)}
+                />
+              ))
+            : categories.map((c, i) => (
+                <div
+                  key={c.id}
                   style={{
-                    display: 'inline-block',
-                    padding: '3px 10px',
-                    borderRadius: 6,
-                    background: c.active ? '#E5F5EA' : '#FEE2E2',
-                    color: c.active ? '#2E9E5B' : '#D64545',
-                    fontSize: 10,
-                    fontWeight: 800,
-                    letterSpacing: 0.5,
-                    textTransform: 'uppercase',
+                    display: 'grid',
+                    gridTemplateColumns: '60px 2fr 1fr 80px 100px 180px',
+                    padding: '14px 20px',
+                    fontSize: 13,
+                    color: '#374151',
+                    borderBottom:
+                      i < categories.length - 1
+                        ? '1px solid #F1EEEA'
+                        : 'none',
+                    alignItems: 'center',
                   }}
                 >
-                  {c.active ? 'Active' : 'Hidden'}
-                </span>
-              </div>
+                  <div>
+                    <span style={{ fontSize: 20 }}>
+                      {getEmojiForIcon(c.icon)}
+                    </span>
+                  </div>
 
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button
-                  onClick={() => openEdit(c)}
-                  style={actionBtn('#1E4B8F')}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleToggleActive(c)}
-                  style={actionBtn(c.active ? '#A67920' : '#2E9E5B')}
-                >
-                  {c.active ? 'Hide' : 'Show'}
-                </button>
-                <button
-                  onClick={() => handleDelete(c)}
-                  style={actionBtn('#D64545')}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
+                  <div
+                    style={{
+                      fontWeight: 800,
+                      color: '#0B2B5B',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {c.name}
+                  </div>
+
+                  <div
+                    style={{
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                      color: '#6B7280',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {c.icon}
+                  </div>
+
+                  <div style={{ fontWeight: 700 }}>{c.order ?? 0}</div>
+
+                  <div>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        padding: '3px 10px',
+                        borderRadius: 6,
+                        background: c.active ? '#E5F5EA' : '#FEE2E2',
+                        color: c.active ? '#2E9E5B' : '#D64545',
+                        fontSize: 10,
+                        fontWeight: 800,
+                        letterSpacing: 0.5,
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {c.active ? 'Active' : 'Hidden'}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      onClick={() => openEdit(c)}
+                      style={actionBtn('#1E4B8F')}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleToggleActive(c)}
+                      style={actionBtn(c.active ? '#A67920' : '#2E9E5B')}
+                    >
+                      {c.active ? 'Hide' : 'Show'}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(c)}
+                      style={actionBtn('#D64545')}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
         </div>
       )}
 
@@ -577,6 +597,135 @@ function actionBtn(color) {
     cursor: 'pointer',
   };
 }
+
+function MobileCategoryCard({
+  category,
+  isLast,
+  onEdit,
+  onToggle,
+  onDelete,
+}) {
+  return (
+    <div
+      style={{
+        padding: 16,
+        borderBottom: isLast ? 'none' : '1px solid #F1EEEA',
+      }}
+    >
+      {/* Row 1: Icon + Name + Status */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          marginBottom: 12,
+        }}
+      >
+        <span style={{ fontSize: 28 }}>
+          {getEmojiForIcon(category.icon)}
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 15,
+              fontWeight: 800,
+              color: '#0B2B5B',
+              marginBottom: 3,
+            }}
+          >
+            {category.name}
+          </div>
+          <div
+            style={{
+              fontFamily: 'monospace',
+              fontSize: 11,
+              color: '#6B7280',
+            }}
+          >
+            {category.icon}
+          </div>
+        </div>
+        <span
+          style={{
+            display: 'inline-block',
+            padding: '4px 10px',
+            borderRadius: 6,
+            background: category.active ? '#E5F5EA' : '#FEE2E2',
+            color: category.active ? '#2E9E5B' : '#D64545',
+            fontSize: 10,
+            fontWeight: 800,
+            letterSpacing: 0.5,
+            textTransform: 'uppercase',
+          }}
+        >
+          {category.active ? 'Active' : 'Hidden'}
+        </span>
+      </div>
+
+      {/* Row 2: Order */}
+      <div
+        style={{
+          fontSize: 11,
+          color: '#6B7280',
+          marginBottom: 12,
+        }}
+      >
+        <strong>Order:</strong> {category.order ?? 0}
+      </div>
+
+      {/* Row 3: Actions */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <button
+          onClick={onEdit}
+          style={{
+            padding: '8px 14px',
+            borderRadius: 8,
+            border: 'none',
+            background: '#1E4B8F15',
+            color: '#1E4B8F',
+            fontSize: 12,
+            fontWeight: 800,
+            cursor: 'pointer',
+          }}
+        >
+          Edit
+        </button>
+        <button
+          onClick={onToggle}
+          style={{
+            padding: '8px 14px',
+            borderRadius: 8,
+            border: 'none',
+            background:
+              (category.active ? '#A67920' : '#2E9E5B') + '15',
+            color: category.active ? '#A67920' : '#2E9E5B',
+            fontSize: 12,
+            fontWeight: 800,
+            cursor: 'pointer',
+          }}
+        >
+          {category.active ? 'Hide' : 'Show'}
+        </button>
+        <button
+          onClick={onDelete}
+          style={{
+            padding: '8px 14px',
+            borderRadius: 8,
+            border: 'none',
+            background: '#D6454515',
+            color: '#D64545',
+            fontSize: 12,
+            fontWeight: 800,
+            cursor: 'pointer',
+          }}
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  );
+}
+
 
 function getEmojiForIcon(iconKey) {
   const found = ICON_OPTIONS.find((o) => o.value === iconKey);

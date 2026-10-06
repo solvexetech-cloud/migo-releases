@@ -8,11 +8,13 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 export default function PendingOffers() {
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState({});
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const q = query(
@@ -59,11 +61,16 @@ export default function PendingOffers() {
   }
 
   return (
-    <div style={{ padding: 32, maxWidth: 1100 }}>
+    <div
+  style={{
+    padding: isMobile ? 16 : 32,
+    maxWidth: 1100,
+  }}
+>
       <header style={{ marginBottom: 24 }}>
         <h1
           style={{
-            fontSize: 28,
+            fontSize: isMobile ? 24 : 28,
             fontWeight: 900,
             color: '#0B2B5B',
             letterSpacing: -0.5,

@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, onSnapshot, query } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const q = query(collection(db, 'users'));
     const unsub = onSnapshot(q, (snap) => {
       const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      // Sort by coins desc, then email
       list.sort((a, b) => (b.coins || 0) - (a.coins || 0));
       setUsers(list);
       setLoading(false);
@@ -32,11 +33,16 @@ export default function UsersPage() {
   }, [users, search]);
 
   return (
-    <div style={{ padding: 32, maxWidth: 1200 }}>
+    <div
+      style={{
+        padding: isMobile ? 16 : 32,
+        maxWidth: 1200,
+      }}
+    >
       <header style={{ marginBottom: 24 }}>
         <h1
           style={{
-            fontSize: 28,
+            fontSize: isMobile ? 24 : 28,
             fontWeight: 900,
             color: '#0B2B5B',
             letterSpacing: -0.5,
@@ -76,6 +82,7 @@ export default function UsersPage() {
             fontSize: 14,
             background: 'transparent',
             padding: '6px 0',
+            minWidth: 0,
           }}
         />
         {search && (
@@ -117,103 +124,248 @@ export default function UsersPage() {
             overflow: 'hidden',
           }}
         >
-          {/* Header row */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns:
-                '2fr 1fr 1fr 1fr 1fr 1fr',
-              padding: '14px 20px',
-              background: '#F6F3EE',
-              fontSize: 11,
-              fontWeight: 800,
-              color: '#6B7280',
-              letterSpacing: 0.5,
-              borderBottom: '1px solid #ECE7DE',
-            }}
-          >
-            <div>USER</div>
-            <div>COINS</div>
-            <div>LOYALTY</div>
-            <div>CITY</div>
-            <div>ROLE</div>
-            <div>REFERRAL</div>
-          </div>
-
-          {/* Data rows */}
-          {filtered.map((u, i) => (
+          {/* Header row — desktop only */}
+          {!isMobile && (
             <div
-              key={u.id}
               style={{
                 display: 'grid',
-                gridTemplateColumns:
-                  '2fr 1fr 1fr 1fr 1fr 1fr',
-                padding: '16px 20px',
-                fontSize: 13,
-                color: '#374151',
-                borderBottom:
-                  i < filtered.length - 1
-                    ? '1px solid #F1EEEA'
-                    : 'none',
-                alignItems: 'center',
+                gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr',
+                padding: '14px 20px',
+                background: '#F6F3EE',
+                fontSize: 11,
+                fontWeight: 800,
+                color: '#6B7280',
+                letterSpacing: 0.5,
+                borderBottom: '1px solid #ECE7DE',
               }}
             >
-              <div style={{ minWidth: 0 }}>
+              <div>USER</div>
+              <div>COINS</div>
+              <div>LOYALTY</div>
+              <div>CITY</div>
+              <div>ROLE</div>
+              <div>REFERRAL</div>
+            </div>
+          )}
+
+          {/* Data rows — Card on mobile, Grid on desktop */}
+          {isMobile
+            ? filtered.map((u, i) => (
+                <MobileUserCard
+                  key={u.id}
+                  user={u}
+                  isLast={i === filtered.length - 1}
+                />
+              ))
+            : filtered.map((u, i) => (
                 <div
+                  key={u.id}
                   style={{
-                    fontWeight: 800,
-                    color: '#0B2B5B',
-                    marginBottom: 2,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
+                    display: 'grid',
+                    gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr',
+                    padding: '16px 20px',
+                    fontSize: 13,
+                    color: '#374151',
+                    borderBottom:
+                      i < filtered.length - 1
+                        ? '1px solid #F1EEEA'
+                        : 'none',
+                    alignItems: 'center',
                   }}
                 >
-                  {u.email || '—'}
-                </div>
-                {u.displayName && (
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontWeight: 800,
+                        color: '#0B2B5B',
+                        marginBottom: 2,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {u.email || '—'}
+                    </div>
+                    {u.displayName && (
+                      <div
+                        style={{
+                          fontSize: 11,
+                          color: '#9CA3AF',
+                        }}
+                      >
+                        {u.displayName}
+                      </div>
+                    )}
+                  </div>
+
                   <div
                     style={{
-                      fontSize: 11,
-                      color: '#9CA3AF',
+                      fontWeight: 900,
+                      color: '#D4A13A',
+                      fontSize: 15,
                     }}
                   >
-                    {u.displayName}
+                    {u.coins ?? 0}
                   </div>
-                )}
-              </div>
 
-              <div
-                style={{
-                  fontWeight: 900,
-                  color: '#D4A13A',
-                  fontSize: 15,
-                }}
-              >
-                {u.coins ?? 0}
-              </div>
+                  <div style={{ fontWeight: 600 }}>
+                    {u.loyaltyLevel || 'Bronze'}
+                  </div>
 
-              <div style={{ fontWeight: 600 }}>
-                {u.loyaltyLevel || 'Bronze'}
-              </div>
+                  <div>{u.city || '—'}</div>
 
-              <div>{u.city || '—'}</div>
+                  <div>
+                    <RoleBadge role={u.role || 'customer'} />
+                  </div>
 
-              <div>
-                <RoleBadge role={u.role || 'customer'} />
-              </div>
+                  <div
+                    style={{
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                      color: '#6B7280',
+                    }}
+                  >
+                    {u.referralCode || '—'}
+                  </div>
+                </div>
+              ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
-              <div
-                style={{
-                  fontFamily: 'monospace',
-                  fontSize: 12,
-                  color: '#6B7280',
-                }}
-              >
-                {u.referralCode || '—'}
-              </div>
+function MobileUserCard({ user, isLast }) {
+  return (
+    <div
+      style={{
+        padding: 16,
+        borderBottom: isLast ? 'none' : '1px solid #F1EEEA',
+      }}
+    >
+      {/* Row 1: Email + Role */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: 10,
+          marginBottom: 10,
+        }}
+      >
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 14,
+              fontWeight: 800,
+              color: '#0B2B5B',
+              wordBreak: 'break-word',
+              marginBottom: 3,
+            }}
+          >
+            {user.email || '—'}
+          </div>
+          {user.displayName && (
+            <div style={{ fontSize: 12, color: '#6B7280' }}>
+              {user.displayName}
             </div>
-          ))}
+          )}
+        </div>
+        <RoleBadge role={user.role || 'customer'} />
+      </div>
+
+      {/* Row 2: Stats grid */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr',
+          gap: 10,
+          padding: 10,
+          background: '#F6F3EE',
+          borderRadius: 10,
+          marginBottom: 10,
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 800,
+              color: '#9CA3AF',
+              letterSpacing: 0.5,
+              marginBottom: 3,
+            }}
+          >
+            COINS
+          </div>
+          <div
+            style={{
+              fontSize: 16,
+              fontWeight: 900,
+              color: '#D4A13A',
+            }}
+          >
+            {user.coins ?? 0}
+          </div>
+        </div>
+        <div>
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 800,
+              color: '#9CA3AF',
+              letterSpacing: 0.5,
+              marginBottom: 3,
+            }}
+          >
+            LOYALTY
+          </div>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: '#374151',
+            }}
+          >
+            {user.loyaltyLevel || 'Bronze'}
+          </div>
+        </div>
+        <div>
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 800,
+              color: '#9CA3AF',
+              letterSpacing: 0.5,
+              marginBottom: 3,
+            }}
+          >
+            CITY
+          </div>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: '#374151',
+            }}
+          >
+            {user.city || '—'}
+          </div>
+        </div>
+      </div>
+
+      {/* Row 3: Referral */}
+      {user.referralCode && (
+        <div
+          style={{
+            fontSize: 11,
+            color: '#6B7280',
+          }}
+        >
+          <strong>Referral:</strong>{' '}
+          <span style={{ fontFamily: 'monospace' }}>
+            {user.referralCode}
+          </span>
         </div>
       )}
     </div>
@@ -240,6 +392,7 @@ function RoleBadge({ role }) {
         fontWeight: 800,
         letterSpacing: 0.5,
         textTransform: 'uppercase',
+        whiteSpace: 'nowrap',
       }}
     >
       {role}

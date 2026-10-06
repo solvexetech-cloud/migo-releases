@@ -7,6 +7,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -18,6 +19,7 @@ export default function AdminDashboard() {
     claims: 0,
   });
   const [loading, setLoading] = useState(true);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     async function load() {
@@ -66,7 +68,12 @@ export default function AdminDashboard() {
   }, []);
 
   return (
-    <div style={{ padding: 32, maxWidth: 1200 }}>
+    <div
+  style={{
+    padding: isMobile ? 16 : 32,
+    maxWidth: 1200,
+  }}
+>
       <header style={{ marginBottom: 28 }}>
         <h1
           style={{
