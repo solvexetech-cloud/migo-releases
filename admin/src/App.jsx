@@ -10,6 +10,7 @@ import PendingBusinesses from './pages/PendingBusinesses';
 import PendingOffers from './pages/PendingOffers';
 import UsersPage from './pages/UsersPage';
 import CategoriesPage from './pages/CategoriesPage';
+import RolesPage from './pages/RolesPage';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -17,10 +18,12 @@ export default function App() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
-      if (u) {
-        // Verify admin role
+            if (u) {
+        // Verify admin/moderator/super_admin role
         const snap = await getDoc(doc(db, 'users', u.uid));
-        if (snap.exists() && snap.data().role === 'admin') {
+        const role = snap.exists() ? snap.data().role : null;
+        const allowedRoles = ['super_admin', 'admin', 'moderator'];
+        if (snap.exists() && allowedRoles.includes(role)) {
           setUser(u);
         } else {
           setUser(null);
@@ -75,11 +78,12 @@ export default function App() {
                     path="/offers"
                     element={<PendingOffers />}
                   />
-          <Route path="/users" element={<UsersPage />} />
-                      <Route
-  path="/categories"
-  element={<CategoriesPage />}
-/>
+                            <Route path="/users" element={<UsersPage />} />
+                  <Route
+                    path="/categories"
+                    element={<CategoriesPage />}
+                  />
+                  <Route path="/roles" element={<RolesPage />} />
                 </Routes>
               </AdminLayout>
             ) : (

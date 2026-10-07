@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: '/offers', label: 'Pending Offers', icon: '🏷️' },
   { to: '/users', label: 'Users', icon: '👥' },
   { to: '/categories', label: 'Categories', icon: '📁' },
+  { to: '/roles', label: 'Roles', icon: '🔑' },
 ];
 
 export default function AdminLayout({ user, children }) {
