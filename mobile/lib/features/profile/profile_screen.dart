@@ -251,10 +251,10 @@ class _HeroStat extends StatelessWidget {
   final String value;
   final IconData icon;
 
-  @override
+    @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
@@ -263,13 +263,16 @@ class _HeroStat extends StatelessWidget {
         ),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: MigoColors.accent, size: 16),
-          const SizedBox(height: 4),
+          Icon(icon, color: MigoColors.accent, size: 14),
+          const SizedBox(height: 3),
           Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.w900,
               color: Colors.white,
             ),
@@ -277,8 +280,10 @@ class _HeroStat extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 10,
+              fontSize: 9,
               color: Colors.white70,
               fontWeight: FontWeight.w600,
             ),
