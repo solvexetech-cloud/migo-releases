@@ -17,14 +17,18 @@ service cloud.firestore {
         : 'guest';
     }
 
-    function isAdmin() {
-      return isSignedIn() && getUserRole() == 'admin';
-    }
-
+    // Tier 1: Super Admin (owner — full control)
     function isSuperAdmin() {
       return isSignedIn() && getUserRole() == 'super_admin';
     }
 
+    // Tier 2: Admin OR Super Admin
+    function isAdmin() {
+      return isSignedIn() &&
+        (getUserRole() == 'admin' || getUserRole() == 'super_admin');
+    }
+
+    // Tier 3: Moderator OR above (staff)
     function isModerator() {
       return isSignedIn() &&
         (getUserRole() == 'moderator' ||
@@ -32,53 +36,59 @@ service cloud.firestore {
          getUserRole() == 'super_admin');
     }
 
+    // Tier 3: Agency (franchise partner)
+    function isAgency() {
+      return isSignedIn() && getUserRole() == 'agency';
+    }
+
+    // Business owner check
     function isBusinessOwner(businessId) {
       return isSignedIn() &&
         get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerUid == request.auth.uid;
     }
 
-        // ---------- USERS ----------
-    // Each user can read/write their own profile.
-    // Admins can read all.
-    // Users CANNOT change their own role (only admin can).
-    // Users CANNOT change own coins (only system via batch increments).
+    // Agency owns a specific business
+    function isAgencyOwner(businessId) {
+      return isSignedIn() &&
+        isAgency() &&
+        get(/databases/$(database)/documents/businesses/$(businessId)).data.agencyUid == request.auth.uid;
+    }
+
+    // ---------- USERS ----------
     match /users/{uid} {
-      allow read: if isOwner(uid) || isAdmin() || isModerator();
+      allow read: if isOwner(uid) || isModerator();
       allow create: if isOwner(uid) &&
         !('role' in request.resource.data && request.resource.data.role != 'customer');
       allow update: if
-        // Admin can do anything
+        // Admin can do anything (including changing other users' roles)
         isAdmin() ||
-        // Owner can update profile but NOT role, NOT coins
+        // Owner can update profile but NOT role, NOT coins (unless below)
         (isOwner(uid) &&
          request.resource.data.role == resource.data.role &&
-         request.resource.data.coins == resource.data.coins)
-        ||
-        // Owner can increment coins by small amounts (claim/redeem/review rewards)
-        (isOwner(uid) &&
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['coins', 'updatedAt']) &&
-         request.resource.data.coins >= resource.data.coins &&
-         request.resource.data.coins <= resource.data.coins + 100);
-      allow delete: if isAdmin();
+         (
+           request.resource.data.coins == resource.data.coins ||
+           (request.resource.data.coins >= resource.data.coins &&
+            request.resource.data.coins <= resource.data.coins + 100)
+         ));
+      allow delete: if isSuperAdmin();
     }
 
     // ---------- BUSINESSES ----------
-    // Public read (anyone can browse shops).
-    // Only owner or admin can edit/delete.
+    // Public read. Owner OR admin can edit. Agency can edit their area's businesses.
     match /businesses/{businessId} {
       allow read: if true;
       allow create: if isSignedIn() &&
         request.resource.data.ownerUid == request.auth.uid;
       allow update: if isSignedIn() &&
-        (resource.data.ownerUid == request.auth.uid || isAdmin());
+        (resource.data.ownerUid == request.auth.uid ||
+         isAdmin() ||
+         isModerator() ||
+         isAgencyOwner(businessId));
       allow delete: if isAdmin();
     }
 
-        // ---------- OFFERS ----------
-    // Public read.
-    // Business owner can create/edit their own offers.
-    // Admin can edit/approve/reject all.
-    // Customers can increment claimedCount (only that field).
+    // ---------- OFFERS ----------
+    // Public read. Owner + admin + moderator can edit.
     match /offers/{offerId} {
       allow read: if true;
       allow create: if isSignedIn() &&
@@ -98,24 +108,18 @@ service cloud.firestore {
     }
 
     // ---------- CLAIMS ----------
-    // Customer can read/create their own claims.
-    // Business owner can read claims for their business.
-    // Redeem logic handled in app (owner updates status).
     match /claims/{claimId} {
       allow read: if isSignedIn() &&
         (resource.data.userUid == request.auth.uid ||
          isBusinessOwner(resource.data.businessId) ||
-         isAdmin() ||
          isModerator());
-
       allow create: if isSignedIn() &&
         request.resource.data.userUid == request.auth.uid;
-
       allow update: if isSignedIn() &&
         (resource.data.userUid == request.auth.uid ||
          isBusinessOwner(resource.data.businessId) ||
-         isAdmin());
-
+         isAdmin() ||
+         isModerator());
       allow delete: if isAdmin();
     }
 
@@ -128,38 +132,34 @@ service cloud.firestore {
         (request.auth.uid in resource.data.participantUids ||
          request.auth.uid in request.resource.data.participantUids ||
          isBusinessOwner(resource.data.businessId) ||
-         isAdmin());
+         isAdmin() ||
+         isModerator());
       allow delete: if isAdmin();
     }
 
     // ---------- REVIEWS ----------
-    // Public read (anyone can see reviews).
-    // Only the author can edit/delete their review.
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if isSignedIn() &&
         request.resource.data.userUid == request.auth.uid;
       allow update: if isSignedIn() &&
-        (resource.data.userUid == request.auth.uid || isModerator() || isAdmin());
+        (resource.data.userUid == request.auth.uid || isModerator());
       allow delete: if isSignedIn() &&
         (resource.data.userUid == request.auth.uid || isAdmin());
     }
 
     // ---------- REFERRALS ----------
-    // Only referrer/referred can read. System writes (via app).
     match /referrals/{referralId} {
       allow read: if isSignedIn() &&
         (resource.data.referrerUid == request.auth.uid ||
          resource.data.referredUid == request.auth.uid ||
-         isAdmin());
+         isModerator());
       allow create: if isSignedIn();
       allow update: if isSignedIn();
       allow delete: if isAdmin();
     }
 
     // ---------- NOTIFICATIONS ----------
-    // Only the target user can read/mark-read.
-    // Creation done by system (any signed-in user OK because claims/redeems trigger them).
     match /notifications/{notifId} {
       allow read: if isSignedIn() &&
         resource.data.userUid == request.auth.uid;
@@ -170,33 +170,27 @@ service cloud.firestore {
     }
 
     // ---------- COIN TRANSACTIONS ----------
-    // Read own only. Writes handled by system (signed-in users during claim/redeem).
     match /coin_transactions/{txId} {
       allow read: if isSignedIn() &&
-        resource.data.uid == request.auth.uid;
+        (resource.data.uid == request.auth.uid || isModerator());
       allow create: if isSignedIn();
       allow update, delete: if isAdmin();
     }
 
-        // ---------- SAVED OFFERS ----------
+    // ---------- SAVED OFFERS ----------
     match /saved_offers/{docId} {
-      // Read: doc exists and belongs to me, OR doc doesn't exist (get check)
       allow read: if isSignedIn() &&
         (
           (resource != null && resource.data.userUid == request.auth.uid) ||
-          (resource == null) // doc doesn't exist — isOfferSaved() check
+          (resource == null)
         );
-
-      // Create: request.resource exists and belongs to me
       allow create: if isSignedIn() &&
         request.resource.data.userUid == request.auth.uid;
-
-      // Update/delete: doc exists and belongs to me
       allow update, delete: if isSignedIn() &&
         resource.data.userUid == request.auth.uid;
     }
 
-        // ---------- SAVED BUSINESSES ----------
+    // ---------- SAVED BUSINESSES ----------
     match /saved_businesses/{docId} {
       allow read: if isSignedIn() &&
         (
@@ -209,7 +203,21 @@ service cloud.firestore {
         resource.data.userUid == request.auth.uid;
     }
 
+    // ---------- CATEGORIES ----------
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow create, update: if isModerator();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- AGENCIES (future — B3) ----------
+    // Placeholder — will be implemented in B3
+    match /agencies/{agencyId} {
+      allow read: if isSignedIn();
+      allow create, update: if isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
     // ---------- DEFAULT: DENY ----------
-    // Any collection not listed above is blocked.
   }
 }
