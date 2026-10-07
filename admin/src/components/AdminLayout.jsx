@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { to: '/users', label: 'Users', icon: '👥' },
   { to: '/categories', label: 'Categories', icon: '📁' },
   { to: '/roles', label: 'Roles', icon: '🔑' },
+  { to: '/geography', label: 'Geography', icon: '🌍' },
 ];
 
 export default function AdminLayout({ user, children }) {

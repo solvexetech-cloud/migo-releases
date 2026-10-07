@@ -11,6 +11,7 @@ import PendingOffers from './pages/PendingOffers';
 import UsersPage from './pages/UsersPage';
 import CategoriesPage from './pages/CategoriesPage';
 import RolesPage from './pages/RolesPage';
+import GeographyPage from './pages/GeographyPage';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -84,6 +85,7 @@ export default function App() {
                     element={<CategoriesPage />}
                   />
                   <Route path="/roles" element={<RolesPage />} />
+                  <Route path="/geography" element={<GeographyPage />} />
                 </Routes>
               </AdminLayout>
             ) : (
