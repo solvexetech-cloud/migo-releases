@@ -146,3 +146,92 @@ class UserModel {
     );
   }
 }
+
+
+
+/// MIGO user roles — 6-tier system.
+///
+/// Tier order (highest to lowest):
+///   super_admin > admin > moderator > agency > business > customer
+extension UserRoleX on UserModel {
+  /// Raw role string (safe default: customer)
+  String get roleId => role.isEmpty ? 'customer' : role;
+
+  /// Display name for UI
+  String get roleLabel {
+    switch (roleId) {
+      case 'super_admin':
+        return 'Super Admin';
+      case 'admin':
+        return 'Admin';
+      case 'moderator':
+        return 'Moderator';
+      case 'agency':
+        return 'Agency';
+      case 'business':
+        return 'Business Owner';
+      case 'customer':
+      default:
+        return 'Customer';
+    }
+  }
+
+  /// Is this user the platform owner?
+  bool get isSuperAdmin => roleId == 'super_admin';
+
+  /// Is this user an admin or above?
+  bool get isAdmin => roleId == 'admin' || roleId == 'super_admin';
+
+  /// Is this user a moderator or above?
+  bool get isModerator =>
+      roleId == 'moderator' || roleId == 'admin' || roleId == 'super_admin';
+
+  /// Is this user an agency partner?
+  bool get isAgency => roleId == 'agency';
+
+  /// Is this user a business owner?
+  bool get isBusiness => roleId == 'business';
+
+  /// Is this user a regular customer?
+  bool get isCustomer => roleId == 'customer';
+
+  /// Can this user access the admin panel?
+  bool get canAccessAdminPanel => isModerator;
+
+  /// Can this user manage categories?
+  bool get canManageCategories => isModerator;
+
+  /// Can this user approve/reject businesses?
+  bool get canApproveBusinesses => isModerator;
+
+  /// Can this user approve/reject offers?
+  bool get canApproveOffers => isModerator;
+
+  /// Can this user manage other users' roles?
+  bool get canManageRoles => isAdmin;
+
+  /// Can this user delete businesses?
+  bool get canDeleteBusinesses => isAdmin;
+
+  /// Can this user delete users?
+  bool get canDeleteUsers => isSuperAdmin;
+
+  /// Color theme for role badges (hex strings)
+  String get roleColor {
+    switch (roleId) {
+      case 'super_admin':
+        return '#7C3AED'; // Purple
+      case 'admin':
+        return '#D64545'; // Red
+      case 'moderator':
+        return '#A67920'; // Amber
+      case 'agency':
+        return '#0E7490'; // Teal
+      case 'business':
+        return '#1E4B8F'; // Blue
+      case 'customer':
+      default:
+        return '#2E9E5B'; // Green
+    }
+  }
+}
