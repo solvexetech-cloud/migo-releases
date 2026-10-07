@@ -1,8 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../core/theme/migo_colors.dart';
+import '../../core/utils/migo_animations.dart';
+import '../../models/area_model.dart';
 import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
-import '../../core/utils/migo_animations.dart';
+import '../../services/location_service.dart';
+import '../../widgets/location_picker_modal.dart';
 import '../../widgets/migo_empty_state.dart';
 import '../deals/offer_detail_screen.dart';
 
@@ -22,9 +26,14 @@ extension SortModeX on SortMode {
 }
 
 class DiscoverScreen extends StatefulWidget {
-  const DiscoverScreen({super.key, this.initialCategory});
+  const DiscoverScreen({
+    super.key,
+    this.initialCategory,
+    this.initialArea,
+  });
 
   final String? initialCategory;
+  final String? initialArea;
 
   @override
   State<DiscoverScreen> createState() => _DiscoverScreenState();
@@ -34,30 +43,131 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   final _searchController = TextEditingController();
   String _query = '';
   String? _category;
+  String? _areaId;
+  String? _areaName;
   SortMode _sort = SortMode.newest;
 
-    @override
+  List<String> _categories = [];
+  List<AreaModel> _areas = [];
+  bool _autoDetecting = true;
+
+  @override
   void initState() {
     super.initState();
     _category = widget.initialCategory;
+    _areaId = widget.initialArea;
     _loadCategories();
+    _loadAreas();
+    _autoDetectArea();
+  }
+
+  Future<void> _autoDetectArea() async {
+    // If initial area passed, use it
+    if (widget.initialArea != null) {
+      setState(() => _autoDetecting = false);
+      _resolveAreaName(widget.initialArea!);
+      return;
+    }
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      setState(() => _autoDetecting = false);
+      return;
+    }
+
+    try {
+      final user = await FirestoreService.instance.getUser(uid);
+      final area = await LocationService.instance.getDefaultArea(user);
+      if (!mounted) return;
+      setState(() {
+        if (area != null) {
+          _areaId = area.id;
+          _areaName = area.name;
+        }
+        _autoDetecting = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _autoDetecting = false);
+    }
+  }
+
+  void _resolveAreaName(String areaId) {
+    final found = _areas.where((a) => a.id == areaId).toList();
+    if (found.isNotEmpty && mounted) {
+      setState(() => _areaName = found.first.name);
+    }
   }
 
   Future<void> _loadCategories() async {
     try {
-      final cats =
-          await FirestoreService.instance.getCategories();
+      final cats = await FirestoreService.instance.getCategories();
       if (!mounted) return;
       setState(() {
         _categories = cats.map((c) => c.name).toList();
       });
-    } catch (e) {
-      // Silent fail — categories remain empty
-    }
+    } catch (_) {}
   }
 
-    // Loaded dynamically from Firestore
-  List<String> _categories = [];
+  Future<void> _loadAreas() async {
+    try {
+      final areas = await FirestoreService.instance.getAllAreas();
+      if (!mounted) return;
+      setState(() {
+        _areas = areas;
+        // Resolve name if already set
+        if (_areaId != null && _areaName == null) {
+          _resolveAreaName(_areaId!);
+        }
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _changeLocation() async {
+    final selected = await LocationPickerModal.show(context);
+    if (selected == null) return;
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    await LocationService.instance.saveSelectedArea(
+      uid: uid,
+      areaId: selected.id,
+      countryCode: 'QA',
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _areaId = selected.id;
+      _areaName = selected.name;
+    });
+  }
+
+  Future<void> _selectAreaPill(AreaModel area) async {
+    if (_areaId == area.id) {
+      // Deselect → All Areas
+      setState(() {
+        _areaId = null;
+        _areaName = null;
+      });
+      return;
+    }
+
+    setState(() {
+      _areaId = area.id;
+      _areaName = area.name;
+    });
+
+    // Persist
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      await LocationService.instance.saveSelectedArea(
+        uid: uid,
+        areaId: area.id,
+        countryCode: 'QA',
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -103,8 +213,19 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Discover'),
+        actions: [
+          // Location chip
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: _LocationChip(
+              areaName: _areaName,
+              loading: _autoDetecting,
+              onTap: _changeLocation,
+            ),
+          ),
+        ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(120),
+          preferredSize: const Size.fromHeight(170),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: Column(
@@ -171,13 +292,56 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 8),
+                // Area filter row
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.place_outlined,
+                      size: 16,
+                      color: MigoColors.textSecondaryLight,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: SizedBox(
+                        height: 36,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            _AreaPill(
+                              label: 'All Areas',
+                              selected: _areaId == null,
+                              onTap: () => setState(() {
+                                _areaId = null;
+                                _areaName = null;
+                              }),
+                            ),
+                            const SizedBox(width: 6),
+                            ..._areas.map((a) => Padding(
+                                  padding:
+                                      const EdgeInsets.only(right: 6),
+                                  child: _AreaPill(
+                                    label: a.name,
+                                    selected: _areaId == a.id,
+                                    onTap: () => _selectAreaPill(a),
+                                  ),
+                                )),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
         ),
       ),
       body: StreamBuilder<List<OfferModel>>(
-        stream: FirestoreService.instance.streamLiveOffers(limit: 50),
+        stream: _areaId != null
+            ? FirestoreService.instance
+                .streamLiveOffersByArea(_areaId!)
+            : FirestoreService.instance.streamLiveOffers(limit: 50),
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -186,7 +350,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           final filtered = _applyFilters(all);
 
           if (filtered.isEmpty) {
-            final hasFilters = _query.isNotEmpty || _category != null;
+            final hasFilters = _query.isNotEmpty ||
+                _category != null ||
+                _areaId != null;
             return MigoEmptyState(
               icon: hasFilters
                   ? Icons.search_off
@@ -195,7 +361,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   ? 'No offers match your filters'
                   : 'No offers yet',
               body: hasFilters
-                  ? 'Try a different search or category.'
+                  ? 'Try a different search, category, or area.'
                   : 'Check back soon for new deals.',
             );
           }
@@ -237,7 +403,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   ),
                   itemCount: filtered.length,
                   itemBuilder: (context, i) {
-                                        final o = filtered[i];
+                    final o = filtered[i];
                     return TapScale(
                       onTap: () {
                         Navigator.of(context).push(
@@ -263,6 +429,90 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+// ---------- LOCATION CHIP ----------
+class _LocationChip extends StatelessWidget {
+  const _LocationChip({
+    required this.areaName,
+    required this.loading,
+    required this.onTap,
+  });
+
+  final String? areaName;
+  final bool loading;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    if (loading) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: MigoColors.surfaceLight,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const SizedBox(
+          width: 60,
+          height: 12,
+          child: Center(
+            child: SizedBox(
+              width: 10,
+              height: 10,
+              child: CircularProgressIndicator(strokeWidth: 1.5),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final hasArea = areaName != null && areaName!.isNotEmpty;
+    final displayText = hasArea ? areaName! : 'Set location';
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: hasArea
+              ? MigoColors.primary.withValues(alpha: 0.1)
+              : MigoColors.warning.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.place,
+              size: 12,
+              color: hasArea ? MigoColors.primary : MigoColors.warning,
+            ),
+            const SizedBox(width: 4),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 100),
+              child: Text(
+                displayText,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: hasArea ? MigoColors.primary : MigoColors.warning,
+                ),
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(
+              Icons.keyboard_arrow_down,
+              size: 12,
+              color: hasArea ? MigoColors.primary : MigoColors.warning,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -300,6 +550,48 @@ class _CategoryPill extends StatelessWidget {
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: selected ? Colors.white : MigoColors.textPrimaryLight,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AreaPill extends StatelessWidget {
+  const _AreaPill({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? MigoColors.success : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected
+                ? MigoColors.success
+                : MigoColors.dividerLight,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color:
+                selected ? Colors.white : MigoColors.textSecondaryLight,
           ),
         ),
       ),

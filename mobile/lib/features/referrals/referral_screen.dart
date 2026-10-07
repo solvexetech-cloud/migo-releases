@@ -5,6 +5,11 @@ import '../../core/theme/migo_colors.dart';
 import '../../models/referral_model.dart';
 import '../../services/firestore_service.dart';
 
+/// Base URL for referral links.
+/// Current: Firebase Hosting (Option A).
+/// Future: custom domain (e.g. migo.app) via B3.10 migration.
+const String _referralBaseUrl = 'https://migo-app-3030e.web.app/r';
+
 class ReferralScreen extends StatefulWidget {
   const ReferralScreen({super.key});
 
@@ -33,6 +38,16 @@ class _ReferralScreenState extends State<ReferralScreen> {
     });
   }
 
+  String _buildReferralLink() => '$_referralBaseUrl/$_code';
+
+  String _buildShareText() {
+    return 'Join me on MIGO — exclusive deals in Qatar & Kerala! 🎁\n\n'
+        'Use my code: $_code\n'
+        'Sign up here: ${_buildReferralLink()}\n\n'
+        'You get +30 MIGO Coins after your first deal, '
+        'and I get +50! 💰';
+  }
+
   Future<void> _copyCode() async {
     if (_code == null) return;
     await Clipboard.setData(ClipboardData(text: _code!));
@@ -44,11 +59,12 @@ class _ReferralScreenState extends State<ReferralScreen> {
 
   Future<void> _copyLink() async {
     if (_code == null) return;
-    final link = 'https://migo.app/r/$_code';
-    await Clipboard.setData(ClipboardData(text: link));
+    await Clipboard.setData(ClipboardData(text: _buildShareText()));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Referral link copied')),
+      const SnackBar(
+        content: Text('Referral link copied — share it!'),
+      ),
     );
   }
 
@@ -148,6 +164,49 @@ class _ReferralScreenState extends State<ReferralScreen> {
                             ),
                           ),
                         ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Preview of the share text
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: MigoColors.surfaceLight,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: MigoColors.dividerLight),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(
+                            Icons.message_outlined,
+                            size: 14,
+                            color: MigoColors.textSecondaryLight,
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            'Preview',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: MigoColors.textSecondaryLight,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _code == null ? '...' : _buildShareText(),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: MigoColors.textPrimaryLight,
+                          height: 1.5,
+                        ),
                       ),
                     ],
                   ),

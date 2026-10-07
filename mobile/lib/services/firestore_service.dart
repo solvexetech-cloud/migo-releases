@@ -2,6 +2,9 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/business_model.dart';
 import '../models/category_model.dart';
+import '../models/country_model.dart';
+import '../models/zone_model.dart';
+import '../models/area_model.dart';
 import '../models/claim_model.dart';
 import '../models/coin_transaction_model.dart';
 import '../models/group_deal_model.dart';
@@ -117,6 +120,15 @@ class FirestoreService {
       return BusinessModel.fromMap(doc.id, doc.data());
     });
   }
+ 
+
+  /// Get all businesses (for client-side filtering).
+  Future<List<BusinessModel>> getAllBusinesses() async {
+    final snap = await _businesses.limit(500).get();
+    return snap.docs
+        .map((d) => BusinessModel.fromMap(d.id, d.data()))
+        .toList();
+  }
 
   Future<void> updateBusiness(String id, Map<String, dynamic> data) async {
     await _businesses.doc(id).set(
@@ -182,6 +194,81 @@ class FirestoreService {
 
   Future<void> deleteCategory(String id) async {
     await _categories.doc(id).delete();
+  }
+
+
+  // ---------- GEOGRAPHY (B3) ----------
+  CollectionReference<Map<String, dynamic>> get _countries =>
+      _db.collection('countries');
+
+  CollectionReference<Map<String, dynamic>> get _zones =>
+      _db.collection('zones');
+
+  CollectionReference<Map<String, dynamic>> get _areas =>
+      _db.collection('areas');
+
+  /// Get active countries sorted by order.
+  Future<List<CountryModel>> getCountries() async {
+    final snap = await _countries.limit(100).get();
+    final list = snap.docs
+        .map((d) => CountryModel.fromMap(d.id, d.data()))
+        .where((c) => c.active)
+        .toList();
+    list.sort((a, b) => a.order.compareTo(b.order));
+    return list;
+  }
+
+  /// Stream active countries.
+  Stream<List<CountryModel>> streamCountries() {
+    return _countries.snapshots().map((snap) {
+      final list = snap.docs
+          .map((d) => CountryModel.fromMap(d.id, d.data()))
+          .where((c) => c.active)
+          .toList();
+      list.sort((a, b) => a.order.compareTo(b.order));
+      return list;
+    });
+  }
+
+  /// Get active zones for a country sorted by order.
+  Future<List<ZoneModel>> getZonesByCountry(String countryCode) async {
+    final snap =
+        await _zones.where('countryCode', isEqualTo: countryCode).get();
+    final list = snap.docs
+        .map((d) => ZoneModel.fromMap(d.id, d.data()))
+        .where((z) => z.active)
+        .toList();
+    list.sort((a, b) => a.order.compareTo(b.order));
+    return list;
+  }
+
+  /// Get active areas for a zone sorted by order.
+  Future<List<AreaModel>> getAreasByZone(String zoneSlug) async {
+    final snap = await _areas.where('zoneSlug', isEqualTo: zoneSlug).get();
+    final list = snap.docs
+        .map((d) => AreaModel.fromMap(d.id, d.data()))
+        .where((a) => a.active)
+        .toList();
+    list.sort((a, b) => a.order.compareTo(b.order));
+    return list;
+  }
+
+  /// Get all active areas.
+  Future<List<AreaModel>> getAllAreas() async {
+    final snap = await _areas.limit(200).get();
+    final list = snap.docs
+        .map((d) => AreaModel.fromMap(d.id, d.data()))
+        .where((a) => a.active)
+        .toList();
+    list.sort((a, b) => a.order.compareTo(b.order));
+    return list;
+  }
+
+  /// Get a single area by slug.
+  Future<AreaModel?> getArea(String slug) async {
+    final snap = await _areas.doc(slug).get();
+    if (!snap.exists || snap.data() == null) return null;
+    return AreaModel.fromMap(slug, snap.data()!);
   }
 
 
@@ -251,6 +338,52 @@ class FirestoreService {
       SetOptions(merge: true),
     );
   }
+
+
+  /// Stream live offers filtered by area.
+  Stream<List<OfferModel>> streamLiveOffersByArea(
+    String areaId, {
+    int limit = 50,
+  }) {
+    return _offers
+        .where('status', isEqualTo: 'live')
+        .where('areaId', isEqualTo: areaId)
+        .limit(limit)
+        .snapshots()
+        .map((snap) {
+      final now = DateTime.now();
+      final list = snap.docs
+          .map((d) => OfferModel.fromMap(d.id, d.data()))
+          .where((o) => o.endAt.isAfter(now))
+          .toList();
+      list.sort((a, b) => b.startAt.compareTo(a.startAt));
+      return list;
+    });
+  }
+
+  /// Stream live offers filtered by area AND type (e.g. flash).
+  Stream<List<OfferModel>> streamLiveOffersByAreaAndType(
+    String areaId,
+    String type, {
+    int limit = 10,
+  }) {
+    return _offers
+        .where('status', isEqualTo: 'live')
+        .where('areaId', isEqualTo: areaId)
+        .where('type', isEqualTo: type)
+        .limit(limit)
+        .snapshots()
+        .map((snap) {
+      final now = DateTime.now();
+      final list = snap.docs
+          .map((d) => OfferModel.fromMap(d.id, d.data()))
+          .where((o) => o.endAt.isAfter(now))
+          .toList();
+      list.sort((a, b) => b.startAt.compareTo(a.startAt));
+      return list;
+    });
+  }
+
 
   // ---------- GROUP DEALS ----------
   CollectionReference<Map<String, dynamic>> get _groupDeals =>

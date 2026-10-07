@@ -171,7 +171,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
       }
 
       final now = DateTime.now();
-      final offer = OfferModel.newDraft(
+            final offer = OfferModel.newDraft(
         businessId: widget.business.id,
         businessName: widget.business.name,
         title: title,
@@ -185,6 +185,10 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
         category: widget.business.category,
         terms: _terms.text.trim().isEmpty ? null : _terms.text.trim(),
         dailyLimit: int.tryParse(_dailyLimit.text.trim()),
+        // B3 Geography — inherit from business
+        countryCode: widget.business.countryCode,
+        zoneId: widget.business.zoneId,
+        areaId: widget.business.areaId,
       ).copyWith(imageUrl: imageUrl);
 
       final offerId = await FirestoreService.instance.createOffer(offer);

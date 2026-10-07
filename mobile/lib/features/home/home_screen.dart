@@ -5,11 +5,14 @@ import '../../core/theme/migo_colors.dart';
 import '../../core/theme/migo_gradients.dart';
 import '../../core/theme/migo_shadows.dart';
 import '../../core/utils/migo_animations.dart';
+import '../../models/area_model.dart';
 import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
+import '../../services/location_service.dart';
 import '../../widgets/category_grid.dart';
 import '../../widgets/flash_deal_card.dart';
 import '../../widgets/intention_chip.dart';
+import '../../widgets/location_picker_modal.dart';
 import '../../widgets/migo_gold_button.dart';
 import '../../widgets/offer_card.dart';
 import '../../widgets/pick_for_me_sheet.dart';
@@ -28,6 +31,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedIntention = 'Eat';
 
+  AreaModel? _currentArea;
+  bool _loadingArea = true;
+
   static const _intentions = <({String label, IconData icon})>[
     (label: 'Eat', icon: Icons.restaurant_outlined),
     (label: 'Coffee', icon: Icons.local_cafe_outlined),
@@ -39,6 +45,53 @@ class _HomeScreenState extends State<HomeScreen> {
     (label: 'Service', icon: Icons.build_outlined),
     (label: 'Explore', icon: Icons.explore_outlined),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _detectArea();
+  }
+
+  Future<void> _detectArea() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      setState(() => _loadingArea = false);
+      return;
+    }
+
+    try {
+      final user = await FirestoreService.instance.getUser(uid);
+      final area = await LocationService.instance.getDefaultArea(user);
+      if (!mounted) return;
+      setState(() {
+        _currentArea = area;
+        _loadingArea = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loadingArea = false);
+    }
+  }
+
+  Future<void> _changeLocation() async {
+    final selected = await LocationPickerModal.show(context);
+    if (selected == null) return;
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    // Persist selection
+    await LocationService.instance.saveSelectedArea(
+      uid: uid,
+      areaId: selected.id,
+      countryCode: selected.zoneSlug.isNotEmpty
+          ? (_currentArea?.zoneSlug ?? 'QA')
+          : 'QA',
+    );
+
+    if (!mounted) return;
+    setState(() => _currentArea = selected);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Top row: MIGO + location + bell
+                      // Top row: MIGO + location chip + bell
                       Row(
                         children: [
                           const Text(
@@ -75,38 +128,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.18),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Row(
-                              children: [
-                                Icon(
-                                  Icons.place,
-                                  size: 12,
-                                  color: MigoColors.accent,
-                                ),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Doha',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                SizedBox(width: 2),
-                                Icon(
-                                  Icons.keyboard_arrow_down,
-                                  size: 14,
-                                  color: Colors.white70,
-                                ),
-                              ],
+                          // Location chip
+                          Flexible(
+                            child: _LocationChip(
+                              loading: _loadingArea,
+                              areaName: _currentArea?.name,
+                              onTap: _changeLocation,
                             ),
                           ),
                           const Spacer(),
@@ -231,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // ---------- INTENTION CHIPS (height 52, was 42) ----------
+          // ---------- INTENTION CHIPS ----------
           SliverToBoxAdapter(
             child: Container(
               color: MigoColors.backgroundLight,
@@ -259,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // ---------- FLASH DEALS ----------
+          // ---------- FLASH DEALS (area-filtered) ----------
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
           const SliverToBoxAdapter(
             child: Padding(
@@ -267,22 +294,26 @@ class _HomeScreenState extends State<HomeScreen> {
               child: SectionHeader(title: '⚡ Flash Deals'),
             ),
           ),
-          const SliverToBoxAdapter(child: _FlashDealsRow()),
+          SliverToBoxAdapter(
+            child: _FlashDealsRow(areaId: _currentArea?.id),
+          ),
 
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-          // ---------- NEARBY DEALS ----------
+          // ---------- NEARBY DEALS (area-filtered) ----------
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: SectionHeader(title: 'Nearby Deals'),
             ),
           ),
-          const SliverToBoxAdapter(child: _NearbyDealsRow()),
+          SliverToBoxAdapter(
+            child: _NearbyDealsRow(areaId: _currentArea?.id),
+          ),
 
           const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-          // ---------- CATEGORIES (with See all + tap callback) ----------
+          // ---------- CATEGORIES ----------
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -300,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 12)),
-                    SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: CategoryGrid(
               maxItems: 6,
               onCategoryTap: (name) {
@@ -319,13 +350,107 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _FlashDealsRow extends StatelessWidget {
-  const _FlashDealsRow();
+// ---------- LOCATION CHIP ----------
+class _LocationChip extends StatelessWidget {
+  const _LocationChip({
+    required this.loading,
+    required this.areaName,
+    required this.onTap,
+  });
+
+  final bool loading;
+  final String? areaName;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    if (loading) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.18),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const SizedBox(
+          width: 60,
+          height: 12,
+          child: Center(
+            child: SizedBox(
+              width: 10,
+              height: 10,
+              child: CircularProgressIndicator(
+                strokeWidth: 1.5,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final hasArea = areaName != null && areaName!.isNotEmpty;
+    final displayText = hasArea ? areaName! : 'Set location';
+    final bgColor = hasArea
+        ? Colors.white.withValues(alpha: 0.18)
+        : MigoColors.warning.withValues(alpha: 0.85);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              hasArea ? Icons.place : Icons.place_outlined,
+              size: 12,
+              color: hasArea ? MigoColors.accent : Colors.white,
+            ),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                displayText,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(width: 2),
+            const Icon(
+              Icons.keyboard_arrow_down,
+              size: 14,
+              color: Colors.white70,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------- FLASH DEALS ROW ----------
+class _FlashDealsRow extends StatelessWidget {
+  const _FlashDealsRow({this.areaId});
+  final String? areaId;
+
+  @override
+  Widget build(BuildContext context) {
+    final stream = areaId != null
+        ? FirestoreService.instance
+            .streamLiveOffersByAreaAndType(areaId!, 'flash')
+        : FirestoreService.instance.streamLiveOffersByType('flash');
+
     return StreamBuilder<List<OfferModel>>(
-      stream: FirestoreService.instance.streamLiveOffersByType('flash'),
+      stream: stream,
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
           return SizedBox(
@@ -349,7 +474,7 @@ class _FlashDealsRow extends StatelessWidget {
             height: 100,
             child: Center(
               child: Text(
-                'No flash deals right now',
+                'No flash deals in your area',
                 style: TextStyle(color: MigoColors.textSecondaryLight),
               ),
             ),
@@ -379,13 +504,19 @@ class _FlashDealsRow extends StatelessWidget {
   }
 }
 
+// ---------- NEARBY DEALS ROW ----------
 class _NearbyDealsRow extends StatelessWidget {
-  const _NearbyDealsRow();
+  const _NearbyDealsRow({this.areaId});
+  final String? areaId;
 
   @override
   Widget build(BuildContext context) {
+    final stream = areaId != null
+        ? FirestoreService.instance.streamLiveOffersByArea(areaId!)
+        : FirestoreService.instance.streamLiveOffers(limit: 10);
+
     return StreamBuilder<List<OfferModel>>(
-      stream: FirestoreService.instance.streamLiveOffers(limit: 10),
+      stream: stream,
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
           return SizedBox(
@@ -421,7 +552,7 @@ class _NearbyDealsRow extends StatelessWidget {
                 ),
                 SizedBox(height: 12),
                 Text(
-                  'No offers yet',
+                  'No offers in your area',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -430,7 +561,7 @@ class _NearbyDealsRow extends StatelessWidget {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Check back soon — new deals are on the way.',
+                  'Change location or check back soon.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13,

@@ -25,6 +25,11 @@ class BusinessModel {
     this.mapUrl,
     this.status = 'pending',
     this.verified = false,
+    // B3 Geography fields
+    this.countryCode,
+    this.zoneId,
+    this.areaId,
+    this.agencyUid,
     this.createdAt,
     this.updatedAt,
   });
@@ -46,7 +51,7 @@ class BusinessModel {
   final String? coverUrl;
   final List<String> photos;
 
-  /// Business hours in "HH:mm" format（24-hour）.
+  /// Business hours in "HH:mm" format (24-hour).
   final String openTime;
   final String closeTime;
 
@@ -55,6 +60,19 @@ class BusinessModel {
 
   final String status; // pending | approved | rejected | suspended
   final bool verified;
+
+  // ---------- B3 GEOGRAPHY ----------
+  /// Country code (QA, IN, AE)
+  final String? countryCode;
+
+  /// Zone slug (doha-metro, ernakulam)
+  final String? zoneId;
+
+  /// Area slug (the-pearl, kakkanad)
+  final String? areaId;
+
+  /// Agency UID (if assigned via area)
+  final String? agencyUid;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -69,11 +87,9 @@ class BusinessModel {
       final openMin = open.$1 * 60 + open.$2;
       final closeMin = close.$1 * 60 + close.$2;
 
-      // Same-day range
       if (closeMin > openMin) {
         return minutes >= openMin && minutes < closeMin;
       }
-      // Overnight range（e.g. 18:00 → 02:00）
       return minutes >= openMin || minutes < closeMin;
     } catch (_) {
       return true;
@@ -81,6 +97,18 @@ class BusinessModel {
   }
 
   String get hoursLabel => '$openTime – $closeTime';
+
+  /// Does this business have geography assigned?
+  bool get hasGeography =>
+      countryCode != null &&
+      countryCode!.isNotEmpty &&
+      zoneId != null &&
+      zoneId!.isNotEmpty &&
+      areaId != null &&
+      areaId!.isNotEmpty;
+
+  /// Is this business managed by an agency?
+  bool get hasAgency => agencyUid != null && agencyUid!.isNotEmpty;
 
   static (int, int) _parseTime(String t) {
     final parts = t.split(':');
@@ -101,6 +129,11 @@ class BusinessModel {
     String openTime = '09:00',
     String closeTime = '23:00',
     String? mapUrl,
+    // B3 geography
+    String? countryCode,
+    String? zoneId,
+    String? areaId,
+    String? agencyUid,
   }) {
     return BusinessModel(
       id: '',
@@ -117,6 +150,10 @@ class BusinessModel {
       openTime: openTime,
       closeTime: closeTime,
       mapUrl: mapUrl,
+      countryCode: countryCode,
+      zoneId: zoneId,
+      areaId: areaId,
+      agencyUid: agencyUid,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -139,14 +176,18 @@ class BusinessModel {
       lng: (map['lng'] as num?)?.toDouble(),
       logoUrl: map['logoUrl'] as String?,
       coverUrl: map['coverUrl'] as String?,
-      photos:
-          List<String>.from((map['photos'] as List?) ?? const []),
+      photos: List<String>.from((map['photos'] as List?) ?? const []),
       openTime: (map['openTime'] ?? '09:00') as String,
       closeTime: (map['closeTime'] ?? '23:00') as String,
       website: map['website'] as String?,
       mapUrl: map['mapUrl'] as String?,
       status: (map['status'] ?? 'pending') as String,
       verified: (map['verified'] ?? false) as bool,
+      // B3 geography
+      countryCode: map['countryCode'] as String?,
+      zoneId: map['zoneId'] as String?,
+      areaId: map['areaId'] as String?,
+      agencyUid: map['agencyUid'] as String?,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
       updatedAt: (map['updatedAt'] as Timestamp?)?.toDate(),
     );
@@ -175,6 +216,11 @@ class BusinessModel {
       'mapUrl': mapUrl,
       'status': status,
       'verified': verified,
+      // B3 geography
+      'countryCode': countryCode,
+      'zoneId': zoneId,
+      'areaId': areaId,
+      'agencyUid': agencyUid,
       'createdAt': createdAt != null
           ? Timestamp.fromDate(createdAt!)
           : FieldValue.serverTimestamp(),

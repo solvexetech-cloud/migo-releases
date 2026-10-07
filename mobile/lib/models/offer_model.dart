@@ -63,6 +63,10 @@ class OfferModel {
     this.totalLimit,
     this.claimedCount = 0,
     this.status = 'pending', // pending | live | paused | expired
+    // B3 Geography (denormalized from business for fast filtering)
+    this.countryCode,
+    this.zoneId,
+    this.areaId,
     this.createdAt,
     this.updatedAt,
   });
@@ -85,6 +89,17 @@ class OfferModel {
   final int? totalLimit;
   final int claimedCount;
   final String status;
+
+  // ---------- B3 GEOGRAPHY ----------
+  /// Country code (QA, IN, AE)
+  final String? countryCode;
+
+  /// Zone slug (doha-metro, ernakulam)
+  final String? zoneId;
+
+  /// Area slug (the-pearl, kakkanad)
+  final String? areaId;
+
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -93,10 +108,8 @@ class OfferModel {
       ? (((originalPrice - offerPrice) / originalPrice) * 100).round()
       : 0;
 
-  // കാലഹരണപ്പെട്ടോ എന്ന് പരിശോധിക്കാൻ
   bool get isExpired => endAt.isBefore(DateTime.now());
 
-  // ഓഫർ ഇപ്പോൾ സജീവമാണോ എന്ന് പരിശോധിക്കാൻ
   bool get isActiveNow {
     final now = DateTime.now();
     return status == 'live' &&
@@ -104,11 +117,19 @@ class OfferModel {
         endAt.isAfter(now);
   }
 
-  // എത്ര ദിവസം ബാക്കിയുണ്ട്
   int get daysRemaining {
     final diff = endAt.difference(DateTime.now()).inDays;
     return diff < 0 ? 0 : diff;
   }
+
+  /// Does this offer have geography assigned?
+  bool get hasGeography =>
+      countryCode != null &&
+      countryCode!.isNotEmpty &&
+      zoneId != null &&
+      zoneId!.isNotEmpty &&
+      areaId != null &&
+      areaId!.isNotEmpty;
 
   factory OfferModel.newDraft({
     required String businessId,
@@ -125,6 +146,10 @@ class OfferModel {
     String? terms,
     int? dailyLimit,
     int? totalLimit,
+    // B3 geography
+    String? countryCode,
+    String? zoneId,
+    String? areaId,
   }) {
     final now = DateTime.now();
     return OfferModel(
@@ -143,6 +168,9 @@ class OfferModel {
       terms: terms,
       dailyLimit: dailyLimit,
       totalLimit: totalLimit,
+      countryCode: countryCode,
+      zoneId: zoneId,
+      areaId: areaId,
       createdAt: now,
       updatedAt: now,
     );
@@ -169,6 +197,10 @@ class OfferModel {
       totalLimit: map['totalLimit'] as int?,
       claimedCount: (map['claimedCount'] ?? 0) as int,
       status: (map['status'] ?? 'pending') as String,
+      // B3 geography
+      countryCode: map['countryCode'] as String?,
+      zoneId: map['zoneId'] as String?,
+      areaId: map['areaId'] as String?,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
       updatedAt: (map['updatedAt'] as Timestamp?)?.toDate(),
     );
@@ -193,6 +225,10 @@ class OfferModel {
       'totalLimit': totalLimit,
       'claimedCount': claimedCount,
       'status': status,
+      // B3 geography
+      'countryCode': countryCode,
+      'zoneId': zoneId,
+      'areaId': areaId,
       'createdAt': createdAt != null
           ? Timestamp.fromDate(createdAt!)
           : FieldValue.serverTimestamp(),
@@ -207,6 +243,9 @@ class OfferModel {
     String? terms,
     int? dailyLimit,
     int? totalLimit,
+    String? countryCode,
+    String? zoneId,
+    String? areaId,
   }) {
     return OfferModel(
       id: id,
@@ -227,6 +266,9 @@ class OfferModel {
       totalLimit: totalLimit ?? this.totalLimit,
       claimedCount: claimedCount ?? this.claimedCount,
       status: status ?? this.status,
+      countryCode: countryCode ?? this.countryCode,
+      zoneId: zoneId ?? this.zoneId,
+      areaId: areaId ?? this.areaId,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
     );

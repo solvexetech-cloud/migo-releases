@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../../core/config/app_config.dart';
 import '../../core/theme/migo_colors.dart';
@@ -21,6 +22,45 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _loading = false;
   bool _obscure = true;
   String? _error;
+  bool _referralFromUrl = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUrlForReferralCode();
+  }
+
+  /// Web-only: parse URL for referral code.
+  /// Supports:
+  ///   ?ref=CODE  (query param)
+  ///   /r/CODE    (path)
+  void _checkUrlForReferralCode() {
+    if (!kIsWeb) return;
+
+    try {
+      final uri = Uri.base;
+
+      // Query param: ?ref=CODE
+      final refParam = uri.queryParameters['ref'];
+      if (refParam != null && refParam.isNotEmpty) {
+        _referralController.text = refParam.toUpperCase();
+        _referralFromUrl = true;
+        return;
+      }
+
+      // Path: /r/CODE
+      final segments = uri.pathSegments;
+      if (segments.length >= 2 && segments[0] == 'r') {
+        final code = segments[1];
+        if (code.isNotEmpty) {
+          _referralController.text = code.toUpperCase();
+          _referralFromUrl = true;
+        }
+      }
+    } catch (_) {
+      // Silent fail — URL parsing may fail in some environments
+    }
+  }
 
   @override
   void dispose() {
@@ -68,7 +108,7 @@ class _SignupScreenState extends State<SignupScreen> {
         }
       }
 
-            final cred = await AuthService.instance.signUp(
+      final cred = await AuthService.instance.signUp(
         email: email,
         password: password,
       );
@@ -119,6 +159,57 @@ class _SignupScreenState extends State<SignupScreen> {
                 'Create your account',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
+
+              // Referral welcome banner (from URL)
+              if (_referralFromUrl) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: MigoColors.success.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: MigoColors.success.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.card_giftcard,
+                        color: MigoColors.success,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Welcome! You\'re invited 🎉',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: MigoColors.success,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Sign up to get +30 MIGO Coins after your first claim.',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: MigoColors.success
+                                    .withValues(alpha: 0.9),
+                                height: 1.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
               const SizedBox(height: 32),
               TextField(
                 controller: _emailController,
@@ -160,10 +251,22 @@ class _SignupScreenState extends State<SignupScreen> {
               TextField(
                 controller: _referralController,
                 textCapitalization: TextCapitalization.characters,
-                decoration: const InputDecoration(
+                onChanged: (_) {
+                  // If user manually edits, remove the URL flag
+                  if (_referralFromUrl) {
+                    setState(() => _referralFromUrl = false);
+                  }
+                },
+                decoration: InputDecoration(
                   labelText: 'Referral code (optional)',
-                  prefixIcon: Icon(Icons.card_giftcard),
-                  border: OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.card_giftcard),
+                  border: const OutlineInputBorder(),
+                  suffixIcon: _referralController.text.isNotEmpty
+                      ? const Icon(
+                          Icons.check_circle,
+                          color: MigoColors.success,
+                        )
+                      : null,
                 ),
               ),
               if (_error != null) ...[

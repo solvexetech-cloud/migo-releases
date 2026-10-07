@@ -8,6 +8,8 @@ class UserModel {
     this.displayName,
     this.phone,
     this.country = 'QA',
+    this.currentAreaId,
+    this.currentCountryCode,
     this.city = 'Doha',
     this.currency = 'QAR',
     this.locale = 'en',
@@ -26,6 +28,11 @@ class UserModel {
   final String? displayName;
   final String? phone;
   final String country;
+  /// User's currently selected area (persisted).
+  final String? currentAreaId;
+
+  /// User's currently selected country code.
+  final String? currentCountryCode;
   final String city;
   final String currency;
   final String locale;
@@ -73,6 +80,8 @@ class UserModel {
       displayName: map['displayName'] as String?,
       phone: map['phone'] as String?,
       country: (map['country'] ?? 'QA') as String,
+      currentAreaId: map['currentAreaId'] as String?,
+      currentCountryCode: map['currentCountryCode'] as String?,
       city: (map['city'] ?? 'Doha') as String,
       currency: (map['currency'] ?? 'QAR') as String,
       locale: (map['locale'] ?? 'en') as String,
@@ -95,6 +104,8 @@ class UserModel {
       'displayName': displayName,
       'phone': phone,
       'country': country,
+      'currentAreaId': currentAreaId,
+      'currentCountryCode': currentCountryCode,
       'city': city,
       'currency': currency,
       'locale': locale,
@@ -115,6 +126,8 @@ class UserModel {
     String? displayName,
     String? phone,
     String? country,
+    String? currentAreaId,
+    String? currentCountryCode,
     String? city,
     String? currency,
     String? locale,
@@ -131,6 +144,9 @@ class UserModel {
       displayName: displayName ?? this.displayName,
       phone: phone ?? this.phone,
       country: country ?? this.country,
+      currentAreaId: currentAreaId ?? this.currentAreaId,
+      currentCountryCode:
+      currentCountryCode ?? this.currentCountryCode,
       city: city ?? this.city,
       currency: currency ?? this.currency,
       locale: locale ?? this.locale,
