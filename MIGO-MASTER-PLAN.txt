@@ -1,0 +1,561 @@
+# ═══════════════════════════════════════════════════════
+# MIGO — MASTER PLAN
+# Version: 2.2
+# Date: October 8, 2026
+# Owner: solvexe.tech@gmail.com
+# ═══════════════════════════════════════════════════════
+
+## 📌 ഈ ഡോക്യുമെന്റിനെ കുറിച്ച്
+
+ഇത് MIGO ആപ്പിന്റെ പൂർണ്ണ റോഡ്മാപ്പ് ആണ്.
+പുതിയ ചാറ്റ് തുടങ്ങുമ്പോൾ ഈ ഫയൽ AI-ക്ക് paste ചെയ്താൽ
+എല്ലാം മനസ്സിലാകും.
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 1: പ്രോജക്ട് അവസ്ഥ (Project Status)
+═══════════════════════════════════════════════════════
+
+### 📁 ലൊക്കേഷൻ
+Root: C:\Users\DELL\Documents\migo\
+├── mobile/    → Flutter app
+├── admin/     → React admin panel (LIVE)
+├── _seed/     → Node.js seed scripts
+└── backend/   → NestJS (future)
+
+### 🌐 ലൈവ് URL-കൾ
+- Firebase Project: migo-app-3030e
+- Admin Panel: https://migo-app-3030e.web.app
+- Referral Landing: https://migo-app-3030e.web.app/r/{CODE}
+- APK Releases: https://github.com/solvexetech-cloud/migo-releases
+- Firestore Region: me-central1 (Doha)
+- Cloudinary: zxl1kb8h
+- GitHub Repo: github.com/solvexetech-cloud/migo-releases
+
+### ✅ പൂർത്തിയായത് (v1.3.1)
+- Customer mobile app (Flutter)
+- Business owner dashboard
+- Admin panel (React, deployed + mobile responsive)
+- Firebase backend (Auth + Firestore)
+- Cloudinary image uploads
+- QR code redemption + auto-expire
+- Referral system (working landing page + APK)
+- Group deals
+- Notifications (in-app + FCM push)
+- Dark mode + Light mode
+- 6-tier Role System (super_admin → customer)
+- Dynamic Categories (Firestore + admin CRUD)
+- Geographic Hierarchy (Qatar + Kerala)
+- Location-aware customer flow
+- APK v1.3.1 (69.8 MB) — GitHub Releases
+- Git backups: 2026-10-06, 2026-10-07
+
+### ⏳ ബാക്കിയുള്ളത് — Phase-wise
+
+#### PHASE A — അടിയന്തിരം (High Priority)
+- [✅] #1 Expired offers auto-hide
+- [✅] #2 Duplicate offer button
+- [✅] #3 QR auto-expire
+- [✅] #4 Push notifications (FCM)
+- [✅] #5 Business logo + cover photo
+
+#### PHASE B — അടിത്തറ (Foundation)
+- [✅] #6 Firestore Security Rules
+- [✅] #7 6-tier Role System
+- [✅] #8 Geographic Hierarchy (Country→Zone→Area)
+- [✅] #9 Database Schema Redesign
+- [✅] #10 Dynamic Categories
+
+#### PHASE C — അഡ്മിൻ ഫുൾ കൺട്രോൾ
+- [✅] #11 Business CRUD (Add/Edit/Delete)
+- [✅] #12 Revenue Dashboard (all sources)
+- [✅] #13 Reviews Management (Positive/Negative)
+- [✅] #14 Package Pricing Editor
+- [✅] #15 Responsive Admin (mobile/tablet/desktop)
+- [✅] #16 Staff Panel (via RolesPage)
+- [✅] #17 Agency Panel
+
+#### PHASE D — ഡാറ്റ + മാർക്കറ്റിംഗ്
+- [ ] #18 Google Maps Integration
+- [ ] #19 Customer Behavior Analytics
+- [ ] #20 Revenue Split Engine
+- [ ] #21 Google Ads / AdMob
+- [ ] #22 Digital Marketing Dashboard
+- [🔄] #23-A Country System (7 countries) — DONE 2026-10-08
+- [ ] #23-B Language Framework (EN + AR + RTL) — NEXT
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 2: Geographic Hierarchy
+═══════════════════════════════════════════════════════
+
+### 🌍 Country → Zone → Area Structure
+
+┌─────────────────────────────────────────────────────┐
+│  COUNTRIES (7 seeded — D6-A 2026-10-08)             │
+│  ├── 🇶🇦 Qatar (QA) — QAR — +974                     │
+│  ├── 🇦🇪 UAE (AE) — AED — +971                        │
+│  ├── 🇸🇦 Saudi Arabia (SA) — SAR — +966               │
+│  ├── 🇰🇼 Kuwait (KW) — KWD — +965                     │
+│  ├── 🇧🇭 Bahrain (BH) — BHD — +973                    │
+│  ├── 🇴🇲 Oman (OM) — OMR — +968                       │
+│  └── 🇮🇳 India (IN) — INR — +91                       │
+│                                                     │
+│  Each country has: nameAr, dialCode, locales[],     │
+│  rtl, timezone, dateFormat                          │
+│                                                     │
+│  Qatar + Kerala full zone/area hierarchy            │
+│  GCC expansion ready (admin can add)                │
+└─────────────────────────────────────────────────────┘
+
+### 📋 ഓരോ ഏരിയയ്ക്കും:
+- ഒരു ഏജൻസി / ഫ്രഞ്ചൈസി നിയമിക്കാം
+- ആ ഏരിയയിലെ ബിസിനസുകൾ അവർ കൈകാര്യം ചെയ്യും
+- റവന്യൂ ഷെയർ അനുസരിച്ച് വിതരണം
+- Google Maps-ൽ polygon boundary (future)
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 3: Role System (6 Tiers)
+═══════════════════════════════════════════════════════
+
+| # | Role | Access | ഉദാഹരണം |
+|---|------|--------|---------|
+| 1 | super_admin | എല്ലാം | Owner (നിങ്ങൾ) |
+| 2 | admin | Country/State മാനേജ് | Regional Manager |
+| 3 | agency | ഒരു ഏരിയ മാത്രം | Kakkanad Franchise |
+| 4 | moderator | Reviews, offers, users | Staff |
+| 5 | business | അവരുടെ കട മാത്രം | Shawarma Shop |
+| 6 | customer | Shopping only | End user |
+
+### 🔐 Permission Matrix
+
+| Action | super | admin | agency | mod | biz | cust |
+|--------|-------|-------|--------|-----|-----|------|
+| Create Admin | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Create Agency | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Approve Business | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Delete Business | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Manage Revenue | ✅ | ✅ | ✅(own) | ❌ | ❌ | ❌ |
+| Moderate Reviews | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| Create Offer | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+| Claim Offer | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Ban User | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| Edit Categories | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Edit Pricing | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 4: Revenue Model
+═══════════════════════════════════════════════════════
+
+### 💡 അടിസ്ഥാന തത്വം
+
+MIGO-യുടെ വരുമാനം ഷോപ്പിന്റെ വിൽപ്പനയിൽ നിന്നല്ല.
+MIGO സേവനത്തിനുള്ള ഫീസാണ്.
+
+### 📊 3 Revenue Streams
+
+#### STREAM 1 — Subscription (Monthly)
+| Plan | Price (QAR) | Offers/Month | Features |
+|------|-------------|--------------|----------|
+| Free | 0 | 1 | Basic listing |
+| Starter | 49 | 5 | + Analytics |
+| Growth | 149 | 20 | + Priority + Flash |
+| Pro | 299 | Unlimited | + Group + Featured |
+
+#### STREAM 2 — Per-Offer Fee
+| Offer Type | Fee (QAR) |
+|------------|-----------|
+| Standard | 5 |
+| Flash | 10 |
+| Group Deal | 15 |
+| Hidden Gem | 5 |
+| Birthday | 8 |
+
+#### STREAM 3 — Success Commission
+| Claims/Month | Rate/Claim (QAR) |
+|--------------|------------------|
+| 0-50 | 0.00 (Free) |
+| 51-200 | 0.50 |
+| 201-500 | 0.75 |
+| 500+ | 1.00 |
+
+### 🌍 Agency Split Model
+
+Shop pays QAR 149/month:
+         ↓
+    ┌────┴────┐
+    │  Split  │
+    └────┬────┘
+         ↓
+  MIGO:     50% → QAR 74.50
+  Agency:   40% → QAR 59.60
+  Referral: 10% → QAR 14.90
+
+### 📈 Revenue Tracking
+
+Track by: per business, agency, zone, country, monthly/quarterly/yearly.
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 5: Database Schema (v2.2)
+═══════════════════════════════════════════════════════
+
+### Core Collections
+- users/{uid} — profile, coins, role, countryCode, currency, locale, fcmToken
+- businesses/{id} — ownerUid, name, category, countryCode, zoneId, areaId, agencyUid
+- offers/{id} — businessId, title, prices, currency, type, status, areaId
+- claims/{id} — userUid, businessId, offerId, currency, status, redeemedAt
+- reviews/{id} — userUid, businessId, rating, comment, isPositive
+- referrals/{id} — referrerUid, referredUid, status, rewardAmount
+- notifications/{id} — userUid, title, body, type, read
+- coin_transactions/{id} — uid, amount, type, description
+- saved_offers/{uid_offerId}
+- saved_businesses/{uid_businessId}
+- group_deals/{offerId}
+- categories/{slug}
+- countries/{code} — NEW: nameAr, dialCode, locales[], rtl, timezone, dateFormat
+- zones/{slug}
+- areas/{slug}
+- agencies/{id} — ownerUid, areaIds[], revenueShare, status
+
+### Revenue Collections (C2)
+- plans/{id} — 4 seeded (free/starter/growth/pro)
+- subscriptions/{id} — businessId, planId, status, expiresAt
+- payments/{id} — businessId, amount, currency, method, type, status
+- config/per_offer_fees — {fees: {standard: 5, ...}}
+- config/commission_tiers — {tiers: [{min,max,rate},...]}
+
+### Future Collections
+- revenue_transactions/{id}
+- agency_payouts/{id}
+- staff/{uid}
+- customer_behavior/{id}
+- category_stats/{categoryId}
+- ad_campaigns/{id}
+- ad_impressions/{id}
+- languages/{code}  ← D6-B
+- app_strings/{lang}_{key}  ← D6-B
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 6: Phase-wise Task List
+═══════════════════════════════════════════════════════
+
+### PHASE A — അടിയന്തിരം (Complete!)
+| # | Task | Time | Status |
+|---|------|------|--------|
+| A1 | Expired offers auto-hide | 15m | ✅ |
+| A2 | Duplicate offer button | 30m | ✅ |
+| A3 | QR auto-expire | 20m | ✅ |
+| A4 | Push notifications (FCM) | 45m | ✅ |
+| A5 | Business logo + cover | 30m | ✅ |
+
+**PHASE A — 100% COMPLETE** 🎉
+
+### PHASE B — അടിത്തറ (Complete!)
+| # | Task | Time | Status |
+|---|------|------|--------|
+| B1 | Firestore Security Rules | 1h | ✅ |
+| B2 | 6-tier Role System | 2h | ✅ |
+| B3 | Geographic Hierarchy | 2h | ✅ |
+| B4 | Database Schema Redesign | 1h | ✅ |
+| B5 | Dynamic Categories | 45m | ✅ |
+
+**PHASE B — 100% COMPLETE** 🎉
+
+### PHASE C — അഡ്മിൻ ഫുൾ കൺട്രോൾ (Complete!)
+| # | Task | Time | Status |
+|---|------|------|--------|
+| C1 | Business CRUD | 1.5h | ✅ DONE 2026-10-08 |
+| C2 | Revenue Dashboard | 2h | ✅ DONE 2026-10-08 |
+| C3 | Reviews Management | 1h | ✅ DONE 2026-10-08 |
+| C4 | Package Pricing Editor | 45m | ✅ DONE 2026-10-08 |
+| C5 | Responsive Admin | 1h | ✅ DONE |
+| C6 | Staff Panel | 2h | ✅ DONE (via RolesPage) |
+| C7 | Agency Panel | 2.5h | ✅ DONE 2026-10-08 |
+
+**PHASE C — 100% COMPLETE** 🎉
+
+### PHASE D — ഡാറ്റ + മാർക്കറ്റിംഗ്
+| # | Task | Time | Status |
+|---|------|------|--------|
+| D1 | Google Maps Integration | 1.5h | ⏳ |
+| D2 | Customer Behavior Analytics | 2h | ⏳ |
+| D3 | Revenue Split Engine | 1.5h | ⏳ |
+| D4 | Google Ads / AdMob | 1h | ⏳ |
+| D5 | Digital Marketing Dashboard | 2h | ⏳ |
+| D6-A | Country System (7 countries) | 1.5h | ✅ DONE 2026-10-08 |
+| D6-B | Language Framework (EN+AR) + RTL | 2h | ⏳ NEXT |
+
+### BONUS (Completed)
+| # | Task | Status |
+|---|------|--------|
+| X1 | Referral System (Landing page + APK) | ✅ |
+| X2 | Location Auto-Detection | ✅ |
+| X3 | GitHub Releases Hosting | ✅ |
+| X4 | Admin Mobile Responsive | ✅ |
+| X5 | Admin Panel (6 CRUD pages) | ✅ |
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 7: Referral System (Complete)
+═══════════════════════════════════════════════════════
+
+### Flow:
+1. User A shares referral code (e.g., 3WHT9X)
+2. Sends link: migo-app-3030e.web.app/r/3WHT9X
+3. User B opens link → landing page
+4. Landing shows code + Download button
+5. User B downloads APK from GitHub
+6. User B signs up with code 3WHT9X
+7. User B makes first claim
+8. Both get coins (A: +50, B: +30)
+
+### URLs:
+- Landing: migo-app-3030e.web.app/r/{CODE}
+- APK: github.com/solvexetech-cloud/migo-releases/releases/download/v1.3.1/MIGO-v1.3.1.apk
+
+### Files:
+- mobile/lib/features/referrals/referral_screen.dart
+- mobile/lib/features/auth/signup_screen.dart
+- admin/public/r/index.html
+- admin/firebase.json (SPA rewrite)
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 8: Admin Panel Pages (C1-C7 + D6-A)
+═══════════════════════════════════════════════════════
+
+| Page | File | Purpose |
+|------|------|---------|
+| Dashboard | AdminDashboard.jsx | Overview stats |
+| Businesses | BusinessesPage.jsx | Full CRUD (C1) |
+| Pending | PendingBusinesses.jsx | Approve/reject |
+| Pending Offers | PendingOffers.jsx | Approve/reject |
+| Users | UsersPage.jsx | User list |
+| Categories | CategoriesPage.jsx | Dynamic categories |
+| Roles | RolesPage.jsx | 6-tier role mgmt (C6) |
+| Geography | GeographyPage.jsx | Countries/Zones/Areas/Agencies (D6-A) |
+| Revenue | RevenuePage.jsx | Overview/Subs/Payments (C2) |
+| Reviews | ReviewsPage.jsx | Filters/stats (C3) |
+| Pricing | PricingPage.jsx | Plans/Fees/Commission (C4) |
+| Agencies | AgenciesPage.jsx | Full CRUD (C7) |
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 9: Seed Scripts (_seed/)
+═══════════════════════════════════════════════════════
+
+| Script | Purpose |
+|--------|---------|
+| seed-plans.mjs | 4 subscription plans |
+| seed-reviews.mjs | 8 test reviews |
+| seed-pricing-config.mjs | Per-offer fees + commission tiers |
+| seed-agencies.mjs | 3 test agencies |
+| seed-countries-v2.mjs | 7 countries (D6-A) |
+| check-reviews.mjs | Verify reviews |
+| check-role.mjs | Verify user roles |
+| check-agencies.mjs | Verify agencies |
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 10: Google Maps Integration Plan
+═══════════════════════════════════════════════════════
+
+### എന്തിന്?
+1. ബിസിനസ് ലൊക്കേഷൻ കാണിക്കാൻ
+2. അടുത്തുള്ള ഓഫറുകൾ കാണിക്കാൻ
+3. ഏരിയ boundary (polygon) ഉണ്ടാക്കാൻ
+4. ഏജൻസി പ്രദേശം കൈകാര്യം ചെയ്യാൻ
+
+### ആവശ്യമായത്
+- Google Cloud Account (ഉണ്ട്)
+- Maps API Key, Places API, Geocoding API
+- Billing enabled (free tier: $200/month)
+
+### Flutter Packages
+- google_maps_flutter: ^2.6.0
+- geolocator: ^11.0.0
+- geocoding: ^3.0.0
+
+### Admin Panel
+- @react-google-maps/api
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 11: Customer Behavior Analytics Plan
+═══════════════════════════════════════════════════════
+
+### എന്ത് track ചെയ്യും?
+| Action | Data Collected |
+|--------|---------------|
+| View offer | userUid, offerId, category, time |
+| Claim offer | userUid, businessId, offerId |
+| Redeem | userUid, businessId, timestamp |
+| Search | query, filters, results |
+| Save | userUid, offerId/businessId |
+| Review | rating, comment |
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 12: Google Ads / AdMob Plan
+═══════════════════════════════════════════════════════
+
+### 3 Ad Placements
+1. **Home Banner** — Top of home screen
+2. **Between Deals** — In offer list (native)
+3. **Interstitial** — After claim
+
+### AdMob Setup
+- AdMob account (free)
+- App ID + Ad Unit IDs
+- flutter package: google_mobile_ads: ^5.0.0
+- Est. revenue: $1-5 per 1000 views
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 13: D6-A — Country System (DONE 2026-10-08)
+═══════════════════════════════════════════════════════
+
+### 7 Countries Seeded
+| Code | Name | Currency | Dial | Locales | RTL |
+|------|------|----------|------|---------|-----|
+| QA | Qatar | QAR | +974 | en, ar | No |
+| AE | UAE | AED | +971 | en, ar | No |
+| SA | Saudi Arabia | SAR | +966 | en, ar | No |
+| KW | Kuwait | KWD | +965 | en, ar | No |
+| BH | Bahrain | BHD | +973 | en, ar | No |
+| OM | Oman | OMR | +968 | en, ar | No |
+| IN | India | INR | +91 | en | No |
+
+### Changes Made
+- CountryModel: +6 fields (nameAr, dialCode, locales, rtl, timezone, dateFormat)
+- LocationService: currencyForCountry, localeForCountry, isRtlCountry, dialCodeForCountry
+- AppConfig: fallbackCurrency, rtlLocales, isRtl()
+- UserModel.fresh(): countryCode, currency, locale params
+- AuthService.signUp(): country params
+- signup_screen: country dropdown
+- profile_screen: country switcher bottom sheet
+- Wallet/Offer/Business: dynamic currency (already)
+
+### Files Changed
+- lib/models/country_model.dart
+- lib/models/user_model.dart
+- lib/services/location_service.dart
+- lib/services/auth_service.dart
+- lib/core/config/app_config.dart
+- lib/features/auth/signup_screen.dart
+- lib/features/profile/profile_screen.dart
+- lib/features/wallet/wallet_screen.dart
+- lib/widgets/pick_for_me_sheet.dart
+- admin/src/pages/GeographyPage.jsx (CountriesTab enhanced)
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 14: D6-B — Language Framework (NEXT)
+═══════════════════════════════════════════════════════
+
+### Scope
+- Languages: en, ar
+- RTL support for Arabic
+- Admin panel: Strings Editor
+- Flutter: LocalizationService (Firestore fetch)
+- Fallback: en
+
+### Plan (~2.5h)
+| Step | Task | Est. |
+|------|------|------|
+| B1 | languages collection seed | 15m |
+| B2 | app_strings collection + seed (~150 strings) | 30m |
+| B3 | Admin Strings Editor page | 1h |
+| B4 | Flutter LocalizationService | 30m |
+| B5 | Flutter RTL auto-layout | 15m |
+| B6 | Test | 15m |
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 15: Progress Tracker
+═══════════════════════════════════════════════════════
+
+### Legend
+✅ Done | ⏳ In Progress | ❌ Not Started | ⚠️ Blocked
+
+### Overall Progress
+
+PHASE A: [✅✅✅✅✅] 100% (5/5) 🎉
+PHASE B: [✅✅✅✅✅] 100% (5/5) 🎉
+PHASE C: [✅✅✅✅✅✅✅] 100% (7/7) 🎉
+PHASE D: [✅⬜⬜⬜⬜⬜]  17% (1/6) — D6-A done
+
+BONUS:  Referral ✅, Location ✅, GitHub ✅, Responsive ✅, Admin CRUD ✅
+
+TOTAL:   [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜⬜⬜⬜] 74% (17/23)
+
+### Change Log
+
+- 2026-10-05: Plan v2.0 created
+- 2026-10-05: Task A1-A5 completed (PHASE A 100%)
+- 2026-10-05: Task B1 completed (Firestore rules)
+- 2026-10-05: UI Polish — Home tab mobile optimization
+- 2026-10-06: Task B5 completed (Dynamic Categories)
+- 2026-10-06: Admin Panel deployed live
+- 2026-10-06: Admin Panel — Full mobile responsive
+- 2026-10-07: Task B2 completed (6-tier Role System)
+- 2026-10-07: Task B3 completed (Geographic Hierarchy)
+- 2026-10-07: Customer location auto-detection
+- 2026-10-07: Referral system 100% LIVE
+- 2026-10-07: APK hosted on GitHub Releases
+- 2026-10-07: MASTER PLAN v2.1
+- 2026-10-07: Task B4 completed (Database Schema Redesign)
+- 2026-10-07: 17 composite indexes deployed to Firebase
+- 2026-10-07: DATABASE-SCHEMA.md created
+- 2026-10-07: PHASE B 100% COMPLETE 🎉
+- 2026-10-08: Task C1 completed (Business CRUD)
+- 2026-10-08: Task C2 completed (Revenue Dashboard)
+- 2026-10-08: Task C3 completed (Reviews Management)
+- 2026-10-08: Task C4 completed (Package Pricing Editor)
+- 2026-10-08: Task C6 verified (RolesPage covers staff mgmt)
+- 2026-10-08: Task C7 completed (Agency Panel)
+- 2026-10-08: PHASE C 100% COMPLETE 🎉
+- 2026-10-08: D6-A completed (Country System)
+- 2026-10-08: 7 countries seeded (QA/AE/SA/KW/BH/OM/IN)
+- 2026-10-08: CountryModel extended (6 new fields)
+- 2026-10-08: Signup + Profile country switcher
+- 2026-10-08: Dynamic currency across all screens
+- 2026-10-08: MASTER PLAN v2.2
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 16: Important Info
+═══════════════════════════════════════════════════════
+
+### Firebase
+- Project: migo-app-3030e
+- Account: solvexe.tech@gmail.com
+- Firestore Region: me-central1 (Doha)
+
+### Test Accounts
+- Admin: test1@migoapp.com / Migo@2026 (role: admin)
+- Customer: test2@migoapp.com / Migo@2026
+
+### Backups
+- migo-backup-2026-10-06
+- migo-backup-2026-10-07
+- Desktop: MIGO-MASTER-PLAN.md (26 KB)
+
+### APK Files
+- Desktop: MIGO-v1.3.1.apk (69.8 MB)
+- GitHub: solvexetech-cloud/migo-releases
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 17: Next Steps (Priority Order)
+═══════════════════════════════════════════════════════
+
+### Immediate (Next Session)
+1. **D6-B — Language Framework (EN+AR) + RTL** (2.5h)
+   - languages collection
+   - app_strings collection + seed
+   - Admin Strings Editor
+   - Flutter LocalizationService
+   - RTL auto-layout
+
+### PHASE D (After D6-B)
+- D2 Customer Behavior Analytics (2h)
+- D3 Revenue Split Engine (1.5h)
+- D1 Google Maps Integration (1.5h)
+- D4 Google Ads / AdMob (1h)
+- D5 Digital Marketing Dashboard (2h)
+
+### Final
+- Play Store submission
+- iOS build + App Store
+
+═══════════════════════════════════════════════════════
+END OF MASTER PLAN v2.2
+═══════════════════════════════════════════════════════
