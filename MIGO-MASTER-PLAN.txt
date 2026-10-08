@@ -1,6 +1,6 @@
 # ═══════════════════════════════════════════════════════
 # MIGO — MASTER PLAN
-# Version: v2.4
+# Version:  # Version: v2.5
 # Date: October 8, 2026
 # Owner: solvexe.tech@gmail.com
 # ═══════════════════════════════════════════════════════
@@ -276,7 +276,7 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 | # | Task | Time | Status |
 |---|------|------|--------|
 | D1 | Google Maps Integration → OpenStreetMap | 1.5h | ✅ DONE 2026-10-08 |
-| D2 | Customer Behavior Analytics | 2h | ⏳ |
+| D2 | Customer Behavior Analytics | 2h | ✅ DONE 2026-10-08 |
 | D3 | Revenue Split Engine | 1.5h | ⏳ |
 | D4 | Google Ads / AdMob | 1h | ⏳ |
 | D5 | Digital Marketing Dashboard | 2h | ⏳ |
@@ -478,11 +478,11 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 PHASE A: [✅✅✅✅✅] 100% (5/5) 🎉
 PHASE B: [✅✅✅✅✅] 100% (5/5) 🎉
 PHASE C: [✅✅✅✅✅✅✅] 100% (7/7) 🎉
-PHASE D: [✅✅✅⬜⬜⬜] 50% (3/6) — D6-A + D6-B + D1 done
+PHASE D: [✅✅✅✅⬜⬜] 67% (4/6))
 
 BONUS:  Referral ✅, Location ✅, GitHub ✅, Responsive ✅, Admin CRUD ✅
 
-TOTAL:   [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜⬜] 83% (19/23)
+TOTAL:   [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜] 87% (20/23)
 
 ### Change Log
 
@@ -530,6 +530,12 @@ TOTAL:   [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜⬜] 83
 - 2026-10-08: 5 businesses seeded with Doha coords
 - 2026-10-08: Color-coded markers by status + filters + search
 - 2026-10-08: MASTER PLAN v2.4
+- 2026-10-08: D2 completed (Customer Behavior Analytics)
+- 2026-10-08: AnalyticsService (Flutter) — view/save/search events
+- 2026-10-08: customer_behavior collection + Firestore rules
+- 2026-10-08: Admin AnalyticsPage.jsx — charts + filters
+- 2026-10-08: 135 test events seeded
+- 2026-10-08: MASTER PLAN v2.5
 ═══════════════════════════════════════════════════════
 ## ഭാഗം 16: Important Info
 ═══════════════════════════════════════════════════════
@@ -576,5 +582,5 @@ TOTAL:   [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜⬜] 83
 - iOS build + App Store
 
 ═══════════════════════════════════════════════════════
-END OF MASTER PLAN v2.3
+END OF MASTER PLAN v2.5
 ═══════════════════════════════════════════════════════
