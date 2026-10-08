@@ -1,6 +1,6 @@
 # ═══════════════════════════════════════════════════════
 # MIGO — MASTER PLAN
-# Version: 2.3
+# Version: v2.4
 # Date: October 8, 2026
 # Owner: solvexe.tech@gmail.com
 # ═══════════════════════════════════════════════════════
@@ -275,7 +275,7 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 ### PHASE D — ഡാറ്റ + മാർക്കറ്റിംഗ്
 | # | Task | Time | Status |
 |---|------|------|--------|
-| D1 | Google Maps Integration | 1.5h | ⏳ |
+| D1 | Google Maps Integration → OpenStreetMap | 1.5h | ✅ DONE 2026-10-08 |
 | D2 | Customer Behavior Analytics | 2h | ⏳ |
 | D3 | Revenue Split Engine | 1.5h | ⏳ |
 | D4 | Google Ads / AdMob | 1h | ⏳ |
@@ -478,11 +478,11 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 PHASE A: [✅✅✅✅✅] 100% (5/5) 🎉
 PHASE B: [✅✅✅✅✅] 100% (5/5) 🎉
 PHASE C: [✅✅✅✅✅✅✅] 100% (7/7) 🎉
-PHASE D: [✅✅⬜⬜⬜⬜]  33% (2/6) — D6-A + D6-B done
+PHASE D: [✅✅✅⬜⬜⬜] 50% (3/6) — D6-A + D6-B + D1 done
 
 BONUS:  Referral ✅, Location ✅, GitHub ✅, Responsive ✅, Admin CRUD ✅
 
-TOTAL:   [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜⬜⬜] 78% (18/23)
+TOTAL:   [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜⬜] 83% (19/23)
 
 ### Change Log
 
@@ -524,7 +524,12 @@ TOTAL:   [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜⬜⬜] 78
 - 2026-10-08: RTL auto-layout (Directionality)
 - 2026-10-08: Profile — language switcher
 - 2026-10-08: MASTER PLAN v2.3
-
+- 2026-10-08: D1 completed (Business Map Integration)
+- 2026-10-08: Chose OpenStreetMap + Leaflet (100% free, no API key)
+- 2026-10-08: Admin BusinessesMapPage.jsx created
+- 2026-10-08: 5 businesses seeded with Doha coords
+- 2026-10-08: Color-coded markers by status + filters + search
+- 2026-10-08: MASTER PLAN v2.4
 ═══════════════════════════════════════════════════════
 ## ഭാഗം 16: Important Info
 ═══════════════════════════════════════════════════════
