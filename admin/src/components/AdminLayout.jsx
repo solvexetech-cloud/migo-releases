@@ -22,6 +22,10 @@ const NAV_ITEMS = [
   { to: '/geography', label: 'Geography', icon: '🌍' },
   { to: '/ads', label: 'Ads Config', icon: '📢' },
   { to: '/revenue-split', label: 'Revenue Split', icon: '💰' },
+  { to: '/reservations', label: 'Reservations', icon: '🎫' },
+  { to: '/reservation-rules', label: 'Reserve Rules', icon: '📜' },
+  { to: '/reservation-config', label: 'Reserve Config', icon: '⚙️' },
+  { to: '/no-show-log', label: 'No-Show Log', icon: '🚫' },
 ];
 
 export default function AdminLayout({ user, children }) {

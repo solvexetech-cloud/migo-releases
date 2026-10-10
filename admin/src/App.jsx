@@ -22,6 +22,10 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import AgenciesPage from './pages/AgenciesPage';
 import AdsConfigPage from './pages/AdsConfigPage';
 import RevenueSplitPage from './pages/RevenueSplitPage';
+import ReservationsPage from './pages/ReservationsPage';
+import ReservationRulesPage from './pages/ReservationRulesPage';
+import ReservationConfigPage from './pages/ReservationConfigPage';
+import NoShowLogPage from './pages/NoShowLogPage';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -103,6 +107,10 @@ export default function App() {
                   <Route path="/agencies" element={<AgenciesPage />} />
                   <Route path="/revenue-split" element={<RevenueSplitPage />} />
                   <Route path="/ads" element={<AdsConfigPage />} />
+                  <Route path="/reservations" element={<ReservationsPage />} />
+                  <Route path="/reservation-rules" element={<ReservationRulesPage />} />
+                  <Route path="/reservation-config" element={<ReservationConfigPage />} />
+                  <Route path="/no-show-log" element={<NoShowLogPage />} />
                 </Routes>
               </AdminLayout>
             ) : (
