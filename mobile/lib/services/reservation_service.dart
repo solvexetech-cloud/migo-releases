@@ -11,7 +11,6 @@ import 'package:flutter/foundation.dart';
 import '../models/reservation_model.dart';
 import '../models/reservation_rules_model.dart';
 import '../models/reservation_config_model.dart';
-import '../models/no_show_log_model.dart';
 import '../models/reservation_ban_model.dart';
 
 class ReservationService {
@@ -185,7 +184,7 @@ class ReservationService {
         );
       }
 
-      // 3. Rules
+            // 3. Rules
       final rules = await getActiveRules();
       if (rules == null) {
         return CanBookResult(
@@ -288,8 +287,7 @@ class ReservationService {
     final userData = userDoc.data() as Map<String, dynamic>;
 
     final config = canBook.config ?? await getConfig();
-    final rules = canBook.rules;
-
+ 
     // 3. Generate unique codes
     final qrCode = _generateUUID();
     final pickupCode = _generate6DigitCode();
@@ -649,6 +647,35 @@ class ReservationService {
       return res;
     } catch (e) {
       debugPrint('⚠️ validateQRCode error: $e');
+      return null;
+    }
+  }
+
+  /// Validate reservation by 6-digit pickup code.
+  /// Used when customer cannot show QR (e.g., phone battery dead).
+  Future<ReservationModel?> validateByPickupCode(
+    String pickupCode,
+    String businessId,
+  ) async {
+    try {
+      final snap = await _reservations
+          .where('businessId', isEqualTo: businessId)
+          .where('pickupCode', isEqualTo: pickupCode)
+          .limit(1)
+          .get();
+
+      if (snap.docs.isEmpty) return null;
+      final doc = snap.docs.first;
+      final res = ReservationModel.fromMap(
+        doc.id,
+        doc.data() as Map<String, dynamic>,
+      );
+      if (!res.isActive) return null;
+      if (res.expiresAt.isBefore(DateTime.now())) return null;
+
+      return res;
+    } catch (e) {
+      debugPrint('⚠️ validateByPickupCode error: $e');
       return null;
     }
   }

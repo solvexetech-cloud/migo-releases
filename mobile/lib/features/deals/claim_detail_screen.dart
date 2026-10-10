@@ -70,7 +70,7 @@ class ClaimDetailScreen extends StatelessWidget {
                     Opacity(
                       opacity: canRedeem ? 1.0 : 0.3,
                       child: QrImageView(
-                        data: claim.id,
+                        data: 'CLM_${claim.id}',
                         version: QrVersions.auto,
                         size: 220,
                         backgroundColor: Colors.white,

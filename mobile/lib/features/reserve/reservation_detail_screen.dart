@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -175,12 +176,21 @@ class ReservationDetailScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Center(
-              child: Icon(
-                Icons.qr_code_2,
-                size: 180,
-                color: Colors.grey.shade800,
+                child: QrImageView(
+                  data: 'RSV_${res.id}',
+                  version: QrVersions.auto,
+                  size: 180,
+                  backgroundColor: Colors.white,
+                  eyeStyle: const QrEyeStyle(
+                    eyeShape: QrEyeShape.square,
+                    color: Colors.black,
+                  ),
+                  dataModuleStyle: const QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.square,
+                    color: Colors.black,
+                  ),
+                ),
               ),
-            ),
           ),
 
           const SizedBox(height: 16),

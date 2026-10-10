@@ -4,6 +4,7 @@ import '../../core/theme/migo_colors.dart';
 import '../../core/theme/migo_gradients.dart';
 import '../../models/business_model.dart';
 import '../../services/firestore_service.dart';
+import '../../services/reservation_service.dart';
 
 class RedeemScreen extends StatefulWidget {
   const RedeemScreen({super.key, required this.business});
@@ -33,10 +34,10 @@ class _RedeemScreenState extends State<RedeemScreen> {
     super.dispose();
   }
 
-  Future<void> _redeem(String code) async {
+    Future<void> _redeem(String code) async {
     final trimmed = code.trim();
     if (trimmed.isEmpty) {
-      setState(() => _errorMsg = 'Please provide a claim code.');
+      setState(() => _errorMsg = 'Please provide a code.');
       return;
     }
 
@@ -47,8 +48,51 @@ class _RedeemScreenState extends State<RedeemScreen> {
     });
 
     try {
+      // ── Reserve QR ──
+      if (trimmed.startsWith('RSV_')) {
+        final qrCode = trimmed.substring(4); // strip RSV_ prefix
+        final res = await ReservationService.instance.validateQRCode(
+          qrCode,
+          widget.business.id,
+        );
+        if (res == null) {
+          throw Exception('Invalid or expired reservation');
+        }
+        await ReservationService.instance.markPickedUp(res.id);
+        if (!mounted) return;
+        setState(() {
+          _successMsg = 'Reservation pickup confirmed! ✅';
+          _codeController.clear();
+          _cameraMode = false;
+        });
+        return;
+      }
+
+      // ── 6-digit manual pickup code ──
+      if (RegExp(r'^\d{6}$').hasMatch(trimmed)) {
+        final res = await ReservationService.instance.validateByPickupCode(
+          trimmed,
+          widget.business.id,
+        );
+        if (res == null) {
+          throw Exception('Invalid or expired pickup code');
+        }
+        await ReservationService.instance.markPickedUp(res.id);
+        if (!mounted) return;
+        setState(() {
+          _successMsg = 'Reservation pickup confirmed! ✅';
+          _codeController.clear();
+          _cameraMode = false;
+        });
+        return;
+      }
+
+      // ── Claim QR (CLM_ prefix optional) ──
+      final claimId = trimmed.startsWith('CLM_')
+          ? trimmed.substring(4)
+          : trimmed;
       await FirestoreService.instance.redeemClaim(
-        claimId: trimmed,
+        claimId: claimId,
         businessId: widget.business.id,
       );
       if (!mounted) return;
