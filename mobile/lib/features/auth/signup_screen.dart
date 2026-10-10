@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../../core/config/app_config.dart';
 import '../../core/theme/migo_colors.dart';
+import '../../models/country_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../main/main_shell.dart';
@@ -15,7 +16,7 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  final _emailController = TextEditingController();
+    final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
   final _referralController = TextEditingController();
@@ -24,10 +25,37 @@ class _SignupScreenState extends State<SignupScreen> {
   String? _error;
   bool _referralFromUrl = false;
 
-  @override
+  // Country selection (D6-A)
+  List<CountryModel> _countries = [];
+  CountryModel? _selectedCountry;
+  bool _countriesLoading = true;
+
+    @override
   void initState() {
     super.initState();
     _checkUrlForReferralCode();
+    _loadCountries();
+  }
+
+  Future<void> _loadCountries() async {
+    try {
+      final countries = await FirestoreService.instance.getCountries();
+      if (!mounted) return;
+      setState(() {
+        _countries = countries;
+        _countriesLoading = false;
+        // Auto-select default country
+        if (countries.isNotEmpty) {
+          _selectedCountry = countries.firstWhere(
+            (c) => c.code == AppConfig.defaultCountryCode,
+            orElse: () => countries.first,
+          );
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _countriesLoading = false);
+    }
   }
 
   /// Web-only: parse URL for referral code.
@@ -108,9 +136,22 @@ class _SignupScreenState extends State<SignupScreen> {
         }
       }
 
+            // D6-A: Require country selection
+      if (_selectedCountry == null) {
+        setState(() {
+          _error = 'Please select your country.';
+          _loading = false;
+        });
+        return;
+      }
+
       final cred = await AuthService.instance.signUp(
         email: email,
         password: password,
+        countryCode: _selectedCountry!.code,
+        countryName: _selectedCountry!.name,
+        currency: _selectedCountry!.currency,
+        locale: _selectedCountry!.locale,
       );
 
       final newUid = cred.user?.uid;
@@ -155,10 +196,72 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
               ),
               const SizedBox(height: 8),
-              Text(
+                            Text(
                 'Create your account',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
+
+              // D6-A: Country selector
+              const SizedBox(height: 20),
+              _countriesLoading
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(12),
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: MigoColors.primary.withValues(alpha: 0.15),
+                        ),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<CountryModel>(
+                          value: _selectedCountry,
+                          isExpanded: true,
+                          icon: const Icon(Icons.keyboard_arrow_down),
+                          hint: const Text('Select your country'),
+                          items: _countries
+                              .map(
+                                (c) => DropdownMenuItem<CountryModel>(
+                                  value: c,
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        c.flag.isNotEmpty ? c.flag : '🌐',
+                                        style: const TextStyle(fontSize: 22),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          '${c.name} · ${c.currency}',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (val) {
+                            setState(() {
+                              _selectedCountry = val;
+                              _error = null;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
 
               // Referral welcome banner (from URL)
               if (_referralFromUrl) ...[

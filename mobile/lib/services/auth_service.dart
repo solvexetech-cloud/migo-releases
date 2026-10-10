@@ -15,10 +15,15 @@ class AuthService {
 
   /// Sign up a new user with email + password.
   /// Also creates a MIGO user document in Firestore.
-  Future<UserCredential> signUp({
+    Future<UserCredential> signUp({
     required String email,
     required String password,
     String? displayName,
+    String countryCode = 'QA',
+    String? countryName,
+    String? currency,
+    String? locale,
+    String? city,
   }) async {
     final cred = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
@@ -32,6 +37,11 @@ class AuthService {
           uid: user.uid,
           email: user.email ?? email.trim(),
           displayName: displayName,
+          countryCode: countryCode,
+          countryName: countryName,
+          currency: currency,
+          locale: locale,
+          city: city,
         ),
       );
     }

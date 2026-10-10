@@ -1,0 +1,154 @@
+═══════════════════════════════════════════════════════
+MIGO — IMAGE UPLOAD GUIDE
+Date: October 5, 2026
+Version: 1.3.0
+═══════════════════════════════════════════════════════
+
+📸 1. OFFER IMAGE (Food, Deals, Products)
+─────────────────────────────────────────────
+Purpose:     Offer card-ൽ കാണിക്കാൻ
+Upload from: Business Owner → Create Offer → Add photo
+Storage:     Cloudinary (migo/offers folder)
+
+RESOLUTION (Auto-resized by app):
+  Max Width:  1600 px
+  Max Height: 1600 px
+  Aspect:     16:9 (recommended for display)
+  Min:        800 x 450 px
+
+FILE SIZE:
+  Max:        ~10 MB (Cloudinary limit)
+  Recommended: 500 KB - 2 MB
+  Auto-compress: 85% quality
+
+FORMAT:
+  Supported:  JPG, JPEG, PNG, WEBP
+  Recommended: JPG (smaller file)
+
+CAPTURE:
+  From Gallery: Yes
+  From Camera:  Yes
+  Auto-resize:  Yes (1600x1600 max)
+  Auto-quality: 85%
+
+═══════════════════════════════════════════════════════
+
+🏪 2. BUSINESS LOGO
+─────────────────────────────────────────────
+Purpose:     Business profile-ൽ circular logo
+Upload from: Business Owner → My Business → Logo tap
+Storage:     Cloudinary (migo/logos folder)
+
+RESOLUTION (Auto-resized by app):
+  Max Width:  800 px
+  Max Height: 800 px
+  Aspect:     1:1 (square recommended)
+  Min:        200 x 200 px
+
+FILE SIZE:
+  Max:        ~5 MB
+  Recommended: 50 KB - 500 KB
+  Auto-compress: 85% quality
+
+FORMAT:
+  Supported:  JPG, JPEG, PNG, WEBP
+  Recommended: PNG (transparent background)
+
+CAPTURE:
+  From Gallery: Yes
+  From Camera:  Yes
+  Auto-resize:  Yes (800x800 max)
+  Auto-quality: 85%
+
+═══════════════════════════════════════════════════════
+
+🖼️ 3. BUSINESS COVER
+─────────────────────────────────────────────
+Purpose:     Business profile-ൽ banner (16:9)
+Upload from: Business Owner → My Business → Cover tap
+Storage:     Cloudinary (migo/covers folder)
+
+RESOLUTION (Auto-resized by app):
+  Max Width:  1600 px
+  Max Height: 900 px
+  Aspect:     16:9 (widescreen)
+  Min:        1200 x 675 px
+
+FILE SIZE:
+  Max:        ~10 MB
+  Recommended: 500 KB - 3 MB
+  Auto-compress: 85% quality
+
+FORMAT:
+  Supported:  JPG, JPEG, PNG, WEBP
+  Recommended: JPG (smaller file)
+
+CAPTURE:
+  From Gallery: Yes
+  From Camera:  Yes
+  Auto-resize:  Yes (1600x900 max)
+  Auto-quality: 85%
+
+═══════════════════════════════════════════════════════
+
+📊 QUICK REFERENCE TABLE
+═══════════════════════════════════════════════════════
+
+Image Type    | Max W  | Max H  | Aspect | Quality | Folder
+──────────────|────────|────────|────────|─────────|──────────────
+Offer         | 1600   | 1600   | 16:9   | 85%     | migo/offers
+Logo          | 800    | 800    | 1:1    | 85%     | migo/logos
+Cover         | 1600   | 900    | 16:9   | 85%     | migo/covers
+
+═══════════════════════════════════════════════════════
+
+☁️ CLOUDINARY INFO
+─────────────────────────────────────────────
+Cloud Name:   zxl1kb8h
+Upload URL:   https://api.cloudinary.com/v1_1/zxl1kb8h/image/upload
+Upload Preset: migo_unsigned (unsigned)
+Auth:         No API secret in app (unsigned upload)
+Auto-format:  Yes (WebP on supported browsers)
+
+═══════════════════════════════════════════════════════
+
+💡 BEST PRACTICES
+─────────────────────────────────────────────
+1. Use JPG for photos (smaller size)
+2. Use PNG for logos (transparent)
+3. Always check on mobile after upload
+4. Avoid images with text (unreadable on mobile)
+5. Test different lighting conditions
+6. Food photos: bright, colorful, warm tones
+7. Business cover: horizontal, wide, inviting
+8. Square logo for best circular display
+
+═══════════════════════════════════════════════════════
+
+⚠️ COMMON MISTAKES TO AVOID
+─────────────────────────────────────────────
+❌ Portrait images for cover (cut off)
+❌ Dark or blurry photos
+❌ Watermarked images
+❌ Text-heavy images
+❌ Wrong aspect ratio
+❌ Over 10 MB (Cloudinary rejects)
+❌ Wrong format (e.g., GIF, BMP, TIFF)
+
+═══════════════════════════════════════════════════════
+
+🎯 HOW AUTO-RESIZING WORKS
+─────────────────────────────────────────────
+When you pick an image from gallery/camera:
+  1. App reads original image
+  2. Auto-resizes to max dimensions (800 or 1600)
+  3. Auto-compresses to 85% quality
+  4. Uploads to Cloudinary
+  5. Cloudinary stores as-is (no further compression)
+  6. Returns secure URL (https://...)
+
+Result: Fast upload, reasonable file size, good quality
+
+═══════════════════════════════════════════════════════
+END OF IMAGE GUIDE
+═══════════════════════════════════════════════════════

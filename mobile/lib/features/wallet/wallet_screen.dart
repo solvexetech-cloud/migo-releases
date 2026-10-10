@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../../core/config/app_config.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../core/theme/migo_gradients.dart';
 import '../../core/theme/migo_shadows.dart';
@@ -153,7 +154,7 @@ class WalletScreen extends StatelessWidget {
                       _StatsGrid(uid: uid),
                       const SizedBox(height: 20),
                       // Savings
-                      _SavingsCard(uid: uid),
+                      _SavingsCard(uid: uid, user: user),
                       const SizedBox(height: 24),
                       const Text(
                         'Recent activity',
@@ -346,8 +347,9 @@ class _StatTile extends StatelessWidget {
 }
 
 class _SavingsCard extends StatelessWidget {
-  const _SavingsCard({required this.uid});
+  const _SavingsCard({required this.uid, this.user});
   final String uid;
+  final UserModel? user;
 
   @override
   Widget build(BuildContext context) {
@@ -365,7 +367,9 @@ class _SavingsCard extends StatelessWidget {
             .fold<double>(0, (sum, c) => sum + c.savings);
         final lifetime =
             redeemed.fold<double>(0, (sum, c) => sum + c.savings);
-        final currency = claims.isNotEmpty ? claims.first.currency : 'QAR';
+                    final currency = claims.isNotEmpty
+            ? claims.first.currency
+            : (user?.currency ?? AppConfig.fallbackCurrency);
 
         return Container(
           padding: const EdgeInsets.all(18),

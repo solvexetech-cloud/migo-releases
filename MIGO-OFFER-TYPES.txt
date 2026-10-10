@@ -1,0 +1,296 @@
+═══════════════════════════════════════════════════════
+MIGO — OFFER TYPES GUIDE
+Date: October 5, 2026
+Version: 1.3.0
+═══════════════════════════════════════════════════════
+
+MIGO-യിൽ 5 തരം offers ഉണ്ട്. ഓരോന്നിനും
+അതിന്റെ സ്വന്തം ഉപയോഗം, duration, discount level:
+
+═══════════════════════════════════════════════════════
+
+📌 1. STANDARD DEAL (സ്റ്റാൻഡേർഡ് ഡീൽ)
+─────────────────────────────────────────────
+MIGO Code:   OfferType.standard
+Label:       "Standard Deal"
+Duration:    1-30 days (recommended: 7)
+Discount:    10-30% OFF
+Best For:    Everyday discounts
+
+When to use:
+  ✅ Regular combo meals
+  ✅ Menu items with steady discount
+  ✅ Normal products
+  ✅ Everyday services
+
+Example:
+  Title: "Family Shawarma Meal"
+  Original: QAR 40 | Offer: QAR 30
+  Save: QAR 10 (25% OFF)
+  Duration: 7 days
+
+Business Benefit:
+  → Steady customer flow
+  → Predictable revenue
+
+═══════════════════════════════════════════════════════
+
+⚡ 2. FLASH DEAL (ഫ്ലാഷ് ഡീൽ)
+─────────────────────────────────────────────
+MIGO Code:   OfferType.flash
+Label:       "Flash Deal"
+Duration:    1-3 days (max urgency)
+Discount:    30-50% OFF (deep discount)
+Best For:    Urgent promotions
+
+When to use:
+  ✅ Daily specials (today only)
+  ✅ Happy hour deals
+  ✅ Overstock items
+  ✅ Weekend flash sales
+  ✅ New item launch
+
+Example:
+  Title: "Karak Flash Deal"
+  Original: QAR 15 | Offer: QAR 8
+  Save: QAR 7 (47% OFF)
+  Duration: 1 day
+
+Business Benefit:
+  → Urgent customer action
+  → Quick cash flow
+  → Buzz/excitement
+
+Visual: Red gradient header with "FLASH" tag
+Display: Home screen "⚡ Flash Deals" section
+
+═══════════════════════════════════════════════════════
+
+👥 3. GROUP DEAL (ഗ്രൂപ്പ് ഡീൽ)
+─────────────────────────────────────────────
+MIGO Code:   OfferType.group
+Label:       "Group Deal"
+Duration:    3-14 days
+Discount:    20-40% OFF
+Best For:    Volume discounts
+Special:     Min participants needed
+
+When to use:
+  ✅ Family meals (4+ people)
+  ✅ Party packages
+  ✅ Bulk orders
+  ✅ Group activities
+  ✅ Business lunches
+
+Example:
+  Title: "Family Pizza Night"
+  Original: QAR 80 | Offer: QAR 55
+  Save: QAR 25 (31% OFF)
+  Min people: 5
+  Max people: 20 (optional)
+  Duration: 7 days
+
+Business Benefit:
+  → Bigger orders
+  → Word-of-mouth marketing
+  → Group bookings
+
+How it works:
+  1. Customer joins group
+  2. When min participants reached → "UNLOCKED"
+  3. All participants get the deal
+  4. Auto-notification on unlock
+
+Visual: "GROUP DEAL" badge
+Extra fields: Min people, Max people
+
+═══════════════════════════════════════════════════════
+
+💎 4. HIDDEN GEM (ഹിഡൻ ജെം)
+─────────────────────────────────────────────
+MIGO Code:   OfferType.hidden
+Label:       "Hidden Gem"
+Duration:    3-30 days
+Discount:    40-60% OFF (exclusive)
+Best For:    VIP/exclusive offers
+
+When to use:
+  ✅ Secret menu items
+  ✅ Loyal customer exclusive
+  ✅ Limited edition
+  ✅ Premium experiences
+  ✅ Chef's special
+
+Example:
+  Title: "Chef's Secret Tasting Menu"
+  Original: QAR 250 | Offer: QAR 150
+  Save: QAR 100 (40% OFF)
+  Duration: 14 days
+
+Business Benefit:
+  → Exclusive feel
+  → Premium customer attraction
+  → Brand differentiation
+  → Loyalty building
+
+Visual: "HIDDEN GEM" badge (special styling)
+
+═══════════════════════════════════════════════════════
+
+🎂 5. BIRTHDAY DEAL (ബർത്ത്ഡേ ഡീൽ)
+─────────────────────────────────────────────
+MIGO Code:   OfferType.birthday
+Label:       "Birthday Deal"
+Duration:    14-30 days
+Discount:    Free OR 50%+ OFF
+Best For:    Birthday month celebration
+
+When to use:
+  ✅ Birthday discount (free item)
+  ✅ Birthday month special
+  ✅ Anniversary deals
+  ✅ Milestone celebrations
+
+Example:
+  Title: "Free Birthday Dessert"
+  Original: QAR 25 | Offer: QAR 0
+  Save: QAR 25 (100% OFF)
+  Duration: 30 days
+
+Business Benefit:
+  → Customer loyalty
+  → Birthday celebrations = footfall
+  → Word-of-mouth marketing
+  → Emotional connection
+
+How it works:
+  1. Customer claims during birthday month
+  2. Shows QR at shop
+  3. Gets free/discounted item
+
+Visual: "BIRTHDAY" badge (festive styling)
+
+═══════════════════════════════════════════════════════
+
+📊 QUICK DECISION TABLE
+═══════════════════════════════════════════════════════
+
+Type         | Duration  | Discount | Urgency | Best For
+─────────────|───────────|──────────|─────────|──────────────
+Standard     | 1-30 days | 10-30%   | Low     | Regular
+Flash        | 1-3 days  | 30-50%   | High    | Urgent
+Group        | 3-14 days | 20-40%   | Medium  | Volume
+Hidden Gem   | 3-30 days | 40-60%   | Low     | VIP
+Birthday     | 14-30 days| Free/50% | Medium  | Loyalty
+
+═══════════════════════════════════════════════════════
+
+🎯 OFFER CREATION CHECKLIST
+═══════════════════════════════════════════════════════
+
+Before creating any offer:
+  ✅ Title — Clear, 3-5 words, appealing
+  ✅ Description — 1-2 lines, key benefit
+  ✅ Original Price — Real market price
+  ✅ Offer Price — Actual deal price (must be < original)
+  ✅ Offer Type — Choose from 5 (see above)
+  ✅ Duration — Right time window (1, 3, 7, 14, 30 days)
+  ✅ Image — 16:9, bright, food close-up
+  ✅ Daily Limit — Optional (per-day cap)
+  ✅ Terms — Any conditions (optional)
+  ✅ Group Min — Only for Group Deal type
+
+═══════════════════════════════════════════════════════
+
+💰 PRICING STRATEGY
+═══════════════════════════════════════════════════════
+
+Price Ranges in MIGO:
+  Low:     QAR 1-20   → Coffee, snacks, small items
+  Medium:  QAR 20-100 → Meals, services
+  High:    QAR 100+   → Premium, packages
+
+Recommended Discounts:
+  Standard:   15-25%
+  Flash:      30-50%
+  Group:      20-35%
+  Hidden Gem: 40-60%
+  Birthday:   Free or 50%
+
+Formula for Savings:
+  Savings = Original - Offer
+  Percent = (Savings / Original) × 100
+
+Example:
+  Original: QAR 40
+  Offer: QAR 30
+  Savings: QAR 10
+  Percent: (10/40) × 100 = 25% OFF
+
+═══════════════════════════════════════════════════════
+
+⚠️ COMMON MISTAKES TO AVOID
+─────────────────────────────────────────────
+❌ Fake discounts (original price inflated)
+❌ Offer price = Original price (must be less)
+❌ Unrealistic durations (1 hour)
+❌ No image (fewer clicks: 3x less claims)
+❌ Bad image (dark, blurry)
+❌ Too many offers at once (dilutes focus)
+❌ Complex terms
+❌ Group min < 2 (invalid)
+❌ Wrong type for the offer
+
+═══════════════════════════════════════════════════════
+
+🎓 EXAMPLES BY CATEGORY
+═══════════════════════════════════════════════════════
+
+RESTAURANTS:
+  Standard:  "Family Meal Deal"
+  Flash:     "Today's Special Biryani"
+  Group:     "Office Lunch for 10"
+  Hidden:    "Chef's Tasting Menu"
+  Birthday:  "Free Birthday Cake"
+
+SALONS:
+  Standard:  "Haircut + Wash"
+  Flash:     "Friday Special 50%"
+  Group:     "Bridal Package for 5"
+  Hidden:    "VIP Spa Day"
+  Birthday:  "Birthday Makeover"
+
+GYMS:
+  Standard:  "Monthly Membership"
+  Flash:     "1-Day Free Trial"
+  Group:     "Friend Package"
+  Hidden:    "Personal Trainer"
+  Birthday:  "Birthday Boot Camp"
+
+CAFES:
+  Standard:  "Coffee + Croissant"
+  Flash:     "Karak Flash Deal"
+  Group:     "Office Coffee Box"
+  Hidden:    "Barista Special"
+  Birthday:  "Free Birthday Latte"
+
+═══════════════════════════════════════════════════════
+
+🔔 WHAT HAPPENS AFTER CREATION?
+─────────────────────────────────────────────
+1. Offer status: "pending" (auto)
+2. Admin reviews via admin panel
+3. Admin approves → status "live"
+4. Customer sees on Home → Flash/Nearby
+5. Customer claims → +5 coins
+6. Business redeems QR → +25 coins
+7. Offer expires automatically at endAt
+
+Notifications:
+  • Deal expiring soon (24h before)
+  • Group deal unlocked (for group deals)
+  • New review (for business owner)
+
+═══════════════════════════════════════════════════════
+END OF OFFER TYPES GUIDE
+═══════════════════════════════════════════════════════

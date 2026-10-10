@@ -75,15 +75,23 @@ service cloud.firestore {
 
     // ---------- BUSINESSES ----------
     // Public read. Owner OR admin can edit. Agency can edit their area's businesses.
-    match /businesses/{businessId} {
+        match /businesses/{businessId} {
       allow read: if true;
+      
+      // Owner creates their own business, OR admin/moderator creates on behalf
       allow create: if isSignedIn() &&
-        request.resource.data.ownerUid == request.auth.uid;
+        (
+          request.resource.data.ownerUid == request.auth.uid ||
+          isAdmin() ||
+          isModerator()
+        );
+      
       allow update: if isSignedIn() &&
         (resource.data.ownerUid == request.auth.uid ||
          isAdmin() ||
          isModerator() ||
          isAgencyOwner(businessId));
+      
       allow delete: if isAdmin();
     }
 
@@ -240,6 +248,157 @@ service cloud.firestore {
         (isSignedIn() && resource.data.ownerUid == request.auth.uid);
       allow delete: if isSuperAdmin();
     }
+
+    // ---------- LANGUAGES (D6-B) ----------
+    // Public read, admin write
+    match /languages/{langCode} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ---------- APP STRINGS (D6-B) ----------
+    // Public read, admin write
+    match /app_strings/{stringId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ---------- CUSTOMER BEHAVIOR (D2) ----------
+    // Analytics events — customer writes, admin/moderator reads
+    match /customer_behavior/{eventId} {
+      allow read: if isModerator();
+      allow create: if isSignedIn() &&
+        request.resource.data.userUid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+
+    // ---------- CONFIG (C4) ----------
+    // Global config (per-offer fees, commission tiers)
+        match /config/{configId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+
+    // ---------- PLANS (C2) ----------
+    // Subscription plans — public read, admin write
+    match /plans/{planId} {
+      allow read: if true;
+      allow create, update: if isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // ---------- SUBSCRIPTIONS (C2) ----------
+    // Business subscriptions — owner read, admin write
+    match /subscriptions/{subId} {
+      allow read: if isSignedIn() &&
+        (isAdmin() || isModerator() ||
+         resource.data.businessId == request.auth.uid ||
+         resource.data.ownerUid == request.auth.uid);
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------- PAYMENTS (C2) ----------
+    // Payment records — admin/moderator read+write only
+    match /payments/{paymentId} {
+      allow read: if isAdmin() || isModerator();
+      allow create, update: if isAdmin() || isModerator();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- REVENUE TRANSACTIONS (C2) ----------
+    match /revenue_transactions/{txId} {
+      allow read: if isAdmin() || isModerator();
+      allow create, update: if isAdmin() || isModerator();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- AGENCY PAYOUTS (C2) ----------
+    match /agency_payouts/{payoutId} {
+      allow read: if isAdmin() ||
+        (isAgency() && resource.data.agencyUid == request.auth.uid);
+      allow create, update: if isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+
+    // ═══════════════════════════════════════════════════════
+    // PHASE H — MIGO RESERVE (Guaranteed Reservation System)
+    // Added: 2026-10-10
+    // ═══════════════════════════════════════════════════════
+
+    // ---------- RESERVATIONS ----------
+    match /reservations/{resId} {
+      allow create: if isSignedIn() &&
+        request.resource.data.userUid == request.auth.uid &&
+        request.resource.data.status == 'reserved';
+
+      allow read: if isSignedIn() && (
+        resource.data.userUid == request.auth.uid ||
+        (resource != null && isBusinessOwner(resource.data.businessId)) ||
+        isModerator()
+      );
+
+      allow update: if isSignedIn() && (
+        (resource.data.userUid == request.auth.uid &&
+         request.resource.data.diff(resource.data).affectedKeys()
+           .hasOnly(['status', 'cancelledAt', 'cancelledBy', 'updatedAt'])) ||
+        (resource != null && isBusinessOwner(resource.data.businessId)) ||
+        isModerator()
+      );
+
+      allow delete: if isSuperAdmin();
+    }
+
+    // ---------- RESERVATION RULES ----------
+    match /reservation_rules/{ruleId} {
+      allow read: if true;
+      allow create, update: if isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // ---------- NO-SHOW LOG ----------
+    match /no_show_log/{logId} {
+      allow read: if isModerator() ||
+        (isSignedIn() && resource.data.userUid == request.auth.uid);
+      allow create: if isSignedIn() && (
+        isAdmin() ||
+        (resource != null && isBusinessOwner(resource.data.businessId))
+      );
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- RESERVATION CONFIG ----------
+    match /reservation_config/{configId} {
+      allow read: if isSignedIn();
+      allow create, update: if isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // ---------- RESERVATION BANS ----------
+    match /reservation_bans/{userUid} {
+      allow read: if isSignedIn() && (
+        request.auth.uid == userUid ||
+        isModerator()
+      );
+      allow create, update: if isModerator();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- RESERVATION RULES ACCEPTANCE ----------
+    match /reservation_rules_acceptance/{acceptId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() &&
+        request.resource.data.userUid == request.auth.uid;
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // END PHASE H
+    // ═══════════════════════════════════════════════════════
+
 
     // ---------- DEFAULT: DENY ----------
   }

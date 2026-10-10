@@ -54,18 +54,28 @@ class UserModel {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-  factory UserModel.fresh({
+    factory UserModel.fresh({
     required String uid,
     required String email,
     String? displayName,
     String? referralCode,
     String? referredBy,
+    String countryCode = 'QA',
+    String? countryName,
+    String? currency,
+    String? locale,
+    String? city,
   }) {
     final now = DateTime.now();
     return UserModel(
       uid: uid,
       email: email,
       displayName: displayName,
+      country: countryName ?? countryCode,
+      currentCountryCode: countryCode,
+      currency: currency ?? 'QAR',
+      locale: locale ?? 'en',
+      city: city ?? 'Doha',
       referralCode: referralCode,
       referredBy: referredBy,
       createdAt: now,

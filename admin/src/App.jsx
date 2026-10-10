@@ -7,11 +7,21 @@ import AdminLayout from './components/AdminLayout';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import PendingBusinesses from './pages/PendingBusinesses';
+import BusinessesPage from './pages/BusinessesPage';
 import PendingOffers from './pages/PendingOffers';
 import UsersPage from './pages/UsersPage';
 import CategoriesPage from './pages/CategoriesPage';
 import RolesPage from './pages/RolesPage';
 import GeographyPage from './pages/GeographyPage';
+import RevenuePage from './pages/RevenuePage';
+import ReviewsPage from './pages/ReviewsPage';
+import PricingPage from './pages/PricingPage';
+import StringsPage from './pages/StringsPage';
+import BusinessesMapPage from './pages/BusinessesMapPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import AgenciesPage from './pages/AgenciesPage';
+import AdsConfigPage from './pages/AdsConfigPage';
+import RevenueSplitPage from './pages/RevenueSplitPage';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -71,11 +81,9 @@ export default function App() {
               <AdminLayout user={user}>
                 <Routes>
                   <Route path="/" element={<AdminDashboard />} />
-                                    <Route
-                    path="/businesses"
-                    element={<PendingBusinesses />}
-                  />
-                                    <Route
+                   <Route path="/businesses" element={<BusinessesPage />} />
+                   <Route path="/pending-businesses" element={<PendingBusinesses />} />
+                   <Route
                     path="/offers"
                     element={<PendingOffers />}
                   />
@@ -86,6 +94,15 @@ export default function App() {
                   />
                   <Route path="/roles" element={<RolesPage />} />
                   <Route path="/geography" element={<GeographyPage />} />
+                  <Route path="/revenue" element={<RevenuePage />} />
+                  <Route path="/reviews" element={<ReviewsPage />} />
+                  <Route path="/pricing" element={<PricingPage />} />
+                  <Route path="/strings" element={<StringsPage />} />
+                  <Route path="/map" element={<BusinessesMapPage />} />
+                  <Route path="/analytics" element={<AnalyticsPage />} />
+                  <Route path="/agencies" element={<AgenciesPage />} />
+                  <Route path="/revenue-split" element={<RevenueSplitPage />} />
+                  <Route path="/ads" element={<AdsConfigPage />} />
                 </Routes>
               </AdminLayout>
             ) : (

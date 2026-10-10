@@ -673,11 +673,12 @@ class _SaveButtonState extends State<_SaveButton> {
     });
   }
 
-  Future<void> _toggle() async {
+    Future<void> _toggle() async {
     if (widget.uid.isEmpty) return;
     await FirestoreService.instance.toggleSaveOffer(
       uid: widget.uid,
       offerId: widget.offerId,
+      businessId: widget.businessId,
     );
     await FirestoreService.instance.toggleSaveBusiness(
       uid: widget.uid,

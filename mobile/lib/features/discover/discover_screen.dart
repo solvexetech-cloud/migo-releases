@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../services/analytics_service.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../core/utils/migo_animations.dart';
 import '../../models/area_model.dart';
@@ -40,8 +42,9 @@ class DiscoverScreen extends StatefulWidget {
 }
 
 class _DiscoverScreenState extends State<DiscoverScreen> {
-  final _searchController = TextEditingController();
+    final _searchController = TextEditingController();
   String _query = '';
+  Timer? _searchDebounce;
   String? _category;
   String? _areaId;
   String? _areaName;
@@ -171,6 +174,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -230,9 +234,21 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: Column(
               children: [
-                TextField(
+                                TextField(
                   controller: _searchController,
-                  onChanged: (v) => setState(() => _query = v),
+                  onChanged: (v) {
+                    setState(() => _query = v);
+                    // D2: Log search event (debounced 1.5s)
+                    _searchDebounce?.cancel();
+                    _searchDebounce = Timer(
+                      const Duration(milliseconds: 1500),
+                      () {
+                        if (v.trim().isNotEmpty) {
+                          AnalyticsService.instance.logSearch(query: v.trim());
+                        }
+                      },
+                    );
+                  },
                   decoration: InputDecoration(
                     hintText: 'Search deals, businesses, cuisines...',
                     prefixIcon: const Icon(Icons.search),

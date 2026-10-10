@@ -1,6 +1,6 @@
 # ═══════════════════════════════════════════════════════
 # MIGO — MASTER PLAN
-# Version: v2.9
+# Version: v3.0
 # Date: October 10, 2026
 # Owner: solvexe.tech@gmail.com
 # ═══════════════════════════════════════════════════════
@@ -952,6 +952,22 @@ TOTAL:   [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜�
 - 2026-10-10: 4 new collections (reservations, rules, no_show_log, config)
 - 2026-10-10: D4D-differentiator feature documented
 - 2026-10-10: MASTER PLAN v2.9
+- 2026-10-10: PHASE H — PHASE 1 STARTED (Foundation)
+- 2026-10-10: PHASE H — Firestore Rules deployed (6 collections)
+- 2026-10-10: PHASE H — 6 Composite Indexes deployed
+- 2026-10-10: PHASE H — reservation_config/global seeded (13 fields)
+- 2026-10-10: PHASE H — reservation_rules/v1.0 seeded (EN/AR/ML)
+- 2026-10-10: PHASE H — Local firestore.rules file synced
+- 2026-10-10: PHASE H — 5 Flutter models created (~28 KB)
+  - reservation_model.dart (9,114 bytes)
+  - reservation_rules_model.dart (5,050 bytes)
+  - reservation_config_model.dart (7,451 bytes)
+  - no_show_log_model.dart (3,218 bytes)
+  - reservation_ban_model.dart (3,171 bytes)
+- 2026-10-10: PHASE H — ReservationService created (25,804 bytes)
+- 2026-10-10: PHASE H — flutter analyze: 0 errors, 2 warnings
+- 2026-10-10: PHASE H — PHASE 1 (Foundation) 100% COMPLETE 🎉
+- 2026-10-10: MASTER PLAN v3.0
 
 ═══════════════════════════════════════════════════════
 ## ഭാഗം 16: Important Info
@@ -1015,6 +1031,97 @@ TOTAL:   [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜�
 - Play Store submission
 - iOS build + App Store
 
+
+
+═══════════════════════════════════════════════════════
+## PHASE H — IMPLEMENTATION PROGRESS
+═══════════════════════════════════════════════════════
+
+### 📊 Overall PHASE H Status
+
+**Total: 7 Sub-Phases, 35 hours**
+
+| # | Sub-Phase | Hours | Status |
+|---|-----------|-------|--------|
+| 1 | Foundation | 6h | ✅ **100% DONE** 🎉 |
+| 2 | Customer Booking | 6h | ⏳ Next |
+| 3 | Customer Bookings View | 5h | ⏳ |
+| 4 | Business Side | 6h | ⏳ |
+| 5 | Admin Panel | 5h | ⏳ |
+| 6 | Cloud Functions | 4h | ⏳ |
+| 7 | Testing | 3h | ⏳ |
+
+**Progress: 1/7 (14%)**
+
+---
+
+### ✅ PHASE 1 — Foundation (COMPLETE 2026-10-10)
+
+**Duration:** ~2 hours (in one session)
+
+#### Deliverables
+
+| # | Deliverable | Details |
+|---|-------------|---------|
+| 1 | **Firestore Rules** | 6 new collections secured |
+| 2 | **Composite Indexes** | 6 new indexes deployed |
+| 3 | **Config Seed** | `reservation_config/global` (13 fields) |
+| 4 | **Rules Seed** | `reservation_rules/v1.0` (EN/AR/ML) |
+| 5 | **5 Flutter Models** | ~28 KB total |
+| 6 | **ReservationService** | ~26 KB (800+ lines) |
+
+#### Files Created (8 total)
+
+**Flutter Models (5):**
+- `mobile/lib/models/reservation_model.dart` (9,114 bytes)
+- `mobile/lib/models/reservation_rules_model.dart` (5,050 bytes)
+- `mobile/lib/models/reservation_config_model.dart` (7,451 bytes)
+- `mobile/lib/models/no_show_log_model.dart` (3,218 bytes)
+- `mobile/lib/models/reservation_ban_model.dart` (3,171 bytes)
+
+**Services (1):**
+- `mobile/lib/services/reservation_service.dart` (25,804 bytes)
+
+**Firestore Rules/Indexes (2):**
+- `firestore.rules` (~11 KB, synced with Console)
+- `firestore.indexes.json` (5,890 bytes, 6 new indexes)
+
+#### Firestore Collections (6 new)
+
+| # | Collection | Document | Status |
+|---|-----------|----------|--------|
+| 1 | `reservations` | (empty) | Rules only |
+| 2 | `reservation_rules` | `v1.0` | ✅ Seeded |
+| 3 | `no_show_log` | (empty) | Rules only |
+| 4 | `reservation_config` | `global` | ✅ Seeded |
+| 5 | `reservation_bans` | (empty) | Rules only |
+| 6 | `reservation_rules_acceptance` | (empty) | Rules only |
+
+#### ReservationService Methods (13)
+
+1. `getConfig()` — Fetch global config
+2. `getActiveRules()` — Fetch active rules version
+3. `hasAcceptedRules()` — Check acceptance
+4. `acceptRules()` — Save acceptance
+5. `checkBan()` — Check user ban
+6. `checkCanBook()` — Pre-booking validation (5 checks)
+7. `createReservation()` — Transaction with slot decrement
+8. `cancelReservation()` — Cancel with slot release
+9. `markPickedUp()` — Shop marks pickup
+10. `markNoShow()` — Shop marks no-show + escalation
+11. `streamMyReservations()` — Customer's bookings
+12. `streamBusinessReservations()` — Shop's bookings
+13. `validateQRCode()` — QR verification
+
+**Plus:**
+- `_checkNoShowEscalation()` — Auto-ban logic
+- `_createBan()` — Ban creation
+- `_generateUUID()` — QR UUID
+- `_generate6DigitCode()` — Manual pickup code
+
+#### Code Quality
+
+**flutter analyze:**
 ═══════════════════════════════════════════════════════
 END OF MASTER PLAN v2.9
 ═══════════════════════════════════════════════════════

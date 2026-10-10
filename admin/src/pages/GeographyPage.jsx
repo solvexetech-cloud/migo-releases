@@ -116,19 +116,30 @@ function CountriesTab({ isMobile }) {
     try {
       const code = (form.code || '').toUpperCase().trim();
       if (!code) throw new Error('Country code required');
+      if (!form.name?.trim()) throw new Error('Name required');
+
+      const locales = Array.isArray(form.locales) && form.locales.length > 0
+        ? form.locales
+        : ['en'];
 
       await setDoc(
         doc(db, 'countries', code),
         {
           code,
           name: form.name.trim(),
-          flag: form.flag.trim() || '🌍',
-          currency: form.currency.trim().toUpperCase() || 'QAR',
-          locale: form.locale.trim() || 'en',
+          nameAr: (form.nameAr || '').trim(),
+          flag: (form.flag || '').trim() || '🌐',
+          currency: (form.currency || 'QAR').trim().toUpperCase(),
+          dialCode: (form.dialCode || '').trim(),
+          locale: (form.locale || 'en').trim(),
+          locales,
+          rtl: form.rtl === true,
+          timezone: (form.timezone || '').trim(),
+          dateFormat: (form.dateFormat || 'DD/MM/YYYY').trim(),
           order: Number(form.order) || 0,
           active: form.active !== false,
           updatedAt: serverTimestamp(),
-          ...(modal === 'add' && { createdAt: serverTimestamp() }),
+          ...(modal?.mode === 'add' && { createdAt: serverTimestamp() }),
         },
         { merge: true },
       );
@@ -179,23 +190,31 @@ function CountriesTab({ isMobile }) {
             <div
               key={c.id}
               style={{
-                ...rowStyle(isMobile, '60px 2fr 1fr 1fr 1fr 180px'),
+                ...rowStyle(isMobile, '60px 2fr 2fr 180px'),
                 borderBottom:
                   i < countries.length - 1 ? '1px solid #F1EEEA' : 'none',
               }}
             >
-              <div style={{ fontSize: 28 }}>{c.flag || '🌍'}</div>
+              <div style={{ fontSize: 28 }}>{c.flag || '🌐'}</div>
               <div>
                 <div style={primaryTextStyle}>{c.name}</div>
+                {c.nameAr && (
+                  <div style={{ fontSize: 12, color: '#6B7280', direction: 'rtl' }}>
+                    {c.nameAr}
+                  </div>
+                )}
                 <div style={secondaryTextStyle}>
-                  {c.code} · {c.currency} · {c.locale}
+                  {c.code} · {c.currency} · {c.dialCode || '—'}
                 </div>
               </div>
-              <div style={secondaryTextStyle}>Order {c.order ?? 0}</div>
               <div>
-                <StatusBadge active={c.active} />
+                <div style={secondaryTextStyle}>
+                  Locales: {(c.locales || [c.locale || 'en']).join(', ')}
+                </div>
+                <div style={secondaryTextStyle}>
+                  {c.rtl ? '🔄 RTL' : 'LTR'} · {c.timezone || '—'}
+                </div>
               </div>
-              <div />
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 <button
                   onClick={() => setModal({ mode: 'edit', data: c })}
@@ -238,35 +257,62 @@ function CountryModal({ mode, initial, working, onClose, onSave }) {
   const [form, setForm] = useState({
     code: initial?.code || '',
     name: initial?.name || '',
+    nameAr: initial?.nameAr || '',
     flag: initial?.flag || '🇶🇦',
     currency: initial?.currency || 'QAR',
+    dialCode: initial?.dialCode || '',
     locale: initial?.locale || 'en',
+    locales: initial?.locales || ['en'],
+    rtl: initial?.rtl ?? false,
+    timezone: initial?.timezone || '',
+    dateFormat: initial?.dateFormat || 'DD/MM/YYYY',
     order: initial?.order ?? 0,
     active: initial?.active ?? true,
   });
+
+  function toggleLocale(loc) {
+    setForm((f) => {
+      const has = f.locales.includes(loc);
+      const next = has ? f.locales.filter((x) => x !== loc) : [...f.locales, loc];
+      return { ...f, locales: next.length > 0 ? next : ['en'] };
+    });
+  }
 
   return (
     <ModalShell
       title={mode === 'add' ? 'Add Country' : 'Edit Country'}
       onClose={onClose}
     >
-      <Field label="Country Code *">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 10 }}>
+        <Field label="Country Code *">
+          <input
+            value={form.code}
+            onChange={(e) => setForm({ ...form, code: e.target.value })}
+            placeholder="QA"
+            disabled={mode === 'edit'}
+            style={inputStyle}
+          />
+        </Field>
+        <Field label="Name (English) *">
+          <input
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            placeholder="Qatar"
+            style={inputStyle}
+          />
+        </Field>
+      </div>
+
+      <Field label="Name (Arabic)">
         <input
-          value={form.code}
-          onChange={(e) => setForm({ ...form, code: e.target.value })}
-          placeholder="QA"
-          disabled={mode === 'edit'}
+          value={form.nameAr}
+          onChange={(e) => setForm({ ...form, nameAr: e.target.value })}
+          placeholder="قطر"
+          dir="rtl"
           style={inputStyle}
         />
       </Field>
-      <Field label="Name *">
-        <input
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          placeholder="Qatar"
-          style={inputStyle}
-        />
-      </Field>
+
       <Field label="Flag Emoji">
         <input
           value={form.flag}
@@ -275,6 +321,7 @@ function CountryModal({ mode, initial, working, onClose, onSave }) {
           style={inputStyle}
         />
       </Field>
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         <Field label="Currency">
           <input
@@ -284,15 +331,100 @@ function CountryModal({ mode, initial, working, onClose, onSave }) {
             style={inputStyle}
           />
         </Field>
-        <Field label="Locale">
+        <Field label="Dial Code">
           <input
-            value={form.locale}
-            onChange={(e) => setForm({ ...form, locale: e.target.value })}
-            placeholder="en"
+            value={form.dialCode}
+            onChange={(e) => setForm({ ...form, dialCode: e.target.value })}
+            placeholder="+974"
             style={inputStyle}
           />
         </Field>
       </div>
+
+      <Field label="Supported Locales (multi-select)">
+        <div style={{ display: 'flex', gap: 8 }}>
+          {['en', 'ar'].map((loc) => {
+            const active = form.locales.includes(loc);
+            return (
+              <button
+                key={loc}
+                type="button"
+                onClick={() => toggleLocale(loc)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: active ? '1px solid #D4A13A' : '1px solid #E5E7EB',
+                  background: active ? '#FFF3D6' : 'white',
+                  color: active ? '#A67920' : '#374151',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                {active ? '✓ ' : '+ '}
+                {loc === 'en' ? 'English' : 'العربية (Arabic)'}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
+
+      <Field label="Default Locale">
+        <select
+          value={form.locale}
+          onChange={(e) => setForm({ ...form, locale: e.target.value })}
+          style={inputStyle}
+        >
+          {form.locales.map((loc) => (
+            <option key={loc} value={loc}>
+              {loc === 'en' ? 'English' : 'العربية'}
+            </option>
+          ))}
+        </select>
+      </Field>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field label="Timezone">
+          <input
+            value={form.timezone}
+            onChange={(e) => setForm({ ...form, timezone: e.target.value })}
+            placeholder="Asia/Qatar"
+            style={inputStyle}
+          />
+        </Field>
+        <Field label="Date Format">
+          <select
+            value={form.dateFormat}
+            onChange={(e) => setForm({ ...form, dateFormat: e.target.value })}
+            style={inputStyle}
+          >
+            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+          </select>
+        </Field>
+      </div>
+
+      <Field label="RTL (Right-to-Left)">
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 13,
+            color: '#374151',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={form.rtl}
+            onChange={(e) => setForm({ ...form, rtl: e.target.checked })}
+            style={{ width: 18, height: 18 }}
+          />
+          Enable RTL layout (for Arabic)
+        </label>
+      </Field>
+
       <Field label="Display Order">
         <input
           type="number"
@@ -301,10 +433,12 @@ function CountryModal({ mode, initial, working, onClose, onSave }) {
           style={inputStyle}
         />
       </Field>
+
       <ActiveToggle
         checked={form.active}
         onChange={(v) => setForm({ ...form, active: v })}
       />
+
       <ModalActions
         onCancel={onClose}
         onSave={() => onSave(form)}
@@ -314,7 +448,6 @@ function CountryModal({ mode, initial, working, onClose, onSave }) {
     </ModalShell>
   );
 }
-
 // ============================================================
 // ZONES TAB
 // ============================================================

@@ -3,11 +3,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'core/config/app_config.dart';
+import 'core/localization/locale_provider.dart';
 import 'core/theme/migo_theme.dart';
 import 'features/auth/welcome_screen.dart';
 import 'features/main/main_shell.dart';
 import 'firebase_options.dart';
 import 'services/notification_service.dart';
+import 'services/ads_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,10 +17,15 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Load languages + strings (D6-B)
+  await LocaleProvider.instance.init();
+
   // Initialize push notifications (FCM)
-  // Only after user signs in — but init is safe to call here too.
-  // The service handles the "no user" case gracefully.
   NotificationService.instance.init();
+
+  // D4 — Ads init
+  await AdsService.instance.initialize();
+
 
   runApp(const MigoApp());
 }
@@ -28,13 +35,30 @@ class MigoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: AppConfig.appName,
-      debugShowCheckedModeBanner: false,
-      theme: MigoTheme.light,
-      darkTheme: MigoTheme.dark,
-      themeMode: ThemeMode.system,
-      home: const _AuthGate(),
+    return ListenableBuilder(
+      listenable: LocaleProvider.instance,
+      builder: (context, _) {
+        final locale = LocaleProvider.instance.locale;
+        final isRtl = LocaleProvider.instance.isRtl;
+
+        return MaterialApp(
+          title: AppConfig.appName,
+          debugShowCheckedModeBanner: false,
+          theme: MigoTheme.light,
+          darkTheme: MigoTheme.dark,
+          themeMode: ThemeMode.system,
+          locale: Locale(locale),
+          builder: (context, child) {
+            // Auto RTL/LTR based on locale
+            return Directionality(
+              textDirection:
+                  isRtl ? TextDirection.rtl : TextDirection.ltr,
+              child: child ?? const SizedBox.shrink(),
+            );
+          },
+          home: const _AuthGate(),
+        );
+      },
     );
   }
 }
@@ -50,7 +74,6 @@ class _AuthGateState extends State<_AuthGate> {
   @override
   void initState() {
     super.initState();
-    // Listen for auth changes to init/clear FCM token
     FirebaseAuth.instance.authStateChanges().listen((user) {
       if (user != null) {
         NotificationService.instance.init();

@@ -38,10 +38,17 @@ class LocationService {
   };
 
   /// Map of country code → default city name.
+    /// Map of country code → default city name.
   static const Map<String, String> _countryDefaultCity = {
     'QA': 'Doha',
+    'AE': 'Dubai',
+    'SA': 'Riyadh',
+    'KW': 'Kuwait City',
+    'BH': 'Manama',
+    'OM': 'Muscat',
     'IN': 'Kochi',
   };
+
 
   /// Get default area for user (without Firestore write).
   ///
@@ -103,5 +110,70 @@ class LocationService {
   /// Get city name for a country.
   String defaultCityForCountry(String countryCode) {
     return _countryDefaultCity[countryCode] ?? 'Doha';
+  }
+  /// Get currency for a country code.
+  /// Fallback to QAR if country not found.
+  Future<String> currencyForCountry(String countryCode) async {
+    try {
+      final countries = await FirestoreService.instance.getCountries();
+      final country = countries.firstWhere(
+        (c) => c.code == countryCode,
+        orElse: () => countries.isNotEmpty
+            ? countries.first
+            : throw StateError('No countries'),
+      );
+      return country.currency;
+    } catch (_) {
+      return 'QAR';
+    }
+  }
+
+  /// Get default locale for a country code.
+  /// Fallback to 'en' if country not found.
+  Future<String> localeForCountry(String countryCode) async {
+    try {
+      final countries = await FirestoreService.instance.getCountries();
+      final country = countries.firstWhere(
+        (c) => c.code == countryCode,
+        orElse: () => countries.isNotEmpty
+            ? countries.first
+            : throw StateError('No countries'),
+      );
+      return country.locale;
+    } catch (_) {
+      return 'en';
+    }
+  }
+
+  /// Check if a country uses RTL layout.
+  Future<bool> isRtlCountry(String countryCode) async {
+    try {
+      final countries = await FirestoreService.instance.getCountries();
+      final country = countries.firstWhere(
+        (c) => c.code == countryCode,
+        orElse: () => countries.isNotEmpty
+            ? countries.first
+            : throw StateError('No countries'),
+      );
+      return country.rtl;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Get dial code for a country (e.g. "+974").
+  Future<String> dialCodeForCountry(String countryCode) async {
+    try {
+      final countries = await FirestoreService.instance.getCountries();
+      final country = countries.firstWhere(
+        (c) => c.code == countryCode,
+        orElse: () => countries.isNotEmpty
+            ? countries.first
+            : throw StateError('No countries'),
+      );
+      return country.dialCode;
+    } catch (_) {
+      return '';
+    }
   }
 }

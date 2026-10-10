@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'analytics_service.dart';
 import '../models/business_model.dart';
 import '../models/category_model.dart';
 import '../models/country_model.dart';
@@ -888,9 +889,10 @@ class FirestoreService {
     return snap.exists;
   }
 
-  Future<void> toggleSaveOffer({
+    Future<void> toggleSaveOffer({
     required String uid,
     required String offerId,
+    String? businessId,
   }) async {
     final doc = _savedOffers.doc(_savedOfferId(uid, offerId));
     final existing = await doc.get();
@@ -900,8 +902,14 @@ class FirestoreService {
       await doc.set({
         'userUid': uid,
         'offerId': offerId,
+        'businessId': businessId,
         'createdAt': FieldValue.serverTimestamp(),
       });
+      // D2: Log save_offer event
+      AnalyticsService.instance.logSaveOffer(
+        offerId: offerId,
+        businessId: businessId ?? '',
+      );
     }
   }
 

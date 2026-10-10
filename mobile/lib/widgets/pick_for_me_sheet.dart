@@ -92,7 +92,7 @@ class _PickForMeSheetState extends State<PickForMeSheet> {
                 children: _budgets.map((b) {
                   final selected = _budget == b;
                   return _Pill(
-                    label: 'Up to ${AppConfig.defaultCurrency} $b',
+                    label: 'Up to ${AppConfig.fallbackCurrency} $b',
                     selected: selected,
                     onTap: () => setState(() {
                       _budget = b;
@@ -234,7 +234,7 @@ class _PickForMeSheetState extends State<PickForMeSheet> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${AppConfig.defaultCurrency} 25',
+                '${AppConfig.fallbackCurrency} 25',
                 style: const TextStyle(
                   fontSize: 13,
                   decoration: TextDecoration.lineThrough,
@@ -243,7 +243,7 @@ class _PickForMeSheetState extends State<PickForMeSheet> {
               ),
               const SizedBox(width: 8),
               Text(
-                '${AppConfig.defaultCurrency} 18',
+                '${AppConfig.fallbackCurrency} 18',
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
@@ -273,7 +273,7 @@ class _PickForMeSheetState extends State<PickForMeSheet> {
           ),
           const SizedBox(height: 10),
           Text(
-            'Matched: $_mood · Within ${_distanceKm.toStringAsFixed(0)} km · Under ${AppConfig.defaultCurrency} $_budget',
+            'Matched: $_mood · Within ${_distanceKm.toStringAsFixed(0)} km · Under ${AppConfig.fallbackCurrency} $_budget',
             style: const TextStyle(
               fontSize: 11,
               color: MigoColors.textSecondaryLight,

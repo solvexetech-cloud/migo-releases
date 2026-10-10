@@ -35,3 +35,9 @@ fcm-test/
 
 # Firebase service account keys (never commit!)
 *-firebase-adminsdk-*.json
+
+# Seed scripts (contain service account)
+_seed/serviceAccount.json
+_seed/node_modules/
+_seed/package-lock.json
+_seed/package.json
