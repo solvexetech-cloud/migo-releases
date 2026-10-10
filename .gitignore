@@ -41,3 +41,8 @@ _seed/serviceAccount.json
 _seed/node_modules/
 _seed/package-lock.json
 _seed/package.json
+
+# Firebase Admin SDK — NEVER commit
+_seed/serviceAccountKey.json
+*firebase-adminsdk*.json
+serviceAccountKey.json
