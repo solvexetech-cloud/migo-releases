@@ -1,28 +1,28 @@
-﻿# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-# MIGO â€” MASTER PLAN
-# Version: v2.7
+# ═══════════════════════════════════════════════════════
+# MIGO — MASTER PLAN
+# Version: v2.9
 # Date: October 10, 2026
 # Owner: solvexe.tech@gmail.com
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# ═══════════════════════════════════════════════════════
 
-## ðŸ“Œ à´ˆ à´¡àµ‹à´•àµà´¯àµà´®àµ†à´¨àµà´±à´¿à´¨àµ† à´•àµà´±à´¿à´šàµà´šàµ
+## 📌 ഈ ഡോക്യുമെന്റിനെ കുറിച്ച്
 
-à´‡à´¤àµ MIGO à´†à´ªàµà´ªà´¿à´¨àµà´±àµ† à´ªàµ‚àµ¼à´£àµà´£ à´±àµ‹à´¡àµà´®à´¾à´ªàµà´ªàµ à´†à´£àµ.
-à´ªàµà´¤à´¿à´¯ à´šà´¾à´±àµà´±àµ à´¤àµà´Ÿà´™àµà´™àµà´®àµà´ªàµ‹àµ¾ à´ˆ à´«à´¯àµ½ AI-à´•àµà´•àµ paste à´šàµ†à´¯àµà´¤à´¾àµ½
-à´Žà´²àµà´²à´¾à´‚ à´®à´¨à´¸àµà´¸à´¿à´²à´¾à´•àµà´‚.
+ഇത് MIGO ആപ്പിന്റെ പൂർണ്ണ റോഡ്മാപ്പ് ആണ്.
+പുതിയ ചാറ്റ് തുടങ്ങുമ്പോൾ ഈ ഫയൽ AI-ക്ക് paste ചെയ്താൽ
+എല്ലാം മനസ്സിലാകും.
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 1: à´ªàµà´°àµ‹à´œà´•àµà´Ÿàµ à´…à´µà´¸àµà´¥ (Project Status)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## ഭാഗം 1: പ്രോജക്ട് അവസ്ഥ (Project Status)
+═══════════════════════════════════════════════════════
 
-### ðŸ“ à´²àµŠà´•àµà´•àµ‡à´·àµ»
+### 📁 ലൊക്കേഷൻ
 Root: C:\Users\DELL\Documents\migo\
-â”œâ”€â”€ mobile/    â†’ Flutter app
-â”œâ”€â”€ admin/     â†’ React admin panel (LIVE)
-â”œâ”€â”€ _seed/     â†’ Node.js seed scripts
-â””â”€â”€ backend/   â†’ NestJS (future)
+├── mobile/    → Flutter app
+├── admin/     → React admin panel (LIVE)
+├── _seed/     → Node.js seed scripts
+└── backend/   → NestJS (future)
 
-### ðŸŒ à´²àµˆà´µàµ URL-à´•àµ¾
+### 🌐 ലൈവ് URL-കൾ
 - Firebase Project: migo-app-3030e
 - Admin Panel: https://migo-app-3030e.web.app
 - Referral Landing: https://migo-app-3030e.web.app/r/{CODE}
@@ -31,7 +31,7 @@ Root: C:\Users\DELL\Documents\migo\
 - Cloudinary: zxl1kb8h
 - GitHub Repo: github.com/solvexetech-cloud/migo-releases
 
-### âœ… à´ªàµ‚àµ¼à´¤àµà´¤à´¿à´¯à´¾à´¯à´¤àµ (v1.3.1)
+### ✅ പൂർത്തിയായത് (v1.3.1)
 - Customer mobile app (Flutter)
 - Business owner dashboard
 - Admin panel (React, deployed + mobile responsive)
@@ -42,117 +42,117 @@ Root: C:\Users\DELL\Documents\migo\
 - Group deals
 - Notifications (in-app + FCM push)
 - Dark mode + Light mode
-- 6-tier Role System (super_admin â†’ customer)
+- 6-tier Role System (super_admin → customer)
 - Dynamic Categories (Firestore + admin CRUD)
 - Geographic Hierarchy (Qatar + Kerala)
 - Location-aware customer flow
-- APK v1.3.1 (69.8 MB) â€” GitHub Releases
+- APK v1.3.1 (69.8 MB) — GitHub Releases
 - Git backups: 2026-10-06, 2026-10-07
 
-### â³ à´¬à´¾à´•àµà´•à´¿à´¯àµà´³àµà´³à´¤àµ â€” Phase-wise
+### ⏳ ബാക്കിയുള്ളത് — Phase-wise
 
-#### PHASE A â€” à´…à´Ÿà´¿à´¯à´¨àµà´¤à´¿à´°à´‚ (High Priority)
-- [âœ…] #1 Expired offers auto-hide
-- [âœ…] #2 Duplicate offer button
-- [âœ…] #3 QR auto-expire
-- [âœ…] #4 Push notifications (FCM)
-- [âœ…] #5 Business logo + cover photo
+#### PHASE A — അടിയന്തിരം (High Priority)
+- [✅] #1 Expired offers auto-hide
+- [✅] #2 Duplicate offer button
+- [✅] #3 QR auto-expire
+- [✅] #4 Push notifications (FCM)
+- [✅] #5 Business logo + cover photo
 
-#### PHASE B â€” à´…à´Ÿà´¿à´¤àµà´¤à´± (Foundation)
-- [âœ…] #6 Firestore Security Rules
-- [âœ…] #7 6-tier Role System
-- [âœ…] #8 Geographic Hierarchy (Countryâ†’Zoneâ†’Area)
-- [âœ…] #9 Database Schema Redesign
-- [âœ…] #10 Dynamic Categories
+#### PHASE B — അടിത്തറ (Foundation)
+- [✅] #6 Firestore Security Rules
+- [✅] #7 6-tier Role System
+- [✅] #8 Geographic Hierarchy (Country→Zone→Area)
+- [✅] #9 Database Schema Redesign
+- [✅] #10 Dynamic Categories
 
-#### PHASE C â€” à´…à´¡àµà´®à´¿àµ» à´«àµàµ¾ à´•àµºà´Ÿàµà´°àµ‹àµ¾
-- [âœ…] #11 Business CRUD (Add/Edit/Delete)
-- [âœ…] #12 Revenue Dashboard (all sources)
-- [âœ…] #13 Reviews Management (Positive/Negative)
-- [âœ…] #14 Package Pricing Editor
-- [âœ…] #15 Responsive Admin (mobile/tablet/desktop)
-- [âœ…] #16 Staff Panel (via RolesPage)
-- [âœ…] #17 Agency Panel
+#### PHASE C — അഡ്മിൻ ഫുൾ കൺട്രോൾ
+- [✅] #11 Business CRUD (Add/Edit/Delete)
+- [✅] #12 Revenue Dashboard (all sources)
+- [✅] #13 Reviews Management (Positive/Negative)
+- [✅] #14 Package Pricing Editor
+- [✅] #15 Responsive Admin (mobile/tablet/desktop)
+- [✅] #16 Staff Panel (via RolesPage)
+- [✅] #17 Agency Panel
 
-#### PHASE D â€” à´¡à´¾à´±àµà´± + à´®à´¾àµ¼à´•àµà´•à´±àµà´±à´¿à´‚à´—àµ
-- [ ] #18 Google Maps Integration
-- [ ] #19 Customer Behavior Analytics
-- [ ] #20 Revenue Split Engine
-- [ ] #21 Google Ads / AdMob
+#### PHASE D — ഡാറ്റ + മാർക്കറ്റിംഗ്
+- [✅] #18 Google Maps Integration (OpenStreetMap)
+- [✅] #19 Customer Behavior Analytics
+- [✅] #20 Revenue Split Engine
+- [🟡] #21 Google Ads / AdMob — 75% (Code Complete)
 - [ ] #22 Digital Marketing Dashboard
-- [ðŸ”„] #23-A Country System (7 countries) â€” DONE 2026-10-08
-- [ ] #23-B Language Framework (EN + AR + RTL) â€” NEXT
+- [✅] #23-A Country System (7 countries) — DONE 2026-10-08
+- [✅] #23-B Language Framework (EN + AR + RTL) — DONE 2026-10-08
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 2: Geographic Hierarchy
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## ഭാഗം 2: Geographic Hierarchy
+═══════════════════════════════════════════════════════
 
-### ðŸŒ Country â†’ Zone â†’ Area Structure
+### 🌍 Country → Zone → Area Structure
 
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚  COUNTRIES (7 seeded â€” D6-A 2026-10-08)             â”‚
-â”‚  â”œâ”€â”€ ðŸ‡¶ðŸ‡¦ Qatar (QA) â€” QAR â€” +974                     â”‚
-â”‚  â”œâ”€â”€ ðŸ‡¦ðŸ‡ª UAE (AE) â€” AED â€” +971                        â”‚
-â”‚  â”œâ”€â”€ ðŸ‡¸ðŸ‡¦ Saudi Arabia (SA) â€” SAR â€” +966               â”‚
-â”‚  â”œâ”€â”€ ðŸ‡°ðŸ‡¼ Kuwait (KW) â€” KWD â€” +965                     â”‚
-â”‚  â”œâ”€â”€ ðŸ‡§ðŸ‡­ Bahrain (BH) â€” BHD â€” +973                    â”‚
-â”‚  â”œâ”€â”€ ðŸ‡´ðŸ‡² Oman (OM) â€” OMR â€” +968                       â”‚
-â”‚  â””â”€â”€ ðŸ‡®ðŸ‡³ India (IN) â€” INR â€” +91                       â”‚
-â”‚                                                     â”‚
-â”‚  Each country has: nameAr, dialCode, locales[],     â”‚
-â”‚  rtl, timezone, dateFormat                          â”‚
-â”‚                                                     â”‚
-â”‚  Qatar + Kerala full zone/area hierarchy            â”‚
-â”‚  GCC expansion ready (admin can add)                â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+┌─────────────────────────────────────────────────────┐
+│  COUNTRIES (7 seeded — D6-A 2026-10-08)             │
+│  ├── 🇶🇦 Qatar (QA) — QAR — +974                     │
+│  ├── 🇦🇪 UAE (AE) — AED — +971                        │
+│  ├── 🇸🇦 Saudi Arabia (SA) — SAR — +966               │
+│  ├── 🇰🇼 Kuwait (KW) — KWD — +965                     │
+│  ├── 🇧🇭 Bahrain (BH) — BHD — +973                    │
+│  ├── 🇴🇲 Oman (OM) — OMR — +968                       │
+│  └── 🇮🇳 India (IN) — INR — +91                       │
+│                                                     │
+│  Each country has: nameAr, dialCode, locales[],     │
+│  rtl, timezone, dateFormat                          │
+│                                                     │
+│  Qatar + Kerala full zone/area hierarchy            │
+│  GCC expansion ready (admin can add)                │
+└─────────────────────────────────────────────────────┘
 
-### ðŸ“‹ à´“à´°àµ‹ à´à´°à´¿à´¯à´¯àµà´•àµà´•àµà´‚:
-- à´’à´°àµ à´à´œàµ»à´¸à´¿ / à´«àµà´°à´žàµà´šàµˆà´¸à´¿ à´¨à´¿à´¯à´®à´¿à´•àµà´•à´¾à´‚
-- à´† à´à´°à´¿à´¯à´¯à´¿à´²àµ† à´¬à´¿à´¸à´¿à´¨à´¸àµà´•àµ¾ à´…à´µàµ¼ à´•àµˆà´•à´¾à´°àµà´¯à´‚ à´šàµ†à´¯àµà´¯àµà´‚
-- à´±à´µà´¨àµà´¯àµ‚ à´·àµ†à´¯àµ¼ à´…à´¨àµà´¸à´°à´¿à´šàµà´šàµ à´µà´¿à´¤à´°à´£à´‚
-- Google Maps-àµ½ polygon boundary (future)
+### 📋 ഓരോ ഏരിയയ്ക്കും:
+- ഒരു ഏജൻസി / ഫ്രഞ്ചൈസി നിയമിക്കാം
+- ആ ഏരിയയിലെ ബിസിനസുകൾ അവർ കൈകാര്യം ചെയ്യും
+- റവന്യൂ ഷെയർ അനുസരിച്ച് വിതരണം
+- Google Maps-ൽ polygon boundary (future)
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 3: Role System (6 Tiers)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## ഭാഗം 3: Role System (6 Tiers)
+═══════════════════════════════════════════════════════
 
-| # | Role | Access | à´‰à´¦à´¾à´¹à´°à´£à´‚ |
+| # | Role | Access | ഉദാഹരണം |
 |---|------|--------|---------|
-| 1 | super_admin | à´Žà´²àµà´²à´¾à´‚ | Owner (à´¨à´¿à´™àµà´™àµ¾) |
-| 2 | admin | Country/State à´®à´¾à´¨àµ‡à´œàµ | Regional Manager |
-| 3 | agency | à´’à´°àµ à´à´°à´¿à´¯ à´®à´¾à´¤àµà´°à´‚ | Kakkanad Franchise |
+| 1 | super_admin | എല്ലാം | Owner (നിങ്ങൾ) |
+| 2 | admin | Country/State മാനേജ് | Regional Manager |
+| 3 | agency | ഒരു ഏരിയ മാത്രം | Kakkanad Franchise |
 | 4 | moderator | Reviews, offers, users | Staff |
-| 5 | business | à´…à´µà´°àµà´Ÿàµ† à´•à´Ÿ à´®à´¾à´¤àµà´°à´‚ | Shawarma Shop |
+| 5 | business | അവരുടെ കട മാത്രം | Shawarma Shop |
 | 6 | customer | Shopping only | End user |
 
-### ðŸ” Permission Matrix
+### 🔐 Permission Matrix
 
 | Action | super | admin | agency | mod | biz | cust |
 |--------|-------|-------|--------|-----|-----|------|
-| Create Admin | âœ… | âŒ | âŒ | âŒ | âŒ | âŒ |
-| Create Agency | âœ… | âœ… | âŒ | âŒ | âŒ | âŒ |
-| Approve Business | âœ… | âœ… | âœ… | âŒ | âŒ | âŒ |
-| Delete Business | âœ… | âœ… | âŒ | âŒ | âŒ | âŒ |
-| Manage Revenue | âœ… | âœ… | âœ…(own) | âŒ | âŒ | âŒ |
-| Moderate Reviews | âœ… | âœ… | âŒ | âœ… | âŒ | âŒ |
-| Create Offer | âœ… | âœ… | âœ… | âŒ | âœ… | âŒ |
-| Claim Offer | âŒ | âŒ | âŒ | âŒ | âŒ | âœ… |
-| Ban User | âœ… | âœ… | âŒ | âœ… | âŒ | âŒ |
-| Edit Categories | âœ… | âœ… | âŒ | âŒ | âŒ | âŒ |
-| Edit Pricing | âœ… | âœ… | âŒ | âŒ | âŒ | âŒ |
+| Create Admin | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Create Agency | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Approve Business | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Delete Business | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Manage Revenue | ✅ | ✅ | ✅(own) | ❌ | ❌ | ❌ |
+| Moderate Reviews | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| Create Offer | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+| Claim Offer | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Ban User | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| Edit Categories | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Edit Pricing | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 4: Revenue Model
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## ഭാഗം 4: Revenue Model
+═══════════════════════════════════════════════════════
 
-### ðŸ’¡ à´…à´Ÿà´¿à´¸àµà´¥à´¾à´¨ à´¤à´¤àµà´µà´‚
+### 💡 അടിസ്ഥാന തത്വം
 
-MIGO-à´¯àµà´Ÿàµ† à´µà´°àµà´®à´¾à´¨à´‚ à´·àµ‹à´ªàµà´ªà´¿à´¨àµà´±àµ† à´µà´¿àµ½à´ªàµà´ªà´¨à´¯à´¿àµ½ à´¨à´¿à´¨àµà´¨à´²àµà´².
-MIGO à´¸àµ‡à´µà´¨à´¤àµà´¤à´¿à´¨àµà´³àµà´³ à´«àµ€à´¸à´¾à´£àµ.
+MIGO-യുടെ വരുമാനം ഷോപ്പിന്റെ വിൽപ്പനയിൽ നിന്നല്ല.
+MIGO സേവനത്തിനുള്ള ഫീസാണ്.
 
-### ðŸ“Š 3 Revenue Streams
+### 📊 3 Revenue Streams
 
-#### STREAM 1 â€” Subscription (Monthly)
+#### STREAM 1 — Subscription (Monthly)
 | Plan | Price (QAR) | Offers/Month | Features |
 |------|-------------|--------------|----------|
 | Free | 0 | 1 | Basic listing |
@@ -160,7 +160,7 @@ MIGO à´¸àµ‡à´µà´¨à´¤àµà´¤à´¿à´¨àµà´³àµà
 | Growth | 149 | 20 | + Priority + Flash |
 | Pro | 299 | Unlimited | + Group + Featured |
 
-#### STREAM 2 â€” Per-Offer Fee
+#### STREAM 2 — Per-Offer Fee
 | Offer Type | Fee (QAR) |
 |------------|-----------|
 | Standard | 5 |
@@ -169,7 +169,7 @@ MIGO à´¸àµ‡à´µà´¨à´¤àµà´¤à´¿à´¨àµà´³àµà
 | Hidden Gem | 5 |
 | Birthday | 8 |
 
-#### STREAM 3 â€” Success Commission
+#### STREAM 3 — Success Commission
 | Claims/Month | Rate/Claim (QAR) |
 |--------------|------------------|
 | 0-50 | 0.00 (Free) |
@@ -177,50 +177,55 @@ MIGO à´¸àµ‡à´µà´¨à´¤àµà´¤à´¿à´¨àµà´³àµà
 | 201-500 | 0.75 |
 | 500+ | 1.00 |
 
-### ðŸŒ Agency Split Model
+### 🌍 Agency Split Model
 
 Shop pays QAR 149/month:
-         â†“
-    â”Œâ”€â”€â”€â”€â”´â”€â”€â”€â”€â”
-    â”‚  Split  â”‚
-    â””â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”˜
-         â†“
-  MIGO:     50% â†’ QAR 74.50
-  Agency:   40% â†’ QAR 59.60
-  Referral: 10% â†’ QAR 14.90
+         ↓
+    ┌────┴────┐
+    │  Split  │
+    └────┬────┘
+         ↓
+  MIGO:     50% → QAR 74.50
+  Agency:   40% → QAR 59.60
+  Referral: 10% → QAR 14.90
 
-### ðŸ“ˆ Revenue Tracking
+### 📈 Revenue Tracking
 
 Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 5: Database Schema (v2.2)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## ഭാഗം 5: Database Schema (v2.2)
+═══════════════════════════════════════════════════════
 
 ### Core Collections
-- users/{uid} â€” profile, coins, role, countryCode, currency, locale, fcmToken
-- businesses/{id} â€” ownerUid, name, category, countryCode, zoneId, areaId, agencyUid
-- offers/{id} â€” businessId, title, prices, currency, type, status, areaId
-- claims/{id} â€” userUid, businessId, offerId, currency, status, redeemedAt
-- reviews/{id} â€” userUid, businessId, rating, comment, isPositive
-- referrals/{id} â€” referrerUid, referredUid, status, rewardAmount
-- notifications/{id} â€” userUid, title, body, type, read
-- coin_transactions/{id} â€” uid, amount, type, description
+- users/{uid} — profile, coins, role, countryCode, currency, locale, fcmToken
+- businesses/{id} — ownerUid, name, category, countryCode, zoneId, areaId, agencyUid
+- offers/{id} — businessId, title, prices, currency, type, status, areaId
+- claims/{id} — userUid, businessId, offerId, currency, status, redeemedAt
+- reviews/{id} — userUid, businessId, rating, comment, isPositive
+- referrals/{id} — referrerUid, referredUid, status, rewardAmount
+- notifications/{id} — userUid, title, body, type, read
+- coin_transactions/{id} — uid, amount, type, description
 - saved_offers/{uid_offerId}
 - saved_businesses/{uid_businessId}
 - group_deals/{offerId}
 - categories/{slug}
-- countries/{code} â€” NEW: nameAr, dialCode, locales[], rtl, timezone, dateFormat
+- countries/{code} — nameAr, dialCode, locales[], rtl, timezone, dateFormat
 - zones/{slug}
 - areas/{slug}
-- agencies/{id} â€” ownerUid, areaIds[], revenueShare, status
+- agencies/{id} — ownerUid, areaIds[], revenueShare, status
 
 ### Revenue Collections (C2)
-- plans/{id} â€” 4 seeded (free/starter/growth/pro)
-- subscriptions/{id} â€” businessId, planId, status, expiresAt
-- payments/{id} â€” businessId, amount, currency, method, type, status
-- config/per_offer_fees â€” {fees: {standard: 5, ...}}
-- config/commission_tiers â€” {tiers: [{min,max,rate},...]}
+- plans/{id} — 4 seeded (free/starter/growth/pro)
+- subscriptions/{id} — businessId, planId, status, expiresAt
+- payments/{id} — businessId, amount, currency, method, type, status
+- config/per_offer_fees — {fees: {standard: 5, ...}}
+- config/commission_tiers — {tiers: [{min,max,rate},...]}
+
+### New Collections (D3, D4)
+- config/ads — {enabled, bannerHome, nativeList, interstitialClaim}
+- config/revenue_split — {enabled, migoShare, agencyShare, referralShare, minPayoutAmount, payoutCycle, holdDays}
+- revenue_splits/{id} — {businessId, amount, migoShare, agencyShare, referralShare, status, createdAt}
 
 ### Future Collections
 - revenue_transactions/{id}
@@ -230,81 +235,239 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 - category_stats/{categoryId}
 - ad_campaigns/{id}
 - ad_impressions/{id}
-- languages/{code}  â† D6-B
-- app_strings/{lang}_{key}  â† D6-B
+- languages/{code}  ← D6-B
+- app_strings/{lang}_{key}  ← D6-B
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 6: Phase-wise Task List
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## ഭാഗം 6: Phase-wise Task List
+═══════════════════════════════════════════════════════
 
-### PHASE A â€” à´…à´Ÿà´¿à´¯à´¨àµà´¤à´¿à´°à´‚ (Complete!)
+### PHASE A — അടിയന്തിരം (Complete!)
 | # | Task | Time | Status |
 |---|------|------|--------|
-| A1 | Expired offers auto-hide | 15m | âœ… |
-| A2 | Duplicate offer button | 30m | âœ… |
-| A3 | QR auto-expire | 20m | âœ… |
-| A4 | Push notifications (FCM) | 45m | âœ… |
-| A5 | Business logo + cover | 30m | âœ… |
+| A1 | Expired offers auto-hide | 15m | ✅ |
+| A2 | Duplicate offer button | 30m | ✅ |
+| A3 | QR auto-expire | 20m | ✅ |
+| A4 | Push notifications (FCM) | 45m | ✅ |
+| A5 | Business logo + cover | 30m | ✅ |
 
-**PHASE A â€” 100% COMPLETE** ðŸŽ‰
+**PHASE A — 100% COMPLETE** 🎉
 
-### PHASE B â€” à´…à´Ÿà´¿à´¤àµà´¤à´± (Complete!)
+### PHASE B — അടിത്തറ (Complete!)
 | # | Task | Time | Status |
 |---|------|------|--------|
-| B1 | Firestore Security Rules | 1h | âœ… |
-| B2 | 6-tier Role System | 2h | âœ… |
-| B3 | Geographic Hierarchy | 2h | âœ… |
-| B4 | Database Schema Redesign | 1h | âœ… |
-| B5 | Dynamic Categories | 45m | âœ… |
+| B1 | Firestore Security Rules | 1h | ✅ |
+| B2 | 6-tier Role System | 2h | ✅ |
+| B3 | Geographic Hierarchy | 2h | ✅ |
+| B4 | Database Schema Redesign | 1h | ✅ |
+| B5 | Dynamic Categories | 45m | ✅ |
 
-**PHASE B â€” 100% COMPLETE** ðŸŽ‰
+**PHASE B — 100% COMPLETE** 🎉
 
-### PHASE C â€” à´…à´¡àµà´®à´¿àµ» à´«àµàµ¾ à´•àµºà´Ÿàµà´°àµ‹àµ¾ (Complete!)
+### PHASE C — അഡ്മിൻ ഫുൾ കൺട്രോൾ (Complete!)
 | # | Task | Time | Status |
 |---|------|------|--------|
-| C1 | Business CRUD | 1.5h | âœ… DONE 2026-10-08 |
-| C2 | Revenue Dashboard | 2h | âœ… DONE 2026-10-08 |
-| C3 | Reviews Management | 1h | âœ… DONE 2026-10-08 |
-| C4 | Package Pricing Editor | 45m | âœ… DONE 2026-10-08 |
-| C5 | Responsive Admin | 1h | âœ… DONE |
-| C6 | Staff Panel | 2h | âœ… DONE (via RolesPage) |
-| C7 | Agency Panel | 2.5h | âœ… DONE 2026-10-08 |
+| C1 | Business CRUD | 1.5h | ✅ DONE 2026-10-08 |
+| C2 | Revenue Dashboard | 2h | ✅ DONE 2026-10-08 |
+| C3 | Reviews Management | 1h | ✅ DONE 2026-10-08 |
+| C4 | Package Pricing Editor | 45m | ✅ DONE 2026-10-08 |
+| C5 | Responsive Admin | 1h | ✅ DONE |
+| C6 | Staff Panel | 2h | ✅ DONE (via RolesPage) |
+| C7 | Agency Panel | 2.5h | ✅ DONE 2026-10-08 |
 
-**PHASE C â€” 100% COMPLETE** ðŸŽ‰
+**PHASE C — 100% COMPLETE** 🎉
 
-### PHASE D â€” à´¡à´¾à´±àµà´± + à´®à´¾àµ¼à´•àµà´•à´±àµà´±à´¿à´‚à´—àµ
+### PHASE D — ഡാറ്റ + മാർക്കറ്റിംഗ്
 | # | Task | Time | Status |
 |---|------|------|--------|
-| D1 | Google Maps Integration â†’ OpenStreetMap | 1.5h | âœ… DONE 2026-10-08 |
-| D2 | Customer Behavior Analytics | 2h | âœ… DONE 2026-10-08 |
-| D3 | Revenue Split Engine | 1.5h | â³ |
-| D4 | Google Ads / AdMob | 1h | â³ |
-| D5 | Digital Marketing Dashboard | 2h | â³ |
-| D6-A | Country System (7 countries) | 1.5h | âœ… DONE 2026-10-08 |
-| D6-B | Language Framework (EN+AR) + RTL | 2.5h | âœ… DONE 2026-10-08 |
+| D1 | Google Maps → OpenStreetMap | 1.5h | ✅ DONE 2026-10-08 |
+| D2 | Customer Behavior Analytics | 2h | ✅ DONE 2026-10-08 |
+| D3 | Revenue Split Engine | 1.5h | ✅ DONE 2026-10-10 |
+| D4 | Google Ads / AdMob | 1h | 🟡 75% (Code Complete) |
+| D5 | Digital Marketing Dashboard | 2h | ⏳ NEXT |
+| D6-A | Country System (7 countries) | 1.5h | ✅ DONE 2026-10-08 |
+| D6-B | Language Framework (EN+AR) + RTL | 2.5h | ✅ DONE 2026-10-08 |
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## PHASE E â€” Growth & Viral System (Free Phase)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+**PHASE D — 71% (5/7)** 🎯
 
-### ðŸŽ¯ à´²à´•àµà´·àµà´¯à´‚: Month 1-6 â€” Pure Growth, Free for All
+═══════════════════════════════════════════════════════
+## PHASE H — MIGO Reserve (Guaranteed Reservation System)
+═══════════════════════════════════════════════════════
 
-**Philosophy:** à´Žà´²àµà´²à´¾à´‚ free. User base build à´šàµ†à´¯àµà´¯àµà´•. Brand awareness.
+### 🎯 ലക്ഷ്യം: D4D-നെ വെല്ലുന്ന Killer Feature
+
+**Philosophy:** Customer-ന് offer **guaranteed reservation** — wait ഇല്ല, doubt ഇല്ല.
+
+### 📋 Core Features
+
+| # | Feature | Description |
+|---|---------|-------------|
+| 1 | Limited Stock Offers | Shop 10/20/50 items offer ഇടുന്നു (e.g., 10 mobiles @ QAR 1200) |
+| 2 | Booking | Customer reserve ചെയ്യുന്നു — guaranteed |
+| 3 | Countdown Timer | Booking → offer end വരെ live timer |
+| 4 | Time-bound Pickup | Time കഴിഞ്ഞാൽ item auto-release |
+| 5 | No-wait Shopping | വരി നിൽക്കേണ്ട, guaranteed item |
+| 6 | Shop Dashboard | ഏത് customer, ഏത് time, എത്ര items |
+| 7 | Location Lock | ആ area-യിലെ customer-ന് മാത്രം book |
+| 8 | Rules Page + Accept | Common rules, accept ചെയ്തേ book ചെയ്യൂ |
+| 9 | Multi-role Control | super_admin/admin/agency/mod |
+| 10 | No-show Protection | 3 → 7-day ban, 5 → 30-day ban |
+| 11 | QR Pickup Verification | Anti-fraud GPS-verified pickup |
+| 12 | Push Notifications | 5-stage reminders (0/1h/2h/30m/expiry) |
+| 13 | Token Booking (optional) | QAR 10-50 refundable deposit |
+| 14 | Group Reserve (bonus) | 5 friends = 5% extra off |
+
+### 🗄️ New Collections
+
+- `reservations/{id}` — {
+    userUid, businessId, businessName, offerId, offerTitle,
+    quantity, unitPrice, currency,
+    bookedAt, expiresAt, pickedUpAt,
+    status: reserved/picked_up/expired/cancelled,
+    pickupCode, qrCode, notes,
+    tokenAmount, tokenRefunded
+  }
+
+- `reservation_rules/{id}` — {
+    version, title, textEn, textAr, textMl,
+    active, updatedAt, updatedBy
+  }
+
+- `no_show_log/{id}` — {
+    userUid, businessId, businessName, offerId,
+    reservationId, timestamp, reason
+  }
+
+- `reservation_config/{id}` — {
+    enabled: true/false,
+    defaultHoldHours: 4,
+    maxHoldHours: 24,
+    tokenRequired: false,
+    tokenAmount: 0,
+    noShowLimit7Day: 3,
+    noShowLimit30Day: 5,
+    banDurationDays: 7,
+    locationLockEnabled: true,
+    locationLockRadiusKm: 5
+  }
+
+### 🗄️ Firestore Indexes (Composite)
+
+- `reservations`: userUid + status + bookedAt DESC
+- `reservations`: businessId + status + bookedAt DESC
+- `reservations`: businessId + expiresAt
+- `reservations`: offerId + status
+- `no_show_log`: userUid + timestamp DESC
+
+### 📁 Files to Create (Future)
+
+**Mobile (Flutter):**
+- `lib/models/reservation_model.dart`
+- `lib/models/reservation_rules_model.dart`
+- `lib/services/reservation_service.dart`
+- `lib/features/reserve/booking_screen.dart`
+- `lib/features/reserve/my_bookings_screen.dart`
+- `lib/features/reserve/reservation_detail_screen.dart`
+- `lib/features/reserve/rules_screen.dart`
+- `lib/features/business/shop_bookings_screen.dart`
+- `lib/features/business/scan_pickup_screen.dart`
+
+**Admin (React):**
+- `admin/src/pages/ReservationsPage.jsx`
+- `admin/src/pages/ReservationRulesPage.jsx`
+- `admin/src/pages/ReservationConfigPage.jsx`
+
+### 💰 Revenue Model
+
+| Stream | Amount |
+|--------|--------|
+| Commission per booking | QAR 1-5 per successful pickup |
+| Token collection (if enabled) | QAR 10-50 (refundable) |
+| Featured reserve slots | Businesses pay for priority placement |
+| No-show forfeiture | Token → business (partial) |
+
+### 🎁 Benefits Matrix
+
+| Party | Benefit |
+|-------|---------|
+| **Customer** | Guaranteed item, no waiting, time-bound, easy QR pickup |
+| **Business** | Predictable footfall, reduced no-shows, real demand signal |
+| **MIGO** | Unique differentiator, new revenue, D4D-killer feature |
+
+### 🆚 Why This Beats D4D
+
+| Feature | D4D | MIGO Reserve |
+|---------|-----|--------------|
+| Browse offers | ✅ | ✅ |
+| **Guaranteed reservation** | ❌ | ✅ |
+| **Countdown timer** | ❌ | ✅ |
+| **No-wait shopping** | ❌ | ✅ |
+| **Shop dashboard** | ❌ | ✅ |
+| **Location lock** | ❌ | ✅ |
+| **No-show protection** | ❌ | ✅ |
+| **Group reserve** | ❌ | ✅ |
+| **Multi-language rules** | ❌ | ✅ |
+
+### 📅 PHASE H — Task Breakdown
+
+| # | Task | Time | Priority |
+|---|------|------|----------|
+| H1 | Data models (Flutter) | 1h | 🔥🔥🔥 |
+| H2 | ReservationService | 2h | 🔥🔥🔥 |
+| H3 | Booking screen (customer) | 2h | 🔥🔥🔥 |
+| H4 | Countdown timer widget | 1h | 🔥🔥🔥 |
+| H5 | My Bookings screen | 1.5h | 🔥🔥 |
+| H6 | Reservation detail + QR | 1.5h | 🔥🔥 |
+| H7 | Rules screen + accept flow | 1h | 🔥🔥 |
+| H8 | Shop dashboard (bookings list) | 2h | 🔥🔥 |
+| H9 | QR pickup scan (shop side) | 1.5h | 🔥🔥 |
+| H10 | Admin ReservationsPage | 2h | 🔥 |
+| H11 | Admin ReservationRulesPage | 1.5h | 🔥 |
+| H12 | Admin ReservationConfigPage | 1h | 🔥 |
+| H13 | Push notifications (5-stage) | 1.5h | 🔥 |
+| H14 | No-show tracking + ban | 1.5h | 🔥 |
+| H15 | Token booking (optional) | 1.5h | 🔥 |
+| H16 | Group reserve (bonus) | 2h | 🔥 |
+| H17 | Firestore rules + indexes | 1h | 🔥🔥 |
+| H18 | Seed reservation_config | 30m | 🔥 |
+| H19 | Testing + edge cases | 2h | 🔥🔥 |
+
+**Total PHASE H: ~30 hours**
+
+**Timeline:** After PHASE D complete (D5 + D4 fix), before PHASE E
+
+**Priority:** 🔥🔥🔥 **HIGHEST** — Killer feature for D4D competition
+
+### 🎯 PHASE H — Order of Implementation
+
+1. **Foundation:** H1, H2, H17, H18
+2. **Customer side:** H3, H4, H5, H6, H7
+3. **Business side:** H8, H9
+4. **Admin side:** H10, H11, H12
+5. **Enhancement:** H13, H14, H15, H16
+6. **QA:** H19
+
+═══════════════════════════════════════════════════════
+## PHASE E — Growth & Viral System (Free Phase)═══════════════════════════════════════════════════════
+
+### 🎯 ലക്ഷ്യം: Month 1-6 — Pure Growth, Free for All
+
+**Philosophy:** എല്ലാം free. User base build ചെയ്യുക. Brand awareness.
 
 ### PHASE E Tasks
 
 | # | Task | Time | Priority |
 |---|------|------|----------|
-| E1 | Auto-referral (Install Referrer + URL) | 4h | ðŸ”¥ðŸ”¥ðŸ”¥ |
-| E2 | Offer share (all users) | 3h | ðŸ”¥ðŸ”¥ðŸ”¥ |
-| E3 | Deep link + auto-apply code | 5h | ðŸ”¥ðŸ”¥ðŸ”¥ |
-| E4 | Claim attribution tracking | 3h | ðŸ”¥ðŸ”¥ |
-| E5 | User rewards (coins only, free) | 3h | ðŸ”¥ðŸ”¥ |
-| E6 | Vlogger accounts (free) | 5h | ðŸ”¥ðŸ”¥ |
-| E7 | Vlogger dashboard (data only, no cash) | 5h | ðŸ”¥ |
+| E1 | Auto-referral (Install Referrer + URL) | 4h | 🔥🔥🔥 |
+| E2 | Offer share (all users) | 3h | 🔥🔥🔥 |
+| E3 | Deep link + auto-apply code | 5h | 🔥🔥🔥 |
+| E4 | Claim attribution tracking | 3h | 🔥🔥 |
+| E5 | User rewards (coins only, free) | 3h | 🔥🔥 |
+| E6 | Vlogger accounts (free) | 5h | 🔥🔥 |
+| E7 | Vlogger dashboard (data only, no cash) | 5h | 🔥 |
 | E8 | Public creator profiles | 4h | Medium |
-| E9 | Business analytics (referrer tracking) | 4h | ðŸ”¥ |
-| E10 | Anti-fraud basic | 3h | ðŸ”¥ |
+| E9 | Business analytics (referrer tracking) | 4h | 🔥 |
+| E10 | Anti-fraud basic | 3h | 🔥 |
 
 **Total PHASE E: ~39 hours**
 
@@ -312,29 +475,29 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 **Cost:** MIGO invests
 **Revenue:** QAR 0
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## PHASE F â€” Coin System (Free Initially)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## PHASE F — Coin System (Free Initially)
+═══════════════════════════════════════════════════════
 
-### ðŸŽ¯ à´²à´•àµà´·àµà´¯à´‚: Simple, Sustainable Coin Economy
+### 🎯 ലക്ഷ്യം: Simple, Sustainable Coin Economy
 
 ### PHASE F Tasks
 
 | # | Task | Time | Priority |
 |---|------|------|----------|
-| F1 | Coin value: QAR 0.01 (initial) | 1h | ðŸ”¥ðŸ”¥ |
-| F2 | Remove daily login coin | 1h | ðŸ”¥ðŸ”¥ |
-| F3 | Remove instant share coin | 1h | ðŸ”¥ðŸ”¥ |
-| F4 | Add "share â†’ redeem" coin | 4h | ðŸ”¥ðŸ”¥ |
-| F5 | Referral (redeem-triggered) | 3h | ðŸ”¥ðŸ”¥ |
-| F6 | Coin Partner system (business opt-in) | 4h | ðŸ”¥ |
-| F7 | Coin redemption at checkout | 4h | ðŸ”¥ |
-| F8 | Milestone system | 3h | ðŸ”¥ |
-| F9 | Admin coin config | 4h | ðŸ”¥ |
-| F10 | Coin economy dashboard | 4h | ðŸ”¥ |
-| F11 | Business settlement | 4h | ðŸ”¥ |
-| F12 | Coin expiry (60 days) | 2h | ðŸ”¥ |
-| F13 | Fraud detection | 3h | ðŸ”¥ |
+| F1 | Coin value: QAR 0.01 (initial) | 1h | 🔥🔥 |
+| F2 | Remove daily login coin | 1h | 🔥🔥 |
+| F3 | Remove instant share coin | 1h | 🔥🔥 |
+| F4 | Add "share → redeem" coin | 4h | 🔥🔥 |
+| F5 | Referral (redeem-triggered) | 3h | 🔥🔥 |
+| F6 | Coin Partner system (business opt-in) | 4h | 🔥 |
+| F7 | Coin redemption at checkout | 4h | 🔥 |
+| F8 | Milestone system | 3h | 🔥 |
+| F9 | Admin coin config | 4h | 🔥 |
+| F10 | Coin economy dashboard | 4h | 🔥 |
+| F11 | Business settlement | 4h | 🔥 |
+| F12 | Coin expiry (60 days) | 2h | 🔥 |
+| F13 | Fraud detection | 3h | 🔥 |
 
 **Total PHASE F: ~42 hours**
 
@@ -348,8 +511,8 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 | Action | Coins |
 |--------|-------|
 | Own redeem | +5 |
-| Share â†’ friend redeems | +10 |
-| Referral â†’ first redeem | +50 |
+| Share → friend redeems | +10 |
+| Referral → first redeem | +50 |
 | Review after redeem | +10 |
 | Monthly milestone | +25-200 |
 
@@ -358,32 +521,32 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 
 **Value:** QAR 0.01 (increase later)
 **Expiry:** 60 days
-**Cash out:** âŒ Not allowed
+**Cash out:** ❌ Not allowed
 
 **No Daily Login. No Instant Share. Real Business Only.**
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## PHASE G â€” Monetization (Gradual)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## PHASE G — Monetization (Gradual)
+═══════════════════════════════════════════════════════
 
-### ðŸŽ¯ à´²à´•àµà´·àµà´¯à´‚: Month 6-24 â€” Gradual Revenue
+### 🎯 ലക്ഷ്യം: Month 6-24 — Gradual Revenue
 
 ### PHASE G Tasks
 
 | # | Task | Time | Priority |
 |---|------|------|----------|
-| G1 | Free + Paid subscription plans | 4h | ðŸ”¥ðŸ”¥ |
-| G2 | Payment gateway (QPay/Stripe) | 6h | ðŸ”¥ |
-| G3 | Subscription billing | 4h | ðŸ”¥ |
-| G4 | Per-offer fee (beyond free) | 3h | ðŸ”¥ |
-| G5 | Small commission (0.5% initial) | 4h | ðŸ”¥ |
-| G6 | Vlogger commission (tier-based) | 5h | ðŸ”¥ |
-| G7 | Business dashboard (ROI) | 4h | ðŸ”¥ |
-| G8 | Vlogger earnings dashboard | 4h | ðŸ”¥ |
-| G9 | Payout system | 4h | ðŸ”¥ |
-| G10 | Revenue reports | 3h | ðŸ”¥ |
-| G11 | Commission verification (7-day hold) | 3h | ðŸ”¥ |
-| G12 | Anti-fraud (monetization) | 3h | ðŸ”¥ |
+| G1 | Free + Paid subscription plans | 4h | 🔥🔥 |
+| G2 | Payment gateway (QPay/Stripe) | 6h | 🔥 |
+| G3 | Subscription billing | 4h | 🔥 |
+| G4 | Per-offer fee (beyond free) | 3h | 🔥 |
+| G5 | Small commission (0.5% initial) | 4h | 🔥 |
+| G6 | Vlogger commission (tier-based) | 5h | 🔥 |
+| G7 | Business dashboard (ROI) | 4h | 🔥 |
+| G8 | Vlogger earnings dashboard | 4h | 🔥 |
+| G9 | Payout system | 4h | 🔥 |
+| G10 | Revenue reports | 3h | 🔥 |
+| G11 | Commission verification (7-day hold) | 3h | 🔥 |
+| G12 | Anti-fraud (monetization) | 3h | 🔥 |
 
 **Total PHASE G: ~50 hours**
 
@@ -465,9 +628,9 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 | After 12 months | QAR 49-199 + 0.5% |
 | After 24 months | QAR 49-299 + 1% |
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## ðŸŽ¯ REALISTIC PRINCIPLE â€” "Free First, Gradual Monetization"
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## 🎯 REALISTIC PRINCIPLE — "Free First, Gradual Monetization"
+═══════════════════════════════════════════════════════
 
 ### Core Rules
 
@@ -498,37 +661,37 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 
 ### Never Do
 
-- âŒ 3 revenue streams at once (initially)
-- âŒ High commission (from start)
-- âŒ Expensive subscriptions (from start)
-- âŒ Coin value too high
-- âŒ Over-charge shops
+- ❌ 3 revenue streams at once (initially)
+- ❌ High commission (from start)
+- ❌ Expensive subscriptions (from start)
+- ❌ Coin value too high
+- ❌ Over-charge shops
 
 ### Always Do
 
-- âœ… Free first
-- âœ… Small gradual increases
-- âœ… Customer value first
-- âœ… Shop-friendly pricing
-- âœ… Sustainable growth
+- ✅ Free first
+- ✅ Small gradual increases
+- ✅ Customer value first
+- ✅ Shop-friendly pricing
+- ✅ Sustainable growth
 
 ### BONUS (Completed)
 | # | Task | Status |
 |---|------|--------|
-| X1 | Referral System (Landing page + APK) | âœ… |
-| X2 | Location Auto-Detection | âœ… |
-| X3 | GitHub Releases Hosting | âœ… |
-| X4 | Admin Mobile Responsive | âœ… |
-| X5 | Admin Panel (6 CRUD pages) | âœ… |
+| X1 | Referral System (Landing page + APK) | ✅ |
+| X2 | Location Auto-Detection | ✅ |
+| X3 | GitHub Releases Hosting | ✅ |
+| X4 | Admin Mobile Responsive | ✅ |
+| X5 | Admin Panel (6 CRUD pages) | ✅ |
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 7: Referral System (Complete)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## ഭാഗം 7: Referral System (Complete)
+═══════════════════════════════════════════════════════
 
 ### Flow:
 1. User A shares referral code (e.g., 3WHT9X)
 2. Sends link: migo-app-3030e.web.app/r/3WHT9X
-3. User B opens link â†’ landing page
+3. User B opens link → landing page
 4. Landing shows code + Download button
 5. User B downloads APK from GitHub
 6. User B signs up with code 3WHT9X
@@ -545,9 +708,9 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 - admin/public/r/index.html
 - admin/firebase.json (SPA rewrite)
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 8: Admin Panel Pages (C1-C7 + D6-A)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## ഭാഗം 8: Admin Panel Pages (C1-C7 + D6-A + D3 + D4)
+═══════════════════════════════════════════════════════
 
 | Page | File | Purpose |
 |------|------|---------|
@@ -563,10 +726,15 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 | Reviews | ReviewsPage.jsx | Filters/stats (C3) |
 | Pricing | PricingPage.jsx | Plans/Fees/Commission (C4) |
 | Agencies | AgenciesPage.jsx | Full CRUD (C7) |
+| Business Map | BusinessesMapPage.jsx | OpenStreetMap (D1) |
+| Analytics | AnalyticsPage.jsx | Customer Behavior (D2) |
+| App Strings | StringsPage.jsx | i18n editor (D6-B) |
+| Ads Config | AdsConfigPage.jsx | AdMob toggle (D4) |
+| Revenue Split | RevenueSplitPage.jsx | Split engine (D3) |
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 9: Seed Scripts (_seed/)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## ഭാഗം 9: Seed Scripts (_seed/)
+═══════════════════════════════════════════════════════
 
 | Script | Purpose |
 |--------|---------|
@@ -575,38 +743,33 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 | seed-pricing-config.mjs | Per-offer fees + commission tiers |
 | seed-agencies.mjs | 3 test agencies |
 | seed-countries-v2.mjs | 7 countries (D6-A) |
+| seed-ads-config.mjs | config/ads (D4) |
+| seed-revenue-split-config.mjs | config/revenue_split (D3) |
 | check-reviews.mjs | Verify reviews |
 | check-role.mjs | Verify user roles |
 | check-agencies.mjs | Verify agencies |
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 10: Google Maps Integration Plan
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## ഭാഗം 10: Google Maps Integration Plan
+═══════════════════════════════════════════════════════
 
-### à´Žà´¨àµà´¤à´¿à´¨àµ?
-1. à´¬à´¿à´¸à´¿à´¨à´¸àµ à´²àµŠà´•àµà´•àµ‡à´·àµ» à´•à´¾à´£à´¿à´•àµà´•à´¾àµ»
-2. à´…à´Ÿàµà´¤àµà´¤àµà´³àµà´³ à´“à´«à´±àµà´•àµ¾ à´•à´¾à´£à´¿à´•àµà´•à´¾àµ»
-3. à´à´°à´¿à´¯ boundary (polygon) à´‰à´£àµà´Ÿà´¾à´•àµà´•à´¾àµ»
-4. à´à´œàµ»à´¸à´¿ à´ªàµà´°à´¦àµ‡à´¶à´‚ à´•àµˆà´•à´¾à´°àµà´¯à´‚ à´šàµ†à´¯àµà´¯à´¾àµ»
+### എന്തിന്?
+1. ബിസിനസ് ലൊക്കേഷൻ കാണിക്കാൻ
+2. അടുത്തുള്ള ഓഫറുകൾ കാണിക്കാൻ
+3. ഏരിയ boundary (polygon) ഉണ്ടാക്കാൻ
+4. ഏജൻസി പ്രദേശം കൈകാര്യം ചെയ്യാൻ
 
-### à´†à´µà´¶àµà´¯à´®à´¾à´¯à´¤àµ
-- Google Cloud Account (à´‰à´£àµà´Ÿàµ)
-- Maps API Key, Places API, Geocoding API
-- Billing enabled (free tier: $200/month)
+### Current Implementation (D1 — DONE)
+- OpenStreetMap + Leaflet (100% free, no API key)
+- Admin BusinessesMapPage.jsx
+- Color-coded markers by status
+- Filters + search
 
-### Flutter Packages
-- google_maps_flutter: ^2.6.0
-- geolocator: ^11.0.0
-- geocoding: ^3.0.0
+═══════════════════════════════════════════════════════
+## ഭാഗം 11: Customer Behavior Analytics Plan
+═══════════════════════════════════════════════════════
 
-### Admin Panel
-- @react-google-maps/api
-
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 11: Customer Behavior Analytics Plan
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-
-### à´Žà´¨àµà´¤àµ track à´šàµ†à´¯àµà´¯àµà´‚?
+### എന്ത് track ചെയ്യും?
 | Action | Data Collected |
 |--------|---------------|
 | View offer | userUid, offerId, category, time |
@@ -616,24 +779,35 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 | Save | userUid, offerId/businessId |
 | Review | rating, comment |
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 12: Google Ads / AdMob Plan
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## ഭാഗം 12: Google Ads / AdMob Plan (D4 — 75%)
+═══════════════════════════════════════════════════════
 
 ### 3 Ad Placements
-1. **Home Banner** â€” Top of home screen
-2. **Between Deals** â€” In offer list (native)
-3. **Interstitial** â€” After claim
+1. **Home Banner** — Top of home screen
+2. **Between Deals** — In offer list (native, every 5th card)
+3. **Interstitial** — After claim (every 3rd claim, 60s gap)
 
 ### AdMob Setup
 - AdMob account (free)
-- App ID + Ad Unit IDs
-- flutter package: google_mobile_ads: ^5.0.0
+- App ID + Ad Unit IDs (Test IDs configured)
+- flutter package: google_mobile_ads: ^6.0.0
 - Est. revenue: $1-5 per 1000 views
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 13: D6-A â€” Country System (DONE 2026-10-08)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+### Test IDs (Active)
+- App ID: ca-app-pub-3940256099942544~3347511713
+- Banner: ca-app-pub-3940256099942544/6300978111
+- Interstitial: ca-app-pub-3940256099942544/1033173712
+- Native: ca-app-pub-3940256099942544/2247696110
+
+### Known Issue
+- Flutter SDK 3.30+ requires Gradle 9.1.0+ / AGP 9.0.1+ / Kotlin 2.2.20+
+- google_mobile_ads 6.0.0 supports Gradle 8.x only
+- **Resolution:** Flutter SDK downgrade OR wait for Google fix
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 13: D6-A — Country System (DONE 2026-10-08)
+═══════════════════════════════════════════════════════
 
 ### 7 Countries Seeded
 | Code | Name | Currency | Dial | Locales | RTL |
@@ -654,29 +828,10 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 - AuthService.signUp(): country params
 - signup_screen: country dropdown
 - profile_screen: country switcher bottom sheet
-- Wallet/Offer/Business: dynamic currency (already)
 
-### Files Changed
-- lib/models/country_model.dart
-- lib/models/user_model.dart
-- lib/services/location_service.dart
-- lib/services/auth_service.dart
-- lib/core/config/app_config.dart
-- lib/features/auth/signup_screen.dart
-- lib/features/profile/profile_screen.dart
-- lib/features/wallet/wallet_screen.dart
-- lib/widgets/pick_for_me_sheet.dart
-- admin/src/pages/GeographyPage.jsx (CountriesTab enhanced)
-- admin/src/pages/StringsPage.jsx (NEW â€” D6-B)
-- lib/models/language_model.dart (NEW â€” D6-B)
-- lib/services/localization_service.dart (NEW â€” D6-B)
-- lib/core/localization/locale_provider.dart (NEW â€” D6-B)
-- lib/main.dart (RTL + ListenableBuilder)
-- lib/features/profile/profile_screen.dart (Language switcher)
-
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 14: D6-B â€” Language Framework (NEXT)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## ഭാഗം 14: D6-B — Language Framework (DONE 2026-10-08)
+═══════════════════════════════════════════════════════
 
 ### Scope
 - Languages: en, ar
@@ -685,46 +840,45 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 - Flutter: LocalizationService (Firestore fetch)
 - Fallback: en
 
-### Plan (~2.5h)
-| Step | Task | Est. |
-|------|------|------|
-| B1 | languages collection seed | 15m |
-| B2 | app_strings collection + seed (~150 strings) | 30m |
-| B3 | Admin Strings Editor page | 1h |
-| B4 | Flutter LocalizationService | 30m |
-| B5 | Flutter RTL auto-layout | 15m |
-| B6 | Test | 15m |
+### Completed
+- 2 languages seeded (en, ar)
+- 288 app_strings seeded (144 keys × 2 langs)
+- Admin Strings Editor page created
+- Flutter LocalizationService + LocaleProvider
+- RTL auto-layout (Directionality)
+- Profile — language switcher
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 15: Progress Tracker
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## ഭാഗം 15: Progress Tracker
+═══════════════════════════════════════════════════════
 
 ### Legend
-âœ… Done | â³ In Progress | âŒ Not Started | âš ï¸ Blocked
+✅ Done | 🟡 Partial | ⏳ In Progress | ❌ Not Started
 
 ### Overall Progress
 
-PHASE A: [âœ…âœ…âœ…âœ…âœ…] 100% (5/5) ðŸŽ‰
-PHASE B: [âœ…âœ…âœ…âœ…âœ…] 100% (5/5) ðŸŽ‰
-PHASE C: [âœ…âœ…âœ…âœ…âœ…âœ…âœ…] 100% (7/7) ðŸŽ‰
-PHASE D: [âœ…âœ…âœ…âœ…â¬œâ¬œ] 67% (4/6)
-PHASE E: [â¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œ] 0% (0/10) â€” Free Growth
-PHASE F: [â¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œ] 0% (0/13) â€” Coin System
-PHASE G: [â¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œâ¬œ] 0% (0/12) â€” Monetization
+PHASE A: [✅✅✅✅✅] 100% (5/5) 🎉
+PHASE B: [✅✅✅✅✅] 100% (5/5) 🎉
+PHASE C: [✅✅✅✅✅✅✅] 100% (7/7) 🎉
+PHASE D: [✅✅✅🟡⬜✅✅] 71% (5/7)
+PHASE E: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/10) — Free Growth
+PHASE F: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/13) — Coin System
+PHASE G: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/12) — Monetization
+PHASE H: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/19) — MIGO Reserve
 
-BONUS:  Referral âœ…, Location âœ…, GitHub âœ…, Responsive âœ…, Admin CRUD âœ…
+BONUS:  Referral ✅, Location ✅, GitHub ✅, Responsive ✅, Admin CRUD ✅
 
-TOTAL:   [âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…â¬œâ¬œ] 87% (20/23)
+TOTAL:   [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 52% (21/40)
 
 ### Change Log
 
 - 2026-10-05: Plan v2.0 created
 - 2026-10-05: Task A1-A5 completed (PHASE A 100%)
 - 2026-10-05: Task B1 completed (Firestore rules)
-- 2026-10-05: UI Polish â€” Home tab mobile optimization
+- 2026-10-05: UI Polish — Home tab mobile optimization
 - 2026-10-06: Task B5 completed (Dynamic Categories)
 - 2026-10-06: Admin Panel deployed live
-- 2026-10-06: Admin Panel â€” Full mobile responsive
+- 2026-10-06: Admin Panel — Full mobile responsive
 - 2026-10-07: Task B2 completed (6-tier Role System)
 - 2026-10-07: Task B3 completed (Geographic Hierarchy)
 - 2026-10-07: Customer location auto-detection
@@ -734,14 +888,14 @@ TOTAL:   [âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…
 - 2026-10-07: Task B4 completed (Database Schema Redesign)
 - 2026-10-07: 17 composite indexes deployed to Firebase
 - 2026-10-07: DATABASE-SCHEMA.md created
-- 2026-10-07: PHASE B 100% COMPLETE ðŸŽ‰
+- 2026-10-07: PHASE B 100% COMPLETE 🎉
 - 2026-10-08: Task C1 completed (Business CRUD)
 - 2026-10-08: Task C2 completed (Revenue Dashboard)
 - 2026-10-08: Task C3 completed (Reviews Management)
 - 2026-10-08: Task C4 completed (Package Pricing Editor)
 - 2026-10-08: Task C6 verified (RolesPage covers staff mgmt)
 - 2026-10-08: Task C7 completed (Agency Panel)
-- 2026-10-08: PHASE C 100% COMPLETE ðŸŽ‰
+- 2026-10-08: PHASE C 100% COMPLETE 🎉
 - 2026-10-08: D6-A completed (Country System)
 - 2026-10-08: 7 countries seeded (QA/AE/SA/KW/BH/OM/IN)
 - 2026-10-08: CountryModel extended (6 new fields)
@@ -750,11 +904,11 @@ TOTAL:   [âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…
 - 2026-10-08: MASTER PLAN v2.2
 - 2026-10-08: D6-B completed (Language Framework + RTL)
 - 2026-10-08: 2 languages seeded (en, ar)
-- 2026-10-08: 288 app_strings seeded (144 keys Ã— 2 langs)
+- 2026-10-08: 288 app_strings seeded (144 keys × 2 langs)
 - 2026-10-08: Admin Strings Editor page created
 - 2026-10-08: Flutter LocalizationService + LocaleProvider
 - 2026-10-08: RTL auto-layout (Directionality)
-- 2026-10-08: Profile â€” language switcher
+- 2026-10-08: Profile — language switcher
 - 2026-10-08: MASTER PLAN v2.3
 - 2026-10-08: D1 completed (Business Map Integration)
 - 2026-10-08: Chose OpenStreetMap + Leaflet (100% free, no API key)
@@ -763,21 +917,45 @@ TOTAL:   [âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…
 - 2026-10-08: Color-coded markers by status + filters + search
 - 2026-10-08: MASTER PLAN v2.4
 - 2026-10-08: D2 completed (Customer Behavior Analytics)
-- 2026-10-08: AnalyticsService (Flutter) â€” view/save/search events
+- 2026-10-08: AnalyticsService (Flutter) — view/save/search events
 - 2026-10-08: customer_behavior collection + Firestore rules
-- 2026-10-08: Admin AnalyticsPage.jsx â€” charts + filters
+- 2026-10-08: Admin AnalyticsPage.jsx — charts + filters
 - 2026-10-08: 135 test events seeded
 - 2026-10-08: MASTER PLAN v2.5
 - 2026-10-09: Realistic model discussion
-- 2026-10-09: PHASE E (Growth & Viral) defined â€” Free phase
-- 2026-10-09: PHASE F (Coin System) defined â€” Free initially, QAR 0.01
-- 2026-10-09: PHASE G (Monetization) defined â€” Gradual approach
+- 2026-10-09: PHASE E (Growth & Viral) defined — Free phase
+- 2026-10-09: PHASE F (Coin System) defined — Free initially, QAR 0.01
+- 2026-10-09: PHASE G (Monetization) defined — Gradual approach
 - 2026-10-09: Principle: "Free first, gradual monetization"
 - 2026-10-09: Realistic revenue projection (Year 1-3)
 - 2026-10-09: MASTER PLAN v2.6
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 16: Important Info
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+- 2026-10-09: PHASE E/F/G — Detailed Design (v2.7)
+- 2026-10-09: MASTER PLAN v2.7
+- 2026-10-10: D4 code completed (11 files)
+- 2026-10-10: Firestore config/ads created
+- 2026-10-10: Android Studio (Rabbit 2026.2.1) setup
+- 2026-10-10: Android Emulator (Medium Phone API 37.0) setup
+- 2026-10-10: Windows Hypervisor Platform enabled
+- 2026-10-10: Java 17 (Temurin 17.0.20.101) installed
+- 2026-10-10: Flutter JDK config set
+- 2026-10-10: Gradle: 9.3.1 → 8.14.0 (for google_mobile_ads)
+- 2026-10-10: AGP: 9.1.0 → 8.11.1 (Flutter min)
+- 2026-10-10: Kotlin: 2.4.0 → 2.0.21
+- 2026-10-10: D4 build blocked (Flutter SDK compatibility)
+- 2026-10-10: D3 completed (Revenue Split Engine)
+- 2026-10-10: RevenueSplitPage.jsx created (21,714 bytes)
+- 2026-10-10: seed-revenue-split-config.mjs created (1,704 bytes)
+- 2026-10-10: Firestore config/revenue_split created
+- 2026-10-10: MASTER PLAN v2.8
+- 2026-10-10: PHASE H added (MIGO Reserve — Guaranteed Reservation System)
+- 2026-10-10: 19 new tasks (H1-H19) planned
+- 2026-10-10: 4 new collections (reservations, rules, no_show_log, config)
+- 2026-10-10: D4D-differentiator feature documented
+- 2026-10-10: MASTER PLAN v2.9
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 16: Important Info
+═══════════════════════════════════════════════════════
 
 ### Firebase
 - Project: migo-app-3030e
@@ -788,689 +966,55 @@ TOTAL:   [âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…âœ…
 - Admin: test1@migoapp.com / Migo@2026 (role: admin)
 - Customer: test2@migoapp.com / Migo@2026
 
+### Setup Completed (2026-10-10)
+- Android Studio: Rabbit 2026.2.1
+- Android Emulator: Medium Phone API 37.0 (Android 17)
+- Java: Temurin 17.0.20.101
+- Flutter JDK: C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot
+
 ### Backups
 - migo-backup-2026-10-06
 - migo-backup-2026-10-07
-- Desktop: MIGO-MASTER-PLAN.md (26 KB)
+- MIGO-MASTER-PLAN-v2.6-BACKUP.txt
+- MIGO-MASTER-PLAN-v2.7-BACKUP.txt
 
 ### APK Files
 - Desktop: MIGO-v1.3.1.apk (69.8 MB)
 - GitHub: solvexetech-cloud/migo-releases
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-## à´­à´¾à´—à´‚ 17: Next Steps (Priority Order)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+═══════════════════════════════════════════════════════
+## ഭാഗം 17: Next Steps (Priority Order)
+═══════════════════════════════════════════════════════
 
 ### Immediate (Next Session)
-1. **D4 â€” Google Ads / AdMob** (1h)
-2. **D3 â€” Revenue Split Engine** (1.5h)
-3. **D5 â€” Digital Marketing Dashboard** (2h)
+1. **D5 — Digital Marketing Dashboard** (2h) — Complete PHASE D
+2. **D4 Build Fix** (1-2h) — Flutter SDK downgrade or wait
+3. **PHASE H Start** — MIGO Reserve (D4D-killer feature) 🔥
+4. **PHASE E Start** — Growth & Viral
 
-### After Current Road Map (100%)
-- **PHASE E** â€” Growth & Viral (Free phase, Month 1-6)
-- **PHASE F** â€” Coin System (Free initially, Month 4-12)
-- **PHASE G** â€” Monetization (Gradual, Month 6-24)
+### Priority Order (After D5 + D4)
+1. **PHASE H — MIGO Reserve** (30h) — HIGHEST priority, D4D-killer
+2. **PHASE E — Growth & Viral** (39h) — User acquisition
+3. **PHASE F — Coin System** (42h) — Retention
+4. **PHASE G — Monetization** (50h) — Revenue
+
+### PHASE E — Growth & Viral (Free, Month 1-6)
+- E1: Auto-referral (Install Referrer + URL) — 4h
+- E2: Offer share (all users) — 3h
+- E3: Deep link + auto-apply code — 5h
+
+### PHASE F — Coin System (Free, Month 4-12)
+### PHASE G — Monetization (Gradual, Month 6-24)
 
 ### Long-term Vision
-- Year 1: Investment + Initial Revenue
-- Year 2: Profitable Growth
-- Year 3: Scale + Multiple Streams
-   - languages collection
-   - app_strings collection + seed
-   - Admin Strings Editor
-   - Flutter LocalizationService
-   - RTL auto-layout
-
-### PHASE D (After D6-B)
-- D2 Customer Behavior Analytics (2h)
-- D3 Revenue Split Engine (1.5h)
-- D1 Google Maps Integration (1.5h)
-- D4 Google Ads / AdMob (1h)
-- D5 Digital Marketing Dashboard (2h)
+- Year 1: Investment + Initial Revenue (QAR 5,000 net)
+- Year 2: Profitable Growth (QAR 92,000 net)
+- Year 3: Scale + Multiple Streams (QAR 4,20,000 net)
 
 ### Final
 - Play Store submission
 - iOS build + App Store
 
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-END OF MASTER PLAN v2.6
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-
 ═══════════════════════════════════════════════════════
-## PHASE E/F/G — DETAILED DESIGN (v2.7)
+END OF MASTER PLAN v2.9
 ═══════════════════════════════════════════════════════
-
-### 🔗 SECTION A: Referral System (Detailed)
-
-#### A1. Auto-Referral Flow (Install Referrer)
-
-**Target:** User clicks referral link → Auto-install → Auto-apply code (no typing)
-
-**Flow (Not Installed):**
-1. User A shares: https://migo-app-3030e.web.app/r/3WHT9X
-2. User B clicks link → Web landing page
-3. Landing page has:
-   - Code: 3WHT9X (visible)
-   - "Download MIGO" button
-   - Play Store link with referrer: play.google.com/store/apps/details?id=com.migo.app&referrer=ref%3D3WHT9X
-   - Alternative: APK download (URL param saved)
-4. User B installs APK or Play Store app
-5. App first launch:
-   - Install Referrer API reads "ref=3WHT9X" (Play Store)
-   - Or SharedPreferences reads URL param (APK)
-6. Auto-applies code to user account
-7. User B signs up → Code already filled
-8. User B makes first claim → Both get coins
-
-**Flow (Already Installed):**
-1. User B clicks: https://migo-app-3030e.web.app/r/3WHT9X
-2. Web landing page detects MIGO installed (deep link ready)
-3. Landing page has: "Open in MIGO" button
-4. Tap → App opens with deep link
-5. Code 3WHT9X applied to existing account
-6. If code already applied → Notification "You already have a referral code"
-7. Otherwise → Applied successfully
-
-#### A2. Link Format
-
-**Referral Link:**
-https://migo-app-3030e.web.app/r/{CODE}
-
-**Offer Share Link:**
-https://migo-app-3030e.web.app/o/{offerId}?ref={CODE}
-
-**Play Store Link (with referrer):**
-https://play.google.com/store/apps/details?id=com.migo.app&referrer=ref%3D{CODE}
-
-**APK Link (with ref param):**
-https://github.com/solvexetech-cloud/migo-releases/releases/download/v1.3.1/MIGO-v1.3.1.apk?ref={CODE}
-
-#### A3. Install Referrer API (Play Store)
-
-**Flutter Package:** android_install_referrer
-
-**Implementation:**
-1. App first launch → InstallReferrerService.fetch()
-2. Gets: "ref=3WHT9X"
-3. Parse referral code
-4. Save to SharedPreferences
-5. Apply during signup
-
-**Delay:** Play Store referrer available within 10 seconds of first launch.
-
-#### A4. APK Flow (Website)
-
-**Website captures:** URL param `ref=CODE`
-**Stores:** Cookie + URL parameter
-**Redirects to:** APK download URL with ref param
-
-**APK Install → First Launch:**
-- No Install Referrer (not Play Store)
-- Alternative: Deep link or manual code entry
-- Or use: Referrer URL stored in web cookie + email link
-
-**Best for now:** Manual code entry (simple) + automatic web-based code (if possible)
-
-#### A5. Edge Cases
-
-**Case 1: User already has a referral code**
-- New code ignored
-- Show: "You already have referral code {existing}"
-
-**Case 2: Self-referral**
-- Blocked (same device, IP)
-- Show: "Cannot refer yourself"
-
-**Case 3: Multiple clicks**
-- First code wins
-- Others ignored
-
-**Case 4: Link expired**
-- Show: "Link expired"
-- Redirect to home
-
-**Case 5: Code not found**
-- Show: "Invalid referral code"
-- Allow manual entry
-
-#### A6. Reward (Referral)
-
-**User A (Referrer):**
-- +50 coins when User B makes first claim
-
-**User B (Referred):**
-- +30 coins when makes first claim
-
-**Both get coins on first claim (not signup).**
-
----
-
-### 💰 SECTION B: Coin System (Detailed)
-
-#### B1. Coin Value
-
-| Phase | Coin Value |
-|-------|-----------|
-| Initial (Month 1-6) | QAR 0.01 |
-| After 6 months | QAR 0.015 |
-| After 12 months | QAR 0.02 |
-| After 24 months | QAR 0.025 |
-
-**Standard:** 100 coins = QAR 1 (initial)
-
-#### B2. Coin Earning (Detailed)
-
-**REAL ACTIONS ONLY:**
-
-| Action | Coins | Trigger |
-|--------|-------|---------|
-| Own redeem | +5 | QR scan at business |
-| Share → friend redeems | +10 | Friend's redeem |
-| Referral → first claim | +50 | Referred's first redeem |
-| Write verified review | +10 | After redeem |
-| 5 redeems/month | +25 | Monthly milestone |
-| 10 redeems/month | +50 | Monthly milestone |
-| 20 redeems/month | +100 | Monthly milestone |
-
-**REMOVED:**
-- ❌ Daily login coin
-- ❌ Instant share coin
-- ❌ Any free coin
-
-#### B3. Coin Caps
-
-| Cap | Value |
-|-----|-------|
-| Daily cap per user | 20 coins |
-| Monthly cap per user | 200 coins |
-| Max per single action | 50 coins |
-
-**Admin configurable.**
-
-#### B4. Coin Usage
-
-| Rule | Value |
-|------|-------|
-| Minimum per use | 50 coins |
-| Maximum per transaction | 20% of order value |
-| Usable at | Coin Partner shops only |
-| Expiry | 60 days |
-| Cash out | ❌ Not allowed |
-| Transfer to friend | ✅ Yes (max 3/month) |
-
-#### B5. Coin Use Example
-
-**Order:** QAR 50
-**Coins available:** 200
-**Max usable:** 200 coins (QAR 2) — 20% cap = QAR 10 → so 200 coins OK
-
-**Final:**
-- Customer pays: QAR 48
-- MIGO pays business: QAR 2
-- Business receives: QAR 50 (full)
-- Coins deducted: 200
-
-#### B6. Coin Partner System
-
-**Business decides:**
-- Opt-in to accept coins
-- Monthly limit (e.g., 25,000 coins)
-- Per-transaction limit (5%, 10%, 20%)
-
-**Admin sets:**
-- Default limits
-- Maximum per business
-- Total monthly budget
-
-**MIGO pays business:**
-- Month-end settlement
-- Full coin value (QAR)
-- Bank transfer
-
-#### B7. Coin Value Evolution
-
-| Phase | Coin Value | Reason |
-|-------|-----------|--------|
-| Initial | QAR 0.01 | Test phase |
-| 6 months | QAR 0.015 | Growth |
-| 12 months | QAR 0.02 | Established |
-| 24 months | QAR 0.025 | Scale |
-
-**Adjustment:** Based on MIGO revenue, coin liability.
-
-#### B8. Coin Economy (Small Scale)
-
-**With 1,000 users:**
-- Monthly coins earned: 1,00,000
-- Redeemed (40%): 40,000
-- **MIGO Cost:** 40,000 × QAR 0.01 = QAR 400
-- **Sustainable** if MIGO has any revenue.
-
-#### B9. Coin Economy (Medium Scale)
-
-**With 10,000 users:**
-- Monthly coins earned: 10,00,000
-- Redeemed (40%): 4,00,000
-- **MIGO Cost:** 4,00,000 × QAR 0.01 = QAR 4,000
-- **Funded by:** Subscriptions + commission.
-
-#### B10. Coin Economy (Large Scale)
-
-**With 50,000 users:**
-- Monthly coins earned: 50,00,000
-- Redeemed (40%): 20,00,000
-- **MIGO Cost:** 20,00,000 × QAR 0.015 = QAR 30,000
-- **Funded by:** Full revenue ecosystem.
-
-#### B11. Anti-Fraud
-
-| Fraud | Prevention |
-|-------|-----------|
-| Fake redeem | QR scan required |
-| Same device multi-account | Device fingerprint |
-| IP patterns | Block IP |
-| Rapid claims | Rate limiting |
-| Bulk coin gifting | Daily caps |
-| Self-referral | Block |
-
-
----
-
-### 🎬 SECTION C: Vlogger Commission (Detailed)
-
-#### C1. Vlogger Tiers
-
-| Tier | Followers | Commission | Extras |
-|------|-----------|------------|--------|
-| Bronze | 0 - 5K | 0.5% | Basic dashboard |
-| Silver | 5K - 50K | 1% | Verified badge + gift |
-| Gold | 50K - 500K | 1.5% | Priority + bulk gift |
-| Platinum | 500K+ | 2% | Custom + direct |
-
-**Tier Upgrade:**
-- Auto by follower count (verified via social media)
-- Manual upgrade option (admin)
-- Downgrade if inactive 90 days
-
-#### C2. Commission Calculation
-
-**Formula:**
-Vlogger Commission = Claim Value × Commission Rate
-
-**Example (Silver Vlogger, 1%):**
-- Claim value: QAR 40
-- Commission: 1% = QAR 0.40
-- MIGO platform fee: 10% = QAR 0.04
-- Net to vlogger: QAR 0.36
-
-#### C3. Shop Cost Breakdown
-
-**Shop pays (per vlogger-attributed claim):**
-
-| Item | Amount |
-|------|--------|
-| Discount (already) | QAR 10 |
-| Subscription | (monthly) |
-| Per-offer fee | (per offer) |
-| Vlogger commission | QAR 0.40 |
-| **Total per claim** | QAR 10.40 |
-
-**Shop revenue from claim:** QAR 40
-**Shop net:** QAR 29.60 + customer value
-
-**Cost as % of revenue:** 1% (acceptable)
-
-#### C4. Commission Evolution (Gradual)
-
-| Phase | Bronze | Silver | Gold | Platinum |
-|-------|--------|--------|------|----------|
-| Phase 1 (0-6mo) | 0% | 0% | 0% | 0% |
-| Phase 2 (6-12mo) | 0.25% | 0.5% | 0.75% | 1% |
-| Phase 3 (12-18mo) | 0.5% | 1% | 1.5% | 2% |
-| Phase 4 (18-24mo) | 0.75% | 1.25% | 1.75% | 2.25% |
-| Phase 5 (24mo+) | 1% | 1.5% | 2% | 2.5% |
-
-**Gradual increase based on shop acceptance.**
-
-#### C5. Commission Payout
-
-**Options:**
-
-1. **Cash (Bank Transfer)** — Min QAR 100
-2. **MIGO Coins** — 1.2x bonus value
-3. **Gift to Fans** — Split + distribute
-4. **Mixed** — Any combination
-
-**Example:**
-- Vlogger earns QAR 100
-- Take QAR 50 cash + 60,000 coins (worth QAR 60)
-- Or: All cash
-- Or: All coins + gift 500 fans × 100 coins
-
-#### C6. Verification (7-Day Hold)
-
-**Process:**
-1. Claim happens → Pending
-2. 7-day verification
-3. Anti-fraud check
-4. Confirmed → Vlogger credited
-5. Paid at month-end
-
-**Vlogger sees:**
-- Pending: QAR 48
-- Confirmed: QAR 40
-- Paid: QAR 40
-
-#### C7. Regular User vs Vlogger
-
-| Aspect | Regular User | Vlogger |
-|--------|--------------|---------|
-| Share reward | Coins | Coins |
-| Claim reward | Coins | Cash + Coins |
-| Amount | ~QAR 0.10/claim | ~QAR 0.40/claim |
-| Who pays | MIGO | Shop |
-| Cash out | No | Yes |
-| Verification | No | Yes (tier) |
-
-**Fair differentiation by role.**
-
-#### C8. Vlogger Dashboard
-
-**Sections:**
-- Overall: clicks, installs, signups, claims
-- Revenue: total generated, commission, pending
-- Top offers: best performing
-- Business impact: verified data
-- Gift management: send coins to fans
-- Public profile: share-able
-
----
-
-### 🗄️ SECTION D: Firestore Collections (New)
-
-#### D1. influencers/{uid}
-
-| Field | Type | Notes |
-|-------|------|-------|
-| uid | string | FK users.uid |
-| displayName | string | Public name |
-| email | string | Contact |
-| phone | string | Contact |
-| youtubeUrl | string | Channel link |
-| instagramUrl | string | Profile link |
-| tiktokUrl | string | Profile link |
-| profileImage | string | Avatar URL |
-| bio | string | Short description |
-| referralCode | string | Unique (e.g., VLOG-X) |
-| tier | string | bronze/silver/gold/platinum |
-| followerCount | number | Verified count |
-| status | string | pending/active/suspended |
-| commissionRate | number | 0.005 - 0.025 |
-| totalEarnings | number | QAR |
-| pendingEarnings | number | QAR |
-| verified | bool | Admin verified |
-| createdAt | timestamp | |
-| updatedAt | timestamp | |
-
-#### D2. influencer_links/{id}
-
-| Field | Type | Notes |
-|-------|------|-------|
-| influencerUid | string | FK influencers |
-| offerId | string | FK offers |
-| businessId | string | FK businesses |
-| uniqueLinkId | string | Short (e.g., VX-A1B2) |
-| fullUrl | string | Complete URL |
-| clickCount | number | Total clicks |
-| installCount | number | App installs |
-| signupCount | number | Signups |
-| claimCount | number | Claims |
-| revenueGenerated | number | QAR total |
-| status | string | active/paused/expired |
-| createdAt | timestamp | |
-| expiresAt | timestamp | |
-
-#### D3. claim_attributions/{claimId}
-
-| Field | Type | Notes |
-|-------|------|-------|
-| claimId | string | FK claims |
-| userUid | string | FK users |
-| referrerUid | string? | Vlogger or user |
-| referrerType | string | user/vlogger/direct |
-| offerId | string | FK offers |
-| businessId | string | FK businesses |
-| claimValue | number | QAR |
-| commissionAmount | number | QAR |
-| commissionRate | number | % |
-| status | string | pending/confirmed/paid |
-| verifiedAt | timestamp | |
-| createdAt | timestamp | |
-
-#### D4. coin_gifts/{giftId}
-
-| Field | Type | Notes |
-|-------|------|-------|
-| senderUid | string | Vlogger or user |
-| senderType | string | creator/user |
-| recipientUid | string? | Single recipient |
-| recipientEmail | string? | Bulk list |
-| amount | number | Coins per recipient |
-| totalCoins | number | Total sent |
-| recipientCount | number | # of recipients |
-| giftType | string | individual/bulk/promo |
-| promoCode | string? | For promo gifts |
-| maxUses | number? | For promo |
-| usedCount | number | For promo |
-| message | string | Optional note |
-| status | string | active/used/expired |
-| createdAt | timestamp | |
-| expiresAt | timestamp | 90 days |
-
-#### D5. coin_gift_claims/{id}
-
-| Field | Type | Notes |
-|-------|------|-------|
-| giftId | string | FK coin_gifts |
-| recipientUid | string | FK users |
-| amount | number | Coins received |
-| claimedAt | timestamp | |
-| usedAt | timestamp? | If used |
-| status | string | claimed/used/expired |
-
-#### D6. Firestore Indexes (Add)
-
-- influencers: tier + status
-- influencer_links: influencerUid + createdAt DESC
-- claim_attributions: referrerUid + status + createdAt DESC
-- claim_attributions: userUid + createdAt DESC
-- coin_gifts: senderUid + createdAt DESC
-- coin_gift_claims: recipientUid + claimedAt DESC
-
-
-
----
-
-### 🌐 SECTION E: Landing Page Design
-
-#### E1. Referral Landing Page
-URL: https://migo-app-3030e.web.app/r/{CODE}
-
-Layout:
-- MIGO Logo + Invitation text
-- Referral Code displayed
-- Copy button
-- 'Download MIGO App' button
-- 'Open in MIGO' (if installed)
-
-#### E2. Offer Share Landing Page
-URL: migo.app/o/{offerId}?ref={CODE}
-
-Layout:
-- Business cover + logo
-- Rating + location
-- Offer details (price, discount)
-- 'Shared by @VloggerX' (verified)
-- 'Claim this offer' button
-
-#### E3. Install/Open Button Logic
-- Detect MIGO installed (deep link)
-- If installed: Show Open button
-- If not: Show Download button (Play Store / APK)
-
-#### E4. Branded Display
-- Vlogger: Photo + Name + Verified badge
-- Regular user: 'Shared by a friend'
-- Business: Logo + Name
-
-
----
-
-### 🎛️ SECTION F: Admin Panel (New Pages)
-
-#### F1. Creators Management Page
-Location: admin/src/pages/CreatorsPage.jsx
-Features:
-- List all influencers
-- Filter: tier / status / area
-- Stats: clicks, installs, claims, revenue
-- Actions: approve, suspend, upgrade tier
-- View full dashboard per creator
-
-#### F2. Coin Configuration Page
-Location: admin/src/pages/CoinConfigPage.jsx
-Settings:
-- Coin value (QAR per coin)
-- Earning sources (enable/disable)
-- Earning values per action
-- Daily cap per user
-- Monthly cap per user
-- Expiry (days)
-- Coin Partner defaults
-- Global coin budget
-
-#### F3. Commission Settings Page
-Location: admin/src/pages/CommissionPage.jsx
-Features:
-- Tier rates (Bronze/Silver/Gold/Platinum)
-- Commission per offer type
-- Shop-specific overrides
-- Verification hold (days)
-- Payout schedule
-- Min payout threshold
-
-#### F4. Settlement Dashboard
-Location: admin/src/pages/SettlementPage.jsx
-Features:
-- Monthly settlements list
-- Business-wise coin payouts
-- Vlogger commission payouts
-- Payment status tracking
-- Export reports (CSV/PDF)
-
-
----
-
-### 🚶 SECTION G: User Journeys
-
-#### G1. Referral Journey (Step-by-Step)
-User A (Referrer):
-1. Profile → Invite Friends
-2. Copy link: migo.app/r/3WHT9X
-3. Share via WhatsApp/Facebook
-4. Friend joins → +50 coins pending
-5. Friend first claim → +50 coins credited
-
-User B (Referred):
-1. Clicks link on WhatsApp
-2. Web landing page opens
-3. Sees code + Download button
-4. Taps Download → Play Store / APK
-5. Installs MIGO app
-6. First launch → Code auto-applied
-7. Signs up → Code prefilled
-8. First claim → +30 coins credited
-
-#### G2. Vlogger Journey (Step-by-Step)
-Vlogger X:
-1. Applies at migo.app/creators
-2. Admin verifies YouTube channel
-3. Approved as Silver tier (1%)
-4. Logs into MIGO Creator Dashboard
-5. Browses businesses → picks Shawarma House
-6. Taps 'Share this offer'
-7. Copies link: migo.app/o/offer-123?ref=VLOG-X
-8. Adds to YouTube video description
-9. Video published → 5,000 views
-10. 500 clicks → 200 installs → 80 claims
-11. Dashboard: QAR 32 earned (pending)
-12. After 7 days → Confirmed
-13. Month-end → QAR 32 paid
-14. Uses data to pitch new businesses
-
-#### G3. Customer Journey (Step-by-Step)
-Customer B (Regular User):
-1. Sees vlogger's video
-2. Clicks offer link
-3. Landing → Download
-4. Installs MIGO
-5. Signup with auto-filled code
-6. Offer detail opens
-7. Sees: '20% off, use 100 coins for extra QAR 2'
-8. Taps 'Claim Offer'
-9. QR code generated
-10. Visits Shawarma House
-11. Shows QR → Cashier scans
-12. Pays QAR 40
-13. Gets coins: +5 own +10 share +30 referral +10 review = +55
-14. Review prompt → writes review
-15. Saved in wallet
-
----
-
-### 🎯 SECTION H: Success Metrics
-
-#### H1. Growth Metrics
-Month 1-6: 1,000 users, 50 shops, 0 vloggers, QAR 0 revenue
-Month 6-12: 10,000 users, 200 shops, 10 vloggers, QAR 8,000 revenue
-Month 12-24: 50,000 users, 500 shops, 50 vloggers, QAR 30,000 revenue
-
-#### H2. Engagement Metrics
-- Daily active users: 30%
-- Weekly active users: 60%
-- Monthly claims per active user: 2
-- Review rate: 20% of claims
-- Share rate: 10% of users
-
-#### H3. Quality Metrics
-- Average rating: 4.5+
-- Business retention: 85%
-- Vlogger retention: 70%
-- Customer retention: 60%
-
----
-
-### 🎯 FINAL ROADMAP
-Current (D): 1 day, Finalize, QAR 0
-E-Growth: Month 1-6, Users + Shops, QAR 0
-F-Coin System: Month 4-12, Engagement, QAR 0
-G-1-Subscriptions: Month 6-12, Soft monetize, QAR 3,000
-G-2-Small commission: Month 12-18, Growing, QAR 8,000
-G-3-Full ecosystem: Month 18-24, Profitable, QAR 20,000
-G-4-Scale: Month 24+, Expansion, QAR 50,000+
-
----
-
-### 🎯 PRINCIPLES (Final)
-1. Free First - 6 months free
-2. Gradual Monetization - Over 24 months
-3. Customer Value First - Always
-4. Shop-Friendly - Low cost
-5. Vlogger Reward - Small but real
-6. No Loss - Everyone wins
-7. Real Business Only - No fake coins
-8. Sustainable - Long-term viable
-
----
-
-END OF DETAILED DESIGN - v2.7
