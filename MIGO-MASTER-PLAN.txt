@@ -1,6 +1,6 @@
 # ═══════════════════════════════════════════════════════
 # MIGO — MASTER PLAN
-# Version: v3.0
+# Version: v3.2
 # Date: October 10, 2026
 # Owner: solvexe.tech@gmail.com
 # ═══════════════════════════════════════════════════════
@@ -967,6 +967,15 @@ TOTAL:   [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜�
 - 2026-10-10: PHASE H — flutter analyze: 0 errors, 2 warnings
 - 2026-10-10: PHASE H — PHASE 1 (Foundation) 100% COMPLETE 🎉
 - 2026-10-10: MASTER PLAN v3.0
+- 2026-10-10: PHASE H   PHASE 2 (Customer Booking) 100% COMPLETE
+- 2026-10-10: PHASE H   PHASE 5 (Admin Panel) 100% COMPLETE
+- 2026-10-10: PHASE H   PHASE 3 (Bookings View) 100% COMPLETE
+- 2026-10-10: PHASE H   Progress: 71% (5/7 sub-phases)
+- 2026-10-10: PHASE I planned (Multi-App Architecture)
+- 2026-10-10: Business App (MIGO Business) documented
+- 2026-10-10: 3-apps ecosystem defined
+- 2026-10-10: 14 new tasks (I1-I14) planned   ~40 hours
+- 2026-10-10: MASTER PLAN v3.2
 
 ═══════════════════════════════════════════════════════
 ## ഭാഗം 16: Important Info
@@ -1121,6 +1130,245 @@ TOTAL:   [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜�
 #### Code Quality
 
 **flutter analyze:**
+
 ═══════════════════════════════════════════════════════
-END OF MASTER PLAN v2.9
+## PHASE I — Multi-App Architecture (Business App)
+═══════════════════════════════════════════════════════
+
+### 🎯 ലക്ഷ്യം: Separate App for Business Owners
+
+**Philosophy:** Customer-ന് MIGO, Business-ന് MIGO Business.
+**Timing:** After PHASE H complete (PHASE 4 + 6 + 7)
+**Priority:** HIGH
+**Estimated:** ~40 hours (4 weeks part-time)
+
+---
+
+### 📊 3-Apps Ecosystem
+
+┌─────────────────────────────────────────────────────┐
+│  MIGO ECOSYSTEM — 3 Apps                            │
+│                                                     │
+│  📱 MIGO (Customer)          — Existing (v1.3.1)    │
+│    ├── Browse offers                                │
+│    ├── Reserve/Claim                                │
+│    ├── Reviews                                      │
+│    ├── Wallet + coins                               │
+│    └── Referrals                                    │
+│                                                     │
+│  📱 MIGO Business (NEW)      — To Create            │
+│    ├── Dashboard                                    │
+│    ├── Offer management                             │
+│    ├── Reservation management                       │
+│    ├── QR scanner                                   │
+│    ├── Analytics                                    │
+│    ├── Revenue reports                              │
+│    └── Customer insights                            │
+│                                                     │
+│  💻 MIGO Admin (Web)          — Existing            │
+│    ├── Full control                                 │
+│    ├── User management                              │
+│    ├── Revenue split                                │
+│    ├── Reservations monitor                         │
+│    └── Rules + config                               │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+
+---
+
+### Why Multi-App?
+
+| Reason | Benefit |
+|--------|---------|
+| Focus | Each app for specific role |
+| UX | Optimized for user type |
+| Play Store | 2 listings, better SEO |
+| Updates | Independent releases |
+| Performance | Smaller, faster apps |
+| Branding | Clear differentiation |
+| Security | Role-specific access |
+| Onboarding | Simpler for each user type |
+
+---
+
+### Industry Examples
+
+| Company | Apps |
+|---------|------|
+| Swiggy | Swiggy + Swiggy Partner + Swiggy Restaurant |
+| Zomato | Zomato + Zomato for Business |
+| Uber | Uber + Uber Driver |
+| Careem | Careem + Careem Captain |
+| Talabat | Talabat + Talabat Partner |
+
+**MIGO** — same pattern.
+
+---
+
+### PHASE I Tasks (14 Total, ~40h)
+
+| # | Task | Time | Priority |
+|---|------|------|----------|
+| I1 | New Flutter project setup | 2h | HIGH |
+| I2 | Firebase config (same project) | 1h | HIGH |
+| I3 | App icon + branding | 2h | MED |
+| I4 | Login screen (business only) | 2h | HIGH |
+| I5 | Signup flow (business) | 3h | HIGH |
+| I6 | Dashboard screen | 4h | HIGH |
+| I7 | Offer CRUD screens | 5h | HIGH |
+| I8 | Reservations management | 4h | HIGH |
+| I9 | QR scanner (pickup) | 3h | MED |
+| I10 | Analytics dashboard | 4h | MED |
+| I11 | Revenue reports | 3h | MED |
+| I12 | Profile + settings | 2h | LOW |
+| I13 | Play Store setup | 2h | LOW |
+| I14 | Testing + polish | 3h | MED |
+
+**Total: ~40 hours**
+
+---
+
+### Business App Design
+
+| # | Item | Value |
+|---|------|-------|
+| 1 | App Name | MIGO Business |
+| 2 | Package ID | com.migo.business |
+| 3 | Tagline | "Manage your deals, grow your business" |
+| 4 | Icon | Business theme (blue + gold) |
+| 5 | Color Scheme | Corporate blue + Gold accents |
+| 6 | Play Store | Separate listing |
+
+---
+
+### Screens to Port (from current app)
+
+| # | Screen | Source | Priority |
+|---|--------|--------|----------|
+| 1 | Business dashboard | Existing | HIGH |
+| 2 | Offer create/edit | Existing | HIGH |
+| 3 | Shop bookings | PHASE 3 (business) | HIGH |
+| 4 | Reservation detail | PHASE 3 (business) | MED |
+| 5 | No-show history | PHASE 3 (business) | MED |
+| 6 | QR scanner | PHASE 4 (todo) | MED |
+| 7 | Analytics | New | MED |
+| 8 | Revenue reports | New | MED |
+
+---
+
+### Auth Flow (Business App)
+
+**Login:**
+1. Email/Password input
+2. Firebase Auth
+3. Check role == 'business'
+4. Authorized → Dashboard
+5. Unauthorized → "Access denied"
+
+**Signup:**
+1. Business info form (name, category, location)
+2. Email/Password
+3. Owner details (name, phone)
+4. Submit → Admin approval
+5. Approved → Login active
+
+---
+
+### Firestore (Same Project — No Change!)
+
+Reuse existing:
+- users/{uid} — with role check
+- businesses/{id} — owner CRUD
+- offers/{id} — owner CRUD
+- reservations/{id} — owner view
+- no_show_log/{id} — owner view
+- reservation_config — readonly
+- All security rules — already support
+
+**No migration needed!**
+
+---
+
+### Benefits
+
+**For Customer:**
+- Simpler app
+- Faster performance
+- Focused experience
+
+**For Business Owner:**
+- Professional tools
+- Dedicated dashboard
+- Better analytics
+- No confusion
+
+**For MIGO:**
+- Play Store SEO (2 listings)
+- Better targeting
+- Clear branding
+- Independent updates
+- Scalable
+
+---
+
+### Implementation Timeline
+
+| Week | Task | Progress |
+|------|------|----------|
+| Week 1 | Setup + Login + Dashboard | 30% |
+| Week 2 | Offer CRUD + Reservations | 60% |
+| Week 3 | QR + Analytics + Polish | 90% |
+| Week 4 | Play Store submission | 100% |
+
+**Total: 4 weeks (part-time)**
+
+---
+
+### Dependencies
+
+- PHASE H (MIGO Reserve) 100% complete
+- PHASE 4 (QR scanner) complete
+- Business features audited
+- Blaze plan (optional)
+
+**Order:** PHASE H → PHASE I → PHASE E/F/G
+
+---
+
+### Technical Notes
+
+**Flutter Setup:**
+
+cd C:\Users\DELL\Documents\migo
+flutter create --org com.migo --project-name migo_business migo-business
+
+
+**Firebase Setup:**
+1. Firebase Console → Add app → Android
+2. Package: com.migo.business
+3. Download google-services.json
+4. Place in migo-business/android/app/
+
+**Shared Backend:**
+- Same Firebase project (migo-app-3030e)
+- Same Firestore collections
+- Same Authentication
+
+---
+
+### Expected Outcomes
+
+- 2 apps live on Play Store
+- Customer focus improved
+- Business professional tools
+- Better SEO + discovery
+- Cleaner codebases
+- Independent scaling
+
+═══════════════════════════════════════════════════════
+END OF PHASE I — MULTI-APP ARCHITECTURE
+═══════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════
+END OF MASTER PLAN v3.0
 ═══════════════════════════════════════════════════════
