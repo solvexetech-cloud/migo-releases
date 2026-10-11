@@ -184,6 +184,15 @@
       ]
     },
     {
+      "collectionGroup": "reservations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userUid", "order": "ASCENDING" },
+        { "fieldPath": "offerId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "no_show_log",
       "queryScope": "COLLECTION",
       "fields": [

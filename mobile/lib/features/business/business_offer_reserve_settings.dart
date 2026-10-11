@@ -32,10 +32,12 @@ class _BusinessOfferReserveSettingsScreenState
   int _totalSlots = 20;
   int _holdHours = 6;
   bool _tokenRequired = false;
+  int _maxPerCustomer = 1;
 
   // Available options
   static const List<int> _slotOptions = [10, 20, 50, -1]; // -1 = unlimited
   static const List<int> _holdHourOptions = [1, 2, 3, 6, 12, 24];
+  static const List<int> _maxPerCustomerOptions = [1, 2, 3, 5, 0];
 
   @override
   void initState() {
@@ -64,6 +66,7 @@ class _BusinessOfferReserveSettingsScreenState
         _totalSlots = reserve['totalSlots'] as int? ?? 20;
         _holdHours = reserve['holdHours'] as int? ?? 6;
         _tokenRequired = reserve['tokenRequired'] as bool? ?? false;
+        _maxPerCustomer = reserve['maxPerCustomer'] as int? ?? 1;
         _loading = false;
       });
     } catch (e) {
@@ -85,6 +88,7 @@ class _BusinessOfferReserveSettingsScreenState
           'totalSlots': _totalSlots,
           'holdHours': _holdHours,
           'tokenRequired': _tokenRequired,
+          'maxPerCustomer': _maxPerCustomer,
           'updatedAt': FieldValue.serverTimestamp(),
         },
         'updatedAt': FieldValue.serverTimestamp(),
@@ -248,6 +252,41 @@ class _BusinessOfferReserveSettingsScreenState
                       value: _tokenRequired,
                       activeThumbColor: Colors.deepPurple,
                       onChanged: (v) => setState(() => _tokenRequired = v),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Max per customer
+                    const Text(
+                      'Max Per Customer',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'How many items one customer can reserve '
+                      '(0 = unlimited)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: _maxPerCustomerOptions.map((option) {
+                        final selected = _maxPerCustomer == option;
+                        final label = option == 0 ? 'Unlimited' : '$option';
+                        return ChoiceChip(
+                          label: Text(label),
+                          selected: selected,
+                          selectedColor: Colors.deepPurple.shade100,
+                          onSelected: (_) =>
+                              setState(() => _maxPerCustomer = option),
+                        );
+                      }).toList(),
                     ),
 
                     const SizedBox(height: 32),

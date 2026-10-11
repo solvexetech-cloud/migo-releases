@@ -184,7 +184,7 @@ class ReservationService {
         );
       }
 
-            // 3. Rules
+      // 3. Rules
       final rules = await getActiveRules();
       if (rules == null) {
         return CanBookResult(
@@ -200,6 +200,7 @@ class ReservationService {
           reason: 'Please accept the Reserve Rules first',
           needsRulesAcceptance: true,
           rulesVersion: rules.version,
+          rules: rules,
         );
       }
 
@@ -225,7 +226,32 @@ class ReservationService {
         );
       }
 
-      // 5. Location lock
+      // 5. Max per customer check
+      final reserve = offerData['reserve'] as Map<String, dynamic>? ?? {};
+      final maxPerCustomer = (reserve['maxPerCustomer'] as num?)?.toInt() ?? 1;
+
+      if (maxPerCustomer > 0) {
+        final userReservations = await _reservations
+            .where('userUid', isEqualTo: uid)
+            .where('offerId', isEqualTo: offerId)
+            .where('status', isEqualTo: 'reserved')
+            .get();
+
+        int alreadyBooked = 0;
+        for (final doc in userReservations.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          alreadyBooked += (data['quantity'] as num?)?.toInt() ?? 1;
+        }
+
+        if (alreadyBooked >= maxPerCustomer) {
+          return CanBookResult(
+            canBook: false,
+            reason: 'Maximum $maxPerCustomer per customer already booked',
+          );
+        }
+      }
+
+      // 6. Location lock
       if (config.locationLockEnabled) {
         final userDoc = await _users.doc(uid).get();
         if (!userDoc.exists) {
@@ -287,7 +313,7 @@ class ReservationService {
     final userData = userDoc.data() as Map<String, dynamic>;
 
     final config = canBook.config ?? await getConfig();
- 
+
     // 3. Generate unique codes
     final qrCode = _generateUUID();
     final pickupCode = _generate6DigitCode();
@@ -335,11 +361,11 @@ class ReservationService {
 
         // Quantity & pricing
         'quantity': quantity,
-        'unitPrice': (offerData['price'] as num?)?.toDouble() ?? 0,
+        'unitPrice': (offerData['offerPrice'] as num?)?.toDouble() ?? 0,
         'originalPrice': (offerData['originalPrice'] as num?)?.toDouble() ?? 0,
         'currency': offerData['currency'] ?? 'QAR',
         'totalAmount':
-            ((offerData['price'] as num?)?.toDouble() ?? 0) * quantity,
+            ((offerData['offerPrice'] as num?)?.toDouble() ?? 0) * quantity,
 
         // Timing
         'bookedAt': Timestamp.fromDate(now),
@@ -489,7 +515,12 @@ class ReservationService {
       final quantity = (data['quantity'] as num?)?.toInt() ?? 1;
       final offerId = data['offerId'] as String? ?? '';
 
-      await _db.runTransaction((transaction) async {
+            await _db.runTransaction((transaction) async {
+        // 1. READ FIRST (all reads before writes)
+        final offerRef = _offers.doc(offerId);
+        final offerSnap = await transaction.get(offerRef);
+
+        // 2. WRITE AFTER
         // Update reservation
         transaction.update(ref, {
           'status': 'expired',
@@ -497,8 +528,6 @@ class ReservationService {
         });
 
         // Release offer slots
-        final offerRef = _offers.doc(offerId);
-        final offerSnap = await transaction.get(offerRef);
         if (offerSnap.exists) {
           final offerData = offerSnap.data() as Map<String, dynamic>;
           final bookedSlots = (offerData['bookedSlots'] as num?)?.toInt() ?? 0;
@@ -628,6 +657,7 @@ class ReservationService {
     String businessId,
   ) async {
     try {
+    debugPrint('🔍 validateQRCode: qrCode=$qrCode, businessId=$businessId');
       final snap = await _reservations
           .where('qrCode', isEqualTo: qrCode)
           .limit(1)

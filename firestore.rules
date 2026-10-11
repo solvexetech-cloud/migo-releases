@@ -102,16 +102,20 @@ service cloud.firestore {
       allow create: if isSignedIn() &&
         isBusinessOwner(request.resource.data.businessId);
       allow update: if isSignedIn() &&
-        (
-          isBusinessOwner(resource.data.businessId) ||
-          isAdmin() ||
-          isModerator() ||
-          // Customer claiming: only claimedCount can change
-          (
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['claimedCount', 'updatedAt']) &&
-            request.resource.data.claimedCount == resource.data.claimedCount + 1
-          )
-        );
+  (
+    // Customer booking: bookedSlots only (check FIRST)
+    (
+      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bookedSlots', 'updatedAt'])
+    ) ||
+    // Customer claiming: claimedCount only
+    (
+      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['claimedCount', 'updatedAt']) &&
+      request.resource.data.claimedCount == resource.data.claimedCount + 1
+    ) ||
+    isBusinessOwner(resource.data.businessId) ||
+    isAdmin() ||
+    isModerator()
+  );
       allow delete: if isAdmin();
     }
 
@@ -330,15 +334,13 @@ service cloud.firestore {
 
     // ---------- RESERVATIONS ----------
     match /reservations/{resId} {
-      allow create: if isSignedIn() &&
-        request.resource.data.userUid == request.auth.uid &&
-        request.resource.data.status == 'reserved';
+              allow create: if isSignedIn() &&
+          request.resource.data.status == 'reserved';
 
-      allow read: if isSignedIn() && (
-        resource.data.userUid == request.auth.uid ||
-        (resource != null && isBusinessOwner(resource.data.businessId)) ||
-        isModerator()
-      );
+              allow read: if isSignedIn();
+
+        // Explicit list permission for queries
+        allow list: if isSignedIn();
 
       allow update: if isSignedIn() && (
         (resource.data.userUid == request.auth.uid &&

@@ -11,6 +11,7 @@ import '../../services/firestore_service.dart';
 import '../../services/localization_service.dart';
 import '../business/my_business_screen.dart';
 import '../deals/my_claims_screen.dart';
+import '../reserve/my_bookings_screen.dart';
 import '../referrals/referral_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -206,6 +207,19 @@ class ProfileScreen extends StatelessWidget {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => const MyClaimsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      _MenuTile(
+                        icon: Icons.event_available_outlined,
+                        label: 'My Bookings',
+                        color: const Color(0xFF7C3AED),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const MyBookingsScreen(),
                             ),
                           );
                         },

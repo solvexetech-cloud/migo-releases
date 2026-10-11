@@ -51,6 +51,8 @@ class _RedeemScreenState extends State<RedeemScreen> {
       // ── Reserve QR ──
       if (trimmed.startsWith('RSV_')) {
         final qrCode = trimmed.substring(4); // strip RSV_ prefix
+        debugPrint('🔍 RSV scan: trimmed=$trimmed, qrCode=$qrCode');
+
         final res = await ReservationService.instance.validateQRCode(
           qrCode,
           widget.business.id,

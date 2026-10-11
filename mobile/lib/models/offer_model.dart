@@ -62,6 +62,12 @@ class OfferModel {
     this.dailyLimit,
     this.totalLimit,
     this.claimedCount = 0,
+    this.reserveEnabled = false,
+    this.reserveTotalSlots = 0,
+    this.reserveBookedSlots = 0,
+    this.reserveHoldHours = 6,
+    this.reserveTokenRequired = false,
+    this.reserveMaxPerCustomer = 1,
     this.status = 'pending', // pending | live | paused | expired
     // B3 Geography (denormalized from business for fast filtering)
     this.countryCode,
@@ -88,6 +94,12 @@ class OfferModel {
   final int? dailyLimit;
   final int? totalLimit;
   final int claimedCount;
+  final bool reserveEnabled;
+  final int reserveTotalSlots;
+  final int reserveBookedSlots;
+  final int reserveHoldHours;
+  final bool reserveTokenRequired;
+  final int reserveMaxPerCustomer;
   final String status;
 
   // ---------- B3 GEOGRAPHY ----------
@@ -196,6 +208,12 @@ class OfferModel {
       dailyLimit: map['dailyLimit'] as int?,
       totalLimit: map['totalLimit'] as int?,
       claimedCount: (map['claimedCount'] ?? 0) as int,
+      reserveEnabled: (map['reserve'] as Map<String, dynamic>?)?['enabled'] as bool? ?? false,
+      reserveTotalSlots: ((map['reserve'] as Map<String, dynamic>?)?['totalSlots'] as num?)?.toInt() ?? (map['totalSlots'] as num?)?.toInt() ?? 0,
+      reserveBookedSlots: (map['bookedSlots'] as num?)?.toInt() ?? 0,
+      reserveHoldHours: ((map['reserve'] as Map<String, dynamic>?)?['holdHours'] as num?)?.toInt() ?? 6,
+      reserveTokenRequired: (map['reserve'] as Map<String, dynamic>?)?['tokenRequired'] as bool? ?? false,
+      reserveMaxPerCustomer: ((map['reserve'] as Map<String, dynamic>?)?['maxPerCustomer'] as num?)?.toInt() ?? 1,
       status: (map['status'] ?? 'pending') as String,
       // B3 geography
       countryCode: map['countryCode'] as String?,

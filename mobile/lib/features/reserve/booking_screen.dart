@@ -10,6 +10,7 @@ import '../../services/reservation_service.dart';
 import '../../models/reservation_config_model.dart';
 import '../../models/reservation_rules_model.dart';
 import 'rules_screen.dart';
+import 'my_bookings_screen.dart';
 
 class BookingScreen extends StatefulWidget {
   final String offerId;
@@ -90,8 +91,6 @@ class _BookingScreenState extends State<BookingScreen> {
         return;
       }
 
-      _maxQuantity = remaining > 10 ? 10 : remaining;
-
       // 3. Check can book
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) {
@@ -118,6 +117,37 @@ class _BookingScreenState extends State<BookingScreen> {
         _rulesAccepted = true;
       }
 
+      // 5. Calculate max quantity respecting maxPerCustomer
+      final maxPerCustomer =
+          (_offer!['reserve']?['maxPerCustomer'] as num?)?.toInt() ?? 1;
+
+      int allowedByCustomer = remaining;
+      if (maxPerCustomer > 0) {
+        // Count how many the user has already reserved for this offer
+        final existing = await FirebaseFirestore.instance
+            .collection('reservations')
+            .where('userUid', isEqualTo: uid)
+            .where('offerId', isEqualTo: widget.offerId)
+            .where('status', isEqualTo: 'reserved')
+            .get();
+
+        int alreadyBooked = 0;
+        for (final doc in existing.docs) {
+          final data = doc.data();
+          alreadyBooked += (data['quantity'] as num?)?.toInt() ?? 1;
+        }
+
+        allowedByCustomer = maxPerCustomer - alreadyBooked;
+        if (allowedByCustomer < 1) allowedByCustomer = 1; // safety
+      }
+
+      final computedMax = remaining < allowedByCustomer
+          ? remaining
+          : allowedByCustomer;
+
+      _maxQuantity = computedMax > 10 ? 10 : computedMax;
+      if (_quantity > _maxQuantity) _quantity = _maxQuantity;
+
       setState(() => _loading = false);
     } catch (e) {
       setState(() {
@@ -128,7 +158,11 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Future<void> _showRules() async {
-    if (_rules == null) return;
+    // If rules not loaded, fetch them
+    if (_rules == null) {
+      _rules = await ReservationService.instance.getActiveRules();
+      if (_rules == null || !mounted) return;
+    }
 
     final accepted = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
@@ -138,6 +172,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
     if (accepted == true) {
       setState(() => _rulesAccepted = true);
+      await _loadOffer();
     }
   }
 
@@ -168,9 +203,20 @@ class _BookingScreenState extends State<BookingScreen> {
 
       if (!mounted) return;
 
-      // Success
-      Navigator.of(context).pop(true);
+      // Success — show message first
       _showSnack('✅ Reservation confirmed!', isError: false);
+
+      // Small delay so snackbar is visible
+      await Future.delayed(const Duration(milliseconds: 800));
+
+      if (!mounted) return;
+
+      // Navigate to My Bookings
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => const MyBookingsScreen(),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       _showSnack('Failed: $e', isError: true);
@@ -302,7 +348,7 @@ class _BookingScreenState extends State<BookingScreen> {
           Row(
             children: [
               Text(
-                '${_offer?['currency'] ?? 'QAR'} ${(_offer?['price'] as num?)?.toStringAsFixed(0) ?? '0'}',
+                '${_offer?['currency'] ?? 'QAR'} ${(_offer?['offerPrice'] as num?)?.toStringAsFixed(0) ?? '0'}',
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -376,7 +422,7 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Widget _buildBookingDetails(ThemeData theme) {
-    final unitPrice = (_offer?['price'] as num?)?.toDouble() ?? 0;
+    final unitPrice = (_offer?['offerPrice'] as num?)?.toDouble() ?? 0;
     final total = unitPrice * _quantity;
     final currency = _offer?['currency'] ?? 'QAR';
     final holdHours = _config?.defaultHoldHours ?? 4;

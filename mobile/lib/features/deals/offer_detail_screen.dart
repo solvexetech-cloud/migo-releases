@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../reserve/booking_screen.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../models/claim_model.dart';
 import '../../models/group_deal_model.dart';
@@ -410,23 +411,63 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
     );
   }
 
-  Widget _claimButton() {
-    return SizedBox(
-      height: 52,
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _loading ? null : _claim,
-        child: _loading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
+    Widget _claimButton() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // ⬇️ Reserve button (Reserve enabled ആണെങ്കിൽ മാത്രം)
+        if (widget.offer.reserveEnabled) ...[
+          SizedBox(
+            height: 52,
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BookingScreen(offerId: widget.offer.id),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.event_available, size: 20),
+              label: const Text(
+                'Reserve Now',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
                 ),
-              )
-            : const Text('Claim this offer'),
-      ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+
+        // ⬇️ Claim button (നിലവിലെ)
+        SizedBox(
+          height: 52,
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _loading ? null : _claim,
+            child: _loading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('Claim this offer'),
+          ),
+        ),
+      ],
     );
   }
 

@@ -177,7 +177,7 @@ class ReservationDetailScreen extends StatelessWidget {
             ),
             child: Center(
                 child: QrImageView(
-                  data: 'RSV_${res.id}',
+                  data: 'RSV_${res.qrCode}',
                   version: QrVersions.auto,
                   size: 180,
                   backgroundColor: Colors.white,

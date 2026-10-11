@@ -11,6 +11,7 @@ import '../../services/firestore_service.dart';
 import 'business_analytics_screen.dart';
 import 'create_offer_screen.dart';
 import 'redeem_screen.dart';
+import 'shop_bookings_screen.dart';
 import 'register_business_screen.dart';
 
 class MyBusinessScreen extends StatefulWidget {
@@ -524,6 +525,23 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
                     label: const Text('Create offer'),
                   ),
                 ),
+
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 52,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                builder: (_) => ShopBookingsScreen(businessId: biz.id),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.event_note_outlined),
+                    label: const Text('Shop Bookings'),
+                  ),
+                ),
+
                                 const SizedBox(height: 10),
                 SizedBox(
                   height: 52,
