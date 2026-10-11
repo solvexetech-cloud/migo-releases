@@ -46,3 +46,8 @@ _seed/package.json
 _seed/serviceAccountKey.json
 *firebase-adminsdk*.json
 serviceAccountKey.json
+
+# Service account keys - NEVER commit
+_seed/serviceAccountKey*.json
+_seed/serviceAccountKey*.bak
+*.json.bak
