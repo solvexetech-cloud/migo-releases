@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/config/app_config.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../models/country_model.dart';
@@ -30,10 +31,11 @@ class _SignupScreenState extends State<SignupScreen> {
   CountryModel? _selectedCountry;
   bool _countriesLoading = true;
 
-    @override
+      @override
   void initState() {
     super.initState();
-    _checkUrlForReferralCode();
+    _checkUrlForReferralCode();      // Web URL
+    _checkPendingReferral();          // Mobile deep link
     _loadCountries();
   }
 
@@ -87,6 +89,26 @@ class _SignupScreenState extends State<SignupScreen> {
       }
     } catch (_) {
       // Silent fail — URL parsing may fail in some environments
+    }
+  }
+
+  /// PHASE E — E3: Check for pending referral code from deep link.
+  /// Called on init — reads code stored by deep link handler.
+  Future<void> _checkPendingReferral() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final code = prefs.getString('pending_referral_code');
+      if (code != null && code.isNotEmpty) {
+        if (!mounted) return;
+        setState(() {
+          _referralController.text = code.toUpperCase();
+          _referralFromUrl = true;
+        });
+        // Clear after applying
+        await prefs.remove('pending_referral_code');
+      }
+    } catch (e) {
+      // Ignore errors
     }
   }
 

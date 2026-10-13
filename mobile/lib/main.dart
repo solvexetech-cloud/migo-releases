@@ -10,6 +10,8 @@ import 'features/main/main_shell.dart';
 import 'firebase_options.dart';
 import 'services/notification_service.dart';
 import 'services/ads_service.dart';
+import 'package:app_links/app_links.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,8 +28,63 @@ Future<void> main() async {
   // D4 — Ads init
   await AdsService.instance.initialize();
 
+  // PHASE E — E3: Deep link handler
+  _initDeepLinks();
 
   runApp(const MigoApp());
+}
+
+// ═══════════════════════════════════════════════════════
+// PHASE E — E3: Deep Link Handler
+// ═══════════════════════════════════════════════════════
+void _initDeepLinks() {
+  try {
+    final appLinks = AppLinks();
+
+    // Cold start: app opened from deep link
+    appLinks.getInitialLink().then((uri) {
+      if (uri != null) _handleDeepLink(uri);
+    });
+
+    // Warm start: app already running
+    appLinks.uriLinkStream.listen(
+      (uri) => _handleDeepLink(uri),
+      onError: (err) {
+        // Ignore errors
+      },
+    );
+  } catch (e) {
+    // Deep links not supported on web
+  }
+}
+
+Future<void> _handleDeepLink(Uri uri) async {
+  String? code;
+
+  // migo://ref/ABC123
+  if (uri.scheme == 'migo' && uri.host == 'ref') {
+    if (uri.pathSegments.isNotEmpty) {
+      code = uri.pathSegments.first;
+    }
+  }
+
+  // https://migo-app-3030e.web.app/r/ABC123
+  if (uri.scheme == 'https' &&
+      uri.host == 'migo-app-3030e.web.app' &&
+      uri.pathSegments.length >= 2 &&
+      uri.pathSegments[0] == 'r') {
+    code = uri.pathSegments[1];
+  }
+
+  // ?ref=ABC123 (query param)
+  if (code == null && uri.queryParameters.containsKey('ref')) {
+    code = uri.queryParameters['ref'];
+  }
+
+  if (code != null && code.isNotEmpty) {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('pending_referral_code', code.toUpperCase());
+  }
 }
 
 class MigoApp extends StatelessWidget {

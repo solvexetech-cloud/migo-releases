@@ -254,6 +254,9 @@
       <p class="code-hint">
         This code gives you <strong>+30 coins</strong> after your first claim.
       </p>
+      <a href="#" class="cta" id="openAppBtn" style="background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%); color: white; margin-bottom: 10px;">
+        📱 Open in MIGO App
+      </a>
       <a href="#" class="cta" id="downloadBtn">Download MIGO</a>
       <a href="#" class="cta cta-secondary" id="copyBtn">Copy Code</a>
       <p class="help-note" id="helpNote"></p>
@@ -416,6 +419,42 @@
         }, 4000);
       }
     });
+
+    // ---------- Open in MIGO App ----------
+    document.getElementById('openAppBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      const ua = navigator.userAgent.toLowerCase();
+      const isAndroid = ua.indexOf('android') > -1;
+      const isIOS = /iphone|ipad|ipod/.test(ua);
+      const btn = document.getElementById('openAppBtn');
+      const orig = btn.textContent;
+      
+      if (isAndroid || isIOS) {
+        // Try deep link
+        btn.textContent = '⏳ Opening...';
+        
+        const deepLink = `migo://ref/${upperCode}`;
+        const fallback = APK_URL;
+        
+        // Try deep link
+        window.location.href = deepLink;
+        
+        // Fallback: if app not installed, go to download after 2s
+        setTimeout(() => {
+          if (document.visibilityState === 'visible') {
+            btn.textContent = '⬇️ App not installed — Download';
+            window.location.href = fallback;
+            setTimeout(() => (btn.textContent = orig), 3000);
+          }
+        }, 2000);
+      } else {
+        // Desktop — show help
+        btn.textContent = '📱 Open on your phone';
+        setTimeout(() => (btn.textContent = orig), 3000);
+      }
+    });
+
 
     console.log('MIGO Referral — Code:', upperCode);
   </script>
