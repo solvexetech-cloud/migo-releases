@@ -26,6 +26,7 @@ import ReservationsPage from './pages/ReservationsPage';
 import ReservationRulesPage from './pages/ReservationRulesPage';
 import ReservationConfigPage from './pages/ReservationConfigPage';
 import NoShowLogPage from './pages/NoShowLogPage';
+import MarketingDashboardPage from "./pages/MarketingDashboardPage";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -111,6 +112,7 @@ export default function App() {
                   <Route path="/reservation-rules" element={<ReservationRulesPage />} />
                   <Route path="/reservation-config" element={<ReservationConfigPage />} />
                   <Route path="/no-show-log" element={<NoShowLogPage />} />
+                  <Route path="/marketing" element={<MarketingDashboardPage />} />
                 </Routes>
               </AdminLayout>
             ) : (

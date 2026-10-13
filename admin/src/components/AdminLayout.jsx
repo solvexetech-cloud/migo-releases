@@ -26,6 +26,7 @@ const NAV_ITEMS = [
   { to: '/reservation-rules', label: 'Reserve Rules', icon: '📜' },
   { to: '/reservation-config', label: 'Reserve Config', icon: '⚙️' },
   { to: '/no-show-log', label: 'No-Show Log', icon: '🚫' },
+  { to: '/marketing', label: 'Marketing', icon: '📈' },
 ];
 
 export default function AdminLayout({ user, children }) {
