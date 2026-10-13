@@ -101,21 +101,25 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isSignedIn() &&
         isBusinessOwner(request.resource.data.businessId);
-      allow update: if isSignedIn() &&
-  (
-    // Customer booking: bookedSlots only (check FIRST)
-    (
-      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bookedSlots', 'updatedAt'])
-    ) ||
-    // Customer claiming: claimedCount only
-    (
-      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['claimedCount', 'updatedAt']) &&
-      request.resource.data.claimedCount == resource.data.claimedCount + 1
-    ) ||
-    isBusinessOwner(resource.data.businessId) ||
-    isAdmin() ||
-    isModerator()
-  );
+          allow update: if isSignedIn() &&
+      (
+        // Customer booking: bookedSlots only (check FIRST)
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bookedSlots', 'updatedAt'])
+        ) ||
+        // Customer claiming: claimedCount only
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['claimedCount', 'updatedAt']) &&
+          request.resource.data.claimedCount == resource.data.claimedCount + 1
+        ) ||
+        // Business owner: reserve settings
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reserve', 'updatedAt'])
+        ) ||
+        isBusinessOwner(resource.data.businessId) ||
+        isAdmin() ||
+        isModerator()
+      );
       allow delete: if isAdmin();
     }
 

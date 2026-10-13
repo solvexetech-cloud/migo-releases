@@ -12,6 +12,7 @@ import 'business_analytics_screen.dart';
 import 'create_offer_screen.dart';
 import 'redeem_screen.dart';
 import 'shop_bookings_screen.dart';
+import 'business_offer_reserve_settings.dart';
 import 'register_business_screen.dart';
 
 class MyBusinessScreen extends StatefulWidget {
@@ -357,7 +358,7 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
             );
           }
 
-                    return ListView(
+          return ListView(
             padding: const EdgeInsets.all(20),
             children: [
               // ---------- COVER PHOTO ----------
@@ -517,7 +518,7 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                                SizedBox(
+                SizedBox(
                   height: 52,
                   child: ElevatedButton.icon(
                     onPressed: () => _openCreateOffer(context, biz),
@@ -525,7 +526,6 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
                     label: const Text('Create offer'),
                   ),
                 ),
-
                 const SizedBox(height: 10),
                 SizedBox(
                   height: 52,
@@ -533,7 +533,7 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                builder: (_) => ShopBookingsScreen(businessId: biz.id),
+                          builder: (_) => ShopBookingsScreen(businessId: biz.id),
                         ),
                       );
                     },
@@ -541,8 +541,7 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
                     label: const Text('Shop Bookings'),
                   ),
                 ),
-
-                                const SizedBox(height: 10),
+                const SizedBox(height: 10),
                 SizedBox(
                   height: 52,
                   child: OutlinedButton.icon(
@@ -585,7 +584,7 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-             _MyOffersList(businessId: biz.id, business: biz),
+              _MyOffersList(businessId: biz.id, business: biz),
             ],
           );
         },
@@ -710,7 +709,7 @@ class _MyOffersList extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                                            Container(
+                      Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6,
                           vertical: 2,
@@ -778,6 +777,38 @@ class _MyOffersList extends StatelessWidget {
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                       ),
+                      const SizedBox(width: 6),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  BusinessOfferReserveSettingsScreen(
+                                offerId: o.id,
+                                businessId: businessId,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.tune, size: 14),
+                        label: const Text(
+                          'Reserve',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          minimumSize: const Size(0, 32),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          foregroundColor: Colors.deepPurple,
+                          side: const BorderSide(
+                            color: Colors.deepPurple,
+                            width: 1,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -789,6 +820,7 @@ class _MyOffersList extends StatelessWidget {
     );
   }
 }
+
 // ---------- COVER PHOTO WIDGET ----------
 class _CoverPhotoWidget extends StatelessWidget {
   const _CoverPhotoWidget({
