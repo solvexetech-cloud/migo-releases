@@ -368,9 +368,11 @@ service cloud.firestore {
     match /no_show_log/{logId} {
       allow read: if isModerator() ||
         (isSignedIn() && resource.data.userUid == request.auth.uid);
-      allow create: if isSignedIn() && (
+            allow create: if isSignedIn() && (
         isAdmin() ||
-        (resource != null && isBusinessOwner(resource.data.businessId))
+        isModerator() ||
+        (request.resource.data.businessId is string &&
+         isBusinessOwner(request.resource.data.businessId))
       );
       allow update, delete: if isAdmin();
     }

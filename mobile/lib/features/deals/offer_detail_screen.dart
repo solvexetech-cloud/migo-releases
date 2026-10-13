@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import '../reserve/booking_screen.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../models/claim_model.dart';
@@ -186,6 +187,28 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                         ],
                       ),
                     ),
+                  ),
+                                    IconButton(
+                    onPressed: () {
+                      final url =
+                          'https://migo-app-3030e.web.app/o/${o.id}';
+                      final price =
+                          '${o.currency} ${o.offerPrice.toStringAsFixed(0)}';
+                      final original =
+                          '${o.currency} ${o.originalPrice.toStringAsFixed(0)}';
+                      SharePlus.instance.share(
+                        ShareParams(
+                          text: '🔥 Check out this deal on MIGO!\n\n'
+                              '${o.title}\n'
+                              'Price: $price (was $original)\n'
+                              'Save ${o.currency} ${o.savings.toStringAsFixed(0)}\n\n'
+                              '$url',
+                          subject: o.title,
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.share_outlined),
+                    tooltip: 'Share offer',
                   ),
                   _SaveButton(
                     uid: _uid ?? '',

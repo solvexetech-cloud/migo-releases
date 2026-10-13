@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MIGO — Deal Alert!</title>
+
+  <meta property="og:title" content="Check out this deal on MIGO!" />
+  <meta property="og:description" content="Exclusive deals near you. Claim on MIGO!" />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0B2B5B" />
+
+  <link rel="icon" type="image/png" href="/favicon.png" />
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #F6F3EE;
+      color: #111418;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .hero {
+      background: linear-gradient(180deg, #0B2B5B 0%, #061B3D 100%);
+      padding: 40px 24px 60px;
+      text-align: center;
+      border-radius: 0 0 32px 32px;
+      color: white;
+      position: relative;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #F0C566 0%, #D4A13A 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .logo-text {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 4px;
+      line-height: 1;
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      font-weight: 700;
+      color: #F0C566;
+      letter-spacing: 2px;
+      margin-top: 2px;
+    }
+
+    .hero-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .hero-sub {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.75);
+      line-height: 1.5;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+
+    .offer-card {
+      background: white;
+      border-radius: 20px;
+      margin: -40px 20px 20px;
+      padding: 20px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+      position: relative;
+    }
+
+    .offer-image {
+      width: 100%;
+      height: 180px;
+      background: #F6F3EE;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .offer-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .offer-badges {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-type {
+      background: #F0C566;
+      color: #111418;
+    }
+
+    .badge-save {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10B981;
+    }
+
+    .offer-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .offer-business {
+      font-size: 13px;
+      color: #6B7280;
+      margin-bottom: 16px;
+    }
+
+    .price-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px;
+      background: #F6F3EE;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .price-original {
+      font-size: 13px;
+      text-decoration: line-through;
+      color: #6B7280;
+    }
+
+    .price-migo {
+      font-size: 24px;
+      font-weight: 900;
+      color: #1E40AF;
+      margin-left: auto;
+    }
+
+    .btn-primary {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #F0C566 0%, #D4A13A 100%);
+      color: #111418;
+      text-decoration: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 800;
+      text-align: center;
+      border: none;
+      cursor: pointer;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-secondary {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: transparent;
+      color: #0B2B5B;
+      text-decoration: none;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+      border: 2px solid #0B2B5B;
+      cursor: pointer;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6B7280;
+      font-size: 14px;
+    }
+
+    .error {
+      text-align: center;
+      padding: 40px 20px;
+      color: #EF4444;
+      font-size: 14px;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 12px;
+      color: #6B7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <div class="logo-badge">
+      <div class="logo-icon">🏷️</div>
+      <div>
+        <div class="logo-text">MIGO</div>
+        <div class="logo-sub">DEALS</div>
+      </div>
+    </div>
+    <div class="hero-title">Someone shared a deal with you!</div>
+    <div class="hero-sub">Claim it on MIGO before it expires</div>
+  </div>
+
+  <div id="content">
+    <div class="loading">Loading deal...</div>
+  </div>
+
+  <div class="footer">
+    MIGO — Discover. Save. Earn. Together.
+  </div>
+
+  <script>
+    // Firebase config (public)
+    const FIREBASE_PROJECT = 'migo-app-3030e';
+    const FIRESTORE_API = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/offers`;
+
+    const APK_URL = 'https://github.com/solvexetech-cloud/migo-releases/releases/download/v1.3.1/MIGO-v1.3.1.apk';
+
+    function getOfferId() {
+      // URL: /o/{offerId}
+      const path = window.location.pathname;
+      const parts = path.split('/').filter(Boolean);
+      if (parts.length >= 2 && parts[0] === 'o') {
+        return parts[1];
+      }
+      return null;
+    }
+
+    function renderOffer(offer) {
+      const currency = offer.currency || 'QAR';
+      const offerPrice = Number(offer.offerPrice || 0);
+      const originalPrice = Number(offer.originalPrice || 0);
+      const savings = originalPrice - offerPrice;
+      const savingsPercent = originalPrice > 0
+        ? Math.round((savings / originalPrice) * 100)
+        : 0;
+      const imageUrl = offer.imageUrl || '';
+
+      const html = `
+        <div class="offer-card">
+          <div class="offer-image">
+            ${imageUrl ? `<img src="${imageUrl}" alt="${offer.title}" />` : '🏷️'}
+          </div>
+          <div class="offer-badges">
+            <div class="badge badge-type">${(offer.type || 'STANDARD').toUpperCase()}</div>
+            ${savingsPercent > 0 ? `<div class="badge badge-save">${savingsPercent}% OFF</div>` : ''}
+          </div>
+          <div class="offer-title">${offer.title || 'Special Deal'}</div>
+          <div class="offer-business">${offer.businessName || 'MIGO Partner'}</div>
+          <div class="price-row">
+            <div class="price-original">${currency} ${originalPrice.toFixed(0)}</div>
+            <div class="price-migo">${currency} ${offerPrice.toFixed(0)}</div>
+          </div>
+          <button class="btn-primary" onclick="openApp()">📱 Open in MIGO App</button>
+          <a class="btn-secondary" href="${APK_URL}">⬇️ Download MIGO</a>
+        </div>
+      `;
+
+      document.getElementById('content').innerHTML = html;
+
+      // Update OG meta
+      document.title = `${offer.title} — MIGO`;
+    }
+
+    function renderError(msg) {
+      document.getElementById('content').innerHTML = `
+        <div class="offer-card">
+          <div class="error">${msg}</div>
+          <a class="btn-primary" href="/">Open MIGO Home</a>
+          <a class="btn-secondary" href="${APK_URL}">⬇️ Download MIGO</a>
+        </div>
+      `;
+    }
+
+    function openApp() {
+      const offerId = getOfferId();
+      const deepLink = `migo://offer/${offerId}`;
+      // Try deep link, fallback to download
+      window.location.href = deepLink;
+      setTimeout(() => {
+        window.location.href = APK_URL;
+      }, 2000);
+    }
+
+    async function loadOffer() {
+      const offerId = getOfferId();
+      if (!offerId) {
+        renderError('Invalid link');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${FIRESTORE_API}/${offerId}`);
+        if (!res.ok) {
+          renderError('Deal not found or expired');
+          return;
+        }
+        const data = await res.json();
+        const fields = data.fields || {};
+
+        const offer = {
+          title: fields.title?.stringValue || '',
+          businessName: fields.businessName?.stringValue || '',
+          currency: fields.currency?.stringValue || 'QAR',
+          offerPrice: fields.offerPrice?.doubleValue || fields.offerPrice?.integerValue || 0,
+          originalPrice: fields.originalPrice?.doubleValue || fields.originalPrice?.integerValue || 0,
+          imageUrl: fields.imageUrl?.stringValue || '',
+          type: fields.type?.stringValue || 'standard',
+        };
+
+        renderOffer(offer);
+      } catch (e) {
+        console.error(e);
+        renderError('Could not load deal');
+      }
+    }
+
+    loadOffer();
+  </script>
+</body>
+</html>

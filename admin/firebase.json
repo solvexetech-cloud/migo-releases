@@ -12,6 +12,10 @@
         "destination": "/r/index.html"
       },
       {
+        "source": "/o/**",
+        "destination": "/o/index.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
