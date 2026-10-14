@@ -472,8 +472,27 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> get _claims =>
       _db.collection('claims');
 
-  Future<String> createClaim(ClaimModel claim) async {
-    final ref = await _claims.add(claim.toMap());
+    Future<String> createClaim(ClaimModel claim) async {
+    // PHASE E — E4: Fetch referrerUid from user doc
+    String? referrerUid;
+    try {
+      final userSnap = await _users.doc(claim.userUid).get();
+      if (userSnap.exists) {
+        final userData = userSnap.data() as Map<String, dynamic>;
+        referrerUid = userData['referredBy'] as String?;
+      }
+    } catch (e) {
+      // Ignore errors — referrerUid remains null
+    }
+
+    // Build claim map with referrerUid
+    final claimMap = claim.toMap();
+    if (referrerUid != null && referrerUid.isNotEmpty) {
+      claimMap['referrerUid'] = referrerUid;
+    }
+
+    final ref = await _claims.add(claimMap);
+
     await _offers.doc(claim.offerId).update({
       'claimedCount': FieldValue.increment(1),
       'updatedAt': FieldValue.serverTimestamp(),
@@ -703,13 +722,20 @@ class FirestoreService {
     return code;
   }
 
-  Future<String?> findUidByReferralCode(String code) async {
-    final snap = await _users
-        .where('referralCode', isEqualTo: code.toUpperCase())
-        .limit(1)
-        .get();
-    if (snap.docs.isEmpty) return null;
-    return snap.docs.first.id;
+    Future<String?> findUidByReferralCode(String code) async {
+    try {
+      print('🔵 findUidByReferralCode: code=$code');
+      final snap = await _users
+          .where('referralCode', isEqualTo: code.toUpperCase())
+          .limit(1)
+          .get();
+      print('🔵 Users found: ${snap.docs.length}');
+      if (snap.docs.isEmpty) return null;
+      return snap.docs.first.id;
+    } catch (e) {
+      print('🔴 findUidByReferralCode FAILED: $e');
+      return null;
+    }
   }
 
   Future<void> recordReferral({

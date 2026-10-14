@@ -144,20 +144,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
     setState(() => _loading = true);
     try {
-      String? referrerUid;
-      if (referralCode.isNotEmpty) {
-        referrerUid = await FirestoreService.instance
-            .findUidByReferralCode(referralCode);
-        if (referrerUid == null) {
-          if (!mounted) return;
-          setState(() {
-            _error = 'Referral code not found.';
-            _loading = false;
-          });
-          return;
-        }
-      }
-
             // D6-A: Require country selection
       if (_selectedCountry == null) {
         setState(() {
@@ -167,6 +153,7 @@ class _SignupScreenState extends State<SignupScreen> {
         return;
       }
 
+      // PHASE E — Auth FIRST, then referral lookup
       final cred = await AuthService.instance.signUp(
         email: email,
         password: password,
@@ -176,25 +163,58 @@ class _SignupScreenState extends State<SignupScreen> {
         locale: _selectedCountry!.locale,
       );
 
-      final newUid = cred.user?.uid;
-      if (newUid != null && referrerUid != null && referrerUid.isNotEmpty) {
-        await FirestoreService.instance.recordReferral(
-          referrerUid: referrerUid,
-          referredUid: newUid,
-          referredEmail: email,
-          referralCode: referralCode,
-        );
+      // PHASE E — Now with auth, lookup referral code
+      String? referrerUid;
+      if (referralCode.isNotEmpty) {
+        print('🔵 Looking up referral: $referralCode');
+        referrerUid = await FirestoreService.instance
+            .findUidByReferralCode(referralCode);
+        print('🔵 referrerUid = $referrerUid');
+        
+        if (referrerUid == null) {
+          // Referral code invalid — but signup already succeeded
+          if (!mounted) return;
+          print('⚠️ Referral code not found — continuing signup');
+        }
       }
+      debugPrint('✅ Step 1 done: Auth + user doc created. uid=${cred.user?.uid}');
+
+              final newUid = cred.user?.uid;
+        if (newUid != null && referrerUid != null && referrerUid.isNotEmpty) {
+          // PHASE E — Wait + retry for auth token propagation
+          bool referralSuccess = false;
+          for (int attempt = 0; attempt < 5 && !referralSuccess; attempt++) {
+            try {
+              await Future.delayed(Duration(milliseconds: 500 + (attempt * 500)));
+              await FirestoreService.instance.recordReferral(
+                referrerUid: referrerUid,
+                referredUid: newUid,
+                referredEmail: email,
+                referralCode: referralCode,
+              );
+              referralSuccess = true;
+              debugPrint('✅ recordReferral success (attempt ${attempt + 1})');
+            } catch (e) {
+              debugPrint('⚠️ recordReferral attempt ${attempt + 1} failed: $e');
+              if (attempt == 4) {
+                // Last attempt — don't fail signup, just log
+                debugPrint('❌ recordReferral failed after 5 attempts');
+              }
+            }
+          }
+        }
 
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const MainShell()),
         (route) => false,
       );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _error = AuthService.instance.describeError(e));
-    } finally {
+    } catch (e, stackTrace) {
+  debugPrint('🔴 SIGNUP ERROR: $e');
+  debugPrint('🔴 STACK TRACE: $stackTrace');
+  if (!mounted) return;
+  setState(() => _error = AuthService.instance.describeError(e));
+} finally {
       if (mounted) setState(() => _loading = false);
     }
   }

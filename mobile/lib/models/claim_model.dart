@@ -54,6 +54,7 @@ class ClaimModel {
     this.redeemedAt,
     this.redeemedBy,
     this.source = 'home',
+    this.referrerUid,          // ← പുതിയത്
   });
 
   final String id;
@@ -71,6 +72,7 @@ class ClaimModel {
   final DateTime? redeemedAt;
   final String? redeemedBy;
   final String source;
+  final String? referrerUid;    // ← പുതിയത്
 
   double get savings => originalPrice - offerPrice;
 
@@ -92,6 +94,7 @@ class ClaimModel {
       redeemedAt: (map['redeemedAt'] as Timestamp?)?.toDate(),
       redeemedBy: map['redeemedBy'] as String?,
       source: (map['source'] ?? 'home') as String,
+      referrerUid: map['referrerUid'] as String?,
     );
   }
 
@@ -111,6 +114,7 @@ class ClaimModel {
       'redeemedAt': redeemedAt != null ? Timestamp.fromDate(redeemedAt!) : null,
       'redeemedBy': redeemedBy,
       'source': source,
+      'referrerUid': referrerUid,
     };
   }
 }

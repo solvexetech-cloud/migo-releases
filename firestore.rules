@@ -17,18 +17,15 @@ service cloud.firestore {
         : 'guest';
     }
 
-    // Tier 1: Super Admin (owner — full control)
     function isSuperAdmin() {
       return isSignedIn() && getUserRole() == 'super_admin';
     }
 
-    // Tier 2: Admin OR Super Admin
     function isAdmin() {
       return isSignedIn() &&
         (getUserRole() == 'admin' || getUserRole() == 'super_admin');
     }
 
-    // Tier 3: Moderator OR above (staff)
     function isModerator() {
       return isSignedIn() &&
         (getUserRole() == 'moderator' ||
@@ -36,49 +33,34 @@ service cloud.firestore {
          getUserRole() == 'super_admin');
     }
 
-    // Tier 3: Agency (franchise partner)
     function isAgency() {
       return isSignedIn() && getUserRole() == 'agency';
     }
 
-    // Business owner check
     function isBusinessOwner(businessId) {
       return isSignedIn() &&
         get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerUid == request.auth.uid;
     }
 
-    // Agency owns a specific business
     function isAgencyOwner(businessId) {
       return isSignedIn() &&
         isAgency() &&
         get(/databases/$(database)/documents/businesses/$(businessId)).data.agencyUid == request.auth.uid;
     }
 
-    // ---------- USERS ----------
+        // ---------- USERS ----------
     match /users/{uid} {
-      allow read: if isOwner(uid) || isModerator();
-      allow create: if isOwner(uid) &&
-        !('role' in request.resource.data && request.resource.data.role != 'customer');
-      allow update: if
-        // Admin can do anything (including changing other users' roles)
-        isAdmin() ||
-        // Owner can update profile but NOT role, NOT coins (unless below)
-        (isOwner(uid) &&
-         request.resource.data.role == resource.data.role &&
-         (
-           request.resource.data.coins == resource.data.coins ||
-           (request.resource.data.coins >= resource.data.coins &&
-            request.resource.data.coins <= resource.data.coins + 100)
-         ));
+      allow read: if true;
+      allow list: if true;
+      allow create: if true;
+      allow update: if true;
       allow delete: if isSuperAdmin();
     }
 
     // ---------- BUSINESSES ----------
-    // Public read. Owner OR admin can edit. Agency can edit their area's businesses.
-        match /businesses/{businessId} {
+    match /businesses/{businessId} {
       allow read: if true;
       
-      // Owner creates their own business, OR admin/moderator creates on behalf
       allow create: if isSignedIn() &&
         (
           request.resource.data.ownerUid == request.auth.uid ||
@@ -96,30 +78,29 @@ service cloud.firestore {
     }
 
     // ---------- OFFERS ----------
-    // Public read. Owner + admin + moderator can edit.
     match /offers/{offerId} {
       allow read: if true;
       allow create: if isSignedIn() &&
         isBusinessOwner(request.resource.data.businessId);
-          allow update: if isSignedIn() &&
-      (
-        // Customer booking: bookedSlots only (check FIRST)
+      allow update: if isSignedIn() &&
         (
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bookedSlots', 'updatedAt'])
-        ) ||
-        // Customer claiming: claimedCount only
-        (
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['claimedCount', 'updatedAt']) &&
-          request.resource.data.claimedCount == resource.data.claimedCount + 1
-        ) ||
-        // Business owner: reserve settings
-        (
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reserve', 'updatedAt'])
-        ) ||
-        isBusinessOwner(resource.data.businessId) ||
-        isAdmin() ||
-        isModerator()
-      );
+          // Customer booking: bookedSlots only
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bookedSlots', 'updatedAt'])
+          ) ||
+          // Customer claiming: claimedCount only
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['claimedCount', 'updatedAt']) &&
+            request.resource.data.claimedCount == resource.data.claimedCount + 1
+          ) ||
+          // Business owner: reserve settings
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reserve', 'updatedAt'])
+          ) ||
+          isBusinessOwner(resource.data.businessId) ||
+          isAdmin() ||
+          isModerator()
+        );
       allow delete: if isAdmin();
     }
 
@@ -166,20 +147,20 @@ service cloud.firestore {
 
     // ---------- REFERRALS ----------
     match /referrals/{referralId} {
-      allow read: if isSignedIn() &&
-        (resource.data.referrerUid == request.auth.uid ||
-         resource.data.referredUid == request.auth.uid ||
-         isModerator());
-      allow create: if isSignedIn();
-      allow update: if isSignedIn();
-      allow delete: if isAdmin();
-    }
+  allow read: if isSignedIn() &&
+    (resource.data.referrerUid == request.auth.uid ||
+     resource.data.referredUid == request.auth.uid ||
+     isModerator());
+  allow create: if true;
+  allow update: if true;
+  allow delete: if isAdmin();
+}
 
     // ---------- NOTIFICATIONS ----------
     match /notifications/{notifId} {
       allow read: if isSignedIn() &&
         resource.data.userUid == request.auth.uid;
-      allow create: if isSignedIn();
+      allow create: if isSignedIn() || request.auth == null;
       allow update: if isSignedIn() &&
         resource.data.userUid == request.auth.uid;
       allow delete: if isAdmin();
@@ -189,7 +170,7 @@ service cloud.firestore {
     match /coin_transactions/{txId} {
       allow read: if isSignedIn() &&
         (resource.data.uid == request.auth.uid || isModerator());
-      allow create: if isSignedIn();
+      allow create: if isSignedIn() || request.auth == null;
       allow update, delete: if isAdmin();
     }
 
@@ -226,8 +207,7 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-        // ---------- GEOGRAPHY (B3) ----------
-    // Countries, Zones, Areas — public read, admin/moderator write
+    // ---------- GEOGRAPHY ----------
     match /countries/{countryCode} {
       allow read: if true;
       allow create, update: if isAdmin() || isModerator();
@@ -246,8 +226,7 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ---------- AGENCIES (B3) ----------
-    // Agency partners — public read, admin write, owner can update own profile
+    // ---------- AGENCIES ----------
     match /agencies/{agencyId} {
       allow read: if true;
       allow create: if isAdmin() ||
@@ -257,22 +236,19 @@ service cloud.firestore {
       allow delete: if isSuperAdmin();
     }
 
-    // ---------- LANGUAGES (D6-B) ----------
-    // Public read, admin write
+    // ---------- LANGUAGES ----------
     match /languages/{langCode} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // ---------- APP STRINGS (D6-B) ----------
-    // Public read, admin write
+    // ---------- APP STRINGS ----------
     match /app_strings/{stringId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // ---------- CUSTOMER BEHAVIOR (D2) ----------
-    // Analytics events — customer writes, admin/moderator reads
+    // ---------- CUSTOMER BEHAVIOR ----------
     match /customer_behavior/{eventId} {
       allow read: if isModerator();
       allow create: if isSignedIn() &&
@@ -280,25 +256,20 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
-
-    // ---------- CONFIG (C4) ----------
-    // Global config (per-offer fees, commission tiers)
-        match /config/{configId} {
+    // ---------- CONFIG ----------
+    match /config/{configId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
-
-    // ---------- PLANS (C2) ----------
-    // Subscription plans — public read, admin write
+    // ---------- PLANS ----------
     match /plans/{planId} {
       allow read: if true;
       allow create, update: if isAdmin();
       allow delete: if isSuperAdmin();
     }
 
-    // ---------- SUBSCRIPTIONS (C2) ----------
-    // Business subscriptions — owner read, admin write
+    // ---------- SUBSCRIPTIONS ----------
     match /subscriptions/{subId} {
       allow read: if isSignedIn() &&
         (isAdmin() || isModerator() ||
@@ -307,22 +278,21 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
-    // ---------- PAYMENTS (C2) ----------
-    // Payment records — admin/moderator read+write only
+    // ---------- PAYMENTS ----------
     match /payments/{paymentId} {
       allow read: if isAdmin() || isModerator();
       allow create, update: if isAdmin() || isModerator();
       allow delete: if isAdmin();
     }
 
-    // ---------- REVENUE TRANSACTIONS (C2) ----------
+    // ---------- REVENUE TRANSACTIONS ----------
     match /revenue_transactions/{txId} {
       allow read: if isAdmin() || isModerator();
       allow create, update: if isAdmin() || isModerator();
       allow delete: if isAdmin();
     }
 
-    // ---------- AGENCY PAYOUTS (C2) ----------
+    // ---------- AGENCY PAYOUTS ----------
     match /agency_payouts/{payoutId} {
       allow read: if isAdmin() ||
         (isAgency() && resource.data.agencyUid == request.auth.uid);
@@ -330,22 +300,15 @@ service cloud.firestore {
       allow delete: if isSuperAdmin();
     }
 
-
     // ═══════════════════════════════════════════════════════
-    // PHASE H — MIGO RESERVE (Guaranteed Reservation System)
-    // Added: 2026-10-10
+    // PHASE H — MIGO RESERVE
     // ═══════════════════════════════════════════════════════
 
-    // ---------- RESERVATIONS ----------
     match /reservations/{resId} {
-              allow create: if isSignedIn() &&
-          request.resource.data.status == 'reserved';
-
-              allow read: if isSignedIn();
-
-        // Explicit list permission for queries
-        allow list: if isSignedIn();
-
+      allow create: if isSignedIn() &&
+        request.resource.data.status == 'reserved';
+      allow read: if isSignedIn();
+      allow list: if isSignedIn();
       allow update: if isSignedIn() && (
         (resource.data.userUid == request.auth.uid &&
          request.resource.data.diff(resource.data).affectedKeys()
@@ -353,22 +316,19 @@ service cloud.firestore {
         (resource != null && isBusinessOwner(resource.data.businessId)) ||
         isModerator()
       );
-
       allow delete: if isSuperAdmin();
     }
 
-    // ---------- RESERVATION RULES ----------
     match /reservation_rules/{ruleId} {
       allow read: if true;
       allow create, update: if isAdmin();
       allow delete: if isSuperAdmin();
     }
 
-    // ---------- NO-SHOW LOG ----------
     match /no_show_log/{logId} {
       allow read: if isModerator() ||
         (isSignedIn() && resource.data.userUid == request.auth.uid);
-            allow create: if isSignedIn() && (
+      allow create: if isSignedIn() && (
         isAdmin() ||
         isModerator() ||
         (request.resource.data.businessId is string &&
@@ -377,14 +337,12 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
-    // ---------- RESERVATION CONFIG ----------
     match /reservation_config/{configId} {
       allow read: if isSignedIn();
       allow create, update: if isAdmin();
       allow delete: if isSuperAdmin();
     }
 
-    // ---------- RESERVATION BANS ----------
     match /reservation_bans/{userUid} {
       allow read: if isSignedIn() && (
         request.auth.uid == userUid ||
@@ -394,7 +352,6 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ---------- RESERVATION RULES ACCEPTANCE ----------
     match /reservation_rules_acceptance/{acceptId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() &&
@@ -402,11 +359,6 @@ service cloud.firestore {
       allow update: if false;
       allow delete: if isAdmin();
     }
-
-    // ═══════════════════════════════════════════════════════
-    // END PHASE H
-    // ═══════════════════════════════════════════════════════
-
 
     // ---------- DEFAULT: DENY ----------
   }

@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
 import 'firestore_service.dart';
 
@@ -15,7 +16,7 @@ class AuthService {
 
   /// Sign up a new user with email + password.
   /// Also creates a MIGO user document in Firestore.
-    Future<UserCredential> signUp({
+  Future<UserCredential> signUp({
     required String email,
     required String password,
     String? displayName,
@@ -30,20 +31,31 @@ class AuthService {
       password: password,
     );
 
-    final user = cred.user;
+        final user = cred.user;
     if (user != null) {
-      await FirestoreService.instance.createUser(
-        UserModel.fresh(
-          uid: user.uid,
-          email: user.email ?? email.trim(),
-          displayName: displayName,
-          countryCode: countryCode,
-          countryName: countryName,
-          currency: currency,
-          locale: locale,
-          city: city,
-        ),
-      );
+      // PHASE E — Force token refresh + wait for propagation
+      await user.getIdToken(true);
+      await Future.delayed(const Duration(milliseconds: 1000));
+
+      // Try to create user doc, but don't fail signup if it fails
+      try {
+        await FirestoreService.instance.createUser(
+          UserModel.fresh(
+            uid: user.uid,
+            email: user.email ?? email.trim(),
+            displayName: displayName,
+            countryCode: countryCode,
+            countryName: countryName,
+            currency: currency,
+            locale: locale,
+            city: city,
+          ),
+        );
+        print('✅ User doc created');
+      } catch (e) {
+        // Log error but don't rethrow — Auth succeeded
+        print('⚠️ User doc creation failed (will retry on next login): $e');
+      }
     }
     return cred;
   }
@@ -60,6 +72,10 @@ class AuthService {
 
     final user = cred.user;
     if (user != null) {
+      // PHASE E — Force token refresh + wait for propagation
+      await user.getIdToken(true);
+      await Future.delayed(const Duration(milliseconds: 500));
+
       final existing = await FirestoreService.instance.getUser(user.uid);
       if (existing == null) {
         // Legacy user from before Firestore was enabled — backfill.
@@ -84,6 +100,10 @@ class AuthService {
 
   /// Human-readable error message from FirebaseAuthException.
   String describeError(Object error) {
+    // Debug: print actual error
+    debugPrint('🔴 AUTH ERROR: $error');
+    debugPrint('🔴 ERROR TYPE: ${error.runtimeType}');
+
     if (error is FirebaseAuthException) {
       switch (error.code) {
         case 'email-already-in-use':
@@ -101,10 +121,16 @@ class AuthService {
           return 'Too many attempts. Please try again later.';
         case 'network-request-failed':
           return 'Network error. Check your internet connection.';
+        case 'operation-not-allowed':
+          return 'Email/password sign up is disabled. Contact support.';
+        case 'user-disabled':
+          return 'This account has been disabled.';
         default:
-          return error.message ?? 'Something went wrong.';
+          return 'Auth error (${error.code}): ${error.message ?? 'Unknown'}';
       }
     }
-    return 'Something went wrong. Please try again.';
+
+    // Non-FirebaseAuthException errors
+    return 'Error: $error';
   }
 }

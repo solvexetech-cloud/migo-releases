@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import 'core/config/app_config.dart';
 import 'core/localization/locale_provider.dart';
@@ -25,8 +26,10 @@ Future<void> main() async {
   // Initialize push notifications (FCM)
   NotificationService.instance.init();
 
-  // D4 — Ads init
-  await AdsService.instance.initialize();
+    // D4 — Ads init (skip on web — AdMob not supported)
+  if (!kIsWeb) {
+    await AdsService.instance.initialize();
+  }
 
   // PHASE E — E3: Deep link handler
   _initDeepLinks();
