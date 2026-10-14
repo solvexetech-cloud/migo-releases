@@ -49,11 +49,69 @@ class FirestoreService {
     );
   }
 
-  Future<void> addCoins({
+    Future<void> addCoins({
     required String uid,
     required int amount,
     required String reason,
+    bool bypassCaps = false,  // ← Admin/referral/redeem bypass
   }) async {
+    // PHASE E — E5: Daily + monthly caps (unless bypassed)
+    if (!bypassCaps && amount > 0) {
+      final now = DateTime.now();
+      final todayStart = DateTime(now.year, now.month, now.day);
+      final monthStart = DateTime(now.year, now.month, 1);
+
+      // Fetch today's + month's earned coins
+      final dailySnap = await _db
+          .collection('coin_transactions')
+          .where('uid', isEqualTo: uid)
+          .where('createdAt', isGreaterThan: Timestamp.fromDate(todayStart))
+          .get();
+
+      final monthlySnap = await _db
+          .collection('coin_transactions')
+          .where('uid', isEqualTo: uid)
+          .where('createdAt', isGreaterThan: Timestamp.fromDate(monthStart))
+          .get();
+
+      int dailyEarned = 0;
+      for (final d in dailySnap.docs) {
+        final amt = (d.data()['amount'] as num?)?.toInt() ?? 0;
+        if (amt > 0) dailyEarned += amt;
+      }
+
+      int monthlyEarned = 0;
+      for (final d in monthlySnap.docs) {
+        final amt = (d.data()['amount'] as num?)?.toInt() ?? 0;
+        if (amt > 0) monthlyEarned += amt;
+      }
+
+      const dailyCap = 20;
+      const monthlyCap = 200;
+
+      // Check caps
+      if (dailyEarned >= dailyCap) {
+        print('⚠️ Daily cap reached ($dailyEarned/$dailyCap) — skipping');
+        return;
+      }
+      if (monthlyEarned >= monthlyCap) {
+        print('⚠️ Monthly cap reached ($monthlyEarned/$monthlyCap) — skipping');
+        return;
+      }
+
+      // Clamp amount to remaining cap
+      final dailyRemaining = dailyCap - dailyEarned;
+      final monthlyRemaining = monthlyCap - monthlyEarned;
+      final maxAllowed = dailyRemaining < monthlyRemaining
+          ? dailyRemaining
+          : monthlyRemaining;
+      if (amount > maxAllowed) {
+        amount = maxAllowed;
+        print('⚠️ Amount clamped to $amount (cap limit)');
+      }
+    }
+
+    // Update user coins
     await _users.doc(uid).set(
       {
         'coins': FieldValue.increment(amount),
@@ -61,6 +119,8 @@ class FirestoreService {
       },
       SetOptions(merge: true),
     );
+
+    // Log transaction
     await _db.collection('coin_transactions').add({
       'uid': uid,
       'amount': amount,
@@ -502,6 +562,7 @@ class FirestoreService {
       uid: claim.userUid,
       amount: 5,
       reason: 'Claimed "${claim.offerTitle}"',
+      bypassCaps: true,
     );
 
     await createNotification(
@@ -567,7 +628,9 @@ class FirestoreService {
     required String claimId,
     required String businessId,
   }) async {
+    print('🔵 redeemClaim: claimId=$claimId (length=${claimId.length})');
     final snap = await _claims.doc(claimId).get();
+    print('🔵 Claim exists: ${snap.exists}');
     if (!snap.exists || snap.data() == null) {
       throw Exception('Claim not found');
     }
@@ -590,10 +653,11 @@ class FirestoreService {
     });
 
     await addCoins(
-      uid: claim.userUid,
-      amount: 25,
-      reason: 'Redeemed "${claim.offerTitle}"',
-    );
+  uid: claim.userUid,
+  amount: 25,
+  reason: 'Redeemed "${claim.offerTitle}"',
+  bypassCaps: true,   // ← പുതിയത്
+);
 
     await createNotification(
       NotificationModel.newDraft(
@@ -618,6 +682,7 @@ class FirestoreService {
       uid: review.userUid,
       amount: 10,
       reason: 'Wrote review for ${review.businessName}',
+      bypassCaps: true,
     );
 
     await createNotification(
@@ -813,11 +878,13 @@ class FirestoreService {
       uid: referredBy,
       amount: referral.referrerReward,
       reason: 'Referral bonus (${map['email'] ?? uid})',
+      bypassCaps: true,
     );
     await addCoins(
       uid: uid,
       amount: referral.referredReward,
       reason: 'Welcome referral bonus',
+      bypassCaps: true,
     );
 
     await createNotification(

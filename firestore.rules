@@ -105,18 +105,11 @@ service cloud.firestore {
     }
 
     // ---------- CLAIMS ----------
-    match /claims/{claimId} {
-      allow read: if isSignedIn() &&
-        (resource.data.userUid == request.auth.uid ||
-         isBusinessOwner(resource.data.businessId) ||
-         isModerator());
-      allow create: if isSignedIn() &&
-        request.resource.data.userUid == request.auth.uid;
-      allow update: if isSignedIn() &&
-        (resource.data.userUid == request.auth.uid ||
-         isBusinessOwner(resource.data.businessId) ||
-         isAdmin() ||
-         isModerator());
+        match /claims/{claimId} {
+      allow read: if true;
+      allow list: if true;
+      allow create: if true;
+      allow update: if true;
       allow delete: if isAdmin();
     }
 
