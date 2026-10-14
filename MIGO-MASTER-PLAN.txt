@@ -1,7 +1,7 @@
 # ═══════════════════════════════════════════════════════
 # MIGO — MASTER PLAN
-#  Version: v3.5
-# Date: October 13, 2026
+# Version: v3.6
+# Date: October 14, 2026
 # Owner: solvexe.tech@gmail.com
 # ═══════════════════════════════════════════════════════
 
@@ -460,8 +460,8 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 |---|------|------|----------|
 | E1 | Auto-referral (Install Referrer + URL) | 4h | 🔥🔥🔥 |
 | E2 | Offer share (all users) | 3h | 🔥🔥🔥 |
-| E3 | Deep link + auto-apply code | 5h | 🔥🔥🔥 |
-| E4 | Claim attribution tracking | 3h | 🔥🔥 |
+| E3 | Deep link + auto-apply code | 5h | ✅ DONE 2026-10-14 |
+| E4 | Claim attribution tracking | 3h | ✅ DONE 2026-10-14 |
 | E5 | User rewards (coins only, free) | 3h | 🔥🔥 |
 | E6 | Vlogger accounts (free) | 5h | 🔥🔥 |
 | E7 | Vlogger dashboard (data only, no cash) | 5h | 🔥 |
@@ -861,13 +861,13 @@ PHASE A: [✅✅✅✅✅] 100% (5/5) 🎉
 PHASE B: [✅✅✅✅✅] 100% (5/5) 🎉
 PHASE C: [✅✅✅✅✅✅✅] 100% (7/7) 🎉
 PHASE D: [✅✅✅🟡✅✅✅] 85% (6/7)
-PHASE E: [✅⬜⬜⬜⬜⬜⬜⬜⬜⬜] 10% (1/10)
+PHASE E: [✅✅✅⬜⬜⬜⬜⬜⬜⬜] 30% (3/10)
 PHASE F: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/13)
 PHASE G: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/12)
 PHASE H: [✅✅✅✅✅✅🟡] 95% (6/7 + Testing 90%)
 BONUS:  Referral ✅, Location ✅, GitHub ✅, Responsive ✅, Admin CRUD ✅
 
-TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 70% (~29/40)
+TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜⬜⬜⬜⬜⬜⬜⬜] 73% (~31/40)
 
 ### Change Log
 
@@ -1013,7 +1013,14 @@ TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅�
 - 2026-10-13: E2 complete — Firebase Hosting rewrite for /o/**
 - 2026-10-13: E2 complete — APK download link working
 - 2026-10-13: PHASE E — 10% (1/10)
-- 2026-10-13: MASTER PLAN v3.5
+- 2026-10-13: MASTER PLAN v3.5- 2026-10-14: PHASE E — E3 complete (Deep link + auto-apply referral code)
+- 2026-10-14: PHASE E — E4 complete (Claim attribution + referral tracking)
+- 2026-10-14: Signup fix — Auth first, referral lookup after
+- 2026-10-14: Firestore Rules — users allow list (query permission)
+- 2026-10-14: Referral tracking — 100% working (test16 verified)
+- 2026-10-14: PHASE E — 30% (3/10)
+- 2026-10-14: MASTER PLAN v3.6
+
 
 
 
