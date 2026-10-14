@@ -12,6 +12,10 @@ import '../../services/localization_service.dart';
 import '../business/my_business_screen.dart';
 import '../deals/my_claims_screen.dart';
 import '../reserve/my_bookings_screen.dart';
+import '../../models/creator_model.dart';
+import '../../services/creator_service.dart';
+import '../creator/creator_dashboard_screen.dart';
+import '../creator/creator_signup_screen.dart';
 import '../referrals/referral_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -82,7 +86,6 @@ class ProfileScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          // Avatar with gold ring
                           Container(
                             padding: const EdgeInsets.all(3),
                             decoration: BoxDecoration(
@@ -126,7 +129,6 @@ class ProfileScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          // Stat chips row
                           Row(
                             children: [
                               Expanded(
@@ -166,7 +168,7 @@ class ProfileScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                                        children: [
+                    children: [
                       // D6-A: Country switcher
                       if (user != null) ...[
                         const Text(
@@ -179,7 +181,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 8),
-                                                _CountrySwitcher(
+                        _CountrySwitcher(
                           currentCountryCode:
                               user.currentCountryCode ?? user.country,
                           currentCurrency: user.currency,
@@ -224,6 +226,8 @@ class ProfileScreen extends StatelessWidget {
                           );
                         },
                       ),
+                      const SizedBox(height: 8),
+                      const _CreatorMenuTile(),
                       const SizedBox(height: 8),
                       _MenuTile(
                         icon: Icons.card_giftcard,
@@ -290,7 +294,7 @@ class _HeroStat extends StatelessWidget {
   final String value;
   final IconData icon;
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
@@ -392,6 +396,45 @@ class _MenuTile extends StatelessWidget {
     );
   }
 }
+
+// ═══════════════════════════════════════════════════════════
+// PHASE E — E6: Creator Menu Tile
+// ═══════════════════════════════════════════════════════════
+class _CreatorMenuTile extends StatelessWidget {
+  const _CreatorMenuTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return const SizedBox.shrink();
+
+    return StreamBuilder<CreatorModel?>(
+      stream: CreatorService.instance.streamCreator(uid),
+      builder: (context, snap) {
+        final creator = snap.data;
+        final isCreator = creator != null && creator.isApproved;
+
+        return _MenuTile(
+          icon: isCreator
+              ? Icons.dashboard_outlined
+              : Icons.movie_creation_outlined,
+          label: isCreator ? 'Creator Dashboard' : 'Become a Creator',
+          color: const Color(0xFFD97706),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => isCreator
+                    ? const CreatorDashboardScreen()
+                    : const CreatorSignupScreen(),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
 // ═══════════════════════════════════════════════════════════
 // D6-A: Country Switcher Widget
 // ═══════════════════════════════════════════════════════════
@@ -642,7 +685,6 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
     );
   }
 }
-
 
 // ═══════════════════════════════════════════════════════════
 // D6-B: Language Switcher Widget

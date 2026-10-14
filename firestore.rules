@@ -149,6 +149,22 @@ service cloud.firestore {
   allow delete: if isAdmin();
 }
 
+    // ---------- CREATORS (PHASE E — E6) ----------
+    match /creators/{creatorId} {
+      allow read: if true;
+      allow create: if isSignedIn() &&
+        request.resource.data.status == 'pending';
+      allow update: if isSignedIn() &&
+        (
+          // Owner can update own profile
+          request.auth.uid == creatorId ||
+          // Admin can approve/reject
+          isAdmin() ||
+          isModerator()
+        );
+      allow delete: if isAdmin();
+    }
+
     // ---------- NOTIFICATIONS ----------
     match /notifications/{notifId} {
       allow read: if isSignedIn() &&

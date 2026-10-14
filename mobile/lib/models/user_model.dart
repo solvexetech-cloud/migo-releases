@@ -221,6 +221,9 @@ extension UserRoleX on UserModel {
   /// Is this user a regular customer?
   bool get isCustomer => roleId == 'customer';
 
+  /// Is this user a creator/vlogger?
+  bool get isCreator => roleId == 'creator';
+
   /// Can this user access the admin panel?
   bool get canAccessAdminPanel => isModerator;
 

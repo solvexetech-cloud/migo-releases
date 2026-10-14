@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MIGO Creator</title>
+
+  <meta property="og:title" content="MIGO Creator" />
+  <meta property="og:description" content="Check out this MIGO creator!" />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0B2B5B" />
+
+  <link rel="icon" type="image/png" href="/favicon.png" />
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #F6F3EE;
+      color: #111418;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .hero {
+      background: linear-gradient(180deg, #0B2B5B 0%, #061B3D 100%);
+      padding: 50px 24px 70px;
+      text-align: center;
+      border-radius: 0 0 32px 32px;
+      color: white;
+    }
+
+    .avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #F0C566 0%, #D4A13A 100%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      font-weight: 900;
+      color: #0B2B5B;
+      margin-bottom: 16px;
+      border: 4px solid rgba(255,255,255,0.2);
+    }
+
+    .name {
+      font-size: 26px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(240,197,102,0.2);
+      color: #F0C566;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .bio {
+      font-size: 14px;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.5;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+
+    .content {
+      max-width: 480px;
+      margin: -40px auto 0;
+      padding: 0 20px 40px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 900;
+      color: #0B2B5B;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #6B7280;
+      font-weight: 600;
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #F0C566 0%, #D4A13A 100%);
+      color: #0B2B5B;
+      text-decoration: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 800;
+      text-align: center;
+      border: none;
+      cursor: pointer;
+      margin-bottom: 10px;
+      transition: transform 0.15s;
+    }
+
+    .btn-primary:active { transform: scale(0.98); }
+
+    .btn-secondary {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: transparent;
+      color: #0B2B5B;
+      text-decoration: none;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+      border: 2px solid #0B2B5B;
+      cursor: pointer;
+    }
+
+    .channel-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: #F6F3EE;
+      border-radius: 12px;
+      text-decoration: none;
+      color: #111418;
+      margin-bottom: 16px;
+    }
+
+    .channel-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #FF0000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .channel-info { flex: 1; min-width: 0; }
+
+    .channel-label {
+      font-size: 11px;
+      color: #6B7280;
+      font-weight: 600;
+    }
+
+    .channel-url {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0B2B5B;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 12px;
+      color: #9CA3AF;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: #6B7280;
+      font-size: 14px;
+    }
+
+    .error {
+      text-align: center;
+      padding: 60px 20px;
+      color: #EF4444;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <div id="avatar" class="avatar">?</div>
+    <div id="name" class="name">Loading...</div>
+    <div class="badge">🎬 MIGO CREATOR</div>
+    <div id="bio" class="bio"></div>
+  </div>
+
+  <div class="content">
+    <div id="content">
+      <div class="loading">Loading creator...</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    MIGO — Discover. Save. Earn. Together.
+  </div>
+
+  <script>
+    const FIREBASE_PROJECT = 'migo-app-3030e';
+    const FIRESTORE_API = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/creators`;
+    const APK_URL = 'https://github.com/solvexetech-cloud/migo-releases/releases/download/v1.3.1/MIGO-v1.3.1.apk';
+
+    function getCreatorId() {
+      const path = window.location.pathname;
+      const parts = path.split('/').filter(Boolean);
+      if (parts.length >= 2 && parts[0] === 'creator') {
+        return parts[1];
+      }
+      return null;
+    }
+
+    function renderCreator(creator) {
+      const name = creator.displayName || 'MIGO Creator';
+      const bio = creator.bio || '';
+      const channelUrl = creator.channelUrl || '';
+      const followers = creator.followers || 0;
+      const shares = creator.totalShares || 0;
+      const redemptions = creator.totalRedemptions || 0;
+
+      // Update hero
+      document.getElementById('avatar').textContent = name[0].toUpperCase();
+      document.getElementById('name').textContent = name;
+      document.getElementById('bio').textContent = bio;
+      document.title = `${name} — MIGO Creator`;
+
+      // Build content
+      const channelHtml = channelUrl ? `
+        <a class="channel-link" href="${channelUrl}" target="_blank">
+          <div class="channel-icon">▶</div>
+          <div class="channel-info">
+            <div class="channel-label">CHANNEL</div>
+            <div class="channel-url">${channelUrl}</div>
+          </div>
+        </a>
+      ` : '';
+
+      document.getElementById('content').innerHTML = `
+        <div class="card">
+          <div class="stats">
+            <div>
+              <div class="stat-value">${followers.toLocaleString()}</div>
+              <div class="stat-label">Followers</div>
+            </div>
+            <div>
+              <div class="stat-value">${shares}</div>
+              <div class="stat-label">Shares</div>
+            </div>
+            <div>
+              <div class="stat-value">${redemptions}</div>
+              <div class="stat-label">Redeems</div>
+            </div>
+          </div>
+        </div>
+
+        ${channelHtml ? `<div class="card">${channelHtml}</div>` : ''}
+
+        <div class="card">
+          <button class="btn-primary" onclick="openApp()">📱 Open in MIGO</button>
+          <a class="btn-secondary" href="${APK_URL}">⬇️ Download MIGO</a>
+        </div>
+      `;
+    }
+
+    function renderError(msg) {
+      document.getElementById('content').innerHTML = `
+        <div class="card">
+          <div class="error">${msg}</div>
+        </div>
+      `;
+    }
+
+    function openApp() {
+      const creatorId = getCreatorId();
+      const deepLink = `migo://creator/${creatorId}`;
+      window.location.href = deepLink;
+      setTimeout(() => {
+        window.location.href = APK_URL;
+      }, 2000);
+    }
+
+    async function loadCreator() {
+      const creatorId = getCreatorId();
+      if (!creatorId) {
+        renderError('Invalid creator link');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${FIRESTORE_API}/${creatorId}`);
+        if (!res.ok) {
+          renderError('Creator not found');
+          return;
+        }
+        const data = await res.json();
+        const fields = data.fields || {};
+
+        const creator = {
+          displayName: fields.displayName?.stringValue || '',
+          bio: fields.bio?.stringValue || '',
+          channelUrl: fields.channelUrl?.stringValue || '',
+          followers: parseInt(fields.followers?.integerValue || '0'),
+          totalShares: parseInt(fields.totalShares?.integerValue || '0'),
+          totalRedemptions: parseInt(fields.totalRedemptions?.integerValue || '0'),
+          status: fields.status?.stringValue || '',
+        };
+
+        if (creator.status !== 'approved') {
+          renderError('This creator is not active');
+          return;
+        }
+
+        renderCreator(creator);
+      } catch (e) {
+        console.error(e);
+        renderError('Could not load creator');
+      }
+    }
+
+    loadCreator();
+  </script>
+</body>
+</html>
