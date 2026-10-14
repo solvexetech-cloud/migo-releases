@@ -2,6 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:app_links/app_links.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:play_install_referrer/play_install_referrer.dart';
+import 'dart:io' show Platform;
 
 import 'core/config/app_config.dart';
 import 'core/localization/locale_provider.dart';
@@ -11,9 +15,38 @@ import 'features/main/main_shell.dart';
 import 'firebase_options.dart';
 import 'services/notification_service.dart';
 import 'services/ads_service.dart';
-import 'package:app_links/app_links.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+// ═══════════════════════════════════════════════════════
+// PHASE E — E1: Install Referrer Handler
+// ═══════════════════════════════════════════════════════
+Future<void> checkInstallReferrer() async {
+  if (kIsWeb) return;
+  if (!Platform.isAndroid) return;
+
+  try {
+    final referrerDetails = await PlayInstallReferrer.installReferrer;
+    final referrer = referrerDetails.installReferrer;
+    debugPrint('🔵 Install Referrer: $referrer');
+
+    if (referrer != null && referrer.isNotEmpty) {
+      // Parse: utm_source=migo&referral_code=ABC123
+      final params = Uri.splitQueryString(referrer);
+      final code = params['referral_code'];
+
+      if (code != null && code.isNotEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('pending_referral_code', code.toUpperCase());
+        debugPrint('✅ Referral code stored from install: $code');
+      }
+    }
+  } catch (e) {
+    debugPrint('⚠️ Install Referrer error: $e');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// MAIN
+// ═══════════════════════════════════════════════════════
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -26,13 +59,16 @@ Future<void> main() async {
   // Initialize push notifications (FCM)
   NotificationService.instance.init();
 
-    // D4 — Ads init (skip on web — AdMob not supported)
+  // D4 — Ads init (skip on web — AdMob not supported)
   if (!kIsWeb) {
     await AdsService.instance.initialize();
   }
 
+  // PHASE E — E1: Install Referrer
+  await checkInstallReferrer();
+
   // PHASE E — E3: Deep link handler
-  _initDeepLinks();
+  initDeepLinks();
 
   runApp(const MigoApp());
 }
@@ -40,18 +76,16 @@ Future<void> main() async {
 // ═══════════════════════════════════════════════════════
 // PHASE E — E3: Deep Link Handler
 // ═══════════════════════════════════════════════════════
-void _initDeepLinks() {
+void initDeepLinks() {
   try {
     final appLinks = AppLinks();
 
-    // Cold start: app opened from deep link
     appLinks.getInitialLink().then((uri) {
-      if (uri != null) _handleDeepLink(uri);
+      if (uri != null) handleDeepLink(uri);
     });
 
-    // Warm start: app already running
     appLinks.uriLinkStream.listen(
-      (uri) => _handleDeepLink(uri),
+      (uri) => handleDeepLink(uri),
       onError: (err) {
         // Ignore errors
       },
@@ -61,7 +95,7 @@ void _initDeepLinks() {
   }
 }
 
-Future<void> _handleDeepLink(Uri uri) async {
+Future<void> handleDeepLink(Uri uri) async {
   String? code;
 
   // migo://ref/ABC123
@@ -109,7 +143,6 @@ class MigoApp extends StatelessWidget {
           themeMode: ThemeMode.system,
           locale: Locale(locale),
           builder: (context, child) {
-            // Auto RTL/LTR based on locale
             return Directionality(
               textDirection:
                   isRtl ? TextDirection.rtl : TextDirection.ltr,
