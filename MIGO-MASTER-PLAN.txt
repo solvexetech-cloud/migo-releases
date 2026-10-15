@@ -1,6 +1,6 @@
 # ═══════════════════════════════════════════════════════
 # MIGO — MASTER PLAN
-# Version: v3.12
+# Version: v3.13
 # Date: October 15, 2026
 # Owner: solvexe.tech@gmail.com
 # ═══════════════════════════════════════════════════════
@@ -476,6 +476,103 @@ Track by: per business, agency, zone, country, monthly/quarterly/yearly.
 **Revenue:** QAR 0
 
 ═══════════════════════════════════════════════════════
+## PHASE J — Multi-Role Admin Panel
+═══════════════════════════════════════════════════════
+
+### 🎯 ലക്ഷ്യം: Role-Scoped Admin Dashboards
+
+**Philosophy:** ഓരോ role-നും — അവരുടെ scope-ൽ മാത്രം access.
+Super Admin, Admin, Agency, Staff — എല്ലാവർക്കും separate views.
+
+### 📋 Core Features
+
+| # | Feature | Description |
+|---|---------|-------------|
+| 1 | Role-Based Routing | Login → redirect by role |
+| 2 | Role-Based Sidebar | Each role sees own menu items |
+| 3 | Agency Dashboard | Own area only — businesses, revenue |
+| 4 | Staff Dashboard | Pending approvals, reviews moderation |
+| 5 | Firestore Query Filters | Auto-filter by role scope |
+| 6 | Login Redirect Logic | Role → correct dashboard |
+| 7 | Rules Verification | Verify Firestore rules enforce scope |
+| 8 | Permission Guard | UI-level + backend-level checks |
+
+### 🗄️ Role → Scope Matrix
+
+| Role | Scope | Dashboard |
+|------|-------|-----------|
+| super_admin | Everything | Full admin panel |
+| admin | Country/State | Country dashboard |
+| agency | Own area(s) | Agency dashboard |
+| moderator | Pending + Reviews | Staff dashboard |
+| business | Own business | Business app |
+| customer | Shopping only | Customer app |
+
+### 📁 Files to Create
+
+**Admin (React):**
+- `admin/src/pages/SuperAdminDashboard.jsx`
+- `admin/src/pages/CountryAdminDashboard.jsx`
+- `admin/src/pages/AgencyDashboard.jsx`
+- `admin/src/pages/StaffDashboard.jsx`
+- `admin/src/hooks/useRoleNav.js`
+- `admin/src/contexts/RoleContext.jsx`
+
+**Admin (Modify):**
+- `admin/src/App.jsx` — role-based routing
+- `admin/src/components/AdminLayout.jsx` — role-based sidebar
+- `admin/src/pages/AdminLogin.jsx` — redirect by role
+
+### 📅 PHASE J — Task Breakdown
+
+| # | Task | Time | Priority |
+|---|------|------|----------|
+| J1 | RoleContext + useRoleNav hook | 2h | 🔥🔥🔥 |
+| J2 | App.jsx — role-based routing | 2h | 🔥🔥🔥 |
+| J3 | AdminLayout — role-based sidebar | 1.5h | 🔥🔥🔥 |
+| J4 | Login redirect logic | 1h | 🔥🔥 |
+| J5 | Agency Dashboard | 4h | 🔥🔥 |
+| J6 | Staff Dashboard | 3h | 🔥🔥 |
+| J7 | Firestore query filters (per role) | 2h | 🔥🔥🔥 |
+| J8 | Rules verification + tighten | 1h | 🔥 |
+| J9 | Testing + polish | 2h | 🔥 |
+
+**Total PHASE J: ~17 hours**
+
+**Timeline:** After PHASE E complete, before PHASE I
+**Priority:** 🔥🔥🔥 HIGH — critical for scaling
+**Cost:** QAR 0 (free)
+**Blockers:** None
+
+### 🎯 PHASE J — Order of Implementation
+
+1. **Foundation:** J1, J2, J4
+2. **UI Layer:** J3, J5, J6
+3. **Data Layer:** J7, J8
+4. **QA:** J9
+
+### 🎁 Benefits
+
+| Party | Benefit |
+|-------|---------|
+| **Super Admin** | Free time — delegated work |
+| **Admin** | Country-level focus |
+| **Agency** | Own dashboard, no confusion |
+| **Staff** | Focused workflow |
+| **MIGO** | Scales to many areas/agencies |
+
+### 🆚 Current vs After PHASE J
+
+| Aspect | Now | After PHASE J |
+|--------|-----|---------------|
+| Agency login | Sees EVERYTHING ⚠️ | Own area only ✅ |
+| Staff login | Sees EVERYTHING ⚠️ | Own tasks only ✅ |
+| Admin login | Sees EVERYTHING ⚠️ | Country only ✅ |
+| Sidebar | Same for all ⚠️ | Role-based ✅ |
+| Data filters | None ⚠️ | Auto-scoped ✅ |
+
+
+═══════════════════════════════════════════════════════
 ## PHASE F — Coin System (Free Initially)
 ═══════════════════════════════════════════════════════
 
@@ -862,6 +959,7 @@ PHASE B: [✅✅✅✅✅] 100% (5/5) 🎉
 PHASE C: [✅✅✅✅✅✅✅] 100% (7/7) 🎉72041826
 PHASE D: [✅✅✅🟡✅✅✅] 85% (6/7)
 PHASE E: [✅✅✅✅✅✅✅✅✅✅] 100% (10/10) 🎉
+PHASE J: [⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/9)
 PHASE F: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/13)
 PHASE G: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/12)
 PHASE H: [✅✅✅✅✅✅🟡] 95% (6/7 + Testing 90%)
@@ -1068,6 +1166,11 @@ TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅�
 - 2026-10-15: PHASE E — 100% (10/10) 🎉
 - 2026-10-15: MASTER PLAN v3.12
 
+- 2026-10-15: PHASE J added (Multi-Role Admin Panel)
+- 2026-10-15: 9 new tasks (J1-J9) planned
+- 2026-10-15: Role-scoped dashboards (agency, staff, admin)
+- 2026-10-15: Priority: HIGH — critical for scaling
+- 2026-10-15: MASTER PLAN v3.13
 
 
 ═══════════════════════════════════════════════════════
@@ -1104,11 +1207,16 @@ TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅�
 ═══════════════════════════════════════════════════════
 
 ### Immediate (Next Session)
-1. **D5 — Digital Marketing Dashboard** (2h) — Complete PHASE D
-2. **D4 Build Fix** (1-2h) — Flutter SDK downgrade or wait
-3. **PHASE H Start** — MIGO Reserve (D4D-killer feature) 🔥
-4. **PHASE E Start** — Growth & Viral
+1. **PHASE J Start** — Multi-Role Admin Panel (17h) 🔥🔥🔥
+2. **D4 Build Fix** (1-2h) — AdMob (optional)
+3. **PHASE I Start** — Business App (40h)
+4. **PHASE F Start** — Coin System (42h)
 
+### Priority Order (Current)
+1. **PHASE J — Multi-Role Admin Panel** (17h) — HIGH 🔥
+2. **PHASE I — Business App** (40h) — STRATEGIC 🔥🔥
+3. **PHASE F — Coin System** (42h) — RETENTION 🔥
+4. **PHASE G — Monetization** (50h) — REVENUE 🔥
 ### Priority Order (After D5 + D4)
 1. **PHASE H — MIGO Reserve** (30h) — HIGHEST priority, D4D-killer
 2. **PHASE E — Growth & Viral** (39h) — User acquisition
@@ -1500,5 +1608,5 @@ END OF PHASE I — MULTI-APP ARCHITECTURE
 ═══════════════════════════════════════════════════════
 
 ═══════════════════════════════════════════════════════
-END OF MASTER PLAN v3.12
+END OF MASTER PLAN v3.13
 ═══════════════════════════════════════════════════════

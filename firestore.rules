@@ -50,12 +50,30 @@ service cloud.firestore {
 
         // ---------- USERS ----------
     match /users/{uid} {
-      allow read: if true;
-      allow list: if true;
-      allow create: if true;
-      allow update: if true;
-      allow delete: if isSuperAdmin();
-    }
+  // Read: owner OR admin/moderator/agency
+  allow read: if isSignedIn();
+allow list: if isSignedIn();
+  
+  // Create: only self
+  allow create: if isSignedIn() &&
+    request.auth.uid == uid;
+  
+  // Update: self (profile) OR coins-increment OR admin
+  allow update: if isSignedIn() && (
+    // Owner — profile update (no role change)
+    (request.auth.uid == uid &&
+     !request.resource.data.diff(resource.data)
+       .affectedKeys().hasAny(['role'])) ||
+    // Coin increment ONLY (positive) — allows referral rewards
+    (request.resource.data.diff(resource.data)
+       .affectedKeys().hasOnly(['coins', 'updatedAt']) &&
+     request.resource.data.coins >= resource.data.coins) ||
+    // Admin — anything
+    isAdmin()
+  );
+  
+  allow delete: if isSuperAdmin();
+}
 
     // ---------- BUSINESSES ----------
     match /businesses/{businessId} {
@@ -106,12 +124,29 @@ service cloud.firestore {
 
     // ---------- CLAIMS ----------
         match /claims/{claimId} {
-      allow read: if true;
-      allow list: if true;
-      allow create: if true;
-      allow update: if true;
-      allow delete: if isAdmin();
-    }
+  // Read: owner OR business owner OR admin
+  allow read: if isSignedIn() && (
+    resource.data.userUid == request.auth.uid ||
+    isBusinessOwner(resource.data.businessId) ||
+    isModerator() ||
+    isAgency()
+  );
+  allow list: if isSignedIn();
+  
+  // Create: self only
+  allow create: if isSignedIn() &&
+    request.resource.data.userUid == request.auth.uid;
+  
+  // Update: owner (status), business owner (redeem), admin
+  allow update: if isSignedIn() && (
+    resource.data.userUid == request.auth.uid ||
+    isBusinessOwner(resource.data.businessId) ||
+    isModerator() ||
+    isAdmin()
+  );
+  
+  allow delete: if isAdmin();
+}
 
     // ---------- GROUP DEALS ----------
     match /group_deals/{offerId} {
@@ -185,9 +220,10 @@ service cloud.firestore {
 
     // ─── FRAUD LOGS (E10) ────────────────────────────
     match /fraud_logs/{logId} {
-      allow create: if isSignedIn();
-      allow read, update, delete: if isAdmin();
-    }
+  allow create: if isSignedIn();
+  allow read: if isModerator();
+  allow update, delete: if isAdmin();
+}
 
     // ---------- SAVED OFFERS ----------
     match /saved_offers/{docId} {

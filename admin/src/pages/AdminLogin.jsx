@@ -9,7 +9,7 @@ export default function AdminLogin({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-    async function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -30,9 +30,18 @@ export default function AdminLogin({ onLogin }) {
       }
 
       const role = userSnap.data().role;
-      if (role !== 'admin') {
+
+      // Allow super_admin, admin, agency, moderator
+      const allowedRoles = [
+        'super_admin',
+        'admin',
+        'agency',
+        'moderator',
+      ];
+
+      if (!allowedRoles.includes(role)) {
         await signOut(auth);
-        throw new Error('Access denied. Not an admin.');
+        throw new Error('Access denied. Insufficient role.');
       }
 
       onLogin(cred.user);
@@ -241,7 +250,8 @@ export default function AdminLogin({ onLogin }) {
             marginTop: 20,
           }}
         >
-          Only users with role: "admin" in Firestore can access this panel.
+          Admin access only. Super admin, admin, agency, and
+          moderator roles can sign in.
         </p>
       </div>
     </div>

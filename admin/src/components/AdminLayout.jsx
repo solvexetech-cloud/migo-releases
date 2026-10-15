@@ -3,38 +3,15 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useIsMobile } from '../hooks/useIsMobile';
-
-const NAV_ITEMS = [
-  { to: '/', label: 'Dashboard', icon: '📊' },
-  { to: '/businesses', label: 'Businesses', icon: '🏢' },
-  { to: '/map', label: 'Business Map', icon: '🗺️' },
-  { to: '/analytics', label: 'Analytics', icon: '📊' },
-  { to: '/pending-businesses', label: 'Pending', icon: '⏳' },
-  { to: '/offers', label: 'Pending Offers', icon: '🎁' },
-  { to: '/users', label: 'Users', icon: '👥' },
-  { to: '/creators', label: 'Creators', icon: '🎬' },
-  { to: '/fraud-logs', label: 'Fraud Logs', icon: '🚨' },
-  { to: '/categories', label: 'Categories', icon: '📁' },
-  { to: '/roles', label: 'Roles', icon: '🔑' },
-  { to: '/agencies', label: 'Agencies', icon: '🤝' },
-  { to: '/pricing', label: 'Pricing', icon: '💵' },
-  { to: '/strings', label: 'App Strings', icon: '🌐' },
-  { to: '/revenue', label: 'Revenue', icon: '💰' },
-  { to: '/reviews', label: 'Reviews', icon: '⭐' },
-  { to: '/geography', label: 'Geography', icon: '🌍' },
-  { to: '/ads', label: 'Ads Config', icon: '📢' },
-  { to: '/revenue-split', label: 'Revenue Split', icon: '💰' },
-  { to: '/reservations', label: 'Reservations', icon: '🎫' },
-  { to: '/reservation-rules', label: 'Reserve Rules', icon: '📜' },
-  { to: '/reservation-config', label: 'Reserve Config', icon: '⚙️' },
-  { to: '/no-show-log', label: 'No-Show Log', icon: '🚫' },
-  { to: '/marketing', label: 'Marketing', icon: '📈' },
-];
+import { useRoleNav } from '../hooks/useRoleNav';
+import { useRole } from '../contexts/RoleContext';
 
 export default function AdminLayout({ user, children }) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { navItems } = useRoleNav();
+  const { role } = useRole();
 
   async function handleSignOut() {
     await signOut(auth);
@@ -101,7 +78,7 @@ export default function AdminLayout({ user, children }) {
 
       {/* Nav */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {NAV_ITEMS.map((item) => (
+        {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -147,7 +124,7 @@ export default function AdminLayout({ user, children }) {
             letterSpacing: 0.5,
           }}
         >
-          SIGNED IN AS
+          SIGNED IN AS — {role?.toUpperCase()}
         </div>
         <div
           style={{
