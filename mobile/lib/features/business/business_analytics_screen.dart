@@ -1,210 +1,233 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../../core/theme/migo_colors.dart';
-import '../../models/business_model.dart';
-import '../../models/claim_model.dart';
-import '../../models/offer_model.dart';
-import '../../services/firestore_service.dart';
 
-class BusinessAnalyticsScreen extends StatelessWidget {
-  const BusinessAnalyticsScreen({super.key, required this.business});
-  final BusinessModel business;
+import '../../core/theme/migo_colors.dart';
+
+/// PHASE E — E9: Business Analytics (Referrer Tracking)
+/// Shows which creators brought claims/redeems
+class BusinessAnalyticsScreen extends StatefulWidget {
+  const BusinessAnalyticsScreen({super.key});
+
+  @override
+  State<BusinessAnalyticsScreen> createState() =>
+      _BusinessAnalyticsScreenState();
+}
+
+class _BusinessAnalyticsScreenState extends State<BusinessAnalyticsScreen> {
+  String? _businessId;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBusiness();
+  }
+
+  Future<void> _loadBusiness() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      setState(() => _loading = false);
+      return;
+    }
+
+    final snap = await FirebaseFirestore.instance
+        .collection('businesses')
+        .where('ownerUid', isEqualTo: uid)
+        .limit(1)
+        .get();
+
+    if (snap.docs.isNotEmpty) {
+      _businessId = snap.docs.first.id;
+    }
+
+    if (mounted) {
+      setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Analytics')),
-      body: StreamBuilder<List<ClaimModel>>(
-        stream:
-            FirestoreService.instance.streamBusinessClaims(business.id),
-        builder: (context, claimSnap) {
-          return StreamBuilder<List<OfferModel>>(
-            stream: FirestoreService.instance.streamMyOffers(business.id),
-            builder: (context, offerSnap) {
-              if (claimSnap.connectionState == ConnectionState.waiting ||
-                  offerSnap.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              final claims = claimSnap.data ?? [];
-              final offers = offerSnap.data ?? [];
+      appBar: AppBar(
+        title: const Text('Referrer Analytics'),
+        backgroundColor: MigoColors.primary,
+        foregroundColor: Colors.white,
+      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _businessId == null
+              ? const Center(child: Text('No business found'))
+              : _buildContent(),
+    );
+  }
 
-              final totalClaims = claims.length;
-              final totalRedeemed = claims
-                  .where((c) => c.status == ClaimStatus.redeemed)
-                  .length;
-              final activeClaims = claims
-                  .where((c) => c.status == ClaimStatus.active)
-                  .length;
+  Widget _buildContent() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('claims')
+          .where('businessId', isEqualTo: _businessId)
+          .snapshots(),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-              final revenue = claims
-                  .where((c) => c.status == ClaimStatus.redeemed)
-                  .fold<double>(0, (sum, c) => sum + c.offerPrice);
+        final claims = snap.data?.docs ?? [];
 
-              final customerUids = claims.map((c) => c.userUid).toList();
-              final uniqueCustomers = customerUids.toSet().length;
+        if (claims.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Text(
+                'No claims yet.\nShare your offers to attract creators!',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: MigoColors.textSecondaryLight),
+              ),
+            ),
+          );
+        }
 
-              final repeatCustomers = customerUids
-                  .where((uid) =>
-                      customerUids.where((u) => u == uid).length >= 2)
-                  .toSet()
-                  .length;
+        // Aggregate by referrer
+        final Map<String, _ReferrerStats> stats = {};
+        int totalClaims = 0;
+        int totalRedeems = 0;
 
-              return ListView(
-                padding: const EdgeInsets.all(20),
+        for (final doc in claims) {
+          final data = doc.data() as Map<String, dynamic>;
+          totalClaims++;
+
+          final referredBy = data['referredByCreatorId'] as String?;
+          final isRedeemed = data['status'] == 'redeemed';
+
+          if (isRedeemed) totalRedeems++;
+
+          if (referredBy != null && referredBy.isNotEmpty) {
+            final existing = stats[referredBy];
+            if (existing == null) {
+              stats[referredBy] = _ReferrerStats(
+                creatorId: referredBy,
+                claims: 1,
+                redeems: isRedeemed ? 1 : 0,
+              );
+            } else {
+              existing.claims++;
+              if (isRedeemed) existing.redeems++;
+            }
+          }
+        }
+
+        final sorted = stats.values.toList()
+          ..sort((a, b) => b.claims.compareTo(a.claims));
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Overview stats
+              const _SectionTitle('OVERVIEW'),
+              const SizedBox(height: 12),
+              Row(
                 children: [
-                  _HeaderCard(
-                    businessName: business.name,
-                    currency: business.currency,
-                    revenue: revenue,
+                  Expanded(
+                    child: _StatCard(
+                      icon: Icons.shopping_bag_outlined,
+                      label: 'Total Claims',
+                      value: totalClaims.toString(),
+                      color: const Color(0xFF7C3AED),
+                    ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _StatCard(
+                      icon: Icons.check_circle_outline,
+                      label: 'Redeemed',
+                      value: totalRedeems.toString(),
+                      color: MigoColors.success,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _StatCard(
+                      icon: Icons.people_outline,
+                      label: 'Referrers',
+                      value: sorted.length.toString(),
+                      color: const Color(0xFF0EA5E9),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _StatCard(
+                      icon: Icons.trending_up,
+                      label: 'Conversion',
+                      value: totalClaims > 0
+                          ? '${(totalRedeems / totalClaims * 100).toStringAsFixed(0)}%'
+                          : '0%',
+                      color: MigoColors.warning,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
 
-                  const _SectionLabel('PERFORMANCE'),
-                  const SizedBox(height: 10),
-                  _StatGrid(
-                    items: [
-                      _StatData(
-                        label: 'Total claims',
-                        value: '$totalClaims',
-                        icon: Icons.receipt_long_outlined,
-                        color: MigoColors.primary,
+              // Top referrers
+              if (sorted.isNotEmpty) ...[
+                const _SectionTitle('TOP REFERRERS'),
+                const SizedBox(height: 12),
+                ...sorted.take(10).map(
+                      (s) => _ReferrerTile(
+                        stats: s,
+                        rank: sorted.indexOf(s) + 1,
                       ),
-                      _StatData(
-                        label: 'Redeemed',
-                        value: '$totalRedeemed',
-                        icon: Icons.verified_outlined,
-                        color: MigoColors.success,
-                      ),
-                      _StatData(
-                        label: 'Active',
-                        value: '$activeClaims',
-                        icon: Icons.schedule_outlined,
-                        color: MigoColors.warning,
-                      ),
-                      _StatData(
-                        label: 'Customers',
-                        value: '$uniqueCustomers',
-                        icon: Icons.people_outline,
-                        color: MigoColors.primaryLight,
+                    ),
+                const SizedBox(height: 16),
+              ] else
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: MigoColors.primary.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.info_outline, color: MigoColors.primary),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'No creator referrals yet. Creators will appear here when their followers claim your offers.',
+                          style: TextStyle(fontSize: 13),
+                        ),
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 20),
-                  const _SectionLabel('REPEAT CUSTOMERS'),
-                  const SizedBox(height: 10),
-                  _HighlightCard(
-                    title: '$repeatCustomers',
-                    subtitle:
-                        'customers with 2 or more claims at ${business.name}',
-                    icon: Icons.favorite_outline,
-                    color: MigoColors.accent,
-                  ),
-
-                  const SizedBox(height: 20),
-                  const _SectionLabel('OFFERS'),
-                  const SizedBox(height: 10),
-                  if (offers.isEmpty)
-                    const _EmptyCard(message: 'No offers yet')
-                  else
-                    ...offers.map(
-                      (o) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: _OfferStatRow(
-                          offer: o,
-                          totalClaims: claims
-                              .where((c) => c.offerId == o.id)
-                              .length,
-                          redemptions: claims
-                              .where((c) =>
-                                  c.offerId == o.id &&
-                                  c.status == ClaimStatus.redeemed)
-                              .length,
-                        ),
-                      ),
-                    ),
-
-                  const SizedBox(height: 20),
-                  const _SectionLabel('CLAIM SOURCES'),
-                  const SizedBox(height: 10),
-                  _SourceBreakdown(claims: claims),
-                ],
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _HeaderCard extends StatelessWidget {
-  const _HeaderCard({
-    required this.businessName,
-    required this.currency,
-    required this.revenue,
-  });
-
-  final String businessName;
-  final String currency;
-  final double revenue;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [MigoColors.primary, MigoColors.primaryLight],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.trending_up,
-                color: MigoColors.accent,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'MEASURABLE REVENUE',
-                style: TextStyle(
-                  fontSize: 11,
-                  letterSpacing: 2,
-                  fontWeight: FontWeight.w800,
-                  color: MigoColors.accent,
                 ),
-              ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            '$currency ${revenue.toStringAsFixed(0)}',
-            style: const TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              height: 1,
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Based on redeemed MIGO offers',
-            style: TextStyle(fontSize: 12, color: Colors.white70),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.text);
+class _ReferrerStats {
+  _ReferrerStats({
+    required this.creatorId,
+    required this.claims,
+    required this.redeems,
+  });
+
+  final String creatorId;
+  int claims;
+  int redeems;
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.text);
   final String text;
 
   @override
@@ -212,95 +235,26 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(
-        fontSize: 12,
+        fontSize: 11,
+        fontWeight: FontWeight.w800,
         letterSpacing: 1.5,
-        fontWeight: FontWeight.w700,
         color: MigoColors.textSecondaryLight,
       ),
     );
   }
 }
 
-class _StatData {
-  const _StatData({
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.icon,
     required this.label,
     required this.value,
-    required this.icon,
     required this.color,
   });
+
+  final IconData icon;
   final String label;
   final String value;
-  final IconData icon;
-  final Color color;
-}
-
-class _StatGrid extends StatelessWidget {
-  const _StatGrid({required this.items});
-  final List<_StatData> items;
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
-      childAspectRatio: 1.6,
-      children: items
-          .map((s) => Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: MigoColors.surfaceLight,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: MigoColors.dividerLight),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Icon(s.icon, color: s.color, size: 20),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          s.value,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            color: MigoColors.textPrimaryLight,
-                            height: 1,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          s.label,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: MigoColors.textSecondaryLight,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ))
-          .toList(),
-    );
-  }
-}
-
-class _HighlightCard extends StatelessWidget {
-  const _HighlightCard({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.color,
-  });
-
-  final String title;
-  final String subtitle;
-  final IconData icon;
   final Color color;
 
   @override
@@ -308,30 +262,101 @@ class _HighlightCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: MigoColors.dividerLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              color: MigoColors.textSecondaryLight,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReferrerTile extends StatelessWidget {
+  const _ReferrerTile({required this.stats, required this.rank});
+
+  final _ReferrerStats stats;
+  final int rank;
+
+  @override
+  Widget build(BuildContext context) {
+    final conversion = stats.claims > 0
+        ? (stats.redeems / stats.claims * 100).toStringAsFixed(0)
+        : '0';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: MigoColors.dividerLight),
       ),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(width: 14),
+          // Rank badge
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: _rankColor(rank).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '#$rank',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                color: _rankColor(rank),
+                fontSize: 13,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Creator info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: color,
-                    height: 1,
+                  'Creator ${stats.creatorId.substring(0, 6)}...',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
-                  subtitle,
+                  '${stats.claims} claims • ${stats.redeems} redeems',
                   style: const TextStyle(
                     fontSize: 12,
                     color: MigoColors.textSecondaryLight,
@@ -340,241 +365,40 @@ class _HighlightCard extends StatelessWidget {
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OfferStatRow extends StatelessWidget {
-  const _OfferStatRow({
-    required this.offer,
-    required this.totalClaims,
-    required this.redemptions,
-  });
-
-  final OfferModel offer;
-  final int totalClaims;
-  final int redemptions;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: MigoColors.surfaceLight,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: MigoColors.dividerLight),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  offer.title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                offer.type.label,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: MigoColors.textSecondaryLight,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _MiniStat(
-                  label: 'Claims',
-                  value: '$totalClaims',
-                  color: MigoColors.primary,
-                ),
-              ),
-              Expanded(
-                child: _MiniStat(
-                  label: 'Redeemed',
-                  value: '$redemptions',
-                  color: MigoColors.success,
-                ),
-              ),
-              Expanded(
-                child: _MiniStat(
-                  label: 'Revenue',
-                  value:
-                      '${offer.currency} ${(redemptions * offer.offerPrice).toStringAsFixed(0)}',
-                  color: MigoColors.accent,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MiniStat extends StatelessWidget {
-  const _MiniStat({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  final String label;
-  final String value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 10,
-            color: MigoColors.textSecondaryLight,
-            letterSpacing: 0.5,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: color,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _SourceBreakdown extends StatelessWidget {
-  const _SourceBreakdown({required this.claims});
-  final List<ClaimModel> claims;
-
-  @override
-  Widget build(BuildContext context) {
-    if (claims.isEmpty) {
-      return const _EmptyCard(message: 'No claims yet');
-    }
-
-    final grouped = <String, int>{};
-    for (final c in claims) {
-      grouped[c.source] = (grouped[c.source] ?? 0) + 1;
-    }
-    final total = claims.length;
-    final entries = grouped.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: MigoColors.surfaceLight,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: MigoColors.dividerLight),
-      ),
-      child: Column(
-        children: entries.map((e) {
-          final pct = (e.value / total);
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      _label(e.key),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '${e.value} (${(pct * 100).toStringAsFixed(0)}%)',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: MigoColors.textSecondaryLight,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
-                  child: LinearProgressIndicator(
-                    value: pct,
-                    minHeight: 6,
-                    backgroundColor:
-                        MigoColors.primary.withValues(alpha: 0.1),
-                    valueColor: const AlwaysStoppedAnimation(
-                      MigoColors.primary,
-                    ),
-                  ),
-                ),
-              ],
+          // Conversion %
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 6,
             ),
-          );
-        }).toList(),
+            decoration: BoxDecoration(
+              color: MigoColors.success.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              '$conversion%',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: MigoColors.success,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  String _label(String source) {
-    switch (source) {
-      case 'home':
-        return 'Home';
-      case 'search':
-        return 'Search';
-      case 'map':
-        return 'Map';
-      case 'referral':
-        return 'Referral';
-      case 'creator':
-        return 'Creator';
-      case 'whatsapp_share':
-        return 'WhatsApp';
-      case 'group_deal':
-        return 'Group deal';
+  Color _rankColor(int rank) {
+    switch (rank) {
+      case 1:
+        return const Color(0xFFF59E0B); // gold
+      case 2:
+        return const Color(0xFF9CA3AF); // silver
+      case 3:
+        return const Color(0xFFB45309); // bronze
       default:
-        return source;
+        return MigoColors.primary;
     }
-  }
-}
-
-class _EmptyCard extends StatelessWidget {
-  const _EmptyCard({required this.message});
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: MigoColors.surfaceLight,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: MigoColors.dividerLight),
-      ),
-      child: Center(
-        child: Text(
-          message,
-          style: const TextStyle(color: MigoColors.textSecondaryLight),
-        ),
-      ),
-    );
   }
 }

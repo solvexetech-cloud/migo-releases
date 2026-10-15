@@ -10,6 +10,8 @@ import PendingBusinesses from './pages/PendingBusinesses';
 import BusinessesPage from './pages/BusinessesPage';
 import PendingOffers from './pages/PendingOffers';
 import UsersPage from './pages/UsersPage';
+import CreatorsPage from './pages/CreatorsPage';
+import FraudLogsPage from './pages/FraudLogsPage';
 import CategoriesPage from './pages/CategoriesPage';
 import RolesPage from './pages/RolesPage';
 import GeographyPage from './pages/GeographyPage';
@@ -93,6 +95,7 @@ export default function App() {
                     element={<PendingOffers />}
                   />
                             <Route path="/users" element={<UsersPage />} />
+                            <Route path="/creators" element={<CreatorsPage />} />
                   <Route
                     path="/categories"
                     element={<CategoriesPage />}
@@ -113,6 +116,8 @@ export default function App() {
                   <Route path="/reservation-config" element={<ReservationConfigPage />} />
                   <Route path="/no-show-log" element={<NoShowLogPage />} />
                   <Route path="/marketing" element={<MarketingDashboardPage />} />
+                  <Route path="/creators" element={<CreatorsPage />} />
+                  <Route path="/fraud-logs" element={<FraudLogsPage />} />
                 </Routes>
               </AdminLayout>
             ) : (

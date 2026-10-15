@@ -183,6 +183,12 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // ─── FRAUD LOGS (E10) ────────────────────────────
+    match /fraud_logs/{logId} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdmin();
+    }
+
     // ---------- SAVED OFFERS ----------
     match /saved_offers/{docId} {
       allow read: if isSignedIn() &&

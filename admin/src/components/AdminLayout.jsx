@@ -12,6 +12,8 @@ const NAV_ITEMS = [
   { to: '/pending-businesses', label: 'Pending', icon: '⏳' },
   { to: '/offers', label: 'Pending Offers', icon: '🎁' },
   { to: '/users', label: 'Users', icon: '👥' },
+  { to: '/creators', label: 'Creators', icon: '🎬' },
+  { to: '/fraud-logs', label: 'Fraud Logs', icon: '🚨' },
   { to: '/categories', label: 'Categories', icon: '📁' },
   { to: '/roles', label: 'Roles', icon: '🔑' },
   { to: '/agencies', label: 'Agencies', icon: '🤝' },

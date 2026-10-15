@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../models/creator_model.dart';
 import '../../services/creator_service.dart';
+import 'creator_analytics_screen.dart';
+import 'creator_profile_screen.dart';
+import 'creator_performance_screen.dart';
 
 /// PHASE E — E6: Creator Dashboard
 class CreatorDashboardScreen extends StatelessWidget {
@@ -289,24 +292,132 @@ class CreatorDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Coming soon
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: MigoColors.primary.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.construction, color: MigoColors.primary),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'More features coming soon: Share links, Analytics, Public profile.',
-                    style: TextStyle(fontSize: 13),
+                    // Analytics button
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const CreatorAnalyticsScreen(),
                   ),
+                );
+              },
+              icon: const Icon(Icons.analytics_outlined),
+              label: const Text(
+                'View Analytics',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
                 ),
-              ],
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: MigoColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Share profile button
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                // TODO: Share public profile
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Share feature coming soon!'),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.share_outlined),
+              label: const Text(
+                'Share My Profile',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: MigoColors.primary,
+                side: const BorderSide(color: MigoColors.primary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // View public profile button
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                final uid = FirebaseAuth.instance.currentUser?.uid;
+                if (uid != null) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => CreatorProfileScreen(creatorId: uid),
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.person_outline),
+              label: const Text(
+                'View Public Profile',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: MigoColors.primary,
+                side: const BorderSide(color: MigoColors.primary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // My Performance button
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const CreatorPerformanceScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.trending_up),
+              label: const Text(
+                'My Performance',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: MigoColors.primary,
+                side: const BorderSide(color: MigoColors.primary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
           ),
         ],

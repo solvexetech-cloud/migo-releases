@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:app_links/app_links.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:play_install_referrer/play_install_referrer.dart';
-import 'dart:io' show Platform;
 
 import 'core/config/app_config.dart';
 import 'core/localization/locale_provider.dart';
@@ -15,34 +13,8 @@ import 'features/main/main_shell.dart';
 import 'firebase_options.dart';
 import 'services/notification_service.dart';
 import 'services/ads_service.dart';
+import 'services/referral_tracker.dart';
 
-// ═══════════════════════════════════════════════════════
-// PHASE E — E1: Install Referrer Handler
-// ═══════════════════════════════════════════════════════
-Future<void> checkInstallReferrer() async {
-  if (kIsWeb) return;
-  if (!Platform.isAndroid) return;
-
-  try {
-    final referrerDetails = await PlayInstallReferrer.installReferrer;
-    final referrer = referrerDetails.installReferrer;
-    debugPrint('🔵 Install Referrer: $referrer');
-
-    if (referrer != null && referrer.isNotEmpty) {
-      // Parse: utm_source=migo&referral_code=ABC123
-      final params = Uri.splitQueryString(referrer);
-      final code = params['referral_code'];
-
-      if (code != null && code.isNotEmpty) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('pending_referral_code', code.toUpperCase());
-        debugPrint('✅ Referral code stored from install: $code');
-      }
-    }
-  } catch (e) {
-    debugPrint('⚠️ Install Referrer error: $e');
-  }
-}
 
 // ═══════════════════════════════════════════════════════
 // MAIN
@@ -64,8 +36,8 @@ Future<void> main() async {
     await AdsService.instance.initialize();
   }
 
-  // PHASE E — E1: Install Referrer
-  await checkInstallReferrer();
+    // PHASE E — E1: Auto-referral tracker
+  await ReferralTracker.instance.init();
 
   // PHASE E — E3: Deep link handler
   initDeepLinks();

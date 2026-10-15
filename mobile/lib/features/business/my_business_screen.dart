@@ -557,14 +557,14 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                SizedBox(
+                                SizedBox(
                   height: 52,
                   child: OutlinedButton.icon(
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) =>
-                              BusinessAnalyticsScreen(business: biz),
+                              const BusinessAnalyticsScreen(),
                         ),
                       );
                     },
