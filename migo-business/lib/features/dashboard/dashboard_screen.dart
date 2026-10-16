@@ -7,6 +7,10 @@ import '../../services/auth_service.dart';
 import '../bookings/shop_bookings_screen.dart';
 import '../offers/my_offers_screen.dart';
 import '../scan/scan_qr_screen.dart';
+import '../analytics/business_analytics_screen.dart';
+import '../profile/profile_screen.dart';
+
+
 
 /// PHASE I — Business Dashboard
 /// Responsive: sidebar on PC, drawer on mobile
@@ -236,6 +240,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return _buildBookingsTab();
       case 3:
         return _buildScanTab();
+      case 4:
+        return _buildAnalyticsTab();
+      case 5:
+        return _buildProfileTab();
       default:
         return Center(
           child: Text(
@@ -301,6 +309,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
           return const Center(child: Text('No business linked'));
         }
         return ScanQrScreen(businessId: docs.first.id);
+      },
+    );
+  }
+
+  Widget _buildAnalyticsTab() {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      return const Center(child: Text('Not signed in'));
+    }
+
+    return FutureBuilder<QuerySnapshot>(
+      future: FirebaseFirestore.instance
+          .collection('businesses')
+          .where('ownerUid', isEqualTo: uid)
+          .limit(1)
+          .get(),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final docs = snap.data?.docs ?? [];
+        if (docs.isEmpty) {
+          return const Center(child: Text('No business linked'));
+        }
+        return BusinessAnalyticsScreen(businessId: docs.first.id);
+      },
+    );
+  }
+
+  Widget _buildProfileTab() {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      return const Center(child: Text('Not signed in'));
+    }
+
+    return FutureBuilder<QuerySnapshot>(
+      future: FirebaseFirestore.instance
+          .collection('businesses')
+          .where('ownerUid', isEqualTo: uid)
+          .limit(1)
+          .get(),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final docs = snap.data?.docs ?? [];
+        if (docs.isEmpty) {
+          return const Center(child: Text('No business linked'));
+        }
+        return ProfileScreen(businessId: docs.first.id);
       },
     );
   }
