@@ -1,6 +1,6 @@
 # ═══════════════════════════════════════════════════════
 # MIGO — MASTER PLAN
-# Version: v3.17
+# Version: v3.18
 # Date: October 15, 2026
 # Owner: solvexe.tech@gmail.com
 # ═══════════════════════════════════════════════════════
@@ -662,10 +662,12 @@ Super Admin, Admin, Agency, Staff — എല്ലാവർക്കും separ
 | I12 | Profile + settings | 2h | ✅ DONE 2026-10-16 |
 | I13 | Play Store setup | 2h | ⬜ NEXT |
 | I14 | Testing + polish | 3h | ⬜ |
+| I15 | Reserve Settings | 4h | ✅ DONE 2026-10-16 |
+| I15.1 | Status bug fix (Activate → live) | 30m | ✅ DONE 2026-10-16 |
 
 **Total PHASE I: ~40 hours**
 
-**Progress: 11/14 (79%)** 📈
+**Progress: 13/15 (87%)** 📈
 
 ### 🎯 PHASE I — Order of Implementation
 
@@ -1329,6 +1331,14 @@ TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅�
 - 2026-10-16: Business info + logo/cover upload
 - 2026-10-16: PHASE I — 79% (11/14)
 - 2026-10-16: MASTER PLAN v3.17
+- 2026-10-16: PHASE I — I15 complete (Reserve Settings)
+- 2026-10-16: business_offer_reserve_settings.dart ported
+- 2026-10-16: Toggle + slots + hold + token + max per customer
+- 2026-10-16: I15.1 — Status bug fix (Activate → live)
+- 2026-10-16: Admin approval already live ✅
+- 2026-10-16: Business Activate now sets live (was approved)
+- 2026-10-16: PHASE I — 87% (13/15)
+- 2026-10-16: MASTER PLAN v3.18
 
 ═══════════════════════════════════════════════════════
 ## ഭാഗം 16: Important Info
@@ -1768,5 +1778,5 @@ END OF PHASE I — MULTI-APP ARCHITECTURE
 ═══════════════════════════════════════════════════════
 
 ═══════════════════════════════════════════════════════
-END OF MASTER PLAN v3.17
+END OF MASTER PLAN v3.18
 ═══════════════════════════════════════════════════════

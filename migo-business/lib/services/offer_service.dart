@@ -106,14 +106,14 @@ class OfferService {
     }
   }
 
-  /// Toggle active/inactive
+    /// Toggle active/inactive
   Future<String?> toggleActive({
     required String offerId,
     required bool currentActive,
   }) async {
     try {
       await _db.collection('offers').doc(offerId).update({
-        'status': currentActive ? 'paused' : 'approved',
+        'status': currentActive ? 'paused' : 'live',
         'updatedAt': FieldValue.serverTimestamp(),
       });
       return null;
