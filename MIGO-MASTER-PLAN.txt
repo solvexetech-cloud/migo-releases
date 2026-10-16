@@ -1,6 +1,6 @@
 # ═══════════════════════════════════════════════════════
 # MIGO — MASTER PLAN
-# Version: v3.15
+# Version: v3.16
 # Date: October 15, 2026
 # Owner: solvexe.tech@gmail.com
 # ═══════════════════════════════════════════════════════
@@ -571,6 +571,121 @@ Super Admin, Admin, Agency, Staff — എല്ലാവർക്കും separ
 | Sidebar | Same for all ⚠️ | Role-based ✅ |
 | Data filters | None ⚠️ | Auto-scoped ✅ |
 
+═══════════════════════════════════════════════════════
+## PHASE I — Business App (MIGO Business)
+═══════════════════════════════════════════════════════
+
+### 🎯 ലക്ഷ്യം: Separate App for Business Owners
+
+**Philosophy:** Customer-ന് MIGO, Business-ന് MIGO Business.
+**Location:** C:\Users\DELL\Documents\migo\migo-business\
+**Package:** com.migo.migo_business
+**Firebase:** Same project (migo-app-3030e)
+
+### 📋 Core Features
+
+| # | Feature | Description |
+|---|---------|-------------|
+| 1 | Responsive UI | PC sidebar + Mobile drawer |
+| 2 | Login (role: business) | Firebase Auth |
+| 3 | Dashboard | Welcome + stats + business info |
+| 4 | My Offers (CRUD) | Create/Edit/Pause/Delete |
+| 5 | Advanced Offer Form | Image upload + types + duration |
+| 6 | Cloudinary upload | Gallery + Camera |
+| 7 | Bookings | Active/Completed/Expired tabs |
+| 8 | Reservation detail | Mark picked up / No-show |
+| 9 | No-show history | Filtered log |
+| 10 | QR Scanner | Camera + Manual entry |
+| 11 | Redeem claims | CLM_ prefix |
+| 12 | Reservation pickup | RSV_ prefix + 6-digit code |
+
+### 🗄️ Firestore
+
+**Reuses same collections:**
+- users, businesses, offers, claims
+- reservations, reservation_rules, no_show_log
+- reservation_config, reservation_bans
+- coin_transactions, notifications
+
+**No migration needed!** ✅
+
+### 📁 Files Created (~35)
+
+**Models (7):**
+- offer_model.dart
+- reservation_model.dart
+- no_show_log_model.dart
+- reservation_config_model.dart
+- reservation_rules_model.dart
+- reservation_ban_model.dart
+- claim_model.dart
+
+**Services (5):**
+- auth_service.dart
+- offer_service.dart
+- reservation_service.dart
+- claim_service.dart
+- cloudinary_service.dart
+
+**Theme (3):**
+- migo_theme.dart
+- migo_gradients.dart
+
+**Screens (7):**
+- login_screen.dart
+- dashboard_screen.dart
+- my_offers_screen.dart
+- create_offer_screen.dart
+- shop_bookings_screen.dart
+- reservation_detail_shop_screen.dart
+- no_show_history_screen.dart
+- scan_qr_screen.dart
+
+**Widgets (1):**
+- countdown_timer_widget.dart
+
+### 📅 PHASE I — Task Breakdown
+
+| # | Task | Time | Status |
+|---|------|------|--------|
+| I1 | Flutter project setup | 2h | ✅ DONE 2026-10-16 |
+| I2 | Firebase config | 1h | ✅ DONE 2026-10-16 |
+| I3 | FlutterFire CLI + dependencies | 1h | ✅ DONE 2026-10-16 |
+| I4 | Login screen | 2h | ✅ DONE 2026-10-16 |
+| I5 | Signup flow | 3h | ⏭️ Skip (existing) |
+| I6 | Dashboard | 4h | ✅ DONE 2026-10-16 |
+| I7 | Offer CRUD (advanced) | 5h | ✅ DONE 2026-10-16 |
+| I8 | Reservations management | 4h | ✅ DONE 2026-10-16 |
+| I9 | QR scanner | 3h | ✅ DONE 2026-10-16 |
+| I10 | Analytics dashboard | 4h | ⬜ NEXT |
+| I11 | Revenue reports | 3h | ⬜ |
+| I12 | Profile + settings | 2h | ⬜ |
+| I13 | Play Store setup | 2h | ⬜ |
+| I14 | Testing + polish | 3h | ⬜ |
+
+**Total PHASE I: ~40 hours**
+
+**Progress: 9/14 (64%)** 📈
+
+### 🎯 PHASE I — Order of Implementation
+
+1. **Foundation:** I1, I2, I3
+2. **Auth + Dashboard:** I4, I6
+3. **Offers:** I7
+4. **Bookings:** I8
+5. **QR Scanner:** I9
+6. **Analytics + Revenue:** I10, I11
+7. **Profile:** I12
+8. **Play Store:** I13
+9. **Testing:** I14
+
+### 🆚 Benefits
+
+| Party | Benefit |
+|-------|---------|
+| **Customer** | Simpler app, faster |
+| **Business** | Professional tools |
+| **MIGO** | Play Store SEO, separate listing |
 
 ═══════════════════════════════════════════════════════
 ## PHASE F — Coin System (Free Initially)
@@ -960,6 +1075,7 @@ PHASE C: [✅✅✅✅✅✅✅] 100% (7/7) 🎉72041826
 PHASE D: [✅✅✅🟡✅✅✅] 85% (6/7)
 PHASE E: [✅✅✅✅✅✅✅✅✅✅] 100% (10/10) 🎉
 PHASE J: [✅✅✅✅✅✅✅✅✅] 100% (9/9) 🎉
+PHASE I: [✅✅✅✅⬜⬜⬜⬜⬜] 64% (9/14)
 PHASE F: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/13)
 PHASE G: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/12)
 PHASE H: [✅✅✅✅✅✅🟡] 95% (6/7 + Testing 90%)
@@ -1192,6 +1308,19 @@ TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅�
 - 2026-10-15: test1 promoted to super_admin
 - 2026-10-15: All 4 admin roles verified end-to-end
 - 2026-10-15: MASTER PLAN v3.15
+- 2026-10-16: PHASE I — Business App started
+- 2026-10-16: I1 — Flutter project setup (migo-business)
+- 2026-10-16: I2 — Firebase config (same project)
+- 2026-10-16: I3 — FlutterFire CLI + 15 dependencies
+- 2026-10-16: I4 — Login screen (business role only)
+- 2026-10-16: I6 — Dashboard (responsive PC + mobile)
+- 2026-10-16: I7 — Advanced Offer CRUD with Cloudinary
+- 2026-10-16: I8 — Bookings management (5 models, service, 3 screens)
+- 2026-10-16: I9 — QR Scanner (camera + manual entry)
+- 2026-10-16: test1 promoted to super_admin
+- 2026-10-16: business@migoapp.com created (business role)
+- 2026-10-16: Business doc created (Test Business)
+- 2026-10-16: Master Plan v3.16
 
 ═══════════════════════════════════════════════════════
 ## ഭാഗം 16: Important Info
@@ -1230,11 +1359,11 @@ TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅�
 ═══════════════════════════════════════════════════════
 
 ### Immediate (Next Session)
-1. **PHASE J Start** — Multi-Role Admin Panel (17h) 🔥🔥🔥
-2. **D4 Build Fix** (1-2h) — AdMob (optional)
-3. **PHASE I Start** — Business App (40h)
-4. **PHASE F Start** — Coin System (42h)
-
+1. **PHASE I Continue** — I10 Analytics (30m port)
+2. **I11 Revenue** — 3h new build
+3. **I12 Profile** — 2h port
+4. **I13-I14** — Play Store + Testing
+5. **D4 Build Fix** (optional) — AdMob
 ### Priority Order (Current)
 1. **PHASE J — Multi-Role Admin Panel** (17h) — HIGH 🔥
 2. **PHASE I — Business App** (40h) — STRATEGIC 🔥🔥
@@ -1631,5 +1760,5 @@ END OF PHASE I — MULTI-APP ARCHITECTURE
 ═══════════════════════════════════════════════════════
 
 ═══════════════════════════════════════════════════════
-END OF MASTER PLAN v3.15
+END OF MASTER PLAN v3.16
 ═══════════════════════════════════════════════════════

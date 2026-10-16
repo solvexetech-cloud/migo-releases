@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "483248999618",
+    "project_id": "migo-app-3030e",
+    "storage_bucket": "migo-app-3030e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:483248999618:android:f9cb4169325d13c292bf5b",
+        "android_client_info": {
+          "package_name": "com.migo.migo_business"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCx-JnUfr0HawhmjbTg_q_Z-q5s6R841Fg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:483248999618:android:fea5a34528670ef892bf5b",
+        "android_client_info": {
+          "package_name": "com.migoapp.migo_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCx-JnUfr0HawhmjbTg_q_Z-q5s6R841Fg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
