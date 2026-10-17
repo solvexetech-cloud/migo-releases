@@ -1,0 +1,1782 @@
+# ═══════════════════════════════════════════════════════
+# MIGO — MASTER PLAN
+# Version: v3.18
+# Date: October 15, 2026
+# Owner: solvexe.tech@gmail.com
+# ═══════════════════════════════════════════════════════
+
+## 📌 ഈ ഡോക്യുമെന്റിനെ കുറിച്ച്
+
+ഇത് MIGO ആപ്പിന്റെ പൂർണ്ണ റോഡ്മാപ്പ് ആണ്.
+പുതിയ ചാറ്റ് തുടങ്ങുമ്പോൾ ഈ ഫയൽ AI-ക്ക് paste ചെയ്താൽ
+എല്ലാം മനസ്സിലാകും.
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 1: പ്രോജക്ട് അവസ്ഥ (Project Status)
+═══════════════════════════════════════════════════════
+
+### 📁 ലൊക്കേഷൻ
+Root: C:\Users\DELL\Documents\migo\
+├── mobile/    → Flutter app
+├── admin/     → React admin panel (LIVE)
+├── _seed/     → Node.js seed scripts
+└── backend/   → NestJS (future)
+
+### 🌐 ലൈവ് URL-കൾ
+- Firebase Project: migo-app-3030e
+- Admin Panel: https://migo-app-3030e.web.app
+- Referral Landing: https://migo-app-3030e.web.app/r/{CODE}
+- APK Releases: https://github.com/solvexetech-cloud/migo-releases
+- Firestore Region: me-central1 (Doha)
+- Cloudinary: zxl1kb8h
+- GitHub Repo: github.com/solvexetech-cloud/migo-releases
+
+### ✅ പൂർത്തിയായത് (v1.3.1)
+- Customer mobile app (Flutter)
+- Business owner dashboard
+- Admin panel (React, deployed + mobile responsive)
+- Firebase backend (Auth + Firestore)
+- Cloudinary image uploads
+- QR code redemption + auto-expire
+- Referral system (working landing page + APK)
+- Group deals
+- Notifications (in-app + FCM push)
+- Dark mode + Light mode
+- 6-tier Role System (super_admin → customer)
+- Dynamic Categories (Firestore + admin CRUD)
+- Geographic Hierarchy (Qatar + Kerala)
+- Location-aware customer flow
+- APK v1.3.1 (69.8 MB) — GitHub Releases
+- Git backups: 2026-10-06, 2026-10-07
+
+### ⏳ ബാക്കിയുള്ളത് — Phase-wise
+
+#### PHASE A — അടിയന്തിരം (High Priority)
+- [✅] #1 Expired offers auto-hide
+- [✅] #2 Duplicate offer button
+- [✅] #3 QR auto-expire
+- [✅] #4 Push notifications (FCM)
+- [✅] #5 Business logo + cover photo
+
+#### PHASE B — അടിത്തറ (Foundation)
+- [✅] #6 Firestore Security Rules
+- [✅] #7 6-tier Role System
+- [✅] #8 Geographic Hierarchy (Country→Zone→Area)
+- [✅] #9 Database Schema Redesign
+- [✅] #10 Dynamic Categories
+
+#### PHASE C — അഡ്മിൻ ഫുൾ കൺട്രോൾ
+- [✅] #11 Business CRUD (Add/Edit/Delete)
+- [✅] #12 Revenue Dashboard (all sources)
+- [✅] #13 Reviews Management (Positive/Negative)
+- [✅] #14 Package Pricing Editor
+- [✅] #15 Responsive Admin (mobile/tablet/desktop)
+- [✅] #16 Staff Panel (via RolesPage)
+- [✅] #17 Agency Panel
+
+#### PHASE D — ഡാറ്റ + മാർക്കറ്റിംഗ്
+- [✅] #18 Google Maps Integration (OpenStreetMap)
+- [✅] #19 Customer Behavior Analytics
+- [✅] #20 Revenue Split Engine
+- [🟡] #21 Google Ads / AdMob — 75% (Code Complete)
+- [ ] #22 Digital Marketing Dashboard
+- [✅] #23-A Country System (7 countries) — DONE 2026-10-08
+- [✅] #23-B Language Framework (EN + AR + RTL) — DONE 2026-10-08
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 2: Geographic Hierarchy
+═══════════════════════════════════════════════════════
+
+### 🌍 Country → Zone → Area Structure
+
+┌─────────────────────────────────────────────────────┐
+│  COUNTRIES (7 seeded — D6-A 2026-10-08)             │
+│  ├── 🇶🇦 Qatar (QA) — QAR — +974                     │
+│  ├── 🇦🇪 UAE (AE) — AED — +971                        │
+│  ├── 🇸🇦 Saudi Arabia (SA) — SAR — +966               │
+│  ├── 🇰🇼 Kuwait (KW) — KWD — +965                     │
+│  ├── 🇧🇭 Bahrain (BH) — BHD — +973                    │
+│  ├── 🇴🇲 Oman (OM) — OMR — +968                       │
+│  └── 🇮🇳 India (IN) — INR — +91                       │
+│                                                     │
+│  Each country has: nameAr, dialCode, locales[],     │
+│  rtl, timezone, dateFormat                          │
+│                                                     │
+│  Qatar + Kerala full zone/area hierarchy            │
+│  GCC expansion ready (admin can add)                │
+└─────────────────────────────────────────────────────┘
+
+### 📋 ഓരോ ഏരിയയ്ക്കും:
+- ഒരു ഏജൻസി / ഫ്രഞ്ചൈസി നിയമിക്കാം
+- ആ ഏരിയയിലെ ബിസിനസുകൾ അവർ കൈകാര്യം ചെയ്യും
+- റവന്യൂ ഷെയർ അനുസരിച്ച് വിതരണം
+- Google Maps-ൽ polygon boundary (future)
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 3: Role System (6 Tiers)
+═══════════════════════════════════════════════════════
+
+| # | Role | Access | ഉദാഹരണം |
+|---|------|--------|---------|
+| 1 | super_admin | എല്ലാം | Owner (നിങ്ങൾ) |
+| 2 | admin | Country/State മാനേജ് | Regional Manager |
+| 3 | agency | ഒരു ഏരിയ മാത്രം | Kakkanad Franchise |
+| 4 | moderator | Reviews, offers, users | Staff |
+| 5 | business | അവരുടെ കട മാത്രം | Shawarma Shop |
+| 6 | customer | Shopping only | End user |
+
+### 🔐 Permission Matrix
+
+| Action | super | admin | agency | mod | biz | cust |
+|--------|-------|-------|--------|-----|-----|------|
+| Create Admin | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Create Agency | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Approve Business | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Delete Business | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Manage Revenue | ✅ | ✅ | ✅(own) | ❌ | ❌ | ❌ |
+| Moderate Reviews | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| Create Offer | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+| Claim Offer | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Ban User | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| Edit Categories | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Edit Pricing | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 4: Revenue Model
+═══════════════════════════════════════════════════════
+
+### 💡 അടിസ്ഥാന തത്വം
+
+MIGO-യുടെ വരുമാനം ഷോപ്പിന്റെ വിൽപ്പനയിൽ നിന്നല്ല.
+MIGO സേവനത്തിനുള്ള ഫീസാണ്.
+
+### 📊 3 Revenue Streams
+
+#### STREAM 1 — Subscription (Monthly)
+| Plan | Price (QAR) | Offers/Month | Features |
+|------|-------------|--------------|----------|
+| Free | 0 | 1 | Basic listing |
+| Starter | 49 | 5 | + Analytics |
+| Growth | 149 | 20 | + Priority + Flash |
+| Pro | 299 | Unlimited | + Group + Featured |
+
+#### STREAM 2 — Per-Offer Fee
+| Offer Type | Fee (QAR) |
+|------------|-----------|
+| Standard | 5 |
+| Flash | 10 |
+| Group Deal | 15 |
+| Hidden Gem | 5 |
+| Birthday | 8 |
+
+#### STREAM 3 — Success Commission
+| Claims/Month | Rate/Claim (QAR) |
+|--------------|------------------|
+| 0-50 | 0.00 (Free) |
+| 51-200 | 0.50 |
+| 201-500 | 0.75 |
+| 500+ | 1.00 |
+
+### 🌍 Agency Split Model
+
+Shop pays QAR 149/month:
+         ↓
+    ┌────┴────┐
+    │  Split  │
+    └────┬────┘
+         ↓
+  MIGO:     50% → QAR 74.50
+  Agency:   40% → QAR 59.60
+  Referral: 10% → QAR 14.90
+
+### 📈 Revenue Tracking
+
+Track by: per business, agency, zone, country, monthly/quarterly/yearly.
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 5: Database Schema (v2.2)
+═══════════════════════════════════════════════════════
+
+### Core Collections
+- users/{uid} — profile, coins, role, countryCode, currency, locale, fcmToken
+- businesses/{id} — ownerUid, name, category, countryCode, zoneId, areaId, agencyUid
+- offers/{id} — businessId, title, prices, currency, type, status, areaId
+- claims/{id} — userUid, businessId, offerId, currency, status, redeemedAt
+- reviews/{id} — userUid, businessId, rating, comment, isPositive
+- referrals/{id} — referrerUid, referredUid, status, rewardAmount
+- notifications/{id} — userUid, title, body, type, read
+- coin_transactions/{id} — uid, amount, type, description
+- saved_offers/{uid_offerId}
+- saved_businesses/{uid_businessId}
+- group_deals/{offerId}
+- categories/{slug}
+- countries/{code} — nameAr, dialCode, locales[], rtl, timezone, dateFormat
+- zones/{slug}
+- areas/{slug}
+- agencies/{id} — ownerUid, areaIds[], revenueShare, status
+
+### Revenue Collections (C2)
+- plans/{id} — 4 seeded (free/starter/growth/pro)
+- subscriptions/{id} — businessId, planId, status, expiresAt
+- payments/{id} — businessId, amount, currency, method, type, status
+- config/per_offer_fees — {fees: {standard: 5, ...}}
+- config/commission_tiers — {tiers: [{min,max,rate},...]}
+
+### New Collections (D3, D4)
+- config/ads — {enabled, bannerHome, nativeList, interstitialClaim}
+- config/revenue_split — {enabled, migoShare, agencyShare, referralShare, minPayoutAmount, payoutCycle, holdDays}
+- revenue_splits/{id} — {businessId, amount, migoShare, agencyShare, referralShare, status, createdAt}
+
+### Future Collections
+- revenue_transactions/{id}
+- agency_payouts/{id}
+- staff/{uid}
+- customer_behavior/{id}
+- category_stats/{categoryId}
+- ad_campaigns/{id}
+- ad_impressions/{id}
+- languages/{code}  ← D6-B
+- app_strings/{lang}_{key}  ← D6-B
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 6: Phase-wise Task List
+═══════════════════════════════════════════════════════
+
+### PHASE A — അടിയന്തിരം (Complete!)
+| # | Task | Time | Status |
+|---|------|------|--------|
+| A1 | Expired offers auto-hide | 15m | ✅ |
+| A2 | Duplicate offer button | 30m | ✅ |
+| A3 | QR auto-expire | 20m | ✅ |
+| A4 | Push notifications (FCM) | 45m | ✅ |
+| A5 | Business logo + cover | 30m | ✅ |
+
+**PHASE A — 100% COMPLETE** 🎉
+
+### PHASE B — അടിത്തറ (Complete!)
+| # | Task | Time | Status |
+|---|------|------|--------|
+| B1 | Firestore Security Rules | 1h | ✅ |
+| B2 | 6-tier Role System | 2h | ✅ |
+| B3 | Geographic Hierarchy | 2h | ✅ |
+| B4 | Database Schema Redesign | 1h | ✅ |
+| B5 | Dynamic Categories | 45m | ✅ |
+
+**PHASE B — 100% COMPLETE** 🎉
+
+### PHASE C — അഡ്മിൻ ഫുൾ കൺട്രോൾ (Complete!)
+| # | Task | Time | Status |
+|---|------|------|--------|
+| C1 | Business CRUD | 1.5h | ✅ DONE 2026-10-08 |
+| C2 | Revenue Dashboard | 2h | ✅ DONE 2026-10-08 |
+| C3 | Reviews Management | 1h | ✅ DONE 2026-10-08 |
+| C4 | Package Pricing Editor | 45m | ✅ DONE 2026-10-08 |
+| C5 | Responsive Admin | 1h | ✅ DONE |
+| C6 | Staff Panel | 2h | ✅ DONE (via RolesPage) |
+| C7 | Agency Panel | 2.5h | ✅ DONE 2026-10-08 |
+
+**PHASE C — 100% COMPLETE** 🎉
+
+### PHASE D — ഡാറ്റ + മാർക്കറ്റിംഗ്
+| # | Task | Time | Status |
+|---|------|------|--------|
+| D1 | Google Maps → OpenStreetMap | 1.5h | ✅ DONE 2026-10-08 |
+| D2 | Customer Behavior Analytics | 2h | ✅ DONE 2026-10-08 |
+| D3 | Revenue Split Engine | 1.5h | ✅ DONE 2026-10-10 |
+| D4 | Google Ads / AdMob | 1h | 🟡 75% (Code Complete) |
+| D5 | Digital Marketing Dashboard | 2h | ✅ DONE 2026-10-13 |
+| D6-A | Country System (7 countries) | 1.5h | ✅ DONE 2026-10-08 |
+| D6-B | Language Framework (EN+AR) + RTL | 2.5h | ✅ DONE 2026-10-08 |
+
+**PHASE D — 85% (6/7)** 🎯
+
+═══════════════════════════════════════════════════════
+## PHASE H — MIGO Reserve (Guaranteed Reservation System)
+═══════════════════════════════════════════════════════
+
+### 🎯 ലക്ഷ്യം: D4D-നെ വെല്ലുന്ന Killer Feature
+
+**Philosophy:** Customer-ന് offer **guaranteed reservation** — wait ഇല്ല, doubt ഇല്ല.
+
+### 📋 Core Features
+
+| # | Feature | Description |
+|---|---------|-------------|
+| 1 | Limited Stock Offers | Shop 10/20/50 items offer ഇടുന്നു (e.g., 10 mobiles @ QAR 1200) |
+| 2 | Booking | Customer reserve ചെയ്യുന്നു — guaranteed |
+| 3 | Countdown Timer | Booking → offer end വരെ live timer |
+| 4 | Time-bound Pickup | Time കഴിഞ്ഞാൽ item auto-release |
+| 5 | No-wait Shopping | വരി നിൽക്കേണ്ട, guaranteed item |
+| 6 | Shop Dashboard | ഏത് customer, ഏത് time, എത്ര items |
+| 7 | Location Lock | ആ area-യിലെ customer-ന് മാത്രം book |
+| 8 | Rules Page + Accept | Common rules, accept ചെയ്തേ book ചെയ്യൂ |
+| 9 | Multi-role Control | super_admin/admin/agency/mod |
+| 10 | No-show Protection | 3 → 7-day ban, 5 → 30-day ban |
+| 11 | QR Pickup Verification | Anti-fraud GPS-verified pickup |
+| 12 | Push Notifications | 5-stage reminders (0/1h/2h/30m/expiry) |
+| 13 | Token Booking (optional) | QAR 10-50 refundable deposit |
+| 14 | Group Reserve (bonus) | 5 friends = 5% extra off |
+
+### 🗄️ New Collections
+
+- `reservations/{id}` — {
+    userUid, businessId, businessName, offerId, offerTitle,
+    quantity, unitPrice, currency,
+    bookedAt, expiresAt, pickedUpAt,
+    status: reserved/picked_up/expired/cancelled,
+    pickupCode, qrCode, notes,
+    tokenAmount, tokenRefunded
+  }
+
+- `reservation_rules/{id}` — {
+    version, title, textEn, textAr, textMl,
+    active, updatedAt, updatedBy
+  }
+
+- `no_show_log/{id}` — {
+    userUid, businessId, businessName, offerId,
+    reservationId, timestamp, reason
+  }
+
+- `reservation_config/{id}` — {
+    enabled: true/false,
+    defaultHoldHours: 4,
+    maxHoldHours: 24,
+    tokenRequired: false,
+    tokenAmount: 0,
+    noShowLimit7Day: 3,
+    noShowLimit30Day: 5,
+    banDurationDays: 7,
+    locationLockEnabled: true,
+    locationLockRadiusKm: 5
+  }
+
+### 🗄️ Firestore Indexes (Composite)
+
+- `reservations`: userUid + status + bookedAt DESC
+- `reservations`: businessId + status + bookedAt DESC
+- `reservations`: businessId + expiresAt
+- `reservations`: offerId + status
+- `no_show_log`: userUid + timestamp DESC
+
+### 📁 Files to Create (Future)
+
+**Mobile (Flutter):**
+- `lib/models/reservation_model.dart`
+- `lib/models/reservation_rules_model.dart`
+- `lib/services/reservation_service.dart`
+- `lib/features/reserve/booking_screen.dart`
+- `lib/features/reserve/my_bookings_screen.dart`
+- `lib/features/reserve/reservation_detail_screen.dart`
+- `lib/features/reserve/rules_screen.dart`
+- `lib/features/business/shop_bookings_screen.dart`
+- `lib/features/business/scan_pickup_screen.dart`
+
+**Admin (React):**
+- `admin/src/pages/ReservationsPage.jsx`
+- `admin/src/pages/ReservationRulesPage.jsx`
+- `admin/src/pages/ReservationConfigPage.jsx`
+
+### 💰 Revenue Model
+
+| Stream | Amount |
+|--------|--------|
+| Commission per booking | QAR 1-5 per successful pickup |
+| Token collection (if enabled) | QAR 10-50 (refundable) |
+| Featured reserve slots | Businesses pay for priority placement |
+| No-show forfeiture | Token → business (partial) |
+
+### 🎁 Benefits Matrix
+
+| Party | Benefit |
+|-------|---------|
+| **Customer** | Guaranteed item, no waiting, time-bound, easy QR pickup |
+| **Business** | Predictable footfall, reduced no-shows, real demand signal |
+| **MIGO** | Unique differentiator, new revenue, D4D-killer feature |
+
+### 🆚 Why This Beats D4D
+
+| Feature | D4D | MIGO Reserve |
+|---------|-----|--------------|
+| Browse offers | ✅ | ✅ |
+| **Guaranteed reservation** | ❌ | ✅ |
+| **Countdown timer** | ❌ | ✅ |
+| **No-wait shopping** | ❌ | ✅ |
+| **Shop dashboard** | ❌ | ✅ |
+| **Location lock** | ❌ | ✅ |
+| **No-show protection** | ❌ | ✅ |
+| **Group reserve** | ❌ | ✅ |
+| **Multi-language rules** | ❌ | ✅ |
+
+### 📅 PHASE H — Task Breakdown
+
+| # | Task | Time | Priority |
+|---|------|------|----------|
+| H1 | Data models (Flutter) | 1h | 🔥🔥🔥 |
+| H2 | ReservationService | 2h | 🔥🔥🔥 |
+| H3 | Booking screen (customer) | 2h | 🔥🔥🔥 |
+| H4 | Countdown timer widget | 1h | 🔥🔥🔥 |
+| H5 | My Bookings screen | 1.5h | 🔥🔥 |
+| H6 | Reservation detail + QR | 1.5h | 🔥🔥 |
+| H7 | Rules screen + accept flow | 1h | 🔥🔥 |
+| H8 | Shop dashboard (bookings list) | 2h | 🔥🔥 |
+| H9 | QR pickup scan (shop side) | 1.5h | 🔥🔥 |
+| H10 | Admin ReservationsPage | 2h | 🔥 |
+| H11 | Admin ReservationRulesPage | 1.5h | 🔥 |
+| H12 | Admin ReservationConfigPage | 1h | 🔥 |
+| H13 | Push notifications (5-stage) | 1.5h | 🔥 |
+| H14 | No-show tracking + ban | 1.5h | 🔥 |
+| H15 | Token booking (optional) | 1.5h | 🔥 |
+| H16 | Group reserve (bonus) | 2h | 🔥 |
+| H17 | Firestore rules + indexes | 1h | 🔥🔥 |
+| H18 | Seed reservation_config | 30m | 🔥 |
+| H19 | Testing + edge cases | 2h | 🔥🔥 |
+
+**Total PHASE H: ~30 hours**
+
+**Timeline:** After PHASE D complete (D5 + D4 fix), before PHASE E
+
+**Priority:** 🔥🔥🔥 **HIGHEST** — Killer feature for D4D competition
+
+### 🎯 PHASE H — Order of Implementation
+
+1. **Foundation:** H1, H2, H17, H18
+2. **Customer side:** H3, H4, H5, H6, H7
+3. **Business side:** H8, H9
+4. **Admin side:** H10, H11, H12
+5. **Enhancement:** H13, H14, H15, H16
+6. **QA:** H19
+
+═══════════════════════════════════════════════════════
+## PHASE E — Growth & Viral System (Free Phase)═══════════════════════════════════════════════════════
+
+### 🎯 ലക്ഷ്യം: Month 1-6 — Pure Growth, Free for All
+
+**Philosophy:** എല്ലാം free. User base build ചെയ്യുക. Brand awareness.
+
+### PHASE E Tasks
+
+| # | Task | Time | Priority |
+|---|------|------|----------|
+| E1 | Auto-referral (Install Referrer + URL) | 4h | ✅ DONE 2026-10-15 |
+| E2 | Offer share (all users) | 3h | 🔥🔥🔥 |
+| E3 | Deep link + auto-apply code | 5h | ✅ DONE 2026-10-14 |
+| E4 | Claim attribution tracking | 3h | ✅ DONE 2026-10-14 |
+| E5 | User rewards (coins only, free) | 3h | ✅ DONE 2026-10-14 |
+| E6 | Vlogger accounts (free) | 5h | ✅ DONE 2026-10-14 |
+| E7 | Vlogger dashboard (data only, no cash) | 5h | ✅ DONE 2026-10-15 |
+| E8 | Public creator profiles | 4h | ✅ DONE 2026-10-14 |
+| E9 | Business analytics (referrer tracking) | 4h | ✅ DONE 2026-10-15 |
+| E10 | Anti-fraud basic | 3h | ✅ DONE 2026-10-15 |
+
+**Total PHASE E: ~39 hours**
+
+**Timeline:** Month 1-6
+**Cost:** MIGO invests
+**Revenue:** QAR 0
+
+═══════════════════════════════════════════════════════
+## PHASE J — Multi-Role Admin Panel
+═══════════════════════════════════════════════════════
+
+### 🎯 ലക്ഷ്യം: Role-Scoped Admin Dashboards
+
+**Philosophy:** ഓരോ role-നും — അവരുടെ scope-ൽ മാത്രം access.
+Super Admin, Admin, Agency, Staff — എല്ലാവർക്കും separate views.
+
+### 📋 Core Features
+
+| # | Feature | Description |
+|---|---------|-------------|
+| 1 | Role-Based Routing | Login → redirect by role |
+| 2 | Role-Based Sidebar | Each role sees own menu items |
+| 3 | Agency Dashboard | Own area only — businesses, revenue |
+| 4 | Staff Dashboard | Pending approvals, reviews moderation |
+| 5 | Firestore Query Filters | Auto-filter by role scope |
+| 6 | Login Redirect Logic | Role → correct dashboard |
+| 7 | Rules Verification | Verify Firestore rules enforce scope |
+| 8 | Permission Guard | UI-level + backend-level checks |
+
+### 🗄️ Role → Scope Matrix
+
+| Role | Scope | Dashboard |
+|------|-------|-----------|
+| super_admin | Everything | Full admin panel |
+| admin | Country/State | Country dashboard |
+| agency | Own area(s) | Agency dashboard |
+| moderator | Pending + Reviews | Staff dashboard |
+| business | Own business | Business app |
+| customer | Shopping only | Customer app |
+
+### 📁 Files to Create
+
+**Admin (React):**
+- `admin/src/pages/SuperAdminDashboard.jsx`
+- `admin/src/pages/CountryAdminDashboard.jsx`
+- `admin/src/pages/AgencyDashboard.jsx`
+- `admin/src/pages/StaffDashboard.jsx`
+- `admin/src/hooks/useRoleNav.js`
+- `admin/src/contexts/RoleContext.jsx`
+
+**Admin (Modify):**
+- `admin/src/App.jsx` — role-based routing
+- `admin/src/components/AdminLayout.jsx` — role-based sidebar
+- `admin/src/pages/AdminLogin.jsx` — redirect by role
+
+### 📅 PHASE J — Task Breakdown
+
+| # | Task | Time | Priority |
+|---|------|------|----------|
+| J1 | RoleContext + useRoleNav hook | 2h | 🔥🔥🔥 |
+| J2 | App.jsx — role-based routing | 2h | 🔥🔥🔥 |
+| J3 | AdminLayout — role-based sidebar | 1.5h | 🔥🔥🔥 |
+| J4 | Login redirect logic | 1h | 🔥🔥 |
+| J5 | Agency Dashboard | 4h | 🔥🔥 |
+| J6 | Staff Dashboard | 3h | 🔥🔥 |
+| J7 | Firestore query filters (per role) | 2h | 🔥🔥🔥 |
+| J8 | Rules verification + tighten | 1h | 🔥 |
+| J9 | Testing + polish | 2h | 🔥 |
+
+**Total PHASE J: ~17 hours**
+
+**Timeline:** After PHASE E complete, before PHASE I
+**Priority:** 🔥🔥🔥 HIGH — critical for scaling
+**Cost:** QAR 0 (free)
+**Blockers:** None
+
+### 🎯 PHASE J — Order of Implementation
+
+1. **Foundation:** J1, J2, J4
+2. **UI Layer:** J3, J5, J6
+3. **Data Layer:** J7, J8
+4. **QA:** J9
+
+### 🎁 Benefits
+
+| Party | Benefit |
+|-------|---------|
+| **Super Admin** | Free time — delegated work |
+| **Admin** | Country-level focus |
+| **Agency** | Own dashboard, no confusion |
+| **Staff** | Focused workflow |
+| **MIGO** | Scales to many areas/agencies |
+
+### 🆚 Current vs After PHASE J
+
+| Aspect | Now | After PHASE J |
+|--------|-----|---------------|
+| Agency login | Sees EVERYTHING ⚠️ | Own area only ✅ |
+| Staff login | Sees EVERYTHING ⚠️ | Own tasks only ✅ |
+| Admin login | Sees EVERYTHING ⚠️ | Country only ✅ |
+| Sidebar | Same for all ⚠️ | Role-based ✅ |
+| Data filters | None ⚠️ | Auto-scoped ✅ |
+
+═══════════════════════════════════════════════════════
+## PHASE I — Business App (MIGO Business)
+═══════════════════════════════════════════════════════
+
+### 🎯 ലക്ഷ്യം: Separate App for Business Owners
+
+**Philosophy:** Customer-ന് MIGO, Business-ന് MIGO Business.
+**Location:** C:\Users\DELL\Documents\migo\migo-business\
+**Package:** com.migo.migo_business
+**Firebase:** Same project (migo-app-3030e)
+
+### 📋 Core Features
+
+| # | Feature | Description |
+|---|---------|-------------|
+| 1 | Responsive UI | PC sidebar + Mobile drawer |
+| 2 | Login (role: business) | Firebase Auth |
+| 3 | Dashboard | Welcome + stats + business info |
+| 4 | My Offers (CRUD) | Create/Edit/Pause/Delete |
+| 5 | Advanced Offer Form | Image upload + types + duration |
+| 6 | Cloudinary upload | Gallery + Camera |
+| 7 | Bookings | Active/Completed/Expired tabs |
+| 8 | Reservation detail | Mark picked up / No-show |
+| 9 | No-show history | Filtered log |
+| 10 | QR Scanner | Camera + Manual entry |
+| 11 | Redeem claims | CLM_ prefix |
+| 12 | Reservation pickup | RSV_ prefix + 6-digit code |
+
+### 🗄️ Firestore
+
+**Reuses same collections:**
+- users, businesses, offers, claims
+- reservations, reservation_rules, no_show_log
+- reservation_config, reservation_bans
+- coin_transactions, notifications
+
+**No migration needed!** ✅
+
+### 📁 Files Created (~35)
+
+**Models (7):**
+- offer_model.dart
+- reservation_model.dart
+- no_show_log_model.dart
+- reservation_config_model.dart
+- reservation_rules_model.dart
+- reservation_ban_model.dart
+- claim_model.dart
+
+**Services (5):**
+- auth_service.dart
+- offer_service.dart
+- reservation_service.dart
+- claim_service.dart
+- cloudinary_service.dart
+
+**Theme (3):**
+- migo_theme.dart
+- migo_gradients.dart
+
+**Screens (7):**
+- login_screen.dart
+- dashboard_screen.dart
+- my_offers_screen.dart
+- create_offer_screen.dart
+- shop_bookings_screen.dart
+- reservation_detail_shop_screen.dart
+- no_show_history_screen.dart
+- scan_qr_screen.dart
+
+**Widgets (1):**
+- countdown_timer_widget.dart
+
+### 📅 PHASE I — Task Breakdown
+
+| # | Task | Time | Status |
+|---|------|------|--------|
+| I1 | Flutter project setup | 2h | ✅ DONE 2026-10-16 |
+| I2 | Firebase config | 1h | ✅ DONE 2026-10-16 |
+| I3 | FlutterFire CLI + dependencies | 1h | ✅ DONE 2026-10-16 |
+| I4 | Login screen | 2h | ✅ DONE 2026-10-16 |
+| I5 | Signup flow | 3h | ⏭️ Skip (existing) |
+| I6 | Dashboard | 4h | ✅ DONE 2026-10-16 |
+| I7 | Offer CRUD (advanced) | 5h | ✅ DONE 2026-10-16 |
+| I8 | Reservations management | 4h | ✅ DONE 2026-10-16 |
+| I9 | QR scanner | 3h | ✅ DONE 2026-10-16 |
+| I10 | Analytics dashboard | 4h | ✅ DONE 2026-10-16 |
+| I11 | Revenue reports | 3h | ⏭️ Skip (future) |
+| I12 | Profile + settings | 2h | ✅ DONE 2026-10-16 |
+| I13 | Play Store setup | 2h | ⬜ NEXT |
+| I14 | Testing + polish | 3h | ⬜ |
+| I15 | Reserve Settings | 4h | ✅ DONE 2026-10-16 |
+| I15.1 | Status bug fix (Activate → live) | 30m | ✅ DONE 2026-10-16 |
+
+**Total PHASE I: ~40 hours**
+
+**Progress: 13/15 (87%)** 📈
+
+### 🎯 PHASE I — Order of Implementation
+
+1. **Foundation:** I1, I2, I3
+2. **Auth + Dashboard:** I4, I6
+3. **Offers:** I7
+4. **Bookings:** I8
+5. **QR Scanner:** I9
+6. **Analytics + Revenue:** I10, I11
+7. **Profile:** I12
+8. **Play Store:** I13
+9. **Testing:** I14
+
+### 🆚 Benefits
+
+| Party | Benefit |
+|-------|---------|
+| **Customer** | Simpler app, faster |
+| **Business** | Professional tools |
+| **MIGO** | Play Store SEO, separate listing |
+
+═══════════════════════════════════════════════════════
+## PHASE F — Coin System (Free Initially)
+═══════════════════════════════════════════════════════
+
+### 🎯 ലക്ഷ്യം: Simple, Sustainable Coin Economy
+
+### PHASE F Tasks
+
+| # | Task | Time | Priority |
+|---|------|------|----------|
+| F1 | Coin value: QAR 0.01 (initial) | 1h | 🔥🔥 |
+| F2 | Remove daily login coin | 1h | 🔥🔥 |
+| F3 | Remove instant share coin | 1h | 🔥🔥 |
+| F4 | Add "share → redeem" coin | 4h | 🔥🔥 |
+| F5 | Referral (redeem-triggered) | 3h | 🔥🔥 |
+| F6 | Coin Partner system (business opt-in) | 4h | 🔥 |
+| F7 | Coin redemption at checkout | 4h | 🔥 |
+| F8 | Milestone system | 3h | 🔥 |
+| F9 | Admin coin config | 4h | 🔥 |
+| F10 | Coin economy dashboard | 4h | 🔥 |
+| F11 | Business settlement | 4h | 🔥 |
+| F12 | Coin expiry (60 days) | 2h | 🔥 |
+| F13 | Fraud detection | 3h | 🔥 |
+
+**Total PHASE F: ~42 hours**
+
+**Timeline:** Month 4-12
+**Cost:** MIGO funds coins initially
+**Revenue:** QAR 0 (coins are free)
+
+### Coin System Rules
+
+**Earning (Real Actions Only):**
+| Action | Coins |
+|--------|-------|
+| Own redeem | +5 |
+| Share → friend redeems | +10 |
+| Referral → first redeem | +50 |
+| Review after redeem | +10 |
+| Monthly milestone | +25-200 |
+
+**Daily cap:** 20 coins
+**Monthly cap:** 200 coins
+
+**Value:** QAR 0.01 (increase later)
+**Expiry:** 60 days
+**Cash out:** ❌ Not allowed
+
+**No Daily Login. No Instant Share. Real Business Only.**
+
+═══════════════════════════════════════════════════════
+## PHASE G — Monetization (Gradual)
+═══════════════════════════════════════════════════════
+
+### 🎯 ലക്ഷ്യം: Month 6-24 — Gradual Revenue
+
+### PHASE G Tasks
+
+| # | Task | Time | Priority |
+|---|------|------|----------|
+| G1 | Free + Paid subscription plans | 4h | 🔥🔥 |
+| G2 | Payment gateway (QPay/Stripe) | 6h | 🔥 |
+| G3 | Subscription billing | 4h | 🔥 |
+| G4 | Per-offer fee (beyond free) | 3h | 🔥 |
+| G5 | Small commission (0.5% initial) | 4h | 🔥 |
+| G6 | Vlogger commission (tier-based) | 5h | 🔥 |
+| G7 | Business dashboard (ROI) | 4h | 🔥 |
+| G8 | Vlogger earnings dashboard | 4h | 🔥 |
+| G9 | Payout system | 4h | 🔥 |
+| G10 | Revenue reports | 3h | 🔥 |
+| G11 | Commission verification (7-day hold) | 3h | 🔥 |
+| G12 | Anti-fraud (monetization) | 3h | 🔥 |
+
+**Total PHASE G: ~50 hours**
+
+**Timeline:** Month 6-24
+**Cost:** Operations
+**Revenue:** Growing
+
+### Monetization Phases
+
+**Phase G-1 (Month 6-12): Subscriptions Only**
+- Free: 1 offer
+- Starter: QAR 49 (5 offers)
+- Growth: QAR 99 (20 offers)
+- No commission
+
+**Phase G-2 (Month 12-18): Subscriptions + Small Commission**
+- Pro: QAR 199 (unlimited + 0.5% commission)
+- Commission: 0.5%
+
+**Phase G-3 (Month 18-24): Full Ecosystem**
+- All plans
+- Commission: 1%
+- Vlogger program
+
+**Phase G-4 (Month 24+): Scale**
+- Full features
+- Ads
+- Data licensing
+
+### Realistic Revenue Projection
+
+**Year 1:**
+| Month | Revenue | Cost | Net |
+|-------|---------|------|-----|
+| 1-3 | QAR 0 | QAR 200 | -QAR 200 |
+| 4-6 | QAR 0 | QAR 500 | -QAR 500 |
+| 7-9 | QAR 3,000 | QAR 800 | +QAR 2,200 |
+| 10-12 | QAR 8,000 | QAR 2,000 | +QAR 6,000 |
+
+**Year 1 Net: +QAR 5,000**
+
+**Year 2:**
+| Month | Revenue | Cost | Net |
+|-------|---------|------|-----|
+| 13-18 | QAR 12,000 | QAR 3,000 | +QAR 9,000 |
+| 19-24 | QAR 20,000 | QAR 6,000 | +QAR 14,000 |
+
+**Year 2 Net: +QAR 92,000**
+
+**Year 3:**
+- Revenue: QAR 50,000/month
+- Cost: QAR 15,000/month
+- Net: **+QAR 4,20,000/year**
+
+### Coin Value Evolution
+
+| Phase | Value |
+|-------|-------|
+| Initial (F) | QAR 0.01 |
+| After 6 months | QAR 0.015 |
+| After 12 months | QAR 0.02 |
+| After 24 months | QAR 0.025 |
+
+### Vlogger Commission Evolution
+
+| Phase | Commission |
+|-------|-----------|
+| Initial (E) | 0% (coins only) |
+| After 6 months | 0.5% |
+| After 12 months | 1% |
+| After 24 months | 1.5-2% |
+
+### Shop Cost Evolution
+
+| Phase | Cost |
+|-------|------|
+| Initial | QAR 0 (free) |
+| After 6 months | Optional QAR 49-99 |
+| After 12 months | QAR 49-199 + 0.5% |
+| After 24 months | QAR 49-299 + 1% |
+
+═══════════════════════════════════════════════════════
+## 🎯 REALISTIC PRINCIPLE — "Free First, Gradual Monetization"
+═══════════════════════════════════════════════════════
+
+### Core Rules
+
+1. **First 6 months: 100% Free**
+   - No subscription
+   - No commission
+   - Free coins
+   - Free vlogger
+
+2. **Month 6-12: Optional Paid**
+   - Free plan always available
+   - Paid plans optional
+   - No commission yet
+
+3. **Month 12-18: Small Commission**
+   - 0.5% only
+   - Only on high-value claims
+   - Shop-friendly
+
+4. **Month 18-24: Growing**
+   - 1% commission
+   - Vlogger program
+   - Full ecosystem
+
+5. **Month 24+: Scale**
+   - Optimized
+   - Multiple streams
+
+### Never Do
+
+- ❌ 3 revenue streams at once (initially)
+- ❌ High commission (from start)
+- ❌ Expensive subscriptions (from start)
+- ❌ Coin value too high
+- ❌ Over-charge shops
+
+### Always Do
+
+- ✅ Free first
+- ✅ Small gradual increases
+- ✅ Customer value first
+- ✅ Shop-friendly pricing
+- ✅ Sustainable growth
+
+### BONUS (Completed)
+| # | Task | Status |
+|---|------|--------|
+| X1 | Referral System (Landing page + APK) | ✅ |
+| X2 | Location Auto-Detection | ✅ |
+| X3 | GitHub Releases Hosting | ✅ |
+| X4 | Admin Mobile Responsive | ✅ |
+| X5 | Admin Panel (6 CRUD pages) | ✅ |
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 7: Referral System (Complete)
+═══════════════════════════════════════════════════════
+
+### Flow:
+1. User A shares referral code (e.g., 3WHT9X)
+2. Sends link: migo-app-3030e.web.app/r/3WHT9X
+3. User B opens link → landing page
+4. Landing shows code + Download button
+5. User B downloads APK from GitHub
+6. User B signs up with code 3WHT9X
+7. User B makes first claim
+8. Both get coins (A: +50, B: +30)
+
+### URLs:
+- Landing: migo-app-3030e.web.app/r/{CODE}
+- APK: github.com/solvexetech-cloud/migo-releases/releases/download/v1.3.1/MIGO-v1.3.1.apk
+
+### Files:
+- mobile/lib/features/referrals/referral_screen.dart
+- mobile/lib/features/auth/signup_screen.dart
+- admin/public/r/index.html
+- admin/firebase.json (SPA rewrite)
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 8: Admin Panel Pages (C1-C7 + D6-A + D3 + D4)
+═══════════════════════════════════════════════════════
+
+| Page | File | Purpose |
+|------|------|---------|
+| Dashboard | AdminDashboard.jsx | Overview stats |
+| Businesses | BusinessesPage.jsx | Full CRUD (C1) |
+| Pending | PendingBusinesses.jsx | Approve/reject |
+| Pending Offers | PendingOffers.jsx | Approve/reject |
+| Users | UsersPage.jsx | User list |
+| Categories | CategoriesPage.jsx | Dynamic categories |
+| Roles | RolesPage.jsx | 6-tier role mgmt (C6) |
+| Geography | GeographyPage.jsx | Countries/Zones/Areas/Agencies (D6-A) |
+| Revenue | RevenuePage.jsx | Overview/Subs/Payments (C2) |
+| Reviews | ReviewsPage.jsx | Filters/stats (C3) |
+| Pricing | PricingPage.jsx | Plans/Fees/Commission (C4) |
+| Agencies | AgenciesPage.jsx | Full CRUD (C7) |
+| Business Map | BusinessesMapPage.jsx | OpenStreetMap (D1) |
+| Analytics | AnalyticsPage.jsx | Customer Behavior (D2) |
+| App Strings | StringsPage.jsx | i18n editor (D6-B) |
+| Ads Config | AdsConfigPage.jsx | AdMob toggle (D4) |
+| Revenue Split | RevenueSplitPage.jsx | Split engine (D3) |
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 9: Seed Scripts (_seed/)
+═══════════════════════════════════════════════════════
+
+| Script | Purpose |
+|--------|---------|
+| seed-plans.mjs | 4 subscription plans |
+| seed-reviews.mjs | 8 test reviews |
+| seed-pricing-config.mjs | Per-offer fees + commission tiers |
+| seed-agencies.mjs | 3 test agencies |
+| seed-countries-v2.mjs | 7 countries (D6-A) |
+| seed-ads-config.mjs | config/ads (D4) |
+| seed-revenue-split-config.mjs | config/revenue_split (D3) |
+| check-reviews.mjs | Verify reviews |
+| check-role.mjs | Verify user roles |
+| check-agencies.mjs | Verify agencies |
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 10: Google Maps Integration Plan
+═══════════════════════════════════════════════════════
+
+### എന്തിന്?
+1. ബിസിനസ് ലൊക്കേഷൻ കാണിക്കാൻ
+2. അടുത്തുള്ള ഓഫറുകൾ കാണിക്കാൻ
+3. ഏരിയ boundary (polygon) ഉണ്ടാക്കാൻ
+4. ഏജൻസി പ്രദേശം കൈകാര്യം ചെയ്യാൻ
+
+### Current Implementation (D1 — DONE)
+- OpenStreetMap + Leaflet (100% free, no API key)
+- Admin BusinessesMapPage.jsx
+- Color-coded markers by status
+- Filters + search
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 11: Customer Behavior Analytics Plan
+═══════════════════════════════════════════════════════
+
+### എന്ത് track ചെയ്യും?
+| Action | Data Collected |
+|--------|---------------|
+| View offer | userUid, offerId, category, time |
+| Claim offer | userUid, businessId, offerId |
+| Redeem | userUid, businessId, timestamp |
+| Search | query, filters, results |
+| Save | userUid, offerId/businessId |
+| Review | rating, comment |
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 12: Google Ads / AdMob Plan (D4 — 75%)
+═══════════════════════════════════════════════════════
+
+### 3 Ad Placements
+1. **Home Banner** — Top of home screen
+2. **Between Deals** — In offer list (native, every 5th card)
+3. **Interstitial** — After claim (every 3rd claim, 60s gap)
+
+### AdMob Setup
+- AdMob account (free)
+- App ID + Ad Unit IDs (Test IDs configured)
+- flutter package: google_mobile_ads: ^6.0.0
+- Est. revenue: $1-5 per 1000 views
+
+### Test IDs (Active)
+- App ID: ca-app-pub-3940256099942544~3347511713
+- Banner: ca-app-pub-3940256099942544/6300978111
+- Interstitial: ca-app-pub-3940256099942544/1033173712
+- Native: ca-app-pub-3940256099942544/2247696110
+
+### Known Issue
+- Flutter SDK 3.30+ requires Gradle 9.1.0+ / AGP 9.0.1+ / Kotlin 2.2.20+
+- google_mobile_ads 6.0.0 supports Gradle 8.x only
+- **Resolution:** Flutter SDK downgrade OR wait for Google fix
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 13: D6-A — Country System (DONE 2026-10-08)
+═══════════════════════════════════════════════════════
+
+### 7 Countries Seeded
+| Code | Name | Currency | Dial | Locales | RTL |
+|------|------|----------|------|---------|-----|
+| QA | Qatar | QAR | +974 | en, ar | No |
+| AE | UAE | AED | +971 | en, ar | No |
+| SA | Saudi Arabia | SAR | +966 | en, ar | No |
+| KW | Kuwait | KWD | +965 | en, ar | No |
+| BH | Bahrain | BHD | +973 | en, ar | No |
+| OM | Oman | OMR | +968 | en, ar | No |
+| IN | India | INR | +91 | en | No |
+
+### Changes Made
+- CountryModel: +6 fields (nameAr, dialCode, locales, rtl, timezone, dateFormat)
+- LocationService: currencyForCountry, localeForCountry, isRtlCountry, dialCodeForCountry
+- AppConfig: fallbackCurrency, rtlLocales, isRtl()
+- UserModel.fresh(): countryCode, currency, locale params
+- AuthService.signUp(): country params
+- signup_screen: country dropdown
+- profile_screen: country switcher bottom sheet
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 14: D6-B — Language Framework (DONE 2026-10-08)
+═══════════════════════════════════════════════════════
+
+### Scope
+- Languages: en, ar
+- RTL support for Arabic
+- Admin panel: Strings Editor
+- Flutter: LocalizationService (Firestore fetch)
+- Fallback: en
+
+### Completed
+- 2 languages seeded (en, ar)
+- 288 app_strings seeded (144 keys × 2 langs)
+- Admin Strings Editor page created
+- Flutter LocalizationService + LocaleProvider
+- RTL auto-layout (Directionality)
+- Profile — language switcher
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 15: Progress Tracker
+═══════════════════════════════════════════════════════
+
+### Legend
+✅ Done | 🟡 Partial | ⏳ In Progress | ❌ Not Started
+
+### Overall Progress
+
+PHASE A: [✅✅✅✅✅] 100% (5/5) 🎉
+PHASE B: [✅✅✅✅✅] 100% (5/5) 🎉
+PHASE C: [✅✅✅✅✅✅✅] 100% (7/7) 🎉72041826
+PHASE D: [✅✅✅🟡✅✅✅] 85% (6/7)
+PHASE E: [✅✅✅✅✅✅✅✅✅✅] 100% (10/10) 🎉
+PHASE J: [✅✅✅✅✅✅✅✅✅] 100% (9/9) 🎉
+PHASE I: [✅✅✅✅✅✅✅✅✅✅✅⬜⬜⬜] 79% (11/14)
+PHASE F: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/13)
+PHASE G: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/12)
+PHASE H: [✅✅✅✅✅✅🟡] 95% (6/7 + Testing 90%)
+BONUS:  Referral ✅, Location ✅, GitHub ✅, Responsive ✅, Admin CRUD ✅
+
+TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅] 100% (40/40) 🎉
+
+### Change Log
+
+- 2026-10-05: Plan v2.0 created
+- 2026-10-05: Task A1-A5 completed (PHASE A 100%)
+- 2026-10-05: Task B1 completed (Firestore rules)
+- 2026-10-05: UI Polish — Home tab mobile optimization
+- 2026-10-06: Task B5 completed (Dynamic Categories)
+- 2026-10-06: Admin Panel deployed live
+- 2026-10-06: Admin Panel — Full mobile responsive
+- 2026-10-07: Task B2 completed (6-tier Role System)
+- 2026-10-07: Task B3 completed (Geographic Hierarchy)
+- 2026-10-07: Customer location auto-detection
+- 2026-10-07: Referral system 100% LIVE
+- 2026-10-07: APK hosted on GitHub Releases
+- 2026-10-07: MASTER PLAN v2.1
+- 2026-10-07: Task B4 completed (Database Schema Redesign)
+- 2026-10-07: 17 composite indexes deployed to Firebase
+- 2026-10-07: DATABASE-SCHEMA.md created
+- 2026-10-07: PHASE B 100% COMPLETE 🎉
+- 2026-10-08: Task C1 completed (Business CRUD)
+- 2026-10-08: Task C2 completed (Revenue Dashboard)
+- 2026-10-08: Task C3 completed (Reviews Management)
+- 2026-10-08: Task C4 completed (Package Pricing Editor)
+- 2026-10-08: Task C6 verified (RolesPage covers staff mgmt)
+- 2026-10-08: Task C7 completed (Agency Panel)
+- 2026-10-08: PHASE C 100% COMPLETE 🎉
+- 2026-10-08: D6-A completed (Country System)
+- 2026-10-08: 7 countries seeded (QA/AE/SA/KW/BH/OM/IN)
+- 2026-10-08: CountryModel extended (6 new fields)
+- 2026-10-08: Signup + Profile country switcher
+- 2026-10-08: Dynamic currency across all screens
+- 2026-10-08: MASTER PLAN v2.2
+- 2026-10-08: D6-B completed (Language Framework + RTL)
+- 2026-10-08: 2 languages seeded (en, ar)
+- 2026-10-08: 288 app_strings seeded (144 keys × 2 langs)
+- 2026-10-08: Admin Strings Editor page created
+- 2026-10-08: Flutter LocalizationService + LocaleProvider
+- 2026-10-08: RTL auto-layout (Directionality)
+- 2026-10-08: Profile — language switcher
+- 2026-10-08: MASTER PLAN v2.3
+- 2026-10-08: D1 completed (Business Map Integration)
+- 2026-10-08: Chose OpenStreetMap + Leaflet (100% free, no API key)
+- 2026-10-08: Admin BusinessesMapPage.jsx created
+- 2026-10-08: 5 businesses seeded with Doha coords
+- 2026-10-08: Color-coded markers by status + filters + search
+- 2026-10-08: MASTER PLAN v2.4
+- 2026-10-08: D2 completed (Customer Behavior Analytics)
+- 2026-10-08: AnalyticsService (Flutter) — view/save/search events
+- 2026-10-08: customer_behavior collection + Firestore rules
+- 2026-10-08: Admin AnalyticsPage.jsx — charts + filters
+- 2026-10-08: 135 test events seeded
+- 2026-10-08: MASTER PLAN v2.5
+- 2026-10-09: Realistic model discussion
+- 2026-10-09: PHASE E (Growth & Viral) defined — Free phase
+- 2026-10-09: PHASE F (Coin System) defined — Free initially, QAR 0.01
+- 2026-10-09: PHASE G (Monetization) defined — Gradual approach
+- 2026-10-09: Principle: "Free first, gradual monetization"
+- 2026-10-09: Realistic revenue projection (Year 1-3)
+- 2026-10-09: MASTER PLAN v2.6
+- 2026-10-09: PHASE E/F/G — Detailed Design (v2.7)
+- 2026-10-09: MASTER PLAN v2.7
+- 2026-10-10: D4 code completed (11 files)
+- 2026-10-10: Firestore config/ads created
+- 2026-10-10: Android Studio (Rabbit 2026.2.1) setup
+- 2026-10-10: Android Emulator (Medium Phone API 37.0) setup
+- 2026-10-10: Windows Hypervisor Platform enabled
+- 2026-10-10: Java 17 (Temurin 17.0.20.101) installed
+- 2026-10-10: Flutter JDK config set
+- 2026-10-10: Gradle: 9.3.1 → 8.14.0 (for google_mobile_ads)
+- 2026-10-10: AGP: 9.1.0 → 8.11.1 (Flutter min)
+- 2026-10-10: Kotlin: 2.4.0 → 2.0.21
+- 2026-10-10: D4 build blocked (Flutter SDK compatibility)
+- 2026-10-10: D3 completed (Revenue Split Engine)
+- 2026-10-10: RevenueSplitPage.jsx created (21,714 bytes)
+- 2026-10-10: seed-revenue-split-config.mjs created (1,704 bytes)
+- 2026-10-10: Firestore config/revenue_split created
+- 2026-10-10: MASTER PLAN v2.8
+- 2026-10-10: PHASE H added (MIGO Reserve — Guaranteed Reservation System)
+- 2026-10-10: 19 new tasks (H1-H19) planned
+- 2026-10-10: 4 new collections (reservations, rules, no_show_log, config)
+- 2026-10-10: D4D-differentiator feature documented
+- 2026-10-10: MASTER PLAN v2.9
+- 2026-10-10: PHASE H — PHASE 1 STARTED (Foundation)
+- 2026-10-10: PHASE H — Firestore Rules deployed (6 collections)
+- 2026-10-10: PHASE H — 6 Composite Indexes deployed
+- 2026-10-10: PHASE H — reservation_config/global seeded (13 fields)
+- 2026-10-10: PHASE H — reservation_rules/v1.0 seeded (EN/AR/ML)
+- 2026-10-10: PHASE H — Local firestore.rules file synced
+- 2026-10-10: PHASE H — 5 Flutter models created (~28 KB)
+  - reservation_model.dart (9,114 bytes)
+  - reservation_rules_model.dart (5,050 bytes)
+  - reservation_config_model.dart (7,451 bytes)
+  - no_show_log_model.dart (3,218 bytes)
+  - reservation_ban_model.dart (3,171 bytes)
+- 2026-10-10: PHASE H — ReservationService created (25,804 bytes)
+- 2026-10-10: PHASE H — flutter analyze: 0 errors, 2 warnings
+- 2026-10-10: PHASE H — PHASE 1 (Foundation) 100% COMPLETE 🎉
+- 2026-10-10: MASTER PLAN v3.0
+- 2026-10-10: PHASE H   PHASE 2 (Customer Booking) 100% COMPLETE
+- 2026-10-10: PHASE H   PHASE 5 (Admin Panel) 100% COMPLETE
+- 2026-10-10: PHASE H   PHASE 3 (Bookings View) 100% COMPLETE
+- 2026-10-10: PHASE H   Progress: 71% (5/7 sub-phases)
+- 2026-10-10: PHASE I planned (Multi-App Architecture)
+- 2026-10-10: Business App (MIGO Business) documented
+- 2026-10-10: 3-apps ecosystem defined
+- 2026-10-10: 14 new tasks (I1-I14) planned   ~40 hours
+- 2026-10-10: MASTER PLAN v3.2
+- 2026-10-11: PHASE H PHASE 4 — Smart single scanner (CLM_ / RSV_)
+- 2026-10-11: PHASE H PHASE 4 — business_offer_reserve_settings.dart
+- 2026-10-11: PHASE 4 100% COMPLETE 🎉
+- 2026-10-11: PHASE 7 Testing — Started (15+ bugs found)
+- 2026-10-11: Fixed — Rules accept → button disabled bug
+- 2026-10-11: Fixed — _loadOffer() missing in _showRules()
+- 2026-10-11: Fixed — Profile "My Bookings" menu missing
+- 2026-10-11: Fixed — _confirmBooking() navigate to My Bookings
+- 2026-10-11: Fixed — Total QAR 0 bug (price → offerPrice)
+- 2026-10-11: Fixed — Firestore index (My Bookings query)
+- 2026-10-11: Fixed — Firestore index (Shop Bookings query)
+- 2026-10-11: New — Max Per Customer feature (5 files)
+- 2026-10-11: Fixed — QR scan (res.id → res.qrCode)
+- 2026-10-11: Fixed — markNoShow transaction order
+- 2026-10-11: Fixed — Rules bookedSlots condition order
+- 2026-10-11: New — Shop Bookings button in My Business
+- 2026-10-11: Security — Removed service account key from git
+- 2026-10-11: Updated — .gitignore for service account keys
+- 2026-10-11: PHASE 7 Testing — 90% COMPLETE
+- 2026-10-11: PHASE H 95% (6/7 + Testing)
+- 2026-10-11: MASTER PLAN v3.3- 2026-10-13: PHASE H — Business Reserve Settings UI complete
+- 2026-10-13: Business owner: Reserve ON/OFF, Max Per Customer, Total Slots
+- 2026-10-13: Customer app: Max Per Customer enforced (quantity limit)
+- 2026-10-13: PHASE D5 completed (Digital Marketing Dashboard)
+- 2026-10-13: MarketingDashboardPage.jsx created (484 lines)
+- 2026-10-13: Admin panel: Marketing route + sidebar link
+- 2026-10-13: Conversion funnel (Views → Claims → Redeems)
+- 2026-10-13: Channel performance (5 channels)
+- 2026-10-13: Top offers + Top referrers analytics
+- 2026-10-13: PHASE D — 85% (6/7)
+- 2026-10-13: MASTER PLAN v3.4- 2026-10-13: PHASE E started (Growth & Viral)
+- 2026-10-13: E2 complete — Offer share button (offer_detail_screen.dart)
+- 2026-10-13: E2 complete — share_plus package installed
+- 2026-10-13: E2 complete — Deep link landing page (admin/public/o/index.html)
+- 2026-10-13: E2 complete — Firebase Hosting rewrite for /o/**
+- 2026-10-13: E2 complete — APK download link working
+- 2026-10-13: PHASE E — 10% (1/10)
+- 2026-10-13: MASTER PLAN v3.5- 2026-10-14: PHASE E — E3 complete (Deep link + auto-apply referral code)
+- 2026-10-14: PHASE E — E4 complete (Claim attribution + referral tracking)
+- 2026-10-14: Signup fix — Auth first, referral lookup after
+- 2026-10-14: Firestore Rules — users allow list (query permission)
+- 2026-10-14: Referral tracking — 100% working (test16 verified)
+- 2026-10-14: PHASE E — 30% (3/10)
+- 2026-10-14: MASTER PLAN v3.6
+- 2026-10-14: PHASE E — E5 complete (User rewards + Coin caps)
+- 2026-10-14: Daily cap (20) + Monthly cap (200) implemented
+- 2026-10-14: bypassCaps for referral/redeem/claim/review
+- 2026-10-14: QR scan fix — CLM_ prefix strip working
+- 2026-10-14: Manual code + QR scan — 100% working
+- 2026-10-14: PHASE E — 40% (4/10)
+- 2026-10-14: MASTER PLAN v3.7
+- 2026-10-14: PHASE E — E6 complete (Vlogger accounts)
+- 2026-10-14: E6.1 — Creator Analytics screen (4 cards + conversion)
+- 2026-10-14: E6.2 — Dashboard "View Analytics" button
+- 2026-10-14: E6.3 — Admin CreatorsPage (approve/reject/suspend)
+- 2026-10-14: E6.4 — AdminLayout sidebar + App.jsx route
+- 2026-10-14: E6.5 — In-app Creator Public Profile screen
+- 2026-10-14: E6.6 — Dashboard "View Public Profile" button
+- 2026-10-14: PHASE E — 60% (6/10)
+- 2026-10-14: MASTER PLAN v3.8
+- 2026-10-15: PHASE E — E7 complete (Vlogger Performance Dashboard)
+- 2026-10-15: creator_performance_screen.dart created
+- 2026-10-15: Lifetime Overview + Engagement Score (Tier system)
+- 2026-10-15: Weekly snapshot (views/claims/redeems/shares)
+- 2026-10-15: Dynamic growth tips
+- 2026-10-15: Dashboard "My Performance" button added
+- 2026-10-15: PHASE E — 70% (7/10)
+- 2026-10-15: MASTER PLAN v3.9
+- 2026-10-15: PHASE E — E9 complete (Business Analytics)
+- 2026-10-15: business_analytics_screen.dart created
+- 2026-10-15: Overview stats (Claims, Redeems, Referrers, Conversion)
+- 2026-10-15: Top referrers list (ranked with badges)
+- 2026-10-15: Per-referrer breakdown + conversion rate
+- 2026-10-15: my_business_screen.dart — View Analytics button
+- 2026-10-15: PHASE E — 80% (8/10)
+- 2026-10-15: MASTER PLAN v3.10
+- 2026-10-15: PHASE E — E10 complete (Anti-fraud basic)
+- 2026-10-15: fraud_service.dart created (5 fraud checks)
+- 2026-10-15: Firestore rules — fraud_logs collection
+- 2026-10-15: FraudLogsPage.jsx (admin) — review interface
+- 2026-10-15: App.jsx route + AdminLayout sidebar
+- 2026-10-15: PHASE E — 90% (9/10)
+- 2026-10-15: TOTAL — 100% (40/40) 🎉
+- 2026-10-15: MASTER PLAN v3.11
+- 2026-10-15: PHASE E — E1 complete (Auto-referral)
+- 2026-10-15: referral_tracker.dart created (unified service)
+- 2026-10-15: main.dart — ReferralTracker.instance.init()
+- 2026-10-15: Play Install Referrer API integrated
+- 2026-10-15: Clipboard fallback added
+- 2026-10-15: PHASE E — 100% (10/10) 🎉
+- 2026-10-15: MASTER PLAN v3.12
+
+- 2026-10-15: PHASE J added (Multi-Role Admin Panel)
+- 2026-10-15: 9 new tasks (J1-J9) planned
+- 2026-10-15: Role-scoped dashboards (agency, staff, admin)
+- 2026-10-15: Priority: HIGH — critical for scaling
+- 2026-10-15: MASTER PLAN v3.13
+- 2026-10-15: PHASE J — Multi-Role Admin Panel 100% complete
+- 2026-10-15: RoleContext + useRoleNav hook created
+- 2026-10-15: App.jsx — role-based routing + RoleRedirect
+- 2026-10-15: AdminLayout — role-based sidebar
+- 2026-10-15: AgencyDashboard.jsx created (own area scope)
+- 2026-10-15: StaffDashboard.jsx created (moderation queue)
+- 2026-10-15: Firestore rules — 3 critical fixes (users, claims, fraud_logs)
+- 2026-10-15: AdminLogin — allow super_admin/admin/agency/moderator
+- 2026-10-15: test1@migoapp.com promoted to super_admin
+- 2026-10-15: PHASE J — 100% (9/9) 🎉
+- 2026-10-15: MASTER PLAN v3.14
+- 2026-10-15: PHASE J — End-to-end verification complete
+- 2026-10-15: Super admin verified (24+ sidebar items)
+- 2026-10-15: Agency account created (kakkanad2@migoapp.com)
+- 2026-10-15: Agency login verified — 9 items + dashboard
+- 2026-10-15: Staff account created (staff1@migoapp.com)
+- 2026-10-15: Staff login verified — 6 items + dashboard
+- 2026-10-15: Firestore rules — users/claims/fraud_logs hardened
+- 2026-10-15: test1 promoted to super_admin
+- 2026-10-15: All 4 admin roles verified end-to-end
+- 2026-10-15: MASTER PLAN v3.15
+- 2026-10-16: PHASE I — Business App started
+- 2026-10-16: I1 — Flutter project setup (migo-business)
+- 2026-10-16: I2 — Firebase config (same project)
+- 2026-10-16: I3 — FlutterFire CLI + 15 dependencies
+- 2026-10-16: I4 — Login screen (business role only)
+- 2026-10-16: I6 — Dashboard (responsive PC + mobile)
+- 2026-10-16: I7 — Advanced Offer CRUD with Cloudinary
+- 2026-10-16: I8 — Bookings management (5 models, service, 3 screens)
+- 2026-10-16: I9 — QR Scanner (camera + manual entry)
+- 2026-10-16: test1 promoted to super_admin
+- 2026-10-16: business@migoapp.com created (business role)
+- 2026-10-16: Business doc created (Test Business)
+- 2026-10-16: Master Plan v3.16
+- 2026-10-16: PHASE I — I10 complete (Analytics)
+- 2026-10-16: business_analytics_screen.dart ported
+- 2026-10-16: Referrer tracking stats + top referrers
+- 2026-10-16: PHASE I — I12 complete (Profile)
+- 2026-10-16: profile_screen.dart created (simplified)
+- 2026-10-16: Business info + logo/cover upload
+- 2026-10-16: PHASE I — 79% (11/14)
+- 2026-10-16: MASTER PLAN v3.17
+- 2026-10-16: PHASE I — I15 complete (Reserve Settings)
+- 2026-10-16: business_offer_reserve_settings.dart ported
+- 2026-10-16: Toggle + slots + hold + token + max per customer
+- 2026-10-16: I15.1 — Status bug fix (Activate → live)
+- 2026-10-16: Admin approval already live ✅
+- 2026-10-16: Business Activate now sets live (was approved)
+- 2026-10-16: PHASE I — 87% (13/15)
+- 2026-10-16: MASTER PLAN v3.18
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 16: Important Info
+═══════════════════════════════════════════════════════
+
+### Firebase
+- Project: migo-app-3030e
+- Account: solvexe.tech@gmail.com
+- Firestore Region: me-central1 (Doha)
+
+### Test Accounts
+- Super Admin: test1@migoapp.com / Migo@2026 (role: super_admin)
+- Admin: (create when needed)
+- Agency: kakkanad2@migoapp.com / Agency@2026 (role: agency)
+- Staff/Moderator: staff1@migoapp.com / Staff@2026 (role: moderator)
+- Customer: test2@migoapp.com / Migo@2026
+
+### Setup Completed (2026-10-10)
+- Android Studio: Rabbit 2026.2.1
+- Android Emulator: Medium Phone API 37.0 (Android 17)
+- Java: Temurin 17.0.20.101
+- Flutter JDK: C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot
+
+### Backups
+- migo-backup-2026-10-06
+- migo-backup-2026-10-07
+- MIGO-MASTER-PLAN-v2.6-BACKUP.txt
+- MIGO-MASTER-PLAN-v2.7-BACKUP.txt
+
+### APK Files
+- Desktop: MIGO-v1.3.1.apk (69.8 MB)
+- GitHub: solvexetech-cloud/migo-releases
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 17: Next Steps (Priority Order)
+═══════════════════════════════════════════════════════
+
+### Immediate (Next Session)
+1. **I13 Play Store** — icon + splash + build (2h)
+2. **I14 Testing** — full flow verification (3h)
+3. **D4 AdMob Fix** — optional (1-2h)
+4. **PHASE F** — Coin System (future)b
+
+### Priority Order (Current)
+1. **PHASE J — Multi-Role Admin Panel** (17h) — HIGH 🔥
+2. **PHASE I — Business App** (40h) — STRATEGIC 🔥🔥
+3. **PHASE F — Coin System** (42h) — RETENTION 🔥
+4. **PHASE G — Monetization** (50h) — REVENUE 🔥
+### Priority Order (After D5 + D4)
+1. **PHASE H — MIGO Reserve** (30h) — HIGHEST priority, D4D-killer
+2. **PHASE E — Growth & Viral** (39h) — User acquisition
+3. **PHASE F — Coin System** (42h) — Retention
+4. **PHASE G — Monetization** (50h) — Revenue
+
+### PHASE E — Growth & Viral (Free, Month 1-6)
+- E1: Auto-referral (Install Referrer + URL) — 4h
+- E2: Offer share (all users) — 3h
+- E3: Deep link + auto-apply code — 5h
+═══════════════════════════════════════════════════════
+## E6 — VLOGGER ACCOUNTS (COMPLETE 2026-10-14)
+═══════════════════════════════════════════════════════
+
+### Mobile Files (6)
+
+- lib/models/creator_model.dart
+- lib/services/creator_service.dart
+- lib/features/creator/creator_signup_screen.dart
+- lib/features/creator/creator_dashboard_screen.dart
+- lib/features/creator/creator_analytics_screen.dart
+- lib/features/creator/creator_profile_screen.dart
+
+### Admin Files (3)
+
+- admin/src/pages/CreatorsPage.jsx
+- admin/src/components/AdminLayout.jsx
+- admin/src/App.jsx
+
+### Web Files (2)
+
+- admin/public/creator/index.html
+- admin/firebase.json (rewrite)
+
+### Firestore
+
+- Collection: creators
+- Rules: Read (approved), Write (owner + admin)
+
+### Features
+
+✅ Creator signup (email, channel, category, bio)
+✅ Admin approval (pending/approved/rejected/suspended)
+✅ Creator dashboard (pending + approved states)
+✅ Analytics screen (4 stat cards + conversions)
+✅ Public profile (in-app + web)
+✅ Admin panel (list, filter, search, approve/reject)
+✅ 3 dashboard buttons (Analytics, Share, Profile)
+### PHASE F — Coin System (Free, Month 4-12)
+### PHASE G — Monetization (Gradual, Month 6-24)
+
+### Long-term Vision
+- Year 1: Investment + Initial Revenue (QAR 5,000 net)
+- Year 2: Profitable Growth (QAR 92,000 net)
+- Year 3: Scale + Multiple Streams (QAR 4,20,000 net)
+
+### Final
+- Play Store submission
+- iOS build + App Store
+
+
+
+═══════════════════════════════════════════════════════
+## PHASE H — IMPLEMENTATION PROGRESS
+═══════════════════════════════════════════════════════
+
+### 📊 Overall PHASE H Status
+
+**Total: 7 Sub-Phases, 35 hours**
+
+| # | Sub-Phase | Hours | Status |
+|---|-----------|-------|--------|
+| 1 | Foundation | 6h | ✅ **100% DONE** 🎉 |
+| 2 | Customer Booking | 6h | ✅ **100% DONE** 🎉 |
+| 3 | Customer Bookings View | 5h | ✅ **100% DONE** 🎉 |
+| 4 | Business Side | 6h | ✅ **100% DONE** 🎉 |
+| 5 | Admin Panel | 5h | ✅ **100% DONE** 🎉 |
+| 6 | Cloud Functions | 4h | ⏳ Blaze plan needed |
+| 7 | Testing | 3h | 🟡 **90% DONE** |
+
+**Progress: 6/7 (90%)**
+
+---
+
+### ✅ PHASE 1 — Foundation (COMPLETE 2026-10-10)
+
+**Duration:** ~2 hours (in one session)
+
+#### Deliverables
+
+| # | Deliverable | Details |
+|---|-------------|---------|
+| 1 | **Firestore Rules** | 6 new collections secured |
+| 2 | **Composite Indexes** | 6 new indexes deployed |
+| 3 | **Config Seed** | `reservation_config/global` (13 fields) |
+| 4 | **Rules Seed** | `reservation_rules/v1.0` (EN/AR/ML) |
+| 5 | **5 Flutter Models** | ~28 KB total |
+| 6 | **ReservationService** | ~26 KB (800+ lines) |
+
+#### Files Created (8 total)
+
+**Flutter Models (5):**
+- `mobile/lib/models/reservation_model.dart` (9,114 bytes)
+- `mobile/lib/models/reservation_rules_model.dart` (5,050 bytes)
+- `mobile/lib/models/reservation_config_model.dart` (7,451 bytes)
+- `mobile/lib/models/no_show_log_model.dart` (3,218 bytes)
+- `mobile/lib/models/reservation_ban_model.dart` (3,171 bytes)
+
+**Services (1):**
+- `mobile/lib/services/reservation_service.dart` (25,804 bytes)
+
+**Firestore Rules/Indexes (2):**
+- `firestore.rules` (~11 KB, synced with Console)
+- `firestore.indexes.json` (5,890 bytes, 6 new indexes)
+
+#### Firestore Collections (6 new)
+
+| # | Collection | Document | Status |
+|---|-----------|----------|--------|
+| 1 | `reservations` | (empty) | Rules only |
+| 2 | `reservation_rules` | `v1.0` | ✅ Seeded |
+| 3 | `no_show_log` | (empty) | Rules only |
+| 4 | `reservation_config` | `global` | ✅ Seeded |
+| 5 | `reservation_bans` | (empty) | Rules only |
+| 6 | `reservation_rules_acceptance` | (empty) | Rules only |
+
+#### ReservationService Methods (13)
+
+1. `getConfig()` — Fetch global config
+2. `getActiveRules()` — Fetch active rules version
+3. `hasAcceptedRules()` — Check acceptance
+4. `acceptRules()` — Save acceptance
+5. `checkBan()` — Check user ban
+6. `checkCanBook()` — Pre-booking validation (5 checks)
+7. `createReservation()` — Transaction with slot decrement
+8. `cancelReservation()` — Cancel with slot release
+9. `markPickedUp()` — Shop marks pickup
+10. `markNoShow()` — Shop marks no-show + escalation
+11. `streamMyReservations()` — Customer's bookings
+12. `streamBusinessReservations()` — Shop's bookings
+13. `validateQRCode()` — QR verification
+
+**Plus:**
+- `_checkNoShowEscalation()` — Auto-ban logic
+- `_createBan()` — Ban creation
+- `_generateUUID()` — QR UUID
+- `_generate6DigitCode()` — Manual pickup code
+
+#### Code Quality
+
+**flutter analyze:**
+
+═══════════════════════════════════════════════════════
+## PHASE I — Multi-App Architecture (Business App)
+═══════════════════════════════════════════════════════
+
+### 🎯 ലക്ഷ്യം: Separate App for Business Owners
+
+**Philosophy:** Customer-ന് MIGO, Business-ന് MIGO Business.
+**Timing:** After PHASE H complete (PHASE 4 + 6 + 7)
+**Priority:** HIGH
+**Estimated:** ~40 hours (4 weeks part-time)
+
+---
+
+### 📊 3-Apps Ecosystem
+
+┌─────────────────────────────────────────────────────┐
+│  MIGO ECOSYSTEM — 3 Apps                            │
+│                                                     │
+│  📱 MIGO (Customer)          — Existing (v1.3.1)    │
+│    ├── Browse offers                                │
+│    ├── Reserve/Claim                                │
+│    ├── Reviews                                      │
+│    ├── Wallet + coins                               │
+│    └── Referrals                                    │
+│                                                     │
+│  📱 MIGO Business (NEW)      — To Create            │
+│    ├── Dashboard                                    │
+│    ├── Offer management                             │
+│    ├── Reservation management                       │
+│    ├── QR scanner                                   │
+│    ├── Analytics                                    │
+│    ├── Revenue reports                              │
+│    └── Customer insights                            │
+│                                                     │
+│  💻 MIGO Admin (Web)          — Existing            │
+│    ├── Full control                                 │
+│    ├── User management                              │
+│    ├── Revenue split                                │
+│    ├── Reservations monitor                         │
+│    └── Rules + config                               │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+
+---
+
+### Why Multi-App?
+
+| Reason | Benefit |
+|--------|---------|
+| Focus | Each app for specific role |
+| UX | Optimized for user type |
+| Play Store | 2 listings, better SEO |
+| Updates | Independent releases |
+| Performance | Smaller, faster apps |
+| Branding | Clear differentiation |
+| Security | Role-specific access |
+| Onboarding | Simpler for each user type |
+
+---
+
+### Industry Examples
+
+| Company | Apps |
+|---------|------|
+| Swiggy | Swiggy + Swiggy Partner + Swiggy Restaurant |
+| Zomato | Zomato + Zomato for Business |
+| Uber | Uber + Uber Driver |
+| Careem | Careem + Careem Captain |
+| Talabat | Talabat + Talabat Partner |
+
+**MIGO** — same pattern.
+
+---
+
+### PHASE I Tasks (14 Total, ~40h)
+
+| # | Task | Time | Priority |
+|---|------|------|----------|
+| I1 | New Flutter project setup | 2h | HIGH |
+| I2 | Firebase config (same project) | 1h | HIGH |
+| I3 | App icon + branding | 2h | MED |
+| I4 | Login screen (business only) | 2h | HIGH |
+| I5 | Signup flow (business) | 3h | HIGH |
+| I6 | Dashboard screen | 4h | HIGH |
+| I7 | Offer CRUD screens | 5h | HIGH |
+| I8 | Reservations management | 4h | HIGH |
+| I9 | QR scanner (pickup) | 3h | MED |
+| I10 | Analytics dashboard | 4h | MED |
+| I11 | Revenue reports | 3h | MED |
+| I12 | Profile + settings | 2h | LOW |
+| I13 | Play Store setup | 2h | LOW |
+| I14 | Testing + polish | 3h | MED |
+
+**Total: ~40 hours**
+
+---
+
+### Business App Design
+
+| # | Item | Value |
+|---|------|-------|
+| 1 | App Name | MIGO Business |
+| 2 | Package ID | com.migo.business |
+| 3 | Tagline | "Manage your deals, grow your business" |
+| 4 | Icon | Business theme (blue + gold) |
+| 5 | Color Scheme | Corporate blue + Gold accents |
+| 6 | Play Store | Separate listing |
+
+---
+
+### Screens to Port (from current app)
+
+| # | Screen | Source | Priority |
+|---|--------|--------|----------|
+| 1 | Business dashboard | Existing | HIGH |
+| 2 | Offer create/edit | Existing | HIGH |
+| 3 | Shop bookings | PHASE 3 (business) | HIGH |
+| 4 | Reservation detail | PHASE 3 (business) | MED |
+| 5 | No-show history | PHASE 3 (business) | MED |
+| 6 | QR scanner | PHASE 4 (todo) | MED |
+| 7 | Analytics | New | MED |
+| 8 | Revenue reports | New | MED |
+
+---
+
+### Auth Flow (Business App)
+
+**Login:**
+1. Email/Password input
+2. Firebase Auth
+3. Check role == 'business'
+4. Authorized → Dashboard
+5. Unauthorized → "Access denied"
+
+**Signup:**
+1. Business info form (name, category, location)
+2. Email/Password
+3. Owner details (name, phone)
+4. Submit → Admin approval
+5. Approved → Login active
+
+---
+
+### Firestore (Same Project — No Change!)
+
+Reuse existing:
+- users/{uid} — with role check
+- businesses/{id} — owner CRUD
+- offers/{id} — owner CRUD
+- reservations/{id} — owner view
+- no_show_log/{id} — owner view
+- reservation_config — readonly
+- All security rules — already support
+
+**No migration needed!**
+
+---
+
+### Benefits
+
+**For Customer:**
+- Simpler app
+- Faster performance
+- Focused experience
+
+**For Business Owner:**
+- Professional tools
+- Dedicated dashboard
+- Better analytics
+- No confusion
+
+**For MIGO:**
+- Play Store SEO (2 listings)
+- Better targeting
+- Clear branding
+- Independent updates
+- Scalable
+
+---
+
+### Implementation Timeline
+
+| Week | Task | Progress |
+|------|------|----------|
+| Week 1 | Setup + Login + Dashboard | 30% |
+| Week 2 | Offer CRUD + Reservations | 60% |
+| Week 3 | QR + Analytics + Polish | 90% |
+| Week 4 | Play Store submission | 100% |
+
+**Total: 4 weeks (part-time)**
+
+---
+
+### Dependencies
+
+- PHASE H (MIGO Reserve) 100% complete
+- PHASE 4 (QR scanner) complete
+- Business features audited
+- Blaze plan (optional)
+
+**Order:** PHASE H → PHASE I → PHASE E/F/G
+
+---
+
+### Technical Notes
+
+**Flutter Setup:**
+
+cd C:\Users\DELL\Documents\migo
+flutter create --org com.migo --project-name migo_business migo-business
+
+
+**Firebase Setup:**
+1. Firebase Console → Add app → Android
+2. Package: com.migo.business
+3. Download google-services.json
+4. Place in migo-business/android/app/
+
+**Shared Backend:**
+- Same Firebase project (migo-app-3030e)
+- Same Firestore collections
+- Same Authentication
+
+---
+
+### Expected Outcomes
+
+- 2 apps live on Play Store
+- Customer focus improved
+- Business professional tools
+- Better SEO + discovery
+- Cleaner codebases
+- Independent scaling
+
+═══════════════════════════════════════════════════════
+END OF PHASE I — MULTI-APP ARCHITECTURE
+═══════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════
+END OF MASTER PLAN v3.18
+═══════════════════════════════════════════════════════
