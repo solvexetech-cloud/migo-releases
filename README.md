@@ -1,5 +1,2 @@
-﻿# MIGO
-
-Discover. Save. Earn. Together.
-
-Local discovery + savings + rewards platform.
+# MIGO Releases
+Official APK releases for MIGO — Deals & Rewards app.
