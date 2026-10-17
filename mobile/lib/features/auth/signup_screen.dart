@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/config/app_config.dart';
@@ -166,15 +166,15 @@ class _SignupScreenState extends State<SignupScreen> {
       // PHASE E — Now with auth, lookup referral code
       String? referrerUid;
       if (referralCode.isNotEmpty) {
-        print('🔵 Looking up referral: $referralCode');
+        debugPrint('🔵 Looking up referral: $referralCode');
         referrerUid = await FirestoreService.instance
             .findUidByReferralCode(referralCode);
-        print('🔵 referrerUid = $referrerUid');
+        debugPrint('🔵 referrerUid = $referrerUid');
         
         if (referrerUid == null) {
           // Referral code invalid — but signup already succeeded
           if (!mounted) return;
-          print('⚠️ Referral code not found — continuing signup');
+          debugPrint('⚠️ Referral code not found — continuing signup');
         }
       }
       debugPrint('✅ Step 1 done: Auth + user doc created. uid=${cred.user?.uid}');

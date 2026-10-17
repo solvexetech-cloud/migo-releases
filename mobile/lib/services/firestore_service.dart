@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'analytics_service.dart';
 import '../models/business_model.dart';
 import '../models/category_model.dart';
@@ -91,11 +92,11 @@ class FirestoreService {
 
       // Check caps
       if (dailyEarned >= dailyCap) {
-        print('⚠️ Daily cap reached ($dailyEarned/$dailyCap) — skipping');
+        debugPrint('⚠️ Daily cap reached ($dailyEarned/$dailyCap) — skipping');
         return;
       }
       if (monthlyEarned >= monthlyCap) {
-        print('⚠️ Monthly cap reached ($monthlyEarned/$monthlyCap) — skipping');
+        debugPrint('⚠️ Monthly cap reached ($monthlyEarned/$monthlyCap) — skipping');
         return;
       }
 
@@ -107,7 +108,7 @@ class FirestoreService {
           : monthlyRemaining;
       if (amount > maxAllowed) {
         amount = maxAllowed;
-        print('⚠️ Amount clamped to $amount (cap limit)');
+        debugPrint('⚠️ Amount clamped to $amount (cap limit)');
       }
     }
 
@@ -623,9 +624,9 @@ class FirestoreService {
     required String claimId,
     required String businessId,
   }) async {
-    print('🔵 redeemClaim: claimId=$claimId (length=${claimId.length})');
+    debugPrint('🔵 redeemClaim: claimId=$claimId (length=${claimId.length})');
     final snap = await _claims.doc(claimId).get();
-    print('🔵 Claim exists: ${snap.exists}');
+    debugPrint('🔵 Claim exists: ${snap.exists}');
     if (!snap.exists || snap.data() == null) {
       throw Exception('Claim not found');
     }
@@ -784,16 +785,16 @@ class FirestoreService {
 
     Future<String?> findUidByReferralCode(String code) async {
     try {
-      print('🔵 findUidByReferralCode: code=$code');
+      debugPrint('🔵 findUidByReferralCode: code=$code');
       final snap = await _users
           .where('referralCode', isEqualTo: code.toUpperCase())
           .limit(1)
           .get();
-      print('🔵 Users found: ${snap.docs.length}');
+      debugPrint('🔵 Users found: ${snap.docs.length}');
       if (snap.docs.isEmpty) return null;
       return snap.docs.first.id;
     } catch (e) {
-      print('🔴 findUidByReferralCode FAILED: $e');
+      debugPrint('🔴 findUidByReferralCode FAILED: $e');
       return null;
     }
   }

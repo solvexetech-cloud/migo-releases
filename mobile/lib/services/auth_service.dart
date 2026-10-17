@@ -51,10 +51,10 @@ class AuthService {
             city: city,
           ),
         );
-        print('✅ User doc created');
+        debugPrint('✅ User doc created');
       } catch (e) {
         // Log error but don't rethrow — Auth succeeded
-        print('⚠️ User doc creation failed (will retry on next login): $e');
+        debugPrint('⚠️ User doc creation failed (will retry on next login): $e');
       }
     }
     return cred;

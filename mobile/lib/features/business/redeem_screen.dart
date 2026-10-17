@@ -36,7 +36,7 @@ class _RedeemScreenState extends State<RedeemScreen> {
 
       Future<void> _redeem(String code) async {
     final trimmed = code.trim();
-    print('🔵 Redeem called with code=$trimmed (length=${trimmed.length})');
+    debugPrint('🔵 Redeem called with code=$trimmed (length=${trimmed.length})');
     if (trimmed.isEmpty) {
       setState(() => _errorMsg = 'Please provide a code.');
       return;
