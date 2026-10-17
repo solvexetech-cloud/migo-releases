@@ -487,7 +487,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                       color: Colors.white,
                     ),
                   )
-                : const Text('Claim this offer'),
+                : const Text('Get QR Code'),
           ),
         ),
       ],
@@ -504,7 +504,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
             const SizedBox(width: 8),
             const Expanded(
               child: Text(
-                'You already claimed this offer',
+               'Offer is ready! Show this at the store.',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,

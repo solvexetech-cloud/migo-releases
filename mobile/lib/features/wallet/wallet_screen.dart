@@ -203,12 +203,7 @@ class WalletScreen extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            SizedBox(height: 10),
-                            _EarnRow(
-                              icon: Icons.redeem,
-                              text: 'Claim a deal  +5',
-                            ),
-                            SizedBox(height: 6),
+                                                        SizedBox(height: 10),
                             _EarnRow(
                               icon: Icons.qr_code_scanner,
                               text: 'Redeem at business  +25',
@@ -273,10 +268,10 @@ class _StatsGrid extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            Expanded(
+                        Expanded(
               child: _StatTile(
-                label: 'Claims',
-                value: '${claims.length}',
+                label: 'Redeemed',
+                value: '${redeemed.length}', // ഉപയോഗിച്ച എണ്ണം മാത്രം
                 icon: Icons.receipt_long_outlined,
                 color: MigoColors.accent,
               ),

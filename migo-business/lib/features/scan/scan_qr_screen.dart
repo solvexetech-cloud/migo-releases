@@ -19,16 +19,26 @@ class ScanQrScreen extends StatefulWidget {
 
 class _ScanQrScreenState extends State<ScanQrScreen> {
   final _codeController = TextEditingController();
-  final _scannerController = MobileScannerController(
-    detectionSpeed: DetectionSpeed.noDuplicates,
-    formats: const [BarcodeFormat.qrCode],
-  );
+  late MobileScannerController _scannerController;
 
   bool _loading = false;
   bool _cameraMode = false;
   bool _scannedOnce = false;
   String? _successMsg;
   String? _errorMsg;
+
+  @override
+  void initState() {
+    super.initState();
+    _initScanner();
+  }
+
+  void _initScanner() {
+    _scannerController = MobileScannerController(
+      detectionSpeed: DetectionSpeed.noDuplicates,
+      formats: const [BarcodeFormat.qrCode],
+    );
+  }
 
   @override
   void dispose() {
@@ -142,6 +152,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
                 _errorMsg = null;
                 _successMsg = null;
               });
+              // Camera mode toggles, MobileScanner widget manages its own lifecycle
             },
             icon: Icon(
               _cameraMode ? Icons.keyboard : Icons.qr_code_scanner,
@@ -166,6 +177,28 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
               MobileScanner(
                 controller: _scannerController,
                 onDetect: _onDetect,
+                errorBuilder: (context, error, child) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error, color: Colors.red, size: 48),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Camera Error: ${error.errorCode}',
+                          style: const TextStyle(color: Colors.white),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          error.errorDetails?.message ?? '',
+                          style: const TextStyle(color: Colors.white70),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
               Container(
                 width: 240,
@@ -216,8 +249,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
                 Container(
                   color: Colors.black.withValues(alpha: 0.6),
                   child: const Center(
-                    child:
-                        CircularProgressIndicator(color: Colors.white),
+                    child: CircularProgressIndicator(color: Colors.white),
                   ),
                 ),
             ],

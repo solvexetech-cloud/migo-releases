@@ -1,7 +1,7 @@
 # ═══════════════════════════════════════════════════════
 # MIGO — MASTER PLAN
-# Version: v3.18
-# Date: October 15, 2026
+# Version: v4.0
+# Date: October 17, 2026
 # Owner: solvexe.tech@gmail.com
 # ═══════════════════════════════════════════════════════
 
@@ -17,10 +17,11 @@
 
 ### 📁 ലൊക്കേഷൻ
 Root: C:\Users\DELL\Documents\migo\
-├── mobile/    → Flutter app
-├── admin/     → React admin panel (LIVE)
-├── _seed/     → Node.js seed scripts
-└── backend/   → NestJS (future)
+├── mobile/      → Flutter app (Customer App)
+├── migo-business/ → Flutter app (Business App)
+├── admin/       → React admin panel (LIVE)
+├── _seed/       → Node.js seed scripts
+└── backend/     → NestJS (future)
 
 ### 🌐 ലൈവ് URL-കൾ
 - Firebase Project: migo-app-3030e
@@ -664,10 +665,11 @@ Super Admin, Admin, Agency, Staff — എല്ലാവർക്കും separ
 | I14 | Testing + polish | 3h | ⬜ |
 | I15 | Reserve Settings | 4h | ✅ DONE 2026-10-16 |
 | I15.1 | Status bug fix (Activate → live) | 30m | ✅ DONE 2026-10-16 |
+| I16 | Camera Fix (R8 ProGuard) | 2h | ✅ DONE 2026-10-17 |
 
 **Total PHASE I: ~40 hours**
 
-**Progress: 13/15 (87%)** 📈
+**Progress: 14/16 (87%)** 📈
 
 ### 🎯 PHASE I — Order of Implementation
 
@@ -1339,6 +1341,19 @@ TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅�
 - 2026-10-16: Business Activate now sets live (was approved)
 - 2026-10-16: PHASE I — 87% (13/15)
 - 2026-10-16: MASTER PLAN v3.18
+- 2026-10-17: Business App Camera Fix (I16)
+- 2026-10-17: R8 minification disabled in build.gradle.kts
+- 2026-10-17: proguard-rules.pro created (mobile_scanner keep rules)
+- 2026-10-17: Impeller disabled in AndroidManifest.xml
+- 2026-10-17: Camera permissions + features added to Manifest
+- 2026-10-17: APK build successful (Camera working)
+- 2026-10-17: Customer App Coin Logic updated (No free coins for Claim)
+- 2026-10-17: firestore_service.dart — Removed +5 coins for claim
+- 2026-10-17: my_claims_screen.dart — Filtered only Redeemed offers
+- 2026-10-17: claim_success_screen.dart — Text updated (No +5 Coins)
+- 2026-10-17: wallet_screen.dart — Removed "Claim a deal +5", "Claims" → "Redeemed"
+- 2026-10-17: pick_for_me_sheet.dart — Added "Any" options, reduced font sizes
+- 2026-10-17: MASTER PLAN v4.0
 
 ═══════════════════════════════════════════════════════
 ## ഭാഗം 16: Important Info
@@ -1778,5 +1793,5 @@ END OF PHASE I — MULTI-APP ARCHITECTURE
 ═══════════════════════════════════════════════════════
 
 ═══════════════════════════════════════════════════════
-END OF MASTER PLAN v3.18
+END OF MASTER PLAN v4.0
 ═══════════════════════════════════════════════════════

@@ -40,7 +40,10 @@ class MyClaimsScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           final claims = snap.data ?? [];
-          if (claims.isEmpty) {
+          // ഉപയോഗിച്ച (Redeemed) ഓഫറുകൾ മാത്രം കാണിക്കുക
+          final usedClaims = claims.where((c) => c.status == ClaimStatus.redeemed).toList();
+
+          if (usedClaims.isEmpty) {
             return const Center(
               child: Padding(
                 padding: EdgeInsets.all(24),
@@ -54,7 +57,7 @@ class MyClaimsScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 12),
                     Text(
-                      'No claims yet',
+                      'No used offers yet',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -62,7 +65,7 @@ class MyClaimsScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Claim an offer from Home to see it here.',
+                      'Redeem an offer at a business to see it here.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13,
@@ -77,10 +80,10 @@ class MyClaimsScreen extends StatelessWidget {
 
           return ListView.separated(
             padding: const EdgeInsets.all(20),
-            itemCount: claims.length,
+            itemCount: usedClaims.length, // usedClaims ഉപയോഗിക്കുക
             separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (context, i) {
-              final c = claims[i];
+              final c = usedClaims[i]; // usedClaims ഉപയോഗിക്കുക
               return Column(
                 children: [
                   InkWell(

@@ -95,8 +95,8 @@ class _ClaimSuccessScreenState extends State<ClaimSuccessScreen>
                     ),
                   ),
                   const SizedBox(height: 28),
-                  const Text(
-                    'Claim successful!',
+                                      const Text(
+                    'Offer Activated!',
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w900,
@@ -107,7 +107,7 @@ class _ClaimSuccessScreenState extends State<ClaimSuccessScreen>
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Show this QR code at the business to redeem your deal.',
+                    'You can view this offer and its QR code in your Active Deals. Show it at the business to redeem.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
@@ -117,39 +117,7 @@ class _ClaimSuccessScreenState extends State<ClaimSuccessScreen>
                   ),
                   const SizedBox(height: 24),
 
-                  // Coin reward badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: MigoGradients.gold,
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: MigoShadows.goldGlow,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.monetization_on,
-                          color: Colors.black,
-                          size: 22,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '+${widget.coinsAwarded} MIGO Coins',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.black,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
+                 
                   const SizedBox(height: 32),
 
                   // Offer summary
@@ -243,7 +211,7 @@ class _ClaimSuccessScreenState extends State<ClaimSuccessScreen>
                         );
                       },
                       icon: const Icon(Icons.qr_code_2),
-                      label: const Text('View my claims'),
+                      label: const Text('View Active Deals'),
                     ),
                   ),
                   const SizedBox(height: 12),

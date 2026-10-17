@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import '../core/config/app_config.dart';
 import '../core/theme/migo_colors.dart';
 
-/// Signature MIGO feature.
-/// User picks Budget + Distance + Mood. MIGO suggests matching deals.
 class PickForMeSheet extends StatefulWidget {
   const PickForMeSheet({super.key});
 
-  /// Helper to show this sheet from anywhere.
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet<void>(
       context: context,
@@ -25,14 +22,19 @@ class PickForMeSheet extends StatefulWidget {
 }
 
 class _PickForMeSheetState extends State<PickForMeSheet> {
-  int _budget = 50;
-  double _distanceKm = 2;
-  String _mood = 'Comfort';
+  // null അല്ലെങ്കിൽ 0 എന്നത് "Any" എന്ന് അർത്ഥം
+  int? _budget;
+  double? _distanceKm;
+  String? _mood;
   bool _showResult = false;
 
-  static const _budgets = [20, 50, 100];
-  static const _distances = [1.0, 2.0, 5.0];
-  static const _moods = ['Spicy', 'Sweet', 'Comfort', 'Healthy', 'Quick'];
+  static const _budgets = [null, 20, 50, 100]; // null = Any
+  static const _distances = [null, 1.0, 2.0, 5.0]; // null = Any
+  static const _moods = [null, 'Spicy', 'Sweet', 'Comfort', 'Healthy', 'Quick']; // null = Any
+
+  String _budgetLabel(int? b) => b == null ? 'Any Budget' : 'Up to ${AppConfig.fallbackCurrency} $b';
+  String _distanceLabel(double? d) => d == null ? 'Any Distance' : 'Within ${d.toStringAsFixed(0)} km';
+  String _moodLabel(String? m) => m ?? 'Any Mood';
 
   @override
   Widget build(BuildContext context) {
@@ -59,40 +61,42 @@ class _PickForMeSheetState extends State<PickForMeSheet> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   const Icon(
                     Icons.auto_awesome,
                     color: MigoColors.accent,
-                    size: 22,
+                    size: 20,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   Text(
                     'Pick For Me',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w800,
                           color: MigoColors.primary,
+                          fontSize: 20, // ചെറുതാക്കി
                         ),
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 'Tell MIGO your mood, we will pick the deal.',
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12), // ചെറുതാക്കി
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Budget
               _label('Budget'),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Wrap(
                 spacing: 8,
+                runSpacing: 6,
                 children: _budgets.map((b) {
                   final selected = _budget == b;
                   return _Pill(
-                    label: 'Up to ${AppConfig.fallbackCurrency} $b',
+                    label: _budgetLabel(b),
                     selected: selected,
                     onTap: () => setState(() {
                       _budget = b;
@@ -102,17 +106,18 @@ class _PickForMeSheetState extends State<PickForMeSheet> {
                 }).toList(),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // Distance
               _label('Distance'),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Wrap(
                 spacing: 8,
+                runSpacing: 6,
                 children: _distances.map((d) {
                   final selected = _distanceKm == d;
                   return _Pill(
-                    label: 'Within ${d.toStringAsFixed(0)} km',
+                    label: _distanceLabel(d),
                     selected: selected,
                     onTap: () => setState(() {
                       _distanceKm = d;
@@ -122,18 +127,18 @@ class _PickForMeSheetState extends State<PickForMeSheet> {
                 }).toList(),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // Mood
               _label('Mood'),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Wrap(
                 spacing: 8,
-                runSpacing: 8,
+                runSpacing: 6,
                 children: _moods.map((m) {
                   final selected = _mood == m;
                   return _Pill(
-                    label: m,
+                    label: _moodLabel(m),
                     selected: selected,
                     onTap: () => setState(() {
                       _mood = m;
@@ -143,27 +148,27 @@ class _PickForMeSheetState extends State<PickForMeSheet> {
                 }).toList(),
               ),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
 
               // Find button OR result
               if (!_showResult)
                 SizedBox(
-                  height: 52,
+                  height: 48,
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () => setState(() => _showResult = true),
-                    icon: const Icon(Icons.auto_awesome),
-                    label: const Text('Find my deal'),
+                    icon: const Icon(Icons.auto_awesome, size: 18),
+                    label: const Text('Find my deal', style: TextStyle(fontSize: 14)),
                   ),
                 )
               else
                 _resultCard(context),
 
               if (_showResult) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 TextButton(
                   onPressed: () => setState(() => _showResult = false),
-                  child: const Text('Pick again'),
+                  child: const Text('Pick again', style: TextStyle(fontSize: 13)),
                 ),
               ],
             ],
@@ -177,7 +182,7 @@ class _PickForMeSheetState extends State<PickForMeSheet> {
     return Text(
       text,
       style: const TextStyle(
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: FontWeight.w700,
         color: MigoColors.textPrimaryLight,
       ),
@@ -185,8 +190,12 @@ class _PickForMeSheetState extends State<PickForMeSheet> {
   }
 
   Widget _resultCard(BuildContext context) {
+    final budgetText = _budget == null ? 'Any' : '${AppConfig.fallbackCurrency} $_budget';
+    final distanceText = _distanceKm == null ? 'Any' : '${_distanceKm!.toStringAsFixed(0)} km';
+    final moodText = _mood ?? 'Any';
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: MigoColors.primary.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
@@ -200,7 +209,7 @@ class _PickForMeSheetState extends State<PickForMeSheet> {
               const Icon(
                 Icons.auto_awesome,
                 color: MigoColors.accent,
-                size: 18,
+                size: 16,
               ),
               const SizedBox(width: 6),
               Text(
@@ -208,35 +217,36 @@ class _PickForMeSheetState extends State<PickForMeSheet> {
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: MigoColors.primary,
+                      fontSize: 12,
                     ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           const Text(
             'Chicken Shawarma Combo',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: FontWeight.w800,
               color: MigoColors.textPrimaryLight,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           const Text(
             'Shawarma Station · 1.2 km',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 12,
               color: MigoColors.textSecondaryLight,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
                 '${AppConfig.fallbackCurrency} 25',
                 style: const TextStyle(
-                  fontSize: 13,
+                  fontSize: 12,
                   decoration: TextDecoration.lineThrough,
                   color: MigoColors.textSecondaryLight,
                 ),
@@ -245,7 +255,7 @@ class _PickForMeSheetState extends State<PickForMeSheet> {
               Text(
                 '${AppConfig.fallbackCurrency} 18',
                 style: const TextStyle(
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: FontWeight.w800,
                   color: MigoColors.primary,
                 ),
@@ -253,29 +263,29 @@ class _PickForMeSheetState extends State<PickForMeSheet> {
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
+                  horizontal: 8,
+                  vertical: 4,
                 ),
                 decoration: BoxDecoration(
                   color: MigoColors.accent,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Text(
                   'Claim',
                   style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.w800,
-                    fontSize: 12,
+                    fontSize: 11,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
-            'Matched: $_mood · Within ${_distanceKm.toStringAsFixed(0)} km · Under ${AppConfig.fallbackCurrency} $_budget',
+            'Matched: $moodText · $distanceText · $budgetText',
             style: const TextStyle(
-              fontSize: 11,
+              fontSize: 10,
               color: MigoColors.textSecondaryLight,
               fontStyle: FontStyle.italic,
             ),
@@ -304,7 +314,7 @@ class _Pill extends StatelessWidget {
       borderRadius: BorderRadius.circular(24),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: selected ? MigoColors.primary : Colors.white,
           borderRadius: BorderRadius.circular(24),
@@ -315,7 +325,7 @@ class _Pill extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: FontWeight.w600,
             color: selected ? Colors.white : MigoColors.textPrimaryLight,
           ),

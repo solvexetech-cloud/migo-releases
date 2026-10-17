@@ -558,18 +558,13 @@ class FirestoreService {
       'updatedAt': FieldValue.serverTimestamp(),
     });
 
-    await addCoins(
-      uid: claim.userUid,
-      amount: 5,
-      reason: 'Claimed "${claim.offerTitle}"',
-      bypassCaps: true,
-    );
+    
 
-    await createNotification(
+        await createNotification(
       NotificationModel.newDraft(
         userUid: claim.userUid,
-        type: NotifType.coinEarned,
-        title: '+5 MIGO Coins',
+        type: NotifType.coinEarned, 
+        title: 'Offer Claimed',
         body: 'You claimed "${claim.offerTitle}" at ${claim.businessName}.',
         targetRoute: 'claim',
         targetId: ref.id,
