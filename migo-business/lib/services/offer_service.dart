@@ -46,9 +46,11 @@ class OfferService {
       if (uid == null) return 'Not signed in';
 
       await _db.collection('offers').add({
+        // Core fields
         'businessId': businessId,
         'businessName': businessName,
-        'areaId': areaId,
+        'areaId': areaId.trim().toLowerCase(),
+        'businessAreaId': areaId.trim().toLowerCase(),
         'title': title,
         'description': description,
         'category': category,
@@ -57,17 +59,32 @@ class OfferService {
         'offerPrice': offerPrice,
         'currency': currency,
         'type': type,
+        
+        // Status
         'status': 'pending', // Needs admin approval
-        'startDate': startDate != null
-            ? Timestamp.fromDate(startDate)
-            : null,
-        'endDate':
-            endDate != null ? Timestamp.fromDate(endDate) : null,
-        'reserveEnabled': reserveEnabled,
-        'totalStock': totalStock,
+        
+        // Dates
+        'startDate': startDate != null ? Timestamp.fromDate(startDate) : null,
+        'endDate': endDate != null ? Timestamp.fromDate(endDate) : null,
+        
+        // Reserve settings (എപ്പോഴും true, ഡീഫോൾട്ട് 20)
+        'reserveEnabled': reserveEnabled || true,
+        'totalStock': totalStock > 0 ? totalStock : 20,
+        'totalSlots': totalStock > 0 ? totalStock : 20,
         'bookedSlots': 0,
-        'claimedCount': 0,
         'maxPerCustomer': maxPerCustomer,
+        'reserve': {
+          'enabled': true,
+          'totalSlots': totalStock > 0 ? totalStock : 20,
+          'holdHours': 6,
+          'tokenRequired': false,
+          'maxPerCustomer': maxPerCustomer,
+        },
+        
+        // Counters
+        'claimedCount': 0,
+        
+        // Timestamps
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -84,6 +101,7 @@ class OfferService {
     required String title,
     required String description,
     required String category,
+    required String type,
     required String imageUrl,
     required double originalPrice,
     required double offerPrice,
@@ -94,6 +112,7 @@ class OfferService {
         'title': title,
         'description': description,
         'category': category,
+        'type': type,
         'imageUrl': imageUrl,
         'originalPrice': originalPrice,
         'offerPrice': offerPrice,
@@ -106,7 +125,7 @@ class OfferService {
     }
   }
 
-    /// Toggle active/inactive
+  /// Toggle active/inactive
   Future<String?> toggleActive({
     required String offerId,
     required bool currentActive,

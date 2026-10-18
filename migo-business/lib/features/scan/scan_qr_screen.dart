@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../core/theme/migo_gradients.dart';
@@ -47,6 +48,31 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
     super.dispose();
   }
 
+  // ─────────────────────────────────────────────────────
+  // HELPER: Add Coins to Customer
+  // ─────────────────────────────────────────────────────
+  Future<void> _addCoinsToCustomer(String uid, int amount) async {
+    try {
+      final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
+      await userRef.update({
+        'coins': FieldValue.increment(amount),
+      });
+      
+      // Add transaction log (optional but good for tracking)
+      await FirebaseFirestore.instance.collection('coin_transactions').add({
+        'uid': uid,
+        'amount': amount,
+        'type': 'redeem',
+        'description': 'Redeemed reservation at business',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      
+      debugPrint('✅ Added $amount coins to $uid');
+    } catch (e) {
+      debugPrint('❌ Failed to add coins: $e');
+    }
+  }
+
   Future<void> _redeem(String code) async {
     final trimmed = code.trim();
     debugPrint('🔵 Scan called: $trimmed');
@@ -73,10 +99,15 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
         if (res == null) {
           throw Exception('Invalid or expired reservation');
         }
+        
         await ReservationService.instance.markPickedUp(res.id);
+        
+        // ✅ FIX: Add +5 coins to customer
+        await _addCoinsToCustomer(res.userUid, 5);
+        
         if (!mounted) return;
         setState(() {
-          _successMsg = 'Reservation pickup confirmed! ✅';
+          _successMsg = 'Reservation pickup confirmed! +5 coins sent. ✅';
           _codeController.clear();
           _cameraMode = false;
         });
@@ -90,10 +121,15 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
         if (res == null) {
           throw Exception('Invalid or expired pickup code');
         }
+        
         await ReservationService.instance.markPickedUp(res.id);
+        
+        // ✅ FIX: Add +5 coins to customer
+        await _addCoinsToCustomer(res.userUid, 5);
+        
         if (!mounted) return;
         setState(() {
-          _successMsg = 'Reservation pickup confirmed! ✅';
+          _successMsg = 'Reservation pickup confirmed! +5 coins sent. ✅';
           _codeController.clear();
           _cameraMode = false;
         });
@@ -152,7 +188,6 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
                 _errorMsg = null;
                 _successMsg = null;
               });
-              // Camera mode toggles, MobileScanner widget manages its own lifecycle
             },
             icon: Icon(
               _cameraMode ? Icons.keyboard : Icons.qr_code_scanner,

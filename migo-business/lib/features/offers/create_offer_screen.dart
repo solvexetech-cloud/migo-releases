@@ -40,6 +40,16 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
   final _dailyLimitCtrl = TextEditingController();
 
   String _type = 'standard';
+  
+  // പുതിയതായി ചേർത്ത Category വേരിയബിൾ
+  String _category = 'food'; 
+  static const _categories = [
+    {'value': 'food', 'label': 'Food & Dining'},
+    {'value': 'beauty', 'label': 'Beauty & Wellness'},
+    {'value': 'retail', 'label': 'Retail & Shopping'},
+    {'value': 'services', 'label': 'Services'},
+  ];
+
   int _durationDays = 7;
   bool _loading = false;
   bool _uploadingImage = false;
@@ -73,6 +83,10 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
       _offerPriceCtrl.text = o.offerPrice.toStringAsFixed(0);
       _imageUrl = o.imageUrl.isNotEmpty ? o.imageUrl : null;
       _type = o.type.isNotEmpty ? o.type : 'standard';
+      // എഡിറ്റ് ചെയ്യുമ്പോൾ നിലവിലുള്ള category എടുക്കാൻ
+      if (o.category.isNotEmpty) {
+        _category = o.category;
+      }
     }
   }
 
@@ -172,12 +186,11 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
           offerId: widget.existingOffer!.id,
           title: _titleCtrl.text.trim(),
           description: _descCtrl.text.trim(),
-          category: _type,
+          category: _category,
+              type: _type,
           imageUrl: imageUrl ?? '',
-          originalPrice:
-              double.tryParse(_originalPriceCtrl.text.trim()) ?? 0,
-          offerPrice:
-              double.tryParse(_offerPriceCtrl.text.trim()) ?? 0,
+          originalPrice: double.tryParse(_originalPriceCtrl.text.trim()) ?? 0,
+          offerPrice: double.tryParse(_offerPriceCtrl.text.trim()) ?? 0,
           endDate: null,
         );
       } else {
@@ -187,12 +200,10 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
           areaId: widget.areaId,
           title: _titleCtrl.text.trim(),
           description: _descCtrl.text.trim(),
-          category: _type,
+          category: _category, // ഇവിടെയും _category ഉപയോഗിക്കുന്നു
           imageUrl: imageUrl ?? '',
-          originalPrice:
-              double.tryParse(_originalPriceCtrl.text.trim()) ?? 0,
-          offerPrice:
-              double.tryParse(_offerPriceCtrl.text.trim()) ?? 0,
+          originalPrice: double.tryParse(_originalPriceCtrl.text.trim()) ?? 0,
+          offerPrice: double.tryParse(_offerPriceCtrl.text.trim()) ?? 0,
           currency: 'QAR',
           type: _type,
         );
@@ -232,9 +243,8 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
   // ═══════════════════════════════════════════════════
   @override
   Widget build(BuildContext context) {
-    final previewSavings =
-        (double.tryParse(_originalPriceCtrl.text) ?? 0) -
-            (double.tryParse(_offerPriceCtrl.text) ?? 0);
+    final previewSavings = (double.tryParse(_originalPriceCtrl.text) ?? 0) -
+        (double.tryParse(_offerPriceCtrl.text) ?? 0);
 
     return Scaffold(
       appBar: AppBar(
@@ -283,6 +293,23 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                     ),
                     const SizedBox(height: 16),
 
+                    // Category Dropdown (പുതിയതായി ചേർത്തത്)
+                    DropdownButtonFormField<String>(
+                      initialValue: _category,
+                      decoration: const InputDecoration(
+                        labelText: 'Category',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: _categories
+                          .map((t) => DropdownMenuItem(
+                                value: t['value'],
+                                child: Text(t['label']!),
+                              ))
+                          .toList(),
+                      onChanged: (v) => setState(() => _category = v ?? 'food'),
+                    ),
+                    const SizedBox(height: 16),
+
                     // Offer Type
                     DropdownButtonFormField<String>(
                       initialValue: _type,
@@ -296,8 +323,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                 child: Text(t['label']!),
                               ))
                           .toList(),
-                      onChanged: (v) =>
-                          setState(() => _type = v ?? 'standard'),
+                      onChanged: (v) => setState(() => _type = v ?? 'standard'),
                     ),
                     const SizedBox(height: 16),
 
@@ -307,8 +333,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _originalPriceCtrl,
-                            keyboardType:
-                                const TextInputType.numberWithOptions(
+                            keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
                             onChanged: (_) => setState(() {}),
@@ -331,8 +356,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _offerPriceCtrl,
-                            keyboardType:
-                                const TextInputType.numberWithOptions(
+                            keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
                             onChanged: (_) => setState(() {}),
@@ -346,8 +370,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                               }
                               final n = double.tryParse(v);
                               if (n == null) return 'Invalid';
-                              final orig = double.tryParse(
-                                  _originalPriceCtrl.text);
+                              final orig = double.tryParse(_originalPriceCtrl.text);
                               if (orig != null && n >= orig) {
                                 return 'Must be < original';
                               }
@@ -364,8 +387,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color:
-                              MigoColors.success.withValues(alpha: 0.1),
+                          color: MigoColors.success.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
@@ -401,13 +423,10 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                         DropdownMenuItem(value: 1, child: Text('1 day')),
                         DropdownMenuItem(value: 3, child: Text('3 days')),
                         DropdownMenuItem(value: 7, child: Text('7 days')),
-                        DropdownMenuItem(
-                            value: 14, child: Text('14 days')),
-                        DropdownMenuItem(
-                            value: 30, child: Text('30 days')),
+                        DropdownMenuItem(value: 14, child: Text('14 days')),
+                        DropdownMenuItem(value: 30, child: Text('30 days')),
                       ],
-                      onChanged: (v) =>
-                          setState(() => _durationDays = v ?? 7),
+                      onChanged: (v) => setState(() => _durationDays = v ?? 7),
                     ),
                     const SizedBox(height: 16),
 
@@ -440,8 +459,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                         decoration: BoxDecoration(
                           color: Colors.red.shade50,
                           borderRadius: BorderRadius.circular(10),
-                          border:
-                              Border.all(color: Colors.red.shade200),
+                          border: Border.all(color: Colors.red.shade200),
                         ),
                         child: Text(
                           _error!,
@@ -461,14 +479,12 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                         onPressed: _loading ? null : _submit,
                         child: _loading
                             ? Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   const SizedBox(
                                     width: 20,
                                     height: 20,
-                                    child:
-                                        CircularProgressIndicator(
+                                    child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       color: Colors.white,
                                     ),
@@ -486,9 +502,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                 ],
                               )
                             : Text(
-                                isEdit
-                                    ? 'Update Offer'
-                                    : 'Create Offer',
+                                isEdit ? 'Update Offer' : 'Create Offer',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -602,8 +616,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () =>
-                        _pickImage(ImageSource.gallery),
+                    onPressed: () => _pickImage(ImageSource.gallery),
                     icon: const Icon(
                       Icons.photo_library_outlined,
                       size: 16,
@@ -613,8 +626,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                       style: const TextStyle(fontSize: 13),
                     ),
                     style: OutlinedButton.styleFrom(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                     ),
                   ),
                 ),
@@ -631,8 +643,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                       style: TextStyle(fontSize: 13),
                     ),
                     style: OutlinedButton.styleFrom(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                     ),
                   ),
                 ),

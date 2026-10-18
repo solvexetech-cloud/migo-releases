@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/config/app_config.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../core/theme/migo_gradients.dart';
@@ -203,10 +204,10 @@ class WalletScreen extends StatelessWidget {
                                 ),
                               ],
                             ),
-                                                        SizedBox(height: 10),
+                            SizedBox(height: 10),
                             _EarnRow(
                               icon: Icons.qr_code_scanner,
-                              text: 'Redeem at business  +25',
+                              text: 'Redeem at business  +5',
                             ),
                             SizedBox(height: 6),
                             _EarnRow(
@@ -240,20 +241,26 @@ class _StatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<ClaimModel>>(
-      stream: FirestoreService.instance.streamMyClaims(uid),
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('reservations')
+          .where('userUid', isEqualTo: uid)
+          .where('status', isEqualTo: 'picked_up')
+          .snapshots(),
       builder: (context, snap) {
-        final claims = snap.data ?? [];
-        final redeemed =
-            claims.where((c) => c.status == ClaimStatus.redeemed).toList();
-        final businesses = redeemed.map((c) => c.businessId).toSet().length;
+        final reservations = snap.data?.docs ?? [];
+        final businesses = reservations
+            .map((doc) => doc['businessId'] as String?)
+            .where((id) => id != null)
+            .toSet()
+            .length;
 
         return Row(
           children: [
             Expanded(
               child: _StatTile(
                 label: 'Deals used',
-                value: '${redeemed.length}',
+                value: '${reservations.length}',
                 icon: Icons.check_circle_outline,
                 color: MigoColors.success,
               ),
@@ -268,10 +275,10 @@ class _StatsGrid extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-                        Expanded(
+            Expanded(
               child: _StatTile(
                 label: 'Redeemed',
-                value: '${redeemed.length}', // ഉപയോഗിച്ച എണ്ണം മാത്രം
+                value: '${reservations.length}',
                 icon: Icons.receipt_long_outlined,
                 color: MigoColors.accent,
               ),
@@ -348,23 +355,35 @@ class _SavingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<ClaimModel>>(
-      stream: FirestoreService.instance.streamMyClaims(uid),
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('reservations')
+          .where('userUid', isEqualTo: uid)
+          .where('status', isEqualTo: 'picked_up')
+          .snapshots(),
       builder: (context, snap) {
-        final claims = snap.data ?? [];
-        final redeemed =
-            claims.where((c) => c.status == ClaimStatus.redeemed).toList();
+        final reservations = snap.data?.docs ?? [];
 
         final now = DateTime.now();
         final monthStart = DateTime(now.year, now.month, 1);
-        final thisMonth = redeemed
-            .where((c) => c.redeemedAt?.isAfter(monthStart) ?? false)
-            .fold<double>(0, (sum, c) => sum + c.savings);
-        final lifetime =
-            redeemed.fold<double>(0, (sum, c) => sum + c.savings);
-                    final currency = claims.isNotEmpty
-            ? claims.first.currency
-            : (user?.currency ?? AppConfig.fallbackCurrency);
+        
+        double thisMonth = 0;
+        double lifetime = 0;
+
+        for (final doc in reservations) {
+          final data = doc.data() as Map<String, dynamic>;
+          final savings = ((data['originalPrice'] as num?)?.toDouble() ?? 0) - 
+                          ((data['unitPrice'] as num?)?.toDouble() ?? 0);
+          
+          lifetime += savings;
+          
+          final pickedUpAt = (data['pickedUpAt'] as Timestamp?)?.toDate();
+          if (pickedUpAt != null && pickedUpAt.isAfter(monthStart)) {
+            thisMonth += savings;
+          }
+        }
+
+        final currency = user?.currency ?? AppConfig.fallbackCurrency;
 
         return Container(
           padding: const EdgeInsets.all(18),

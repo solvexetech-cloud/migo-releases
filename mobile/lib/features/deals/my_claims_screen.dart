@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../models/claim_model.dart';
 import '../../services/firestore_service.dart';
@@ -33,17 +34,20 @@ class MyClaimsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('My Claims')),
-      body: StreamBuilder<List<ClaimModel>>(
-        stream: FirestoreService.instance.streamMyClaims(uid),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('reservations')
+            .where('userUid', isEqualTo: uid)
+            .where('status', isEqualTo: 'picked_up')
+            .snapshots(),
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          final claims = snap.data ?? [];
-          // ഉപയോഗിച്ച (Redeemed) ഓഫറുകൾ മാത്രം കാണിക്കുക
-          final usedClaims = claims.where((c) => c.status == ClaimStatus.redeemed).toList();
+          
+          final reservations = snap.data?.docs ?? [];
 
-          if (usedClaims.isEmpty) {
+          if (reservations.isEmpty) {
             return const Center(
               child: Padding(
                 padding: EdgeInsets.all(24),
@@ -80,135 +84,109 @@ class MyClaimsScreen extends StatelessWidget {
 
           return ListView.separated(
             padding: const EdgeInsets.all(20),
-            itemCount: usedClaims.length, // usedClaims ഉപയോഗിക്കുക
+            itemCount: reservations.length,
             separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (context, i) {
-              final c = usedClaims[i]; // usedClaims ഉപയോഗിക്കുക
+              final doc = reservations[i];
+              final data = doc.data() as Map<String, dynamic>;
+              
+              final title = data['offerTitle'] as String? ?? 'Offer';
+              final businessName = data['businessName'] as String? ?? 'Business';
+              final originalPrice = (data['originalPrice'] as num?)?.toDouble() ?? 0;
+              final offerPrice = (data['unitPrice'] as num?)?.toDouble() ?? 0;
+              final currency = data['currency'] as String? ?? 'QAR';
+              
               return Column(
                 children: [
-                  InkWell(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => ClaimDetailScreen(claim: c),
-                        ),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: MigoColors.surfaceLight,
-                        borderRadius: BorderRadius.circular(14),
-                        border:
-                            Border.all(color: MigoColors.dividerLight),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  c.offerTitle,
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: MigoColors.surfaceLight,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: MigoColors.dividerLight),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                title,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _statusColor(c.status)
-                                      .withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  c.status.label.toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
-                                    color: _statusColor(c.status),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            c.businessName,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: MigoColors.textSecondaryLight,
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Text(
-                                '${c.currency} ${c.originalPrice.toStringAsFixed(0)}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  decoration: TextDecoration.lineThrough,
-                                  color: MigoColors.textSecondaryLight,
-                                ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
                               ),
-                              const SizedBox(width: 6),
-                              Text(
-                                '${c.currency} ${c.offerPrice.toStringAsFixed(0)}',
-                                style: const TextStyle(
-                                  fontSize: 16,
+                              decoration: BoxDecoration(
+                                color: MigoColors.success.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                'PICKED UP',
+                                style: TextStyle(
+                                  fontSize: 10,
                                   fontWeight: FontWeight.w800,
-                                  color: MigoColors.primary,
+                                  color: MigoColors.success,
                                 ),
                               ),
-                              const Spacer(),
-                              const Icon(
-                                Icons.qr_code_2,
-                                size: 20,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          businessName,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: MigoColors.textSecondaryLight,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Text(
+                              '$currency ${originalPrice.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                decoration: TextDecoration.lineThrough,
+                                color: MigoColors.textSecondaryLight,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '$currency ${offerPrice.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
                                 color: MigoColors.primary,
                               ),
-                              const SizedBox(width: 4),
-                              const Text(
-                                'View QR',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: MigoColors.primary,
-                                ),
+                            ),
+                            const Spacer(),
+                            const Icon(
+                              Icons.check_circle,
+                              size: 20,
+                              color: MigoColors.success,
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              'Used',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: MigoColors.success,
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  if (c.status == ClaimStatus.redeemed) ...[
-                    const SizedBox(height: 6),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          final r = await Navigator.of(context).push<bool>(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  WriteReviewScreen(claim: c),
-                            ),
-                          );
-                          if (r == true && context.mounted) {
-                            // handled in write screen
-                          }
-                        },
-                        icon: const Icon(Icons.rate_review_outlined,
-                            size: 16),
-                        label: const Text('Write a review · +10 coins'),
-                      ),
-                    ),
-                  ],
                 ],
               );
             },

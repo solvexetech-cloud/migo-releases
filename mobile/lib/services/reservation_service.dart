@@ -214,9 +214,9 @@ class ReservationService {
       }
 
       final offerData = offerDoc.data() as Map<String, dynamic>;
-      final totalSlots = (offerData['totalSlots'] as num?)?.toInt() ?? 0;
+      final totalStock = (offerData['totalStock'] as num?)?.toInt() ?? 0;
       final bookedSlots = (offerData['bookedSlots'] as num?)?.toInt() ?? 0;
-      final remaining = totalSlots - bookedSlots;
+      final remaining = totalStock - bookedSlots;
 
       if (remaining <= 0) {
         return CanBookResult(
@@ -334,9 +334,9 @@ class ReservationService {
       }
 
       final offerData = offerSnap.data() as Map<String, dynamic>;
-      final totalSlots = (offerData['totalSlots'] as num?)?.toInt() ?? 0;
+      final totalStock = (offerData['totalStock'] as num?)?.toInt() ?? 0;
       final bookedSlots = (offerData['bookedSlots'] as num?)?.toInt() ?? 0;
-      final remaining = totalSlots - bookedSlots;
+      final remaining = (offerData['totalStock'] as num?)?.toInt() ?? 0 - bookedSlots;
 
       if (remaining < quantity) {
         throw Exception('Not enough slots (only $remaining left)');
