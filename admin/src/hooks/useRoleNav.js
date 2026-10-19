@@ -10,6 +10,7 @@ const ALL_ITEMS = [
   { to: '/analytics', label: 'Analytics', icon: '📊' },
   { to: '/pending-businesses', label: 'Pending', icon: '⏳' },
   { to: '/offers', label: 'Pending Offers', icon: '🎁' },
+  { to: '/all-offers', label: 'All Offers', icon: '🏷️' },
   { to: '/users', label: 'Users', icon: '👥' },
   { to: '/creators', label: 'Creators', icon: '🎬' },
   { to: '/fraud-logs', label: 'Fraud Logs', icon: '🚨' },

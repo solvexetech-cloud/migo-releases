@@ -23,6 +23,7 @@ import {
   RoleProvider,
   useRole,
 } from './contexts/RoleContext';
+import AllOffersPage from './pages/AllOffersPage';
 import GeographyPage from './pages/GeographyPage';
 import RevenuePage from './pages/RevenuePage';
 import ReviewsPage from './pages/ReviewsPage';
@@ -83,15 +84,9 @@ export default function App() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (u) {
-        // Verify admin/moderator/super_admin/agency role
         const snap = await getDoc(doc(db, 'users', u.uid));
         const role = snap.exists() ? snap.data().role : null;
-        const allowedRoles = [
-          'super_admin',
-          'admin',
-          'moderator',
-          'agency',
-        ];
+        const allowedRoles = ['super_admin', 'admin', 'moderator', 'agency'];
         if (snap.exists() && allowedRoles.includes(role)) {
           setUser(u);
         } else {
@@ -147,75 +142,34 @@ export default function App() {
                     <Route path="/" element={<RoleRedirect />} />
 
                     {/* ─── Role-specific dashboards ─── */}
-                    <Route
-                      path="/agency-dashboard"
-                      element={<AgencyDashboard />}
-                    />
-                    <Route
-                      path="/staff-dashboard"
-                      element={<StaffDashboard />}
-                    />
+                    <Route path="/agency-dashboard" element={<AgencyDashboard />} />
+                    <Route path="/staff-dashboard" element={<StaffDashboard />} />
 
                     {/* ─── Regular pages ─── */}
-                    <Route
-                      path="/businesses"
-                      element={<BusinessesPage />}
-                    />
-                    <Route
-                      path="/pending-businesses"
-                      element={<PendingBusinesses />}
-                    />
-                    <Route path="/offers" element={<PendingOffers />} />
+                    <Route path="/businesses" element={<BusinessesPage />} />
+                    <Route path="/pending-businesses" element={<PendingBusinesses />} />
+                    <Route path="/pending-offers" element={<PendingOffers />} />
+                    <Route path="/all-offers" element={<AllOffersPage />} />
                     <Route path="/users" element={<UsersPage />} />
                     <Route path="/creators" element={<CreatorsPage />} />
-                    <Route
-                      path="/categories"
-                      element={<CategoriesPage />}
-                    />
+                    <Route path="/categories" element={<CategoriesPage />} />
                     <Route path="/roles" element={<RolesPage />} />
-                    <Route
-                      path="/geography"
-                      element={<GeographyPage />}
-                    />
+                    <Route path="/geography" element={<GeographyPage />} />
                     <Route path="/revenue" element={<RevenuePage />} />
                     <Route path="/reviews" element={<ReviewsPage />} />
                     <Route path="/pricing" element={<PricingPage />} />
                     <Route path="/strings" element={<StringsPage />} />
                     <Route path="/map" element={<BusinessesMapPage />} />
-                    <Route
-                      path="/analytics"
-                      element={<AnalyticsPage />}
-                    />
+                    <Route path="/analytics" element={<AnalyticsPage />} />
                     <Route path="/agencies" element={<AgenciesPage />} />
-                    <Route
-                      path="/revenue-split"
-                      element={<RevenueSplitPage />}
-                    />
+                    <Route path="/revenue-split" element={<RevenueSplitPage />} />
                     <Route path="/ads" element={<AdsConfigPage />} />
-                    <Route
-                      path="/reservations"
-                      element={<ReservationsPage />}
-                    />
-                    <Route
-                      path="/reservation-rules"
-                      element={<ReservationRulesPage />}
-                    />
-                    <Route
-                      path="/reservation-config"
-                      element={<ReservationConfigPage />}
-                    />
-                    <Route
-                      path="/no-show-log"
-                      element={<NoShowLogPage />}
-                    />
-                    <Route
-                      path="/marketing"
-                      element={<MarketingDashboardPage />}
-                    />
-                    <Route
-                      path="/fraud-logs"
-                      element={<FraudLogsPage />}
-                    />
+                    <Route path="/reservations" element={<ReservationsPage />} />
+                    <Route path="/reservation-rules" element={<ReservationRulesPage />} />
+                    <Route path="/reservation-config" element={<ReservationConfigPage />} />
+                    <Route path="/no-show-log" element={<NoShowLogPage />} />
+                    <Route path="/marketing" element={<MarketingDashboardPage />} />
+                    <Route path="/fraud-logs" element={<FraudLogsPage />} />
                   </Routes>
                 </AdminLayout>
               ) : (
