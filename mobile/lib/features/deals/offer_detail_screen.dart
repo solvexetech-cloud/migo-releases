@@ -7,8 +7,9 @@ import '../../models/claim_model.dart';
 import '../../models/group_deal_model.dart';
 import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
-import '../reviews/business_reviews_screen.dart';
+import '../business/business_detail_screen.dart'; // ✅ ഇത് മാറ്റി
 import 'claim_success_screen.dart';
+
 
 class OfferDetailScreen extends StatefulWidget {
   const OfferDetailScreen({super.key, required this.offer});
@@ -157,9 +158,10 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                   Expanded(
                     child: InkWell(
                       onTap: () {
+                        // ✅ Business Detail Screen-ലേക്ക് മാറ്റി
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => BusinessReviewsScreen(
+                            builder: (_) => BusinessDetailScreen(
                               businessId: o.businessId,
                               businessName: o.businessName,
                             ),
@@ -179,7 +181,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                             ),
                           ),
                           const SizedBox(width: 6),
-                                                    const Icon(
+                          const Icon(
                             Icons.star,
                             size: 14,
                             color: MigoColors.accent,
@@ -188,7 +190,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                       ),
                     ),
                   ),
-                                    IconButton(
+                  IconButton(
                     onPressed: () {
                       final url =
                           'https://migo-app-3030e.web.app/o/${o.id}';
@@ -434,11 +436,10 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
     );
   }
 
-    Widget _claimButton() {
+  Widget _claimButton() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // ⬇️ Reserve button (Reserve enabled ആണെങ്കിൽ മാത്രം)
         if (widget.offer.reserveEnabled) ...[
           SizedBox(
             height: 52,
@@ -471,8 +472,6 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
           ),
           const SizedBox(height: 12),
         ],
-
-        // ⬇️ Claim button (നിലവിലെ)
         SizedBox(
           height: 52,
           width: double.infinity,
@@ -695,7 +694,7 @@ class _GroupProgressCard extends StatelessWidget {
               color: MigoColors.textSecondaryLight,
             ),
           ),
-                ],
+        ],
       ),
     );
   }
@@ -726,6 +725,7 @@ class _SaveButtonState extends State<_SaveButton> {
     _load();
   }
 
+  // ✅ ഈ ഫങ്ക്ഷൻ ആണ് വിട്ടുപോയത്
   Future<void> _load() async {
     if (widget.uid.isEmpty) return;
     final saved = await FirestoreService.instance
@@ -737,17 +737,20 @@ class _SaveButtonState extends State<_SaveButton> {
     });
   }
 
-    Future<void> _toggle() async {
+  Future<void> _toggle() async {
     if (widget.uid.isEmpty) return;
+
     await FirestoreService.instance.toggleSaveOffer(
       uid: widget.uid,
       offerId: widget.offerId,
       businessId: widget.businessId,
     );
+
     await FirestoreService.instance.toggleSaveBusiness(
       uid: widget.uid,
       businessId: widget.businessId,
     );
+
     if (!mounted) return;
     setState(() => _saved = !_saved);
     ScaffoldMessenger.of(context).showSnackBar(

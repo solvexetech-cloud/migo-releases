@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart'; // ഷെയർ ചെയ്യാൻ
 import '../../core/theme/migo_colors.dart';
 import '../../core/theme/migo_gradients.dart';
 import '../../core/theme/migo_shadows.dart';
@@ -8,9 +9,9 @@ import '../../models/business_model.dart';
 import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
 import '../../widgets/migo_empty_state.dart';
-import '../reviews/business_reviews_screen.dart';
+import '../business/business_detail_screen.dart';
+import '../main/main_shell.dart'; // Discover ടാബിലേക്ക് പോകാൻ
 import 'my_claims_screen.dart';
-import 'offer_detail_screen.dart';
 
 class DealsScreen extends StatelessWidget {
   const DealsScreen({super.key});
@@ -19,15 +20,13 @@ class DealsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
-      return const Scaffold(
-        body: Center(child: Text('Not signed in')),
-      );
+      return const Scaffold(body: Center(child: Text('Not signed in')));
     }
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // Deep Blue hero header
+          // Hero Header
           SliverToBoxAdapter(
             child: Container(
               decoration: const BoxDecoration(
@@ -68,9 +67,7 @@ class DealsScreen extends StatelessWidget {
                         body: 'View all your claimed offers',
                         onTap: () {
                           Navigator.of(context).push(
-                            FadeSlideRoute(
-                              child: const MyClaimsScreen(),
-                            ),
+                            FadeSlideRoute(child: const MyClaimsScreen()),
                           );
                         },
                       ),
@@ -83,7 +80,7 @@ class DealsScreen extends StatelessWidget {
 
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-          // Saved Offers
+          // SAVED OFFERS
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -95,7 +92,7 @@ class DealsScreen extends StatelessWidget {
 
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-          // Saved Businesses
+          // SAVED BUSINESSES
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -105,12 +102,66 @@ class DealsScreen extends StatelessWidget {
           const SliverToBoxAdapter(child: SizedBox(height: 10)),
           SliverToBoxAdapter(child: _SavedBusinessesRow(uid: uid)),
 
+          // Explore More Deals Banner
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: MigoGradients.softBlue,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: MigoColors.primary.withValues(alpha: 0.1)),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.explore_outlined, size: 40, color: MigoColors.primary),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Looking for more?',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Discover amazing offers and save more on your favorite brands.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: MigoColors.textSecondaryLight),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // Discover ടാബിലേക്ക് പോകാൻ
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (_) => const MainShell(initialIndex: 1), // 1 = Discover
+                            ),
+                            (route) => false,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                        ),
+                        child: const Text('Explore Deals'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
           const SliverToBoxAdapter(child: SizedBox(height: 32)),
         ],
       ),
     );
   }
 }
+
+// ... (ബാക്കിയുള്ള ക്ലാസുകൾ താഴെ)
 
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel(this.text);
@@ -155,9 +206,7 @@ class _HeroAction extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.15),
-            ),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
           ),
           child: Row(
             children: [
@@ -226,8 +275,7 @@ class _SavedOffersRow extends StatelessWidget {
               child: MigoEmptyState(
                 icon: Icons.favorite_border,
                 title: 'No saved offers yet',
-                body:
-                    'Tap the heart on any offer to save it here for later.',
+                body: 'Tap the heart on any offer to save it here for later.',
               ),
             ),
           );
@@ -244,8 +292,11 @@ class _SavedOffersRow extends StatelessWidget {
               child: TapScale(
                 onTap: () {
                   Navigator.of(context).push(
-                    FadeSlideRoute(
-                      child: OfferDetailScreen(offer: offers[i]),
+                    MaterialPageRoute(
+                      builder: (_) => BusinessDetailScreen(
+                        businessId: offers[i].businessId,
+                        businessName: offers[i].businessName,
+                      ),
                     ),
                   );
                 },
@@ -387,12 +438,8 @@ class _SavedBusinessesRow extends StatelessWidget {
           return const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
             child: SizedBox(
-              height: 200,
-              child: MigoEmptyState(
-                icon: Icons.storefront_outlined,
-                title: 'No saved businesses yet',
-                body: 'Save businesses you love to see them here.',
-              ),
+              height: 100,
+              child: Center(child: Text('No saved businesses yet')),
             ),
           );
         }
@@ -412,7 +459,7 @@ class _SavedBusinessesRow extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).push(
                     FadeSlideRoute(
-                      child: BusinessReviewsScreen(
+                      child: BusinessDetailScreen(
                         businessId: b.id,
                         businessName: b.name,
                       ),
@@ -433,11 +480,7 @@ class _SavedBusinessesRow extends StatelessWidget {
                           gradient: MigoGradients.softBlue,
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(
-                          Icons.storefront,
-                          color: MigoColors.primary,
-                          size: 20,
-                        ),
+                        child: const Icon(Icons.storefront, color: MigoColors.primary, size: 20),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -446,26 +489,27 @@ class _SavedBusinessesRow extends StatelessWidget {
                           children: [
                             Text(
                               b.name,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
-                                color: MigoColors.textPrimaryLight,
-                              ),
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               b.category,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: MigoColors.textSecondaryLight,
-                              ),
+                              style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight),
                             ),
                           ],
                         ),
                       ),
-                      const Icon(
-                        Icons.chevron_right,
-                        color: MigoColors.textSecondaryLight,
+                      IconButton(
+                        icon: const Icon(Icons.share, color: MigoColors.primary),
+                        onPressed: () {
+                          final url = 'https://migo-app-3030e.web.app/b/${b.id}';
+                          SharePlus.instance.share(
+                            ShareParams(
+                              text: 'Check out ${b.name} on MIGO!\n$url',
+                              subject: 'MIGO Business',
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),

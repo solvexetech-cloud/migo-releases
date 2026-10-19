@@ -80,24 +80,38 @@ class OfferCard extends StatelessWidget {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      if (offer.imageUrl != null)
-                        Image.network(
-                          offer.imageUrl!,
-                          fit: BoxFit.cover,
-                        )
-                      else
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: _placeholderGradient(),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.local_offer,
-                              size: 44,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
+                      if (offer.imageUrl != null && offer.imageUrl!.isNotEmpty)
+  Image.network(
+    offer.imageUrl!,
+    fit: BoxFit.cover,
+    errorBuilder: (context, error, stackTrace) {
+      return Container(
+        decoration: BoxDecoration(
+          gradient: _placeholderGradient(),
+        ),
+        child: const Center(
+          child: Icon(
+            Icons.local_offer,
+            size: 44,
+            color: Colors.white,
+          ),
+        ),
+      );
+    },
+  )
+else
+  Container(
+    decoration: BoxDecoration(
+      gradient: _placeholderGradient(),
+    ),
+    child: const Center(
+      child: Icon(
+        Icons.local_offer,
+        size: 44,
+        color: Colors.white,
+      ),
+    ),
+  ),
                       // Type badge (top-left)
                       Positioned(
                         top: 10,

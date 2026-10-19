@@ -12,14 +12,10 @@ import '../profile/profile_screen.dart';
 import '../wallet/wallet_screen.dart';
 
 /// Main shell — role-aware navigation.
-///
-/// Routes users based on their role:
-/// - customer → Home/Discover/Deals/Wallet/Profile (default)
-/// - business → Business dashboard
-/// - moderator/admin/super_admin → Admin view (opens admin web panel)
-/// - agency → Agency view (placeholder — B3)
 class MainShell extends StatelessWidget {
-  const MainShell({super.key});
+  final int initialIndex;
+
+  const MainShell({super.key, this.initialIndex = 0});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +29,6 @@ class MainShell extends StatelessWidget {
     return StreamBuilder<UserModel?>(
       stream: FirestoreService.instance.streamUser(uid),
       builder: (context, snap) {
-        // Loading
         if (snap.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -60,7 +55,7 @@ class MainShell extends StatelessWidget {
           return _AgencyView(user: user);
         }
         // Default: customer
-        return const _CustomerShell();
+        return _CustomerShell(initialIndex: initialIndex);
       },
     );
   }
@@ -70,14 +65,16 @@ class MainShell extends StatelessWidget {
 // CUSTOMER SHELL (default — 5 tabs)
 // ============================================================
 class _CustomerShell extends StatefulWidget {
-  const _CustomerShell();
+  final int initialIndex;
+
+  const _CustomerShell({this.initialIndex = 0});
 
   @override
   State<_CustomerShell> createState() => _CustomerShellState();
 }
 
 class _CustomerShellState extends State<_CustomerShell> {
-  int _index = 0;
+  late int _index;
 
   static const _screens = <Widget>[
     HomeScreen(),
@@ -86,6 +83,12 @@ class _CustomerShellState extends State<_CustomerShell> {
     WalletScreen(),
     ProfileScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _index = widget.initialIndex;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +178,7 @@ class _AdminView extends StatelessWidget {
   const _AdminView({required this.user});
   final UserModel user;
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
@@ -192,103 +195,103 @@ class _AdminView extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.admin_panel_settings,
-                      size: 64,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Admin Access',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Signed in as ${user.roleLabel}',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white.withValues(alpha: 0.85),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.open_in_new,
-                          size: 32,
-                          color: MigoColors.primary,
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Admin Panel',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: MigoColors.textPrimaryLight,
-                          ),
+                        child: const Icon(
+                          Icons.admin_panel_settings,
+                          size: 64,
+                          color: Colors.white,
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Use the web admin panel to manage MIGO:',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: MigoColors.textSecondaryLight,
-                          ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Admin Access',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: -0.5,
                         ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: MigoColors.backgroundLight,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'migo-app-3030e.web.app',
-                            style: TextStyle(
-                              fontFamily: 'monospace',
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Signed in as ${user.roleLabel}',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white.withValues(alpha: 0.85),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            const Icon(
+                              Icons.open_in_new,
+                              size: 32,
                               color: MigoColors.primary,
                             ),
-                          ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Admin Panel',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: MigoColors.textPrimaryLight,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Use the web admin panel to manage MIGO:',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: MigoColors.textSecondaryLight,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: MigoColors.backgroundLight,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                'migo-app-3030e.web.app',
+                                style: TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: MigoColors.primary,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                                    Text(
-                    'The mobile app is optimized for customers and business owners.\n'
-                    'For admin tasks, please use a desktop browser.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.7),
-                      height: 1.5,
-                    ),
-                  ),
+                      ),
+                      const SizedBox(height: 32),
+                      Text(
+                        'The mobile app is optimized for customers and business owners.\n'
+                        'For admin tasks, please use a desktop browser.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withValues(alpha: 0.7),
+                          height: 1.5,
+                        ),
+                      ),
                     ],
                   ),
                 ),
