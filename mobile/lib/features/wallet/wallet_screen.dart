@@ -5,7 +5,6 @@ import '../../core/config/app_config.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../core/theme/migo_gradients.dart';
 import '../../core/theme/migo_shadows.dart';
-import '../../models/claim_model.dart';
 import '../../models/coin_transaction_model.dart';
 import '../../models/user_model.dart';
 import '../../services/firestore_service.dart';

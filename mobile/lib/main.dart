@@ -38,6 +38,12 @@ Future<void> main() async {
 
     // PHASE E — E1: Auto-referral tracker
   await ReferralTracker.instance.init();
+// ഷെയർ ചെയ്ത ലിങ്കിൽ നിന്ന് ref എടുക്കുക
+final uri = Uri.base;
+final ref = uri.queryParameters['ref'];
+if (ref != null && ref.isNotEmpty) {
+  await ReferralTracker.instance.saveSharedBy(ref);
+}
 
   // PHASE E — E3: Deep link handler
   initDeepLinks();

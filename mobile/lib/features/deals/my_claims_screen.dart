@@ -16,21 +16,28 @@ class MyClaimsScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Claims')),
+      appBar: AppBar(title: const Text('Active & Used Deals')),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('reservations')
+            .collection('claims')
             .where('userUid', isEqualTo: uid)
-            .where('status', isEqualTo: 'picked_up')
+            .orderBy('claimedAt', descending: true)
             .snapshots(),
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          
-          final reservations = snap.data?.docs ?? [];
 
-          if (reservations.isEmpty) {
+          // 1. Get Claims
+          final claims = snap.data?.docs ?? [];
+          
+          // 2. Filter: show only 'active' or 'redeemed'
+          final activeClaims = claims.where((doc) {
+            final status = (doc.data() as Map<String, dynamic>)['status'] as String?;
+            return status == 'active' || status == 'redeemed';
+          }).toList();
+
+          if (activeClaims.isEmpty) {
             return const Center(
               child: Padding(
                 padding: EdgeInsets.all(24),
@@ -39,9 +46,9 @@ class MyClaimsScreen extends StatelessWidget {
                   children: [
                     Icon(Icons.receipt_long_outlined, size: 64, color: MigoColors.primary),
                     SizedBox(height: 12),
-                    Text('No used offers yet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                    Text('No active or used offers yet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                     SizedBox(height: 4),
-                    Text('Redeem an offer at a business to see it here.', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: MigoColors.textSecondaryLight)),
+                    Text('Claim or redeem an offer at a business to see it here.', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: MigoColors.textSecondaryLight)),
                   ],
                 ),
               ),
@@ -50,18 +57,19 @@ class MyClaimsScreen extends StatelessWidget {
 
           return ListView.separated(
             padding: const EdgeInsets.all(20),
-            itemCount: reservations.length,
+            itemCount: activeClaims.length,
             separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (context, i) {
-              final doc = reservations[i];
+              final doc = activeClaims[i];
               final data = doc.data() as Map<String, dynamic>;
-              
+              final isRedeemed = data['status'] == 'redeemed';
+
               final title = data['offerTitle'] as String? ?? 'Offer';
               final businessName = data['businessName'] as String? ?? 'Business';
               final originalPrice = (data['originalPrice'] as num?)?.toDouble() ?? 0;
-              final offerPrice = (data['unitPrice'] as num?)?.toDouble() ?? 0;
+              final offerPrice = (data['offerPrice'] as num?)?.toDouble() ?? 0;
               final currency = data['currency'] as String? ?? 'QAR';
-              
+
               return Column(
                 children: [
                   Container(
@@ -82,10 +90,17 @@ class MyClaimsScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: MigoColors.success.withValues(alpha: 0.15),
+                                color: isRedeemed ? MigoColors.success.withValues(alpha: 0.15) : MigoColors.primary.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Text('PICKED UP', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: MigoColors.success)),
+                              child: Text(
+                                isRedeemed ? 'USED' : 'ACTIVE',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: isRedeemed ? MigoColors.success : MigoColors.primary,
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -98,48 +113,108 @@ class MyClaimsScreen extends StatelessWidget {
                             const SizedBox(width: 6),
                             Text('$currency ${offerPrice.toStringAsFixed(0)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: MigoColors.primary)),
                             const Spacer(),
-                            const Icon(Icons.check_circle, size: 20, color: MigoColors.success),
-                            const SizedBox(width: 4),
-                            const Text('Used', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: MigoColors.success)),
+                            if (isRedeemed)
+                              const Row(
+                                children: [
+                                  Icon(Icons.check_circle, size: 20, color: MigoColors.success),
+                                  SizedBox(width: 4),
+                                  Text('Used', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: MigoColors.success)),
+                                ],
+                              )
+                            else
+                              const Row(
+                                children: [
+                                  Icon(Icons.qr_code, size: 20, color: MigoColors.primary),
+                                  SizedBox(width: 4),
+                                  Text('Show QR', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: MigoColors.primary)),
+                                ],
+                              ),
                           ],
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        final res = await Navigator.of(context).push<bool>(
-                          MaterialPageRoute(
-                            builder: (_) => WriteReviewScreen(
-                              claim: ClaimModel(
-                                id: doc.id,
-                                userUid: uid,
-                                businessId: data['businessId'] ?? '',
-                                businessName: data['businessName'] ?? '',
-                                offerId: data['offerId'] ?? '',
-                                offerTitle: data['offerTitle'] ?? '',
-                                originalPrice: (data['originalPrice'] as num?)?.toDouble() ?? 0,
-                                offerPrice: (data['unitPrice'] as num?)?.toDouble() ?? 0,
-                                currency: data['currency'] ?? 'QAR',
-                                status: ClaimStatus.redeemed,
-                                claimedAt: (data['bookedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-                                expiresAt: (data['expiresAt'] as Timestamp?)?.toDate() ?? DateTime.now().add(const Duration(days: 7)),
-                                redeemedAt: (data['pickedUpAt'] as Timestamp?)?.toDate(),
+                  
+                  // Button for Active Offers (Show QR)
+                  if (!isRedeemed) ...[
+                    const SizedBox(height: 6),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: MigoColors.primary,
+                        ),
+                        onPressed: () {
+                          // This shows QR code for active claims
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text(title),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text('Show this QR code at the store', textAlign: TextAlign.center),
+                                  const SizedBox(height: 16),
+                                  Icon(Icons.qr_code_2, size: 150, color: MigoColors.primary),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Code: ${data['claimId'] ?? doc.id}',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Close'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.qr_code, size: 20),
+                        label: const Text('Show QR Code'),
+                      ),
+                    ),
+                  ],
+
+                  // Button for Redeemed Offers (Write Review)
+                  if (isRedeemed) ...[
+                    const SizedBox(height: 6),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final res = await Navigator.of(context).push<bool>(
+                            MaterialPageRoute(
+                              builder: (_) => WriteReviewScreen(
+                                claim: ClaimModel(
+                                  id: doc.id,
+                                  userUid: uid,
+                                  businessId: data['businessId'] ?? '',
+                                  businessName: data['businessName'] ?? '',
+                                  offerId: data['offerId'] ?? '',
+                                  offerTitle: data['offerTitle'] ?? '',
+                                  originalPrice: (data['originalPrice'] as num?)?.toDouble() ?? 0,
+                                  offerPrice: (data['offerPrice'] as num?)?.toDouble() ?? 0,
+                                  currency: data['currency'] ?? 'QAR',
+                                  status: ClaimStatus.redeemed,
+                                  claimedAt: (data['claimedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+                                  expiresAt: (data['expiresAt'] as Timestamp?)?.toDate() ?? DateTime.now().add(const Duration(days: 7)),
+                                  redeemedAt: (data['redeemedAt'] as Timestamp?)?.toDate(),
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                        if (res == true && context.mounted) {
-                          // Review submitted
-                        }
-                      },
-                      icon: const Icon(Icons.rate_review_outlined, size: 16),
-                      label: const Text('Write a review · +10 coins'),
+                          );
+                          if (res == true && context.mounted) {
+                            // Review submitted
+                          }
+                        },
+                        icon: const Icon(Icons.rate_review_outlined, size: 16),
+                        label: const Text('Write a review · +10 coins'),
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               );
             },

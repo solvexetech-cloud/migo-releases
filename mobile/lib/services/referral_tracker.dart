@@ -12,6 +12,7 @@ class ReferralTracker {
   static final ReferralTracker instance = ReferralTracker._();
 
   static const _prefsKey = 'pending_referral_code';
+  static const _sharedByKey = 'shared_by_uid';
 
   /// ═══════════════════════════════════════════════════
   /// INIT — Called at app startup (main.dart)
@@ -112,5 +113,23 @@ class ReferralTracker {
     }
 
     return null;
+  }
+
+  // ═══════════════════════════════════════════════════
+  // SHARE TRACKING (for coin rewards)
+  // ═══════════════════════════════════════════════════
+  Future<void> saveSharedBy(String sharedByUid) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_sharedByKey, sharedByUid);
+  }
+
+  Future<String?> getSharedBy() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_sharedByKey);
+  }
+
+  Future<void> clearSharedBy() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_sharedByKey);
   }
 }

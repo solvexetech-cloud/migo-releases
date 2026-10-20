@@ -18,6 +18,7 @@ const ALL_ITEMS = [
   { to: '/roles', label: 'Roles', icon: '🔑' },
   { to: '/agencies', label: 'Agencies', icon: '🤝' },
   { to: '/pricing', label: 'Pricing', icon: '💵' },
+  { to: '/share-rewards', label: 'Share Rewards', icon: '🎁' },
   { to: '/strings', label: 'App Strings', icon: '🌐' },
   { to: '/revenue', label: 'Revenue', icon: '💰' },
   { to: '/reviews', label: 'Reviews', icon: '⭐' },

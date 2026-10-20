@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../core/theme/migo_colors.dart';
-import '../../core/theme/migo_gradients.dart';
 import '../../models/business_model.dart';
 import '../reviews/business_reviews_screen.dart';
 import '../deals/offer_detail_screen.dart';

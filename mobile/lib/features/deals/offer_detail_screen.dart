@@ -190,14 +190,12 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                       ),
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      final url =
-                          'https://migo-app-3030e.web.app/o/${o.id}';
-                      final price =
-                          '${o.currency} ${o.offerPrice.toStringAsFixed(0)}';
-                      final original =
-                          '${o.currency} ${o.originalPrice.toStringAsFixed(0)}';
+                                    IconButton(
+                    onPressed: () async {
+                      final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+                      final url = 'https://migo-app-3030e.web.app/o/${o.id}?ref=$uid';
+                      final price = '${o.currency} ${o.offerPrice.toStringAsFixed(0)}';
+                      final original = '${o.currency} ${o.originalPrice.toStringAsFixed(0)}';
                       SharePlus.instance.share(
                         ShareParams(
                           text: '🔥 Check out this deal on MIGO!\n\n'

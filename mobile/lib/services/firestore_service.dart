@@ -15,6 +15,7 @@ import '../models/offer_model.dart';
 import '../models/referral_model.dart';
 import '../models/review_model.dart';
 import '../models/user_model.dart';
+import 'referral_tracker.dart';
 
 class FirestoreService {
   FirestoreService._();
@@ -655,16 +656,44 @@ class FirestoreService {
   bypassCaps: true,   // ← പുതിയത്
 );
 
-    await createNotification(
+        await createNotification(
       NotificationModel.newDraft(
         userUid: claim.userUid,
         type: NotifType.coinEarned,
         title: '+25 MIGO Coins',
-        body:
-            'Your "${claim.offerTitle}" was redeemed at ${claim.businessName}.',
+        body: 'Your "${claim.offerTitle}" was redeemed at ${claim.businessName}.',
         targetRoute: 'wallet',
       ),
     );
+
+    // ⬇️ പുതിയതായി ചേർക്കുന്ന കോഡ് (ഷെയർ ചെയ്തയാൾക്ക് കോയിൻസ്) ⬇️
+    final sharedBy = await ReferralTracker.instance.getSharedBy();
+    if (sharedBy != null && sharedBy.isNotEmpty && sharedBy != claim.userUid) {
+      final configSnap = await _db.collection('config').doc('share_rewards').get();
+      final config = configSnap.data();
+      final enabled = config?['enabled'] as bool? ?? false;
+      final coins = (config?['coinsPerRedeem'] as num?)?.toInt() ?? 10;
+      
+      if (enabled) {
+        await addCoins(
+          uid: sharedBy,
+          amount: coins,
+          reason: 'Your shared offer was redeemed',
+          bypassCaps: true,
+        );
+        await createNotification(
+          NotificationModel.newDraft(
+            userUid: sharedBy,
+            type: NotifType.coinEarned,
+            title: '+$coins MIGO Coins',
+            body: 'Your shared offer "${claim.offerTitle}" was redeemed!',
+            targetRoute: 'wallet',
+          ),
+        );
+        await ReferralTracker.instance.clearSharedBy();
+      }
+    }
+    // ⬆️ പുതിയതായി ചേർത്തത് അവസാനിക്കുന്നു ⬆️
   }
 
   // ---------- REVIEWS ----------

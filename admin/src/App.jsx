@@ -24,6 +24,7 @@ import {
   useRole,
 } from './contexts/RoleContext';
 import AllOffersPage from './pages/AllOffersPage';
+import ShareRewardsPage from './pages/ShareRewardsPage';
 import GeographyPage from './pages/GeographyPage';
 import RevenuePage from './pages/RevenuePage';
 import ReviewsPage from './pages/ReviewsPage';
@@ -150,6 +151,7 @@ export default function App() {
                     <Route path="/pending-businesses" element={<PendingBusinesses />} />
                     <Route path="/pending-offers" element={<PendingOffers />} />
                     <Route path="/all-offers" element={<AllOffersPage />} />
+                    <Route path="/share-rewards" element={<ShareRewardsPage />} />
                     <Route path="/users" element={<UsersPage />} />
                     <Route path="/creators" element={<CreatorsPage />} />
                     <Route path="/categories" element={<CategoriesPage />} />
