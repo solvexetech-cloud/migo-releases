@@ -1,7 +1,7 @@
 # ═══════════════════════════════════════════════════════
 # MIGO — MASTER PLAN
-# Version: v4.0
-# Date: October 17, 2026
+# Version: v4.1
+# Date: October 21, 2026
 # Owner: solvexe.tech@gmail.com
 # ═══════════════════════════════════════════════════════
 
@@ -666,10 +666,13 @@ Super Admin, Admin, Agency, Staff — എല്ലാവർക്കും separ
 | I15 | Reserve Settings | 4h | ✅ DONE 2026-10-16 |
 | I15.1 | Status bug fix (Activate → live) | 30m | ✅ DONE 2026-10-16 |
 | I16 | Camera Fix (R8 ProGuard) | 2h | ✅ DONE 2026-10-17 |
+| I17 | Customer Claims (Business App) | 2h | ✅ DONE 2026-10-21 |
+| I18 | Dashboard Stats + Offer Stats | 2h | ✅ DONE 2026-10-21 |
+| I19 | Reserve ON/OFF button fix | 1h | ✅ DONE 2026-10-21 |
 
 **Total PHASE I: ~40 hours**
 
-**Progress: 14/16 (87%)** 📈
+**Progress: 17/19 (89%)** 📈
 
 ### 🎯 PHASE I — Order of Implementation
 
@@ -1079,7 +1082,7 @@ PHASE C: [✅✅✅✅✅✅✅] 100% (7/7) 🎉72041826
 PHASE D: [✅✅✅🟡✅✅✅] 85% (6/7)
 PHASE E: [✅✅✅✅✅✅✅✅✅✅] 100% (10/10) 🎉
 PHASE J: [✅✅✅✅✅✅✅✅✅] 100% (9/9) 🎉
-PHASE I: [✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜] 87% 📈
+PHASE I: [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜] 89% (17/19) 📈
 PHASE F: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/13)
 PHASE G: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/12)
 PHASE H: [✅✅✅✅✅✅🟡] 95% (6/7 + Testing 90%)
@@ -1354,6 +1357,13 @@ TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅�
 - 2026-10-17: wallet_screen.dart — Removed "Claim a deal +5", "Claims" → "Redeemed"
 - 2026-10-17: pick_for_me_sheet.dart — Added "Any" options, reduced font sizes
 - 2026-10-17: MASTER PLAN v4.0
+- 2026-10-21: Business App — Customer Claims screen added
+- 2026-10-21: Business App — Dashboard stats (Offers, Redeemed, Revenue)
+- 2026-10-21: Business App — Offer Stats screen (per-offer claims)
+- 2026-10-21: Customer App — Reserve ON/OFF button fix
+- 2026-10-21: Firestore Rules — users update relaxed for testing
+- 2026-10-21: PHASE I — 89% (17/19)
+- 2026-10-21: MASTER PLAN v4.1
 
 ═══════════════════════════════════════════════════════
 ## ഭാഗം 16: Important Info
@@ -1793,5 +1803,5 @@ END OF PHASE I — MULTI-APP ARCHITECTURE
 ═══════════════════════════════════════════════════════
 
 ═══════════════════════════════════════════════════════
-END OF MASTER PLAN v4.0
+END OF MASTER PLAN v4.1
 ═══════════════════════════════════════════════════════
