@@ -456,11 +456,12 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
     );
   }
 
-  Widget _claimButton() {
+    Widget _claimButton() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.offer.reserveEnabled) ...[
+          // Reserve ON ആണെങ്കിൽ "Reserve Now" മാത്രം കാണിക്കുക
           SizedBox(
             height: 52,
             width: double.infinity,
@@ -490,25 +491,26 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
-        ],
-        SizedBox(
-          height: 52,
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: _loading ? null : _claim,
-            child: _loading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text('Get QR Code'),
+        ] else ...[
+          // Reserve OFF ആണെങ്കിൽ "Get QR Code" കാണിക്കുക
+          SizedBox(
+            height: 52,
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _loading ? null : _claim,
+              child: _loading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Get QR Code'),
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
