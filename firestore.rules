@@ -137,13 +137,14 @@ allow list: if isSignedIn();
   allow create: if isSignedIn() &&
     request.resource.data.userUid == request.auth.uid;
   
-  // Update: owner (status), business owner (redeem), admin
-  allow update: if isSignedIn() && (
-    resource.data.userUid == request.auth.uid ||
-    isBusinessOwner(resource.data.businessId) ||
-    isModerator() ||
-    isAdmin()
-  );
+    // Update: owner (status), business owner (redeem), admin
+    // Update: owner (status), business owner (redeem), admin
+        allow update: if isSignedIn() && (
+        resource.data.userUid == request.auth.uid ||
+        isBusinessOwner(resource.data.businessId) || 
+        isModerator() ||
+        isAdmin()
+      );
   
   allow delete: if isAdmin();
 }
@@ -214,7 +215,7 @@ allow list: if isSignedIn();
     match /coin_transactions/{txId} {
       allow read: if isSignedIn() &&
         (resource.data.uid == request.auth.uid || isModerator());
-      allow create: if isSignedIn() || request.auth == null;
+      allow create: if isSignedIn();
       allow update, delete: if isAdmin();
     }
 

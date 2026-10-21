@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../models/claim_model.dart';
 import '../reviews/write_review_screen.dart';
+import 'qr_code_screen.dart'; // നമ്മൾ പുതിയതായി ഉണ്ടാക്കാൻ പോകുന്ന ഫയൽ
 
 class MyClaimsScreen extends StatelessWidget {
   const MyClaimsScreen({super.key});
@@ -28,10 +29,7 @@ class MyClaimsScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // 1. Get Claims
           final claims = snap.data?.docs ?? [];
-          
-          // 2. Filter: show only 'active' or 'redeemed'
           final activeClaims = claims.where((doc) {
             final status = (doc.data() as Map<String, dynamic>)['status'] as String?;
             return status == 'active' || status == 'redeemed';
@@ -48,7 +46,7 @@ class MyClaimsScreen extends StatelessWidget {
                     SizedBox(height: 12),
                     Text('No active or used offers yet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                     SizedBox(height: 4),
-                    Text('Claim or redeem an offer at a business to see it here.', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: MigoColors.textSecondaryLight)),
+                    Text('Claim or redeem an offer to see it here.', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: MigoColors.textSecondaryLight)),
                   ],
                 ),
               ),
@@ -135,7 +133,7 @@ class MyClaimsScreen extends StatelessWidget {
                     ),
                   ),
                   
-                  // Button for Active Offers (Show QR)
+                  // Button for Active Offers (Show QR Code)
                   if (!isRedeemed) ...[
                     const SizedBox(height: 6),
                     SizedBox(
@@ -145,30 +143,13 @@ class MyClaimsScreen extends StatelessWidget {
                           backgroundColor: MigoColors.primary,
                         ),
                         onPressed: () {
-                          // This shows QR code for active claims
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: Text(title),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text('Show this QR code at the store', textAlign: TextAlign.center),
-                                  const SizedBox(height: 16),
-                                  Icon(Icons.qr_code_2, size: 150, color: MigoColors.primary),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Code: ${data['claimId'] ?? doc.id}',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                  ),
-                                ],
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                                                            builder: (_) => QrCodeScreen(
+                                claimId: doc.id, // മുഴുവൻ ഐഡിയും ഇവിടെ കൊടുക്കുന്നു
+                                offerTitle: title,
+                                businessName: businessName,
                               ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Close'),
-                                ),
-                              ],
                             ),
                           );
                         },

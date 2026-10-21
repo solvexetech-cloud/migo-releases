@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 
 import '../models/claim_model.dart';
 
-/// PHASE I — Claim Service (redeem QR code)
 class ClaimService {
   ClaimService._();
   static final ClaimService instance = ClaimService._();
@@ -12,25 +11,31 @@ class ClaimService {
 
   CollectionReference get _claims => _db.collection('claims');
   CollectionReference get _users => _db.collection('users');
-  CollectionReference get _notifications =>
-      _db.collection('notifications');
+  CollectionReference get _notifications => _db.collection('notifications');
 
-  // ═══════════════════════════════════════════════════
-  // REDEEM CLAIM
-  // ═══════════════════════════════════════════════════
   Future<void> redeemClaim({
     required String claimId,
     required String businessId,
   }) async {
     debugPrint('🔵 redeemClaim: claimId=$claimId');
 
-    final snap = await _claims.doc(claimId).get();
+    // 1. നൽകിയ കോഡ് ഉപയോഗിച്ച് 'claimId' ഫീൽഡിൽ തിരയുന്നു
+    final querySnapshot = await _claims
+        .where('claimId', isEqualTo: claimId)
+        .limit(1)
+        .get();
+    
+    // 2. കിട്ടിയില്ലെങ്കിൽ, നേരിട്ട് ഡോക്യുമെന്റ് ID ആയി തിരയുന്നു
+    final snap = querySnapshot.docs.isEmpty 
+        ? await _claims.doc(claimId).get() 
+        : await _claims.doc(querySnapshot.docs.first.id).get();
+
     if (!snap.exists || snap.data() == null) {
       throw Exception('Claim not found');
     }
 
     final claim = ClaimModel.fromMap(
-      claimId,
+      snap.id, // യഥാർത്ഥ ഡോക്യുമെന്റ് ID ഉപയോഗിക്കുന്നു
       snap.data()! as Map<String, dynamic>,
     );
 
@@ -46,27 +51,26 @@ class ClaimService {
       throw Exception('This claim has expired.');
     }
 
-    // Mark as redeemed
-    await _claims.doc(claimId).update({
+    // 3. Mark as redeemed
+    await _claims.doc(snap.id).update({
       'status': ClaimStatus.redeemed.id,
       'redeemedAt': FieldValue.serverTimestamp(),
       'redeemedBy': businessId,
     });
 
-    // Add coins to customer
+    // 4. Add coins to customer
     await _addCoins(
       uid: claim.userUid,
       amount: 25,
       reason: 'Redeemed "${claim.offerTitle}"',
     );
 
-    // Notification
+    // 5. Notification
     await _notifications.add({
       'userUid': claim.userUid,
       'type': 'coinEarned',
       'title': '+25 MIGO Coins',
-      'body':
-          'Your "${claim.offerTitle}" was redeemed at ${claim.businessName}.',
+      'body': 'Your "${claim.offerTitle}" was redeemed at ${claim.businessName}.',
       'targetRoute': 'wallet',
       'read': false,
       'createdAt': FieldValue.serverTimestamp(),
@@ -75,18 +79,15 @@ class ClaimService {
     debugPrint('✅ Claim redeemed');
   }
 
-  // ═══════════════════════════════════════════════════
-  // ADD COINS
-  // ═══════════════════════════════════════════════════
   Future<void> _addCoins({
     required String uid,
     required int amount,
     required String reason,
   }) async {
     try {
+      // Users കളക്ഷനിൽ 'coins' മാത്രം അപ്ഡേറ്റ് ചെയ്യുന്നു (updatedAt ഇല്ല)
       await _users.doc(uid).update({
         'coins': FieldValue.increment(amount),
-        'updatedAt': FieldValue.serverTimestamp(),
       });
 
       await _db.collection('coin_transactions').add({

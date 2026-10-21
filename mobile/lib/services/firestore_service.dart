@@ -553,7 +553,14 @@ class FirestoreService {
       claimMap['referrerUid'] = referrerUid;
     }
 
-    final ref = await _claims.add(claimMap);
+        // ആദ്യം ഒരു പുതിയ ഡോക്യുമെന്റ് റഫറൻസ് ഉണ്ടാക്കുന്നു
+    final ref = _claims.doc();
+    
+    // ആ റഫറൻസിന്റെ ഐഡി claimMap-ലേക്ക് ചേർക്കുന്നു
+    claimMap['claimId'] = ref.id;
+
+    // എന്നിട്ട് അത് സേവ് ചെയ്യുന്നു
+    await ref.set(claimMap);
 
     await _offers.doc(claim.offerId).update({
       'claimedCount': FieldValue.increment(1),
