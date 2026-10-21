@@ -59,17 +59,24 @@ allow list: if isSignedIn();
     request.auth.uid == uid;
   
   // Update: self (profile) OR coins-increment OR admin
-  allow update: if isSignedIn() && (
-    // Owner — profile update (no role change)
+    allow update: if isSignedIn() && (
+    // 1. Owner (profile update)
     (request.auth.uid == uid &&
      !request.resource.data.diff(resource.data)
        .affectedKeys().hasAny(['role'])) ||
-    // Coin increment ONLY (positive) — allows referral rewards
+    
+    // 2. Admin (full access)
+    isAdmin() ||
+
+    // 3. Business Owner (to add coins on redeem)
+    (request.resource.data.diff(resource.data)
+       .affectedKeys().hasOnly(['coins', 'updatedAt']) && 
+     isBusinessOwner(resource.data.businessId)) || // ഇത് പുതിയത്
+
+    // 4. Any signed-in user (to increment coins via share/referral)
     (request.resource.data.diff(resource.data)
        .affectedKeys().hasOnly(['coins', 'updatedAt']) &&
-     request.resource.data.coins >= resource.data.coins) ||
-    // Admin — anything
-    isAdmin()
+     request.resource.data.coins >= resource.data.coins)
   );
   
   allow delete: if isSuperAdmin();

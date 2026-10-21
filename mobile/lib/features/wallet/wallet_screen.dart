@@ -206,7 +206,7 @@ class WalletScreen extends StatelessWidget {
                             SizedBox(height: 10),
                             _EarnRow(
                               icon: Icons.qr_code_scanner,
-                              text: 'Redeem at business  +5',
+                              text: 'Redeem at business  +25',
                             ),
                             SizedBox(height: 6),
                             _EarnRow(

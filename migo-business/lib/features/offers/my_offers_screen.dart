@@ -7,6 +7,7 @@ import '../../models/offer_model.dart';
 import '../../services/offer_service.dart';
 import 'create_offer_screen.dart';
 import 'business_offer_reserve_settings.dart';
+import 'offer_stats_screen.dart'; // പുതിയത്
 
 /// PHASE I — My Offers (Business)
 class MyOffersScreen extends StatefulWidget {
@@ -261,7 +262,7 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
               ],
             ),
             const SizedBox(height: 12),
-                        Row(
+            Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
@@ -296,6 +297,21 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
                     size: 20,
                   ),
                   tooltip: 'Reserve Settings',
+                ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => OfferStatsScreen(
+                          offerId: offer.id,
+                          offerTitle: offer.title,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.bar_chart, color: MigoColors.info),
+                  tooltip: 'View Stats',
                 ),
                 IconButton(
                   onPressed: () => _confirmDelete(context, offer),
@@ -378,7 +394,6 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
       ),
     );
   }
-
 
   Future<void> _confirmDelete(
       BuildContext context, OfferModel offer) async {

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart'; // Clipboard-ന് വേണ്ടി
 import '../reserve/booking_screen.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../models/claim_model.dart';
@@ -9,6 +10,7 @@ import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
 import '../business/business_detail_screen.dart'; // ✅ ഇത് മാറ്റി
 import 'claim_success_screen.dart';
+
 
 
 class OfferDetailScreen extends StatefulWidget {
@@ -190,6 +192,26 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                       ),
                     ),
                   ),
+                          
+                                       // ── Copy Link Button ──
+                  IconButton(
+                    onPressed: () async {
+                      final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+                      final url = 'https://migo-app-3030e.web.app/o/${o.id}?ref=$uid';
+                      
+                      await Clipboard.setData(ClipboardData(text: url));
+                      
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Link copied! Share it with your friends.')),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.copy),
+                    tooltip: 'Copy link',
+                  ),
+
+
                                     IconButton(
                     onPressed: () async {
                       final uid = FirebaseAuth.instance.currentUser?.uid ?? '';

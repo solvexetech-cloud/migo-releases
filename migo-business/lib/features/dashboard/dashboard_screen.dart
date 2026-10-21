@@ -9,6 +9,7 @@ import '../offers/my_offers_screen.dart';
 import '../scan/scan_qr_screen.dart';
 import '../analytics/business_analytics_screen.dart';
 import '../profile/profile_screen.dart';
+import '../bookings/claims_history_screen.dart'; // പുതിയത്
 
 
 
@@ -117,6 +118,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _sidebarItem(0, Icons.dashboard_outlined, 'Dashboard'),
           _sidebarItem(1, Icons.local_offer_outlined, 'My Offers'),
           _sidebarItem(2, Icons.event_note_outlined, 'Bookings'),
+          _sidebarItem(6, Icons.people_outline, 'Customer Claims'), // പുതിയത്
           _sidebarItem(3, Icons.qr_code_scanner, 'Scan QR'),
           _sidebarItem(4, Icons.analytics_outlined, 'Analytics'),
           _sidebarItem(5, Icons.settings_outlined, 'Settings'),
@@ -207,6 +209,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _drawerItem(0, Icons.dashboard_outlined, 'Dashboard'),
             _drawerItem(1, Icons.local_offer_outlined, 'My Offers'),
             _drawerItem(2, Icons.event_note_outlined, 'Bookings'),
+            _drawerItem(6, Icons.people_outline, 'Customer Claims'), // പുതിയത്
             _drawerItem(3, Icons.qr_code_scanner, 'Scan QR'),
             _drawerItem(4, Icons.analytics_outlined, 'Analytics'),
             _drawerItem(5, Icons.settings_outlined, 'Settings'),
@@ -244,6 +247,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return _buildAnalyticsTab();
       case 5:
         return _buildProfileTab();
+      case 6: 
+        return _buildClaimsTab();
       default:
         return Center(
           child: Text(
@@ -313,6 +318,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  // ─────────────────────────────────────────────────────
+  // Claims tab
+  // ─────────────────────────────────────────────────────
+  Widget _buildClaimsTab() {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      return const Center(child: Text('Not signed in'));
+    }
+
+    return FutureBuilder<QuerySnapshot>(
+      future: FirebaseFirestore.instance
+          .collection('businesses')
+          .where('ownerUid', isEqualTo: uid)
+          .limit(1)
+          .get(),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final docs = snap.data?.docs ?? [];
+        if (docs.isEmpty) {
+          return const Center(child: Text('No business linked'));
+        }
+        return ClaimsHistoryScreen(businessId: docs.first.id);
+      },
+    );
+  }
+
+
   Widget _buildAnalyticsTab() {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
@@ -370,120 +404,114 @@ class _DashboardScreenState extends State<DashboardScreen> {
     'Scan QR',
     'Analytics',
     'Settings',
+    'Customer Claims',
   ];
 
   // ═══════════════════════════════════════════════════
   // HOME TAB
   // ═══════════════════════════════════════════════════
-  Widget _buildHomeTab() {
+    Widget _buildHomeTab() {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
       return const Center(child: Text('Not signed in'));
     }
 
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
+    return FutureBuilder<QuerySnapshot>(
+      future: FirebaseFirestore.instance
           .collection('businesses')
           .where('ownerUid', isEqualTo: uid)
           .limit(1)
-          .snapshots(),
-      builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
+          .get(),
+      builder: (context, bizSnap) {
+        if (bizSnap.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final docs = snap.data?.docs ?? [];
-        final business = docs.isNotEmpty
-            ? docs.first.data() as Map<String, dynamic>
-            : null;
+        final docs = bizSnap.data?.docs ?? [];
+        if (docs.isEmpty) {
+          return const Center(child: Text('No business linked'));
+        }
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Text(
-                'Welcome back!',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                business?['name'] ?? 'Your Business',
-                style: const TextStyle(
-                  color: MigoColors.textSecondary,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 24),
+        final business = docs.first.data() as Map<String, dynamic>;
+        final businessId = docs.first.id;
 
-              // Stats — vertical list
-              _statCard(
-                icon: Icons.local_offer_outlined,
-                label: 'Active Offers',
-                value: '—',
-                color: MigoColors.info,
-              ),
-              const SizedBox(height: 10),
-              _statCard(
-                icon: Icons.event_available_outlined,
-                label: "Today's Bookings",
-                value: '—',
-                color: MigoColors.success,
-              ),
-              const SizedBox(height: 10),
-              _statCard(
-                icon: Icons.people_outline,
-                label: 'Total Claims',
-                value: '—',
-                color: MigoColors.accent,
-              ),
-              const SizedBox(height: 10),
-              _statCard(
-                icon: Icons.monetization_on_outlined,
-                label: 'Revenue',
-                value: '—',
-                color: MigoColors.warning,
-              ),
+        // Fetch offers and claims
+        return FutureBuilder<List<dynamic>>(
+          future: Future.wait([
+            FirebaseFirestore.instance
+                .collection('offers')
+                .where('businessId', isEqualTo: businessId)
+                .get(),
+            FirebaseFirestore.instance
+                .collection('claims')
+                .where('businessId', isEqualTo: businessId)
+                .where('status', isEqualTo: 'redeemed')
+                .get(),
+          ]),
+          builder: (context, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-              const SizedBox(height: 24),
+            final offersSnap = snap.data![0] as QuerySnapshot;
+            final redeemedSnap = snap.data![1] as QuerySnapshot;
 
-              // Placeholder
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      const Icon(
-                        Icons.rocket_launch_outlined,
-                        size: 48,
-                        color: MigoColors.accent,
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Ready to grow your business?',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
+            final totalOffers = offersSnap.docs.length;
+            final redeemedCount = redeemedSnap.docs.length;
+            
+            double totalRevenue = 0;
+            for (var doc in redeemedSnap.docs) {
+              final data = doc.data() as Map<String, dynamic>;
+              totalRevenue += (data['offerPrice'] as num?)?.toDouble() ?? 0;
+            }
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Welcome back!',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Manage your offers, bookings, and analytics from here.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: MigoColors.textSecondary,
-                        ),
-                      ),
-                    ],
                   ),
-                ),
+                  const SizedBox(height: 4),
+                  Text(
+                    business['name'] ?? 'Your Business',
+                    style: const TextStyle(
+                      color: MigoColors.textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Stats
+                                    _statCard(
+                    icon: Icons.local_offer_outlined,
+                    label: 'Total Offers',
+                    value: totalOffers.toString(),
+                    color: MigoColors.info,
+                  ),
+                  const SizedBox(height: 10),
+                  _statCard(
+                    icon: Icons.check_circle_outline,
+                    label: 'Redeemed Claims',
+                    value: redeemedCount.toString(),
+                    color: MigoColors.success,
+                  ),
+                  const SizedBox(height: 10),
+                  _statCard(
+                    icon: Icons.monetization_on_outlined,
+                    label: 'Total Revenue (QAR)',
+                    value: totalRevenue.toStringAsFixed(0),
+                    color: MigoColors.warning,
+                  ),
+                  const SizedBox(height: 24),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
