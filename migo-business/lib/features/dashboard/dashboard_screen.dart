@@ -7,6 +7,7 @@ import '../../services/auth_service.dart';
 import '../bookings/shop_bookings_screen.dart';
 import '../offers/my_offers_screen.dart';
 import '../scan/scan_qr_screen.dart';
+import '../offers/my_flyers_screen.dart'; // പുതിയത്
 import '../analytics/business_analytics_screen.dart';
 import '../profile/profile_screen.dart';
 import '../bookings/claims_history_screen.dart'; // പുതിയത്
@@ -117,6 +118,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           // Nav
           _sidebarItem(0, Icons.dashboard_outlined, 'Dashboard'),
           _sidebarItem(1, Icons.local_offer_outlined, 'My Offers'),
+          _sidebarItem(7, Icons.menu_book_outlined, 'My Flyers'),
           _sidebarItem(2, Icons.event_note_outlined, 'Bookings'),
           _sidebarItem(6, Icons.people_outline, 'Customer Claims'), // പുതിയത്
           _sidebarItem(3, Icons.qr_code_scanner, 'Scan QR'),
@@ -208,6 +210,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             _drawerItem(0, Icons.dashboard_outlined, 'Dashboard'),
             _drawerItem(1, Icons.local_offer_outlined, 'My Offers'),
+            _drawerItem(7, Icons.menu_book_outlined, 'My Flyers'),
             _drawerItem(2, Icons.event_note_outlined, 'Bookings'),
             _drawerItem(6, Icons.people_outline, 'Customer Claims'), // പുതിയത്
             _drawerItem(3, Icons.qr_code_scanner, 'Scan QR'),
@@ -249,6 +252,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return _buildProfileTab();
       case 6: 
         return _buildClaimsTab();
+      case 7:
+        return const MyFlyersScreen();
       default:
         return Center(
           child: Text(
@@ -405,6 +410,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     'Analytics',
     'Settings',
     'Customer Claims',
+    'My Flyers',
   ];
 
   // ═══════════════════════════════════════════════════

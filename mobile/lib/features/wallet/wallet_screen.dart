@@ -241,25 +241,25 @@ class _StatsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('reservations')
-          .where('userUid', isEqualTo: uid)
-          .where('status', isEqualTo: 'picked_up')
-          .snapshots(),
-      builder: (context, snap) {
-        final reservations = snap.data?.docs ?? [];
-        final businesses = reservations
-            .map((doc) => doc['businessId'] as String?)
-            .where((id) => id != null)
-            .toSet()
-            .length;
+  stream: FirebaseFirestore.instance
+      .collection('claims') // reservations എന്നത് claims ആക്കി മാറ്റി
+      .where('userUid', isEqualTo: uid)
+      .where('status', isEqualTo: 'redeemed') // picked_up എന്നത് redeemed ആക്കി
+      .snapshots(),
+  builder: (context, snap) {
+    final claims = snap.data?.docs ?? [];
+    final businesses = claims
+        .map((doc) => (doc.data() as Map<String, dynamic>)['businessId'] as String?)
+        .where((id) => id != null)
+        .toSet()
+        .length;
 
         return Row(
           children: [
             Expanded(
               child: _StatTile(
                 label: 'Deals used',
-                value: '${reservations.length}',
+                value: '${claims.length}',
                 icon: Icons.check_circle_outline,
                 color: MigoColors.success,
               ),
@@ -277,7 +277,7 @@ class _StatsGrid extends StatelessWidget {
             Expanded(
               child: _StatTile(
                 label: 'Redeemed',
-                value: '${reservations.length}',
+                value: '${claims.length}',
                 icon: Icons.receipt_long_outlined,
                 color: MigoColors.accent,
               ),
@@ -354,14 +354,14 @@ class _SavingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
+        return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
-          .collection('reservations')
+          .collection('claims') // reservations എന്നത് claims ആക്കി മാറ്റി
           .where('userUid', isEqualTo: uid)
-          .where('status', isEqualTo: 'picked_up')
+          .where('status', isEqualTo: 'redeemed') // picked_up എന്നത് redeemed ആക്കി
           .snapshots(),
       builder: (context, snap) {
-        final reservations = snap.data?.docs ?? [];
+        final claims = snap.data?.docs ?? [];
 
         final now = DateTime.now();
         final monthStart = DateTime(now.year, now.month, 1);
@@ -369,15 +369,16 @@ class _SavingsCard extends StatelessWidget {
         double thisMonth = 0;
         double lifetime = 0;
 
-        for (final doc in reservations) {
+        for (final doc in claims) { // reservations എന്നത് claims ആക്കി
           final data = doc.data() as Map<String, dynamic>;
+          // claims-ൽ originalPrice, offerPrice എന്നിവയാണ് ഉള്ളത്
           final savings = ((data['originalPrice'] as num?)?.toDouble() ?? 0) - 
-                          ((data['unitPrice'] as num?)?.toDouble() ?? 0);
+                          ((data['offerPrice'] as num?)?.toDouble() ?? 0);
           
           lifetime += savings;
           
-          final pickedUpAt = (data['pickedUpAt'] as Timestamp?)?.toDate();
-          if (pickedUpAt != null && pickedUpAt.isAfter(monthStart)) {
+          final redeemedAt = (data['redeemedAt'] as Timestamp?)?.toDate(); // pickedUpAt -> redeemedAt
+          if (redeemedAt != null && redeemedAt.isAfter(monthStart)) {
             thisMonth += savings;
           }
         }
