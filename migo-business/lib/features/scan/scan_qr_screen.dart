@@ -212,7 +212,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
               MobileScanner(
                 controller: _scannerController,
                 onDetect: _onDetect,
-                errorBuilder: (context, error, child) {
+                                errorBuilder: (context, error) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

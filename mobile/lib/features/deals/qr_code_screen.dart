@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart'; // ഇത് ആവശ്യമാണ്
 import '../../core/theme/migo_colors.dart';
 
 class QrCodeScreen extends StatelessWidget {
@@ -39,14 +40,29 @@ class QrCodeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               
-              // QR Code Placeholder
+              // ✅ യഥാർത്ഥ QR കോഡ് ഇവിടെയാണ്
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: MigoColors.dividerLight, width: 2),
+                  color: Colors.white,
+                  border: Border.all(color: Colors.black12, width: 2),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(Icons.qr_code_2, size: 200, color: MigoColors.primary),
+                child: QrImageView(
+                  data: claimId,
+                  version: QrVersions.auto,
+                  size: 220.0,
+                  backgroundColor: Colors.white,
+                  // കറുപ്പും വെളുപ്പും ഉള്ള QR കോഡിന് വേണ്ടി:
+                  dataModuleStyle: const QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.square,
+                    color: Colors.black,
+                  ),
+                  eyeStyle: const QrEyeStyle(
+                    eyeShape: QrEyeShape.square,
+                    color: Colors.black,
+                  ),
+                ),
               ),
               
               const SizedBox(height: 32),
@@ -60,7 +76,7 @@ class QrCodeScreen extends StatelessWidget {
               SelectableText(
                 claimId, 
                 style: const TextStyle(
-                  fontSize: 14, // ഫോണ്ട് സൈസ് കുറച്ചു
+                  fontSize: 14,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.0,
                   color: Colors.black87,
