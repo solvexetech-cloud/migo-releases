@@ -1,7 +1,7 @@
 # ═══════════════════════════════════════════════════════
 # MIGO — MASTER PLAN
-# Version: v4.1
-# Date: October 21, 2026
+# Version: v4.2
+# Date: October 23, 2026
 # Owner: solvexe.tech@gmail.com
 # ═══════════════════════════════════════════════════════
 
@@ -669,10 +669,18 @@ Super Admin, Admin, Agency, Staff — എല്ലാവർക്കും separ
 | I17 | Customer Claims (Business App) | 2h | ✅ DONE 2026-10-21 |
 | I18 | Dashboard Stats + Offer Stats | 2h | ✅ DONE 2026-10-21 |
 | I19 | Reserve ON/OFF button fix | 1h | ✅ DONE 2026-10-21 |
+| I20 | My Flyers (Business App) — PDF upload/delete | 4h | ✅ DONE 2026-10-23 |
+| I21 | Flyers Management (Admin Panel) — approve/reject/edit expiry/delete | 3h | ✅ DONE 2026-10-23 |
+| I22 | MIGO Magazine (Customer App) — flyer reader with page tracking | 4h | ✅ DONE 2026-10-23 |
+| I23 | Flyer view tracking (viewedBy, fullyViewedBy) | 2h | ✅ DONE 2026-10-23 |
+| I24 | Home screen — Magazine banner + compact categories | 1h | ✅ DONE 2026-10-23 |
+| I25 | Business App — Claim fix (QR, status bug, Activate→live) | 3h | ✅ DONE 2026-10-23 |
+| I26 | Customer App — QR real image fix + Wallet stats | 2h | ✅ DONE 2026-10-23 |
+| I27 | Customer App — Staff Web App preparation (I20 base) | 0.5h | ⬜ NEXT |
 
 **Total PHASE I: ~40 hours**
 
-**Progress: 17/19 (89%)** 📈
+**Progress: 24/27 (89%)** 📈
 
 ### 🎯 PHASE I — Order of Implementation
 
@@ -1082,7 +1090,7 @@ PHASE C: [✅✅✅✅✅✅✅] 100% (7/7) 🎉72041826
 PHASE D: [✅✅✅🟡✅✅✅] 85% (6/7)
 PHASE E: [✅✅✅✅✅✅✅✅✅✅] 100% (10/10) 🎉
 PHASE J: [✅✅✅✅✅✅✅✅✅] 100% (9/9) 🎉
-PHASE I: [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜] 89% (17/19) 📈
+PHASE I: [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜⬜⬜] 89% (24/27) 📈
 PHASE F: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/13)
 PHASE G: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/12)
 PHASE H: [✅✅✅✅✅✅🟡] 95% (6/7 + Testing 90%)
@@ -1364,6 +1372,22 @@ TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅�
 - 2026-10-21: Firestore Rules — users update relaxed for testing
 - 2026-10-21: PHASE I — 89% (17/19)
 - 2026-10-21: MASTER PLAN v4.1
+- 2026-10-23: Business App — My Flyers screen (upload/delete PDF)
+- 2026-10-23: Flyer fields: title, category, startDate, endDate, logoUrl
+- 2026-10-23: Admin Panel — Flyers Management page (approve/reject/edit expiry/delete)
+- 2026-10-23: Firestore Rules — flyers collection (read: true, update: owner/admin)
+- 2026-10-23: Customer App — MIGO Magazine screen (approved flyers only)
+- 2026-10-23: PDF Reader with page navigation (Next/Prev)
+- 2026-10-23: 'I have read this flyer' button on last page
+- 2026-10-23: viewedBy + fullyViewedBy tracking
+- 2026-10-23: Admin Panel — Views/Fully Read count per flyer
+- 2026-10-23: Home screen — MIGO Magazine banner + compact categories scroll
+- 2026-10-23: Customer App — QR real image fix (black/white)
+- 2026-10-23: Customer App — Wallet stats (Deals Used, Savings) from claims
+- 2026-10-23: Business App — QR scan fix (mobile_scanner v7, errorBuilder)
+- 2026-10-23: Business App — Impeller off + ProGuard rules (camera fix)
+- 2026-10-23: PHASE I — 89% (24/27)
+- 2026-10-23: MASTER PLAN v4.2
 
 ═══════════════════════════════════════════════════════
 ## ഭാഗം 16: Important Info
@@ -1803,5 +1827,5 @@ END OF PHASE I — MULTI-APP ARCHITECTURE
 ═══════════════════════════════════════════════════════
 
 ═══════════════════════════════════════════════════════
-END OF MASTER PLAN v4.1
+END OF MASTER PLAN v4.2
 ═══════════════════════════════════════════════════════
