@@ -189,6 +189,18 @@ export default function FlyersPage() {
                   </div>
                 </div>
 
+                {/* Views Tracking */}
+                <div style={{ display: 'flex', gap: 24, marginTop: 8, fontSize: 13 }}>
+                  <div>
+                    <span style={{ color: '#999' }}>👁️ Views: </span>
+                    <strong>{flyer.viewedBy?.length || 0}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#999' }}>✅ Fully Read: </span>
+                    <strong>{flyer.fullyViewedBy?.length || 0}</strong>
+                  </div>
+                </div>
+
                 {/* Expiry Edit Row */}
                 {isEditing && (
                   <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center' }}>

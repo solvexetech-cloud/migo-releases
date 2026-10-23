@@ -17,6 +17,7 @@ import '../../services/creator_service.dart';
 import '../creator/creator_dashboard_screen.dart';
 import '../creator/creator_signup_screen.dart';
 import '../referrals/referral_screen.dart';
+import '../magazine/magazine_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -222,6 +223,18 @@ class ProfileScreen extends StatelessWidget {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => const MyBookingsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                                  _MenuTile(
+                        icon: Icons.menu_book,
+                        label: 'MIGO Magazine',
+                        color: MigoColors.primary,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const MagazineScreen(),
                             ),
                           );
                         },

@@ -331,7 +331,7 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                             : MigoColors.error;
                     final endDate = (data['endDate'] as Timestamp?)?.toDate();
 
-                    return Card(
+                                        return Card(
                       margin: const EdgeInsets.only(bottom: 10),
                       child: ListTile(
                         leading: const Icon(Icons.picture_as_pdf, color: MigoColors.primary),
@@ -342,6 +342,11 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                             Text(
                               'Status: ${status.toUpperCase()}',
                               style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '👁️ ${((data['viewedBy'] as List?) ?? []).length} views · ✅ ${((data['fullyViewedBy'] as List?) ?? []).length} fully read',
+                              style: const TextStyle(fontSize: 11, color: Colors.grey),
                             ),
                             if (endDate != null)
                               Text(
