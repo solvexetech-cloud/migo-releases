@@ -9,7 +9,6 @@ import '../../models/area_model.dart';
 import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
 import '../../services/location_service.dart';
-import '../../widgets/category_grid.dart';
 import '../../widgets/flash_deal_card.dart';
 import '../../widgets/intention_chip.dart';
 import '../../widgets/location_picker_modal.dart';
@@ -81,7 +80,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
-    // Persist selection
     await LocationService.instance.saveSelectedArea(
       uid: uid,
       areaId: selected.id,
@@ -116,7 +114,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Top row: MIGO + location chip + bell
                       Row(
                         children: [
                           const Text(
@@ -129,7 +126,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          // Location chip
                           Flexible(
                             child: _LocationChip(
                               loading: _loadingArea,
@@ -201,7 +197,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       const SizedBox(height: 22),
-                      // Headline
                       const Text(
                         'What can you discover\nor save today?',
                         style: TextStyle(
@@ -213,14 +208,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      // Pick For Me
                       MigoGoldButton(
                         label: 'Pick For Me',
                         icon: Icons.auto_awesome,
                         onPressed: () => PickForMeSheet.show(context),
                       ),
                       const SizedBox(height: 14),
-                      // Search bar
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -259,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // 🚀 MIGO Magazine Banner
+          // 🚀 MIGO Magazine Banner (ഒരു തവണ മാത്രം)
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -371,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // ---------- FLASH DEALS (area-filtered) ----------
+          // ---------- FLASH DEALS ----------
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
           const SliverToBoxAdapter(
             child: Padding(
@@ -385,7 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-          // ---------- NEARBY DEALS (area-filtered) ----------
+          // ---------- NEARBY DEALS ----------
           const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -398,34 +391,102 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-          // ---------- CATEGORIES ----------
+          // ---------- CATEGORIES (Horizontal Scroll) ----------
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: SectionHeader(
-                title: 'Browse Categories',
-                actionLabel: 'See all',
-                onActionTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const DiscoverScreen(),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Browse Categories',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const DiscoverScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text('See all'),
+                        ),
+                      ],
                     ),
-                  );
-                },
-              ),
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 12)),
-          SliverToBoxAdapter(
-            child: CategoryGrid(
-              maxItems: 6,
-              onCategoryTap: (name) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => DiscoverScreen(initialCategory: name),
                   ),
-                );
-              },
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 90,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: 6,
+                      itemBuilder: (context, index) {
+                        final categories = [
+                          {'name': 'Food', 'icon': Icons.restaurant},
+                          {'name': 'Beauty', 'icon': Icons.spa},
+                          {'name': 'Auto', 'icon': Icons.directions_car},
+                          {'name': 'Events', 'icon': Icons.celebration},
+                          {'name': 'Photo', 'icon': Icons.camera_alt},
+                          {'name': 'Fitness', 'icon': Icons.fitness_center},
+                        ];
+                        final cat = categories[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => DiscoverScreen(
+                                  initialCategory: cat['name'] as String,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: 80,
+                            margin: const EdgeInsets.only(right: 12),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: MigoColors.primary
+                                        .withValues(alpha: 0.08),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    cat['icon'] as IconData,
+                                    color: MigoColors.primary,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  cat['name'] as String,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),

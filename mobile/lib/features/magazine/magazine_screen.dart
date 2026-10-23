@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart'; // PDF തുറക്കാൻ
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../../core/theme/migo_colors.dart';
 
 class MagazineScreen extends StatelessWidget {
@@ -32,7 +33,17 @@ class MagazineScreen extends StatelessWidget {
           // എക്സ്പയർ ആയവ ഒഴിവാക്കുക
           final activeFlyers = docs.where((doc) {
             final data = doc.data() as Map<String, dynamic>;
-            final endDate = (data['endDate'] as Timestamp?)?.toDate();
+            DateTime? endDate;
+            final rawEndDate = data['endDate'];
+            if (rawEndDate is Timestamp) {
+              endDate = rawEndDate.toDate();
+            } else if (rawEndDate is Map && rawEndDate.containsKey('seconds')) {
+              endDate = DateTime.fromMillisecondsSinceEpoch(
+                (rawEndDate['seconds'] as int) * 1000,
+              );
+            } else if (rawEndDate is String) {
+              endDate = DateTime.tryParse(rawEndDate);
+            }
             if (endDate == null) return true;
             return endDate.isAfter(DateTime.now());
           }).toList();
@@ -62,32 +73,54 @@ class MagazineScreen extends StatelessWidget {
               final businessName = data['businessName'] as String? ?? '';
               final category = data['category'] as String? ?? '';
               final pdfUrl = data['pdfUrl'] as String? ?? '';
-              final endDate = (data['endDate'] as Timestamp?)?.toDate();
+              final thumbnailUrl = data['thumbnailUrl'] as String? ?? '';
+              final logoUrl = data['logoUrl'] as String? ?? '';
+              DateTime? endDate;
+              final rawEndDate = data['endDate'];
+              if (rawEndDate is Timestamp) {
+                endDate = rawEndDate.toDate();
+              } else if (rawEndDate is Map && rawEndDate.containsKey('seconds')) {
+                endDate = DateTime.fromMillisecondsSinceEpoch(
+                  (rawEndDate['seconds'] as int) * 1000,
+                );
+              } else if (rawEndDate is String) {
+                endDate = DateTime.tryParse(rawEndDate);
+              }
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 child: InkWell(
-                  onTap: () async {
-                    if (pdfUrl.isEmpty) return;
-                    final uri = Uri.parse(pdfUrl);
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
-                    }
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => FlyerReaderScreen(
+                          flyerId: activeFlyers[index].id,
+                          pdfUrl: pdfUrl,
+                          logoUrl: logoUrl,
+                        ),
+                      ),
+                    );
                   },
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: MigoColors.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(10),
+                            // Thumbnail Image (from first page or stored thumbnailUrl)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                width: 80,
+                                height: 100,
+                                color: Colors.grey.shade200,
+                                child: thumbnailUrl.isNotEmpty
+                                    ? Image.network(thumbnailUrl, fit: BoxFit.cover)
+                                    : const Icon(Icons.picture_as_pdf, size: 40, color: MigoColors.primary),
                               ),
-                              child: const Icon(Icons.menu_book, color: MigoColors.primary),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -101,47 +134,59 @@ class MagazineScreen extends StatelessWidget {
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    businessName,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: MigoColors.textSecondaryLight,
-                                    ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      if (logoUrl.isNotEmpty)
+                                        CircleAvatar(
+                                          radius: 10,
+                                          backgroundImage: NetworkImage(logoUrl),
+                                          backgroundColor: Colors.transparent,
+                                        )
+                                      else
+                                        const Icon(Icons.storefront, size: 14, color: Colors.grey),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        businessName,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: MigoColors.textSecondaryLight,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: MigoColors.accent.withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          category.toUpperCase(),
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w800,
+                                            color: MigoColors.accentDark,
+                                          ),
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      if (endDate != null)
+                                        Text(
+                                          'Valid till: ${endDate.day}/${endDate.month}/${endDate.year}',
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ],
                               ),
                             ),
-                            const Icon(Icons.chevron_right, color: Colors.grey),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: MigoColors.accent.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                category.toUpperCase(),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  color: MigoColors.accentDark,
-                                ),
-                              ),
-                            ),
-                            const Spacer(),
-                            if (endDate != null)
-                              Text(
-                                'Valid till: ${endDate.day}/${endDate.month}/${endDate.year}',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey,
-                                ),
-                              ),
                           ],
                         ),
                       ],
@@ -152,6 +197,195 @@ class MagazineScreen extends StatelessWidget {
             },
           );
         },
+      ),
+    );
+  }
+}
+
+class FlyerReaderScreen extends StatefulWidget {
+  final String flyerId;
+  final String pdfUrl;
+  final String logoUrl;
+
+  const FlyerReaderScreen({
+    super.key,
+    required this.flyerId,
+    required this.pdfUrl,
+    required this.logoUrl,
+  });
+
+  @override
+  State<FlyerReaderScreen> createState() => _FlyerReaderScreenState();
+}
+
+class _FlyerReaderScreenState extends State<FlyerReaderScreen> {
+  final PdfViewerController _pdfViewerController = PdfViewerController();
+  bool _hasReachedLastPage = false;
+  bool _markedAsRead = false;
+  int _currentPage = 1;
+  int _totalPages = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _markAsViewed();
+  }
+
+  Future<void> _markAsViewed() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    await FirebaseFirestore.instance.collection('flyers').doc(widget.flyerId).update({
+      'viewedBy': FieldValue.arrayUnion([uid]),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> _markAsFullyRead() async {
+    if (_markedAsRead) return;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    await FirebaseFirestore.instance.collection('flyers').doc(widget.flyerId).update({
+      'fullyViewedBy': FieldValue.arrayUnion([uid]),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+
+    setState(() {
+      _markedAsRead = true;
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You have fully read this flyer! ✅')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            if (widget.logoUrl.isNotEmpty)
+              CircleAvatar(
+                radius: 14,
+                backgroundImage: NetworkImage(widget.logoUrl),
+                backgroundColor: Colors.white,
+              ),
+            const SizedBox(width: 8),
+            Text('Page $_currentPage / $_totalPages'),
+          ],
+        ),
+        backgroundColor: MigoColors.primary,
+        foregroundColor: Colors.white,
+      ),
+      body: Stack(
+        children: [
+          SfPdfViewer.network(
+            widget.pdfUrl,
+            controller: _pdfViewerController,
+            onDocumentLoaded: (details) {
+              setState(() {
+                _totalPages = _pdfViewerController.pageCount;
+              });
+            },
+            onPageChanged: (details) {
+              setState(() {
+                _currentPage = details.newPageNumber;
+              });
+              if (details.newPageNumber == _totalPages) {
+                setState(() {
+                  _hasReachedLastPage = true;
+                });
+              }
+            },
+          ),
+          // Previous / Next Buttons (Smaller, positioned bottom)
+          Positioned(
+            bottom: 16,
+            left: 16,
+            right: 16,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _currentPage > 1
+                      ? () => _pdfViewerController.previousPage()
+                      : null,
+                  icon: const Icon(Icons.arrow_back_ios, size: 14),
+                  label: const Text('Prev', style: TextStyle(fontSize: 12)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.9),
+                    foregroundColor: MigoColors.primary,
+                    minimumSize: const Size(80, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _currentPage < _totalPages
+                      ? () => _pdfViewerController.nextPage()
+                      : null,
+                  icon: const Icon(Icons.arrow_forward_ios, size: 14),
+                  label: const Text('Next', style: TextStyle(fontSize: 12)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.9),
+                    foregroundColor: MigoColors.primary,
+                    minimumSize: const Size(80, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // "I have read this flyer" Button (shows only when last page reached)
+          if (_hasReachedLastPage && !_markedAsRead)
+            Positioned(
+              bottom: 70,
+              left: 20,
+              right: 20,
+              child: ElevatedButton(
+                onPressed: _markAsFullyRead,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: MigoColors.success,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  '✅ I have read this flyer',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          // "Already Read" message (if marked)
+          if (_markedAsRead)
+            Positioned(
+              bottom: 70,
+              left: 20,
+              right: 20,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: MigoColors.success.withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.white, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'You have already read this flyer',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

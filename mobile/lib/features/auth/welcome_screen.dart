@@ -16,12 +16,11 @@ class WelcomeScreen extends StatelessWidget {
           gradient: MigoGradients.heroBlue,
         ),
         child: SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Spacer(),
                 // Logo mark
                 Container(
                   padding: const EdgeInsets.all(24),
@@ -64,7 +63,7 @@ class WelcomeScreen extends StatelessWidget {
                     letterSpacing: 0.5,
                   ),
                 ),
-              const SizedBox(height: 28),
+                const SizedBox(height: 28),
                 // Feature bullets
                 const _FeatureRow(
                   icon: Icons.search,
@@ -83,7 +82,7 @@ class WelcomeScreen extends StatelessWidget {
                   title: 'Earn MIGO Coins',
                   body: 'Rewards for everything you do',
                 ),
-                const Spacer(),
+                const SizedBox(height: 40), // Spacer-ന് പകരം fixed space
                 // Actions
                 SizedBox(
                   height: 54,

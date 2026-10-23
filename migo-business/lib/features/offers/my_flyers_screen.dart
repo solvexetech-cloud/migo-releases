@@ -83,7 +83,7 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
 
       setState(() => _uploading = true);
 
-      final url = await CloudinaryService.instance.upload(
+            final url = await CloudinaryService.instance.upload(
         bytes: bytes,
         filename: file.name,
         folder: 'migo/flyers',
@@ -91,17 +91,27 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
 
       if (url == null) throw Exception('Upload failed - URL is null');
 
+      // ബിസിനസിന്റെ ലോഗോ കണ്ടെത്തുക
+      final bizSnap = await FirebaseFirestore.instance
+          .collection('businesses')
+          .doc(_businessId)
+          .get();
+      final logoUrl = bizSnap.data()?['logoUrl'] as String? ?? '';
+
       await FirebaseFirestore.instance.collection('flyers').add({
         'businessId': _businessId,
         'businessName': _businessName,
         'title': _titleController.text.trim(),
         'category': _selectedCategory,
         'pdfUrl': url,
+        'logoUrl': logoUrl,          // പുതിയത്
+        'thumbnailUrl': '',          // പിന്നീട്
         'status': 'pending',
         'totalPages': 0,
         'startDate': Timestamp.fromDate(_startDate),
         'endDate': Timestamp.fromDate(_endDate),
         'viewedBy': [],
+        'fullyViewedBy': [],         // പുതിയത്
         'createdAt': FieldValue.serverTimestamp(),
       });
 
