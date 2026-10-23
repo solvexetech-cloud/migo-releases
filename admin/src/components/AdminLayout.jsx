@@ -5,6 +5,7 @@ import { auth } from '../firebase';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useRoleNav } from '../hooks/useRoleNav';
 import { useRole } from '../contexts/RoleContext';
+import { FaFilePdf } from 'react-icons/fa';
 
 export default function AdminLayout({ user, children }) {
   const navigate = useNavigate();

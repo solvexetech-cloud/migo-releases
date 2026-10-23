@@ -42,6 +42,7 @@ import ReservationRulesPage from './pages/ReservationRulesPage';
 import ReservationConfigPage from './pages/ReservationConfigPage';
 import NoShowLogPage from './pages/NoShowLogPage';
 import MarketingDashboardPage from './pages/MarketingDashboardPage';
+import FlyersPage from './pages/FlyersPage';
 
 // ═══════════════════════════════════════════════════
 // J4 — RoleRedirect: role അനുസരിച്ച് landing page
@@ -172,6 +173,7 @@ export default function App() {
                     <Route path="/no-show-log" element={<NoShowLogPage />} />
                     <Route path="/marketing" element={<MarketingDashboardPage />} />
                     <Route path="/fraud-logs" element={<FraudLogsPage />} />
+                    <Route path="/flyers" element={<FlyersPage />} />
                   </Routes>
                 </AdminLayout>
               ) : (

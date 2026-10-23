@@ -11,6 +11,7 @@ const ALL_ITEMS = [
   { to: '/pending-businesses', label: 'Pending', icon: '⏳' },
   { to: '/offers', label: 'Pending Offers', icon: '🎁' },
   { to: '/all-offers', label: 'All Offers', icon: '🏷️' },
+  { to: '/flyers', label: 'Flyers', icon: '📄' }, // ✅ ഇവിടെ ചേർത്തു
   { to: '/users', label: 'Users', icon: '👥' },
   { to: '/creators', label: 'Creators', icon: '🎬' },
   { to: '/fraud-logs', label: 'Fraud Logs', icon: '🚨' },
@@ -53,6 +54,7 @@ const ROLE_PATHS = {
     '/reservations',
     '/no-show-log',
     '/revenue',
+    '/flyers', // ✅ ചേർത്തു
   ],
 
   // Agency — own area only
@@ -66,6 +68,7 @@ const ROLE_PATHS = {
     '/reviews',
     '/reservations',
     '/no-show-log',
+    '/flyers', // ✅ ചേർത്തു
   ],
 
   // Moderator (Staff) — approvals + reviews
@@ -77,6 +80,7 @@ const ROLE_PATHS = {
     '/reviews',
     '/users',
     '/fraud-logs',
+    '/flyers', // ✅ ചേർത്തു
   ],
 };
 
