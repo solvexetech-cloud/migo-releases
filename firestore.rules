@@ -48,39 +48,38 @@ service cloud.firestore {
         get(/databases/$(database)/documents/businesses/$(businessId)).data.agencyUid == request.auth.uid;
     }
 
-        // ---------- USERS ----------
+    // ---------- USERS ----------
     match /users/{uid} {
-  // Read: owner OR admin/moderator/agency
-  allow read: if isSignedIn();
-allow list: if isSignedIn();
-  
-  // Create: only self
-  allow create: if isSignedIn() &&
-    request.auth.uid == uid;
-  
-  // Update: self (profile) OR coins-increment OR admin
-    allow update: if isSignedIn() && (
-    // 1. Owner (profile update)
-    (request.auth.uid == uid &&
-     !request.resource.data.diff(resource.data)
-       .affectedKeys().hasAny(['role'])) ||
-    
-    // 2. Admin (full access)
-    isAdmin() ||
+      allow read: if isSignedIn();
+      allow list: if isSignedIn();
+      
+      allow create: if isSignedIn() &&
+        request.auth.uid == uid;
+      
+      allow update: if isSignedIn() && (
+        (request.auth.uid == uid &&
+         !request.resource.data.diff(resource.data)
+           .affectedKeys().hasAny(['role'])) ||
+        isAdmin() ||
+        (request.resource.data.diff(resource.data)
+           .affectedKeys().hasOnly(['coins', 'updatedAt']) && 
+         isBusinessOwner(resource.data.businessId)) ||
+        (request.resource.data.diff(resource.data)
+           .affectedKeys().hasOnly(['coins', 'updatedAt']) &&
+         request.resource.data.coins >= resource.data.coins)
+      );
+      
+      allow delete: if isSuperAdmin();
+    }
 
-    // 3. Business Owner (to add coins on redeem)
-    (request.resource.data.diff(resource.data)
-       .affectedKeys().hasOnly(['coins', 'updatedAt']) && 
-     isBusinessOwner(resource.data.businessId)) || // ഇത് പുതിയത്
-
-    // 4. Any signed-in user (to increment coins via share/referral)
-    (request.resource.data.diff(resource.data)
-       .affectedKeys().hasOnly(['coins', 'updatedAt']) &&
-     request.resource.data.coins >= resource.data.coins)
-  );
-  
-  allow delete: if isSuperAdmin();
-}
+    // ---------- FLYERS ----------
+    match /flyers/{flyerId} {
+      allow read: if true; 
+      allow create: if isSignedIn() && 
+        isBusinessOwner(request.resource.data.businessId);
+      allow update, delete: if isSignedIn() && 
+        (isBusinessOwner(resource.data.businessId) || isAdmin() || isModerator());
+    }
 
     // ---------- BUSINESSES ----------
     match /businesses/{businessId} {
@@ -109,19 +108,10 @@ allow list: if isSignedIn();
         isBusinessOwner(request.resource.data.businessId);
       allow update: if isSignedIn() &&
         (
-          // Customer booking: bookedSlots only
-          (
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bookedSlots', 'updatedAt'])
-          ) ||
-          // Customer claiming: claimedCount only
-          (
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['claimedCount', 'updatedAt']) &&
-            request.resource.data.claimedCount == resource.data.claimedCount + 1
-          ) ||
-          // Business owner: reserve settings
-          (
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reserve', 'updatedAt'])
-          ) ||
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bookedSlots', 'updatedAt'])) ||
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['claimedCount', 'updatedAt']) &&
+            request.resource.data.claimedCount == resource.data.claimedCount + 1) ||
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reserve', 'updatedAt'])) ||
           isBusinessOwner(resource.data.businessId) ||
           isAdmin() ||
           isModerator()
@@ -130,31 +120,27 @@ allow list: if isSignedIn();
     }
 
     // ---------- CLAIMS ----------
-        match /claims/{claimId} {
-  // Read: owner OR business owner OR admin
-  allow read: if isSignedIn() && (
-    resource.data.userUid == request.auth.uid ||
-    isBusinessOwner(resource.data.businessId) ||
-    isModerator() ||
-    isAgency()
-  );
-  allow list: if isSignedIn();
-  
-  // Create: self only
-  allow create: if isSignedIn() &&
-    request.resource.data.userUid == request.auth.uid;
-  
-    // Update: owner (status), business owner (redeem), admin
-    // Update: owner (status), business owner (redeem), admin
-        allow update: if isSignedIn() && (
+    match /claims/{claimId} {
+      allow read: if isSignedIn() && (
+        resource.data.userUid == request.auth.uid ||
+        isBusinessOwner(resource.data.businessId) ||
+        isModerator() ||
+        isAgency()
+      );
+      allow list: if isSignedIn();
+      
+      allow create: if isSignedIn() &&
+        request.resource.data.userUid == request.auth.uid;
+      
+      allow update: if isSignedIn() && (
         resource.data.userUid == request.auth.uid ||
         isBusinessOwner(resource.data.businessId) || 
         isModerator() ||
         isAdmin()
       );
-  
-  allow delete: if isAdmin();
-}
+      
+      allow delete: if isAdmin();
+    }
 
     // ---------- GROUP DEALS ----------
     match /group_deals/{offerId} {
@@ -183,25 +169,23 @@ allow list: if isSignedIn();
 
     // ---------- REFERRALS ----------
     match /referrals/{referralId} {
-  allow read: if isSignedIn() &&
-    (resource.data.referrerUid == request.auth.uid ||
-     resource.data.referredUid == request.auth.uid ||
-     isModerator());
-  allow create: if true;
-  allow update: if true;
-  allow delete: if isAdmin();
-}
+      allow read: if isSignedIn() &&
+        (resource.data.referrerUid == request.auth.uid ||
+         resource.data.referredUid == request.auth.uid ||
+         isModerator());
+      allow create: if true;
+      allow update: if true;
+      allow delete: if isAdmin();
+    }
 
-    // ---------- CREATORS (PHASE E — E6) ----------
+    // ---------- CREATORS ----------
     match /creators/{creatorId} {
       allow read: if true;
       allow create: if isSignedIn() &&
         request.resource.data.status == 'pending';
       allow update: if isSignedIn() &&
         (
-          // Owner can update own profile
           request.auth.uid == creatorId ||
-          // Admin can approve/reject
           isAdmin() ||
           isModerator()
         );
@@ -226,20 +210,17 @@ allow list: if isSignedIn();
       allow update, delete: if isAdmin();
     }
 
-    // ─── FRAUD LOGS (E10) ────────────────────────────
+    // ---------- FRAUD LOGS ----------
     match /fraud_logs/{logId} {
-  allow create: if isSignedIn();
-  allow read: if isModerator();
-  allow update, delete: if isAdmin();
-}
+      allow create: if isSignedIn();
+      allow read: if isModerator();
+      allow update, delete: if isAdmin();
+    }
 
     // ---------- SAVED OFFERS ----------
     match /saved_offers/{docId} {
       allow read: if isSignedIn() &&
-        (
-          (resource != null && resource.data.userUid == request.auth.uid) ||
-          (resource == null)
-        );
+        ((resource != null && resource.data.userUid == request.auth.uid) || (resource == null));
       allow create: if isSignedIn() &&
         request.resource.data.userUid == request.auth.uid;
       allow update, delete: if isSignedIn() &&
@@ -249,10 +230,7 @@ allow list: if isSignedIn();
     // ---------- SAVED BUSINESSES ----------
     match /saved_businesses/{docId} {
       allow read: if isSignedIn() &&
-        (
-          (resource != null && resource.data.userUid == request.auth.uid) ||
-          (resource == null)
-        );
+        ((resource != null && resource.data.userUid == request.auth.uid) || (resource == null));
       allow create: if isSignedIn() &&
         request.resource.data.userUid == request.auth.uid;
       allow update, delete: if isSignedIn() &&
@@ -362,7 +340,6 @@ allow list: if isSignedIn();
     // ═══════════════════════════════════════════════════════
     // PHASE H — MIGO RESERVE
     // ═══════════════════════════════════════════════════════
-
     match /reservations/{resId} {
       allow create: if isSignedIn() &&
         request.resource.data.status == 'reserved';

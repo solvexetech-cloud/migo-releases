@@ -18,10 +18,32 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
   bool _loading = true;
   bool _uploading = false;
 
+  // അപ്‌ലോഡ് ഫോം മൂല്യങ്ങൾ
+  final _titleController = TextEditingController();
+  String _selectedCategory = 'Food & Dining';
+  DateTime _startDate = DateTime.now();
+  DateTime _endDate = DateTime.now().add(const Duration(days: 7));
+
+  final List<String> _categories = [
+    'Food & Dining',
+    'Supermarket',
+    'Electronics',
+    'Fashion',
+    'Beauty & Wellness',
+    'Services',
+    'Other',
+  ];
+
   @override
   void initState() {
     super.initState();
     _loadBusiness();
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadBusiness() async {
@@ -39,8 +61,14 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
     if (mounted) setState(() => _loading = false);
   }
 
-  Future<void> _pickAndUploadFlyer() async {
+    Future<void> _pickAndUploadFlyer() async {
     if (_businessId == null) return;
+    if (_titleController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a title')),
+      );
+      return;
+    }
 
     try {
       final files = await FilePicker.pickFiles(
@@ -48,7 +76,7 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
         allowedExtensions: ['pdf'],
       );
 
-            if (files.isEmpty) return;
+      if (files.isEmpty) return;
 
       final file = files.first;
       final bytes = await file.readAsBytes();
@@ -61,17 +89,18 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
         folder: 'migo/flyers',
       );
 
-      if (url == null) throw Exception('Upload failed');
+      if (url == null) throw Exception('Upload failed - URL is null');
 
       await FirebaseFirestore.instance.collection('flyers').add({
         'businessId': _businessId,
         'businessName': _businessName,
-        'title': file.name.replaceAll('.pdf', ''),
+        'title': _titleController.text.trim(),
+        'category': _selectedCategory,
         'pdfUrl': url,
         'status': 'pending',
         'totalPages': 0,
-        'startDate': FieldValue.serverTimestamp(),
-        'endDate': Timestamp.fromDate(DateTime.now().add(const Duration(days: 7))),
+        'startDate': Timestamp.fromDate(_startDate),
+        'endDate': Timestamp.fromDate(_endDate),
         'viewedBy': [],
         'createdAt': FieldValue.serverTimestamp(),
       });
@@ -80,16 +109,56 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Flyer uploaded! Waiting for approval.')),
         );
+        _titleController.clear();
+        setState(() {
+          _startDate = DateTime.now();
+          _endDate = DateTime.now().add(const Duration(days: 7));
+        });
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Upload Failed'),
+            content: Text(e.toString()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         );
       }
     } finally {
       if (mounted) setState(() => _uploading = false);
     }
+  }
+
+  Future<void> _pickDate({required bool isStart}) async {
+    final now = DateTime.now();
+    final initialDate = isStart ? _startDate : _endDate;
+    final firstDate = isStart ? now : _startDate;
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: now.add(const Duration(days: 365)),
+    );
+
+    if (picked == null) return;
+    setState(() {
+      if (isStart) {
+        _startDate = picked;
+        if (_endDate.isBefore(_startDate)) {
+          _endDate = _startDate.add(const Duration(days: 7));
+        }
+      } else {
+        _endDate = picked;
+      }
+    });
   }
 
   Future<void> _deleteFlyer(String id) async {
@@ -132,27 +201,95 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
       appBar: AppBar(title: const Text('My Flyers')),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton.icon(
-                onPressed: _uploading ? null : _pickAndUploadFlyer,
-                icon: _uploading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+          // ── Upload Form ──
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title
+                TextField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(
+                    labelText: 'Flyer Title (e.g., Month End Deals)',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Category
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedCategory,
+                  decoration: const InputDecoration(
+                    labelText: 'Category',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  items: _categories.map((c) {
+                    return DropdownMenuItem(value: c, child: Text(c));
+                  }).toList(),
+                  onChanged: (v) {
+                    if (v != null) setState(() => _selectedCategory = v);
+                  },
+                ),
+                const SizedBox(height: 12),
+                // Dates
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _pickDate(isStart: true),
+                        icon: const Icon(Icons.calendar_today, size: 16),
+                        label: Text(
+                          'Start: ${_startDate.day}/${_startDate.month}/${_startDate.year}',
+                          style: const TextStyle(fontSize: 12),
                         ),
-                      )
-                    : const Icon(Icons.upload_file),
-                label: Text(_uploading ? 'Uploading...' : 'Upload New Flyer (PDF)'),
-              ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _pickDate(isStart: false),
+                        icon: const Icon(Icons.event, size: 16),
+                        label: Text(
+                          'End: ${_endDate.day}/${_endDate.month}/${_endDate.year}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Upload Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: _uploading ? null : _pickAndUploadFlyer,
+                    icon: _uploading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.upload_file),
+                    label: Text(
+                      _uploading ? 'Uploading...' : 'Select PDF & Upload',
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
+
+          // ── Flyers List ──
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -160,10 +297,13 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                   .where('businessId', isEqualTo: _businessId)
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                final docs = snapshot.data!.docs;
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+                final docs = snapshot.data?.docs ?? [];
 
                 if (docs.isEmpty) {
                   return const Center(
@@ -179,7 +319,7 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
                     final data = docs[index].data() as Map<String, dynamic>;
@@ -189,15 +329,26 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                         : status == 'pending'
                             ? MigoColors.warning
                             : MigoColors.error;
+                    final endDate = (data['endDate'] as Timestamp?)?.toDate();
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 10),
                       child: ListTile(
                         leading: const Icon(Icons.picture_as_pdf, color: MigoColors.primary),
                         title: Text(data['title'] ?? 'Flyer'),
-                        subtitle: Text(
-                          'Status: ${status.toUpperCase()}',
-                          style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Status: ${status.toUpperCase()}',
+                              style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
+                            if (endDate != null)
+                              Text(
+                                'Expires: ${endDate.day}/${endDate.month}/${endDate.year}',
+                                style: const TextStyle(fontSize: 11, color: Colors.grey),
+                              ),
+                          ],
                         ),
                         trailing: IconButton(
                           icon: const Icon(Icons.delete, color: MigoColors.error),

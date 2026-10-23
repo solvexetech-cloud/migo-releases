@@ -7,7 +7,7 @@ import '../../models/offer_model.dart';
 import '../../services/offer_service.dart';
 import 'create_offer_screen.dart';
 import 'business_offer_reserve_settings.dart';
-import 'offer_stats_screen.dart'; // പുതിയത്
+import 'offer_stats_screen.dart';
 
 /// PHASE I — My Offers (Business)
 class MyOffersScreen extends StatefulWidget {
@@ -262,43 +262,52 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
               ],
             ),
             const SizedBox(height: 12),
+            // ── Action Buttons Row ──
             Row(
               children: [
                 Expanded(
+                  flex: 1,
                   child: OutlinedButton.icon(
                     onPressed: () => _openEdit(context, offer),
-                    icon: const Icon(Icons.edit_outlined, size: 16),
-                    label: const Text('Edit',
-                        style: TextStyle(fontSize: 12)),
+                    icon: const Icon(Icons.edit_outlined, size: 14),
+                    label: const Text('Edit', style: TextStyle(fontSize: 11)),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(0, 36),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Expanded(
+                  flex: 1,
                   child: OutlinedButton.icon(
                     onPressed: () => _toggleActive(context, offer),
                     icon: Icon(
-                      offer.isActive
-                          ? Icons.pause_circle_outline
-                          : Icons.play_circle_outline,
-                      size: 16,
+                      offer.isActive ? Icons.pause_circle_outline : Icons.play_circle_outline,
+                      size: 14,
                     ),
                     label: Text(
                       offer.isActive ? 'Pause' : 'Activate',
-                      style: const TextStyle(fontSize: 12),
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(0, 36),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                IconButton(
-                  onPressed: () => _openReserveSettings(context, offer),
-                  icon: const Icon(
-                    Icons.tune,
-                    color: Colors.deepPurple,
-                    size: 20,
-                  ),
+                // Icons
+                _actionIcon(
+                  icon: Icons.tune,
+                  color: Colors.deepPurple,
                   tooltip: 'Reserve Settings',
+                  onPressed: () => _openReserveSettings(context, offer),
                 ),
-                IconButton(
+                _actionIcon(
+                  icon: Icons.bar_chart,
+                  color: MigoColors.info,
+                  tooltip: 'View Stats',
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -310,22 +319,35 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.bar_chart, color: MigoColors.info),
-                  tooltip: 'View Stats',
                 ),
-                IconButton(
+                _actionIcon(
+                  icon: Icons.delete_outline,
+                  color: MigoColors.error,
+                  tooltip: 'Delete',
                   onPressed: () => _confirmDelete(context, offer),
-                  icon: const Icon(
-                    Icons.delete_outline,
-                    color: MigoColors.error,
-                    size: 20,
-                  ),
                 ),
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  // ചെറിയ ഐക്കൺ ബട്ടൺ ഉണ്ടാക്കാൻ ഒരു ഹെൽപ്പർ
+  Widget _actionIcon({
+    required IconData icon,
+    required Color color,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    return IconButton(
+      onPressed: onPressed,
+      icon: Icon(icon, color: color, size: 20),
+      tooltip: tooltip,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      visualDensity: VisualDensity.compact,
     );
   }
 
