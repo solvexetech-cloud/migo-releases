@@ -109,15 +109,25 @@ class MagazineScreen extends StatelessWidget {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ClipRRect(
+                                                        ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: Container(
                                 width: 80,
                                 height: 100,
                                 color: Colors.grey.shade200,
-                                child: const Center(
-                                  child: Icon(Icons.picture_as_pdf, size: 40, color: MigoColors.primary),
-                                ),
+                                child: thumbnailUrl.isNotEmpty
+                                    ? Image.network(
+                                        thumbnailUrl,
+                                        fit: BoxFit.cover,
+                                        width: 80,
+                                        height: 100,
+                                        errorBuilder: (_, _, _) => const Center(
+                                          child: Icon(Icons.broken_image, size: 40, color: MigoColors.primary),
+                                        ),
+                                      )
+                                    : const Center(
+                                        child: Icon(Icons.picture_as_pdf, size: 40, color: MigoColors.primary),
+                                      ),
                               ),
                             ),
                             const SizedBox(width: 12),

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -18,11 +19,12 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
   bool _loading = true;
   bool _uploading = false;
 
-  // അപ്‌ലോഡ് ഫോം മൂല്യങ്ങൾ
   final _titleController = TextEditingController();
   String _selectedCategory = 'Food & Dining';
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now().add(const Duration(days: 7));
+
+  List<({String name, Uint8List bytes})> _selectedImages = [];
 
   final List<String> _categories = [
     'Food & Dining',
@@ -61,7 +63,32 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
     if (mounted) setState(() => _loading = false);
   }
 
-    Future<void> _pickAndUploadFlyer() async {
+  Future<void> _pickImages() async {
+    try {
+      final files = await FilePicker.pickFiles(
+        type: FileType.image,
+      );
+      if (files.isEmpty) return;
+
+      final List<({String name, Uint8List bytes})> selected = [];
+      for (final file in files) {
+        final bytes = await file.readAsBytes();
+        selected.add((name: file.name, bytes: bytes));
+      }
+
+      setState(() {
+        _selectedImages = selected;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking images: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _uploadFlyer() async {
     if (_businessId == null) return;
     if (_titleController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -69,60 +96,74 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
       );
       return;
     }
+    if (_selectedImages.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select at least one image')),
+      );
+      return;
+    }
+
+    setState(() => _uploading = true);
 
     try {
-      final files = await FilePicker.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf'],
-      );
+      final List<String> imageUrls = [];
+      for (final image in _selectedImages) {
+        final url = await CloudinaryService.instance.upload(
+          bytes: image.bytes,
+          filename: image.name,
+          folder: 'migo/flyers',
+        );
+        if (url != null) imageUrls.add(url);
+      }
 
-      if (files.isEmpty) return;
+      if (imageUrls.isEmpty) throw Exception('No images uploaded');
 
-      final file = files.first;
-      final bytes = await file.readAsBytes();
-
-      setState(() => _uploading = true);
-
-            final url = await CloudinaryService.instance.upload(
-        bytes: bytes,
-        filename: file.name,
-        folder: 'migo/flyers',
-      );
-
-      if (url == null) throw Exception('Upload failed - URL is null');
-
-      // ബിസിനസിന്റെ ലോഗോ കണ്ടെത്തുക
       final bizSnap = await FirebaseFirestore.instance
           .collection('businesses')
           .doc(_businessId)
           .get();
       final logoUrl = bizSnap.data()?['logoUrl'] as String? ?? '';
+      final countryCode = bizSnap.data()?['countryCode'] as String? ?? 'QA';
 
       await FirebaseFirestore.instance.collection('flyers').add({
         'businessId': _businessId,
         'businessName': _businessName,
         'title': _titleController.text.trim(),
         'category': _selectedCategory,
-        'pdfUrl': url,
-        'logoUrl': logoUrl,          // പുതിയത്
-        'thumbnailUrl': '',          // പിന്നീട്
+        'pdfUrl': '',
+        'imageUrls': imageUrls,
+        'logoUrl': logoUrl,
+        'thumbnailUrl': imageUrls.first,
+        'countryCode': countryCode,
         'status': 'pending',
-        'totalPages': 0,
+        'totalPages': imageUrls.length,
         'startDate': Timestamp.fromDate(_startDate),
         'endDate': Timestamp.fromDate(_endDate),
         'viewedBy': [],
-        'fullyViewedBy': [],         // പുതിയത്
+        'fullyViewedBy': [],
         'createdAt': FieldValue.serverTimestamp(),
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Flyer uploaded! Waiting for approval.')),
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Upload Successful ✅'),
+            content: const Text(
+              'Your flyer has been submitted for approval.\n\n'
+              'It will be visible to customers once approved by admin.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         );
-        _titleController.clear();
         setState(() {
-          _startDate = DateTime.now();
-          _endDate = DateTime.now().add(const Duration(days: 7));
+          _selectedImages = [];
+          _titleController.clear();
         });
       }
     } catch (e) {
@@ -211,7 +252,7 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
       appBar: AppBar(title: const Text('My Flyers')),
       body: Column(
         children: [
-          // ── Upload Form ──
+          // Upload Form
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -221,7 +262,6 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title
                 TextField(
                   controller: _titleController,
                   decoration: const InputDecoration(
@@ -231,7 +271,6 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                // Category
                 DropdownButtonFormField<String>(
                   initialValue: _selectedCategory,
                   decoration: const InputDecoration(
@@ -247,7 +286,6 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
-                // Dates
                 Row(
                   children: [
                     Expanded(
@@ -274,12 +312,45 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                // Upload Button
+                OutlinedButton.icon(
+                  onPressed: _pickImages,
+                  icon: const Icon(Icons.add_photo_alternate),
+                  label: Text(
+                    _selectedImages.isEmpty
+                        ? 'Select Images (JPEG/PNG)'
+                        : '${_selectedImages.length} images selected',
+                  ),
+                ),
+                if (_selectedImages.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 80,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _selectedImages.length,
+                      itemBuilder: (context, i) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.memory(
+                              _selectedImages[i].bytes,
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton.icon(
-                    onPressed: _uploading ? null : _pickAndUploadFlyer,
+                    onPressed: _uploading ? null : _uploadFlyer,
                     icon: _uploading
                         ? const SizedBox(
                             width: 20,
@@ -291,7 +362,7 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                           )
                         : const Icon(Icons.upload_file),
                     label: Text(
-                      _uploading ? 'Uploading...' : 'Select PDF & Upload',
+                      _uploading ? 'Uploading...' : 'Upload Flyer',
                     ),
                   ),
                 ),
@@ -299,7 +370,7 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
             ),
           ),
 
-          // ── Flyers List ──
+          // Flyers List
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -340,11 +411,24 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                             ? MigoColors.warning
                             : MigoColors.error;
                     final endDate = (data['endDate'] as Timestamp?)?.toDate();
+                    final viewed = (data['viewedBy'] as List?) ?? [];
+                    final fullyRead = (data['fullyViewedBy'] as List?) ?? [];
+                    final thumbnailUrl = data['thumbnailUrl'] as String? ?? '';
 
-                                        return Card(
+                    return Card(
                       margin: const EdgeInsets.only(bottom: 10),
                       child: ListTile(
-                        leading: const Icon(Icons.picture_as_pdf, color: MigoColors.primary),
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Container(
+                            width: 50,
+                            height: 60,
+                            color: Colors.grey.shade200,
+                            child: thumbnailUrl.isNotEmpty
+                                ? Image.network(thumbnailUrl, fit: BoxFit.cover)
+                                : const Icon(Icons.image, color: MigoColors.primary),
+                          ),
+                        ),
                         title: Text(data['title'] ?? 'Flyer'),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -354,9 +438,20 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                               style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12),
                             ),
                             const SizedBox(height: 2),
-                            Text(
-                              '👁️ ${((data['viewedBy'] as List?) ?? []).length} views · ✅ ${((data['fullyViewedBy'] as List?) ?? []).length} fully read',
-                              style: const TextStyle(fontSize: 11, color: Colors.grey),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: viewed.isNotEmpty ? Colors.blue.shade50 : Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '👁️ ${viewed.length} views · ✅ ${fullyRead.length} fully read',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: viewed.isNotEmpty ? Colors.blue.shade800 : Colors.grey.shade600,
+                                ),
+                              ),
                             ),
                             if (endDate != null)
                               Text(
@@ -365,10 +460,7 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                               ),
                           ],
                         ),
-
                         onTap: () {
-                          final viewed = (data['viewedBy'] as List?) ?? [];
-                          final fullyViewed = (data['fullyViewedBy'] as List?) ?? [];
                           showDialog(
                             context: context,
                             builder: (_) => AlertDialog(
@@ -383,10 +475,10 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                                     ...viewed.take(10).map((uid) => Text('• ${uid.toString().substring(0, 8)}...')),
                                     if (viewed.length > 10) const Text('...'),
                                     const Divider(),
-                                    Text('✅ Fully read: ${fullyViewed.length} users'),
+                                    Text('✅ Fully read: ${fullyRead.length} users'),
                                     const SizedBox(height: 4),
-                                    ...fullyViewed.take(10).map((uid) => Text('• ${uid.toString().substring(0, 8)}...')),
-                                    if (fullyViewed.length > 10) const Text('...'),
+                                    ...fullyRead.take(10).map((uid) => Text('• ${uid.toString().substring(0, 8)}...')),
+                                    if (fullyRead.length > 10) const Text('...'),
                                   ],
                                 ),
                               ),

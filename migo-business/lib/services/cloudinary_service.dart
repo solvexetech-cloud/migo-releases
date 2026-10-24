@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:http/http.dart' as http;
 
 /// PHASE I — Cloudinary upload service (unsigned)
@@ -43,7 +43,7 @@ class CloudinaryService {
     }
   }
 
-  /// Upload raw bytes (web too)
+  /// Upload raw bytes (works on web AND mobile)
   Future<String?> uploadBytes({
     required List<int> bytes,
     required String filename,
@@ -76,20 +76,22 @@ class CloudinaryService {
     }
   }
 
-  /// Unified upload
+  /// Unified upload (works on web AND mobile)
   Future<String?> upload({
     File? file,
     List<int>? bytes,
     String? filename,
     String? folder,
   }) async {
-    if (kIsWeb && bytes != null && filename != null) {
+    // If bytes are provided, use uploadBytes (works on web AND mobile)
+    if (bytes != null && filename != null) {
       return uploadBytes(
         bytes: bytes,
         filename: filename,
         folder: folder,
       );
     }
+    // Otherwise, use file (if available)
     if (file != null) {
       return uploadFile(file, folder: folder);
     }
