@@ -73,7 +73,6 @@ class MagazineScreen extends StatelessWidget {
               final businessName = data['businessName'] as String? ?? '';
               final category = data['category'] as String? ?? '';
               final pdfUrl = data['pdfUrl'] as String? ?? '';
-              final thumbnailUrl = data['thumbnailUrl'] as String? ?? '';
               final logoUrl = data['logoUrl'] as String? ?? '';
               DateTime? endDate;
               final rawEndDate = data['endDate'];
@@ -110,16 +109,15 @@ class MagazineScreen extends StatelessWidget {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Thumbnail Image (from first page or stored thumbnailUrl)
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: Container(
                                 width: 80,
                                 height: 100,
                                 color: Colors.grey.shade200,
-                                child: thumbnailUrl.isNotEmpty
-                                    ? Image.network(thumbnailUrl, fit: BoxFit.cover)
-                                    : const Icon(Icons.picture_as_pdf, size: 40, color: MigoColors.primary),
+                                child: const Center(
+                                  child: Icon(Icons.picture_as_pdf, size: 40, color: MigoColors.primary),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -286,9 +284,14 @@ class _FlyerReaderScreenState extends State<FlyerReaderScreen> {
           SfPdfViewer.network(
             widget.pdfUrl,
             controller: _pdfViewerController,
-            onDocumentLoaded: (details) {
-              setState(() {
-                _totalPages = _pdfViewerController.pageCount;
+                        onDocumentLoaded: (details) {
+              // പേജ് എണ്ണം കണക്കാക്കാൻ അൽപ്പം കാത്തിരിക്കുക
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (mounted) {
+                  setState(() {
+                    _totalPages = _pdfViewerController.pageCount;
+                  });
+                }
               });
             },
             onPageChanged: (details) {
@@ -302,47 +305,52 @@ class _FlyerReaderScreenState extends State<FlyerReaderScreen> {
               }
             },
           ),
-          // Previous / Next Buttons (Smaller, positioned bottom)
+          // Previous Button (Overlay - semi-transparent)
           Positioned(
-            bottom: 16,
-            left: 16,
-            right: 16,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: _currentPage > 1
-                      ? () => _pdfViewerController.previousPage()
-                      : null,
-                  icon: const Icon(Icons.arrow_back_ios, size: 14),
-                  label: const Text('Prev', style: TextStyle(fontSize: 12)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white.withValues(alpha: 0.9),
-                    foregroundColor: MigoColors.primary,
-                    minimumSize: const Size(80, 36),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: _currentPage < _totalPages
-                      ? () => _pdfViewerController.nextPage()
-                      : null,
-                  icon: const Icon(Icons.arrow_forward_ios, size: 14),
-                  label: const Text('Next', style: TextStyle(fontSize: 12)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white.withValues(alpha: 0.9),
-                    foregroundColor: MigoColors.primary,
-                    minimumSize: const Size(80, 36),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                ),
-              ],
+            left: 10,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: _currentPage > 1
+                  ? GestureDetector(
+                      onTap: () => _pdfViewerController.previousPage(),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 24),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
             ),
           ),
-          // "I have read this flyer" Button (shows only when last page reached)
+          // Next Button (Overlay - semi-transparent)
+          Positioned(
+            right: 10,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: _currentPage < _totalPages
+                  ? GestureDetector(
+                      onTap: () => _pdfViewerController.nextPage(),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 24),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
+          // "I have read this flyer" Button
           if (_hasReachedLastPage && !_markedAsRead)
             Positioned(
-              bottom: 70,
+              bottom: 20,
               left: 20,
               right: 20,
               child: ElevatedButton(
@@ -360,10 +368,9 @@ class _FlyerReaderScreenState extends State<FlyerReaderScreen> {
                 ),
               ),
             ),
-          // "Already Read" message (if marked)
           if (_markedAsRead)
             Positioned(
-              bottom: 70,
+              bottom: 20,
               left: 20,
               right: 20,
               child: Container(

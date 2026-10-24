@@ -365,6 +365,40 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                               ),
                           ],
                         ),
+
+                        onTap: () {
+                          final viewed = (data['viewedBy'] as List?) ?? [];
+                          final fullyViewed = (data['fullyViewedBy'] as List?) ?? [];
+                          showDialog(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: Text(data['title'] ?? 'Flyer'),
+                              content: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text('👁️ Viewed by: ${viewed.length} users'),
+                                    const SizedBox(height: 4),
+                                    ...viewed.take(10).map((uid) => Text('• ${uid.toString().substring(0, 8)}...')),
+                                    if (viewed.length > 10) const Text('...'),
+                                    const Divider(),
+                                    Text('✅ Fully read: ${fullyViewed.length} users'),
+                                    const SizedBox(height: 4),
+                                    ...fullyViewed.take(10).map((uid) => Text('• ${uid.toString().substring(0, 8)}...')),
+                                    if (fullyViewed.length > 10) const Text('...'),
+                                  ],
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Close'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                         trailing: IconButton(
                           icon: const Icon(Icons.delete, color: MigoColors.error),
                           onPressed: () => _deleteFlyer(docs[index].id),

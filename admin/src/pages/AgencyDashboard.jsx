@@ -6,6 +6,7 @@ import {
   onSnapshot,
   doc,
   getDoc,
+  getDocs,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useRole } from '../contexts/RoleContext';
@@ -15,6 +16,9 @@ export default function AgencyDashboard() {
   const [agency, setAgency] = useState(null);
   const [businesses, setBusinesses] = useState([]);
   const [pending, setPending] = useState([]);
+  const [flyers, setFlyers] = useState([]);
+  const [totalViews, setTotalViews] = useState(0);
+  const [totalFullyRead, setTotalFullyRead] = useState(0);
   const [loading, setLoading] = useState(true);
 
   // ─── Load agency data ───
@@ -76,6 +80,41 @@ export default function AgencyDashboard() {
 
     return () => unsub();
   }, [agency?.areaIds]);
+
+  // ─── Load flyers for these businesses ───
+  useEffect(() => {
+    if (!businesses || businesses.length === 0) {
+      setFlyers([]);
+      setTotalViews(0);
+      setTotalFullyRead(0);
+      return;
+    }
+
+    // Get business IDs (max 10 for 'in' query)
+    const businessIds = businesses.slice(0, 10).map((b) => b.id);
+
+    const q = query(
+      collection(db, 'flyers'),
+      where('businessId', 'in', businessIds)
+    );
+
+    const unsub = onSnapshot(q, (snap) => {
+      const flyerList = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setFlyers(flyerList);
+
+      // Calculate total views and fully read
+      let views = 0;
+      let fullyRead = 0;
+      flyerList.forEach((f) => {
+        views += (f.viewedBy || []).length;
+        fullyRead += (f.fullyViewedBy || []).length;
+      });
+      setTotalViews(views);
+      setTotalFullyRead(fullyRead);
+    });
+
+    return () => unsub();
+  }, [businesses]);
 
   // ─── Loading ───
   if (loading) {
@@ -186,6 +225,24 @@ export default function AgencyDashboard() {
           color="#7C3AED"
           icon="💰"
         />
+        <StatCard
+          label="Total Flyers"
+          value={flyers.length}
+          color="#EC4899"
+          icon="📄"
+        />
+        <StatCard
+          label="Flyer Views"
+          value={totalViews}
+          color="#8B5CF6"
+          icon="👁️"
+        />
+        <StatCard
+          label="Fully Read"
+          value={totalFullyRead}
+          color="#10B981"
+          icon="✅"
+        />
       </div>
 
       {/* Agency Info */}
@@ -285,6 +342,7 @@ export default function AgencyDashboard() {
           padding: 20,
           borderRadius: 12,
           border: '1px solid #eee',
+          marginBottom: 24,
         }}
       >
         <h2
@@ -351,6 +409,63 @@ export default function AgencyDashboard() {
           >
             Showing 10 of {businesses.length} businesses
           </div>
+        )}
+      </div>
+
+      {/* Flyers List */}
+      <div
+        style={{
+          background: '#fff',
+          padding: 20,
+          borderRadius: 12,
+          border: '1px solid #eee',
+        }}
+      >
+        <h2
+          style={{
+            fontSize: 16,
+            fontWeight: 800,
+            marginBottom: 12,
+            color: '#333',
+          }}
+        >
+          📄 Flyers in Your Areas ({flyers.length})
+        </h2>
+        {flyers.length === 0 ? (
+          <div
+            style={{
+              padding: 20,
+              textAlign: 'center',
+              color: '#999',
+              fontSize: 13,
+            }}
+          >
+            No flyers uploaded yet.
+          </div>
+        ) : (
+          flyers.slice(0, 10).map((f) => (
+            <div
+              key={f.id}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '12px 0',
+                borderBottom: '1px solid #f5f5f5',
+              }}
+            >
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>
+                  {f.title || 'Untitled'}
+                </div>
+                <div style={{ color: '#888', fontSize: 12, marginTop: 2 }}>
+                  {f.businessName || '—'} · 👁️ {(f.viewedBy || []).length} · ✅{' '}
+                  {(f.fullyViewedBy || []).length}
+                </div>
+              </div>
+              <StatusBadge status={f.status} />
+            </div>
+          ))
         )}
       </div>
     </div>
