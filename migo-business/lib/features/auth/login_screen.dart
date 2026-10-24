@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../services/auth_service.dart';
+import 'register_screen.dart'; // പുതിയ രജിസ്ട്രേഷൻ പേജ്
 
 /// PHASE I — Business Login Screen
 /// Responsive: PC (wide) + Mobile
@@ -42,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!mounted) return;
 
-        if (result['success'] == true) {
+    if (result['success'] == true) {
       // AuthGate will auto-navigate to Dashboard
       // No manual navigation needed
     } else {
@@ -254,12 +255,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
           const SizedBox(height: 20),
 
-          Text(
-            'Business accounts only.\nContact MIGO to register.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey.shade600,
+          // New Registration Button
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const RegisterScreen(),
+                ),
+              );
+            },
+            child: const Text(
+              "Don't have an account? Register your Business",
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF0B2B5B),
+              ),
             ),
           ),
         ],

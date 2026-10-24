@@ -20,6 +20,11 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
   bool _uploading = false;
 
   final _titleController = TextEditingController();
+  final _descController = TextEditingController();
+  final _discountController = TextEditingController();
+  final _orderLinkController = TextEditingController();
+  final _whatsappController = TextEditingController();
+  
   String _selectedCategory = 'Food & Dining';
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now().add(const Duration(days: 7));
@@ -45,6 +50,10 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
   @override
   void dispose() {
     _titleController.dispose();
+    _descController.dispose();
+    _discountController.dispose();
+    _orderLinkController.dispose();
+    _whatsappController.dispose();
     super.dispose();
   }
 
@@ -65,6 +74,7 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
 
   Future<void> _pickImages() async {
     try {
+      // allowMultiple: true ഒഴിവാക്കി
       final files = await FilePicker.pickFiles(
         type: FileType.image,
       );
@@ -129,6 +139,10 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
         'businessId': _businessId,
         'businessName': _businessName,
         'title': _titleController.text.trim(),
+        'description': _descController.text.trim(),
+        'discountTag': _discountController.text.trim(),
+        'orderLink': _orderLinkController.text.trim(),
+        'whatsappNumber': _whatsappController.text.trim(),
         'category': _selectedCategory,
         'pdfUrl': '',
         'imageUrls': imageUrls,
@@ -164,6 +178,10 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
         setState(() {
           _selectedImages = [];
           _titleController.clear();
+          _descController.clear();
+          _discountController.clear();
+          _orderLinkController.clear();
+          _whatsappController.clear();
         });
       }
     } catch (e) {
@@ -250,136 +268,184 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('My Flyers')),
-      body: Column(
-        children: [
-          // Upload Form
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: _titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Flyer Title (e.g., Month End Deals)',
-                    border: OutlineInputBorder(),
-                    isDense: true,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Upload Form
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: _titleController,
+                    decoration: const InputDecoration(
+                      labelText: 'Flyer Title (e.g., Month End Deals)',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedCategory,
-                  decoration: const InputDecoration(
-                    labelText: 'Category',
-                    border: OutlineInputBorder(),
-                    isDense: true,
+                  const SizedBox(height: 12),
+                  
+                  TextField(
+                    controller: _descController,
+                    decoration: const InputDecoration(
+                      labelText: 'Short Description (Optional)',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    maxLines: 2,
                   ),
-                  items: _categories.map((c) {
-                    return DropdownMenuItem(value: c, child: Text(c));
-                  }).toList(),
-                  onChanged: (v) {
-                    if (v != null) setState(() => _selectedCategory = v);
-                  },
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _pickDate(isStart: true),
-                        icon: const Icon(Icons.calendar_today, size: 16),
-                        label: Text(
-                          'Start: ${_startDate.day}/${_startDate.month}/${_startDate.year}',
-                          style: const TextStyle(fontSize: 12),
+                  const SizedBox(height: 12),
+
+                  TextField(
+                    controller: _discountController,
+                    decoration: const InputDecoration(
+                      labelText: 'Discount / Offer Tag (e.g., 50% OFF)',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  TextField(
+                    controller: _orderLinkController,
+                    decoration: const InputDecoration(
+                      labelText: 'Online Order Link (Optional)',
+                      hintText: 'https://yourwebsite.com',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  TextField(
+                    controller: _whatsappController,
+                    decoration: const InputDecoration(
+                      labelText: 'WhatsApp Number (Optional)',
+                      hintText: '+974 XXXX XXXX',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 12),
+
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedCategory,
+                    decoration: const InputDecoration(
+                      labelText: 'Category',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: _categories.map((c) {
+                      return DropdownMenuItem(value: c, child: Text(c));
+                    }).toList(),
+                    onChanged: (v) {
+                      if (v != null) setState(() => _selectedCategory = v);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _pickDate(isStart: true),
+                          icon: const Icon(Icons.calendar_today, size: 16),
+                          label: Text(
+                            'Start: ${_startDate.day}/${_startDate.month}/${_startDate.year}',
+                            style: const TextStyle(fontSize: 12),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _pickDate(isStart: false),
-                        icon: const Icon(Icons.event, size: 16),
-                        label: Text(
-                          'End: ${_endDate.day}/${_endDate.month}/${_endDate.year}',
-                          style: const TextStyle(fontSize: 12),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _pickDate(isStart: false),
+                          icon: const Icon(Icons.event, size: 16),
+                          label: Text(
+                            'End: ${_endDate.day}/${_endDate.month}/${_endDate.year}',
+                            style: const TextStyle(fontSize: 12),
+                          ),
                         ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: _pickImages,
+                    icon: const Icon(Icons.add_photo_alternate),
+                    label: Text(
+                      _selectedImages.isEmpty
+                          ? 'Select Images (JPEG/PNG)'
+                          : '${_selectedImages.length} images selected',
+                    ),
+                  ),
+                  if (_selectedImages.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 80,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _selectedImages.length,
+                        itemBuilder: (context, i) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.memory(
+                                _selectedImages[i].bytes,
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: _pickImages,
-                  icon: const Icon(Icons.add_photo_alternate),
-                  label: Text(
-                    _selectedImages.isEmpty
-                        ? 'Select Images (JPEG/PNG)'
-                        : '${_selectedImages.length} images selected',
-                  ),
-                ),
-                if (_selectedImages.isNotEmpty) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   SizedBox(
-                    height: 80,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _selectedImages.length,
-                      itemBuilder: (context, i) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.memory(
-                              _selectedImages[i].bytes,
-                              width: 80,
-                              height: 80,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        );
-                      },
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton.icon(
+                      onPressed: _uploading ? null : _uploadFlyer,
+                      icon: _uploading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.upload_file),
+                      label: Text(
+                        _uploading ? 'Uploading...' : 'Upload Flyer',
+                      ),
                     ),
                   ),
                 ],
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton.icon(
-                    onPressed: _uploading ? null : _uploadFlyer,
-                    icon: _uploading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Icon(Icons.upload_file),
-                    label: Text(
-                      _uploading ? 'Uploading...' : 'Upload Flyer',
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
 
-          // Flyers List
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
+            // Flyers List
+            StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('flyers')
                   .where('businessId', isEqualTo: _businessId)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
                 }
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
@@ -387,19 +453,24 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                 final docs = snapshot.data?.docs ?? [];
 
                 if (docs.isEmpty) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.picture_as_pdf_outlined, size: 64, color: Colors.grey),
-                        SizedBox(height: 12),
-                        Text('No flyers uploaded yet.', style: TextStyle(fontSize: 16, color: Colors.grey)),
-                      ],
+                  return const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.picture_as_pdf_outlined, size: 64, color: Colors.grey),
+                          SizedBox(height: 12),
+                          Text('No flyers uploaded yet.', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                        ],
+                      ),
                     ),
                   );
                 }
 
                 return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
@@ -410,90 +481,116 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                         : status == 'pending'
                             ? MigoColors.warning
                             : MigoColors.error;
-                    final endDate = (data['endDate'] as Timestamp?)?.toDate();
+                    DateTime? endDate;
+final rawEndDate = data['endDate'];
+if (rawEndDate is Timestamp) {
+  endDate = rawEndDate.toDate();
+} else if (rawEndDate is Map && rawEndDate.containsKey('seconds')) {
+  endDate = DateTime.fromMillisecondsSinceEpoch((rawEndDate['seconds'] as int) * 1000);
+} else if (rawEndDate is String) {
+  endDate = DateTime.tryParse(rawEndDate);
+}
                     final viewed = (data['viewedBy'] as List?) ?? [];
                     final fullyRead = (data['fullyViewedBy'] as List?) ?? [];
                     final thumbnailUrl = data['thumbnailUrl'] as String? ?? '';
+                    final discountTag = data['discountTag'] as String? ?? '';
 
                     return Card(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      child: ListTile(
-                        leading: ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: Container(
-                            width: 50,
-                            height: 60,
-                            color: Colors.grey.shade200,
-                            child: thumbnailUrl.isNotEmpty
-                                ? Image.network(thumbnailUrl, fit: BoxFit.cover)
-                                : const Icon(Icons.image, color: MigoColors.primary),
-                          ),
-                        ),
-                        title: Text(data['title'] ?? 'Flyer'),
-                        subtitle: Column(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Status: ${status.toUpperCase()}',
-                              style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12),
-                            ),
-                            const SizedBox(height: 2),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: viewed.isNotEmpty ? Colors.blue.shade50 : Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                '👁️ ${viewed.length} views · ✅ ${fullyRead.length} fully read',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: viewed.isNotEmpty ? Colors.blue.shade800 : Colors.grey.shade600,
+                            Row(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Container(
+                                    width: 60,
+                                    height: 75,
+                                    color: Colors.grey.shade200,
+                                    child: thumbnailUrl.isNotEmpty
+                                        ? Image.network(thumbnailUrl, fit: BoxFit.cover)
+                                        : const Icon(Icons.image, color: MigoColors.primary),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            if (endDate != null)
-                              Text(
-                                'Expires: ${endDate.day}/${endDate.month}/${endDate.year}',
-                                style: const TextStyle(fontSize: 11, color: Colors.grey),
-                              ),
-                          ],
-                        ),
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                              title: Text(data['title'] ?? 'Flyer'),
-                              content: SingleChildScrollView(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text('👁️ Viewed by: ${viewed.length} users'),
-                                    const SizedBox(height: 4),
-                                    ...viewed.take(10).map((uid) => Text('• ${uid.toString().substring(0, 8)}...')),
-                                    if (viewed.length > 10) const Text('...'),
-                                    const Divider(),
-                                    Text('✅ Fully read: ${fullyRead.length} users'),
-                                    const SizedBox(height: 4),
-                                    ...fullyRead.take(10).map((uid) => Text('• ${uid.toString().substring(0, 8)}...')),
-                                    if (fullyRead.length > 10) const Text('...'),
-                                  ],
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        data['title'] ?? 'Flyer',
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      if (discountTag.isNotEmpty) ...[
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          discountTag,
+                                          style: const TextStyle(color: MigoColors.error, fontSize: 12, fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: statusColor.withValues(alpha: 0.1),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              status.toUpperCase(),
+                                              style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                          if (endDate != null) ...[
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Exp: ${endDate.day}/${endDate.month}/${endDate.year}',
+                                              style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                            ),
+                                          ]
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Close'),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline, color: MigoColors.error),
+                                  onPressed: () => _deleteFlyer(docs[index].id),
                                 ),
                               ],
                             ),
-                          );
-                        },
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: MigoColors.error),
-                          onPressed: () => _deleteFlyer(docs[index].id),
+                            const SizedBox(height: 12),
+                            const Divider(height: 1),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _buildStatItem(
+                                  icon: Icons.visibility,
+                                  iconColor: Colors.blue,
+                                  value: viewed.length.toString(),
+                                  label: 'Total Views',
+                                ),
+                                Container(width: 1, height: 30, color: Colors.grey.shade300),
+                                _buildStatItem(
+                                  icon: Icons.menu_book,
+                                  iconColor: Colors.green,
+                                  value: fullyRead.length.toString(),
+                                  label: 'Fully Read',
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -501,9 +598,37 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                 );
               },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required IconData icon,
+    required Color iconColor,
+    required String value,
+    required String label,
+  }) {
+    return Column(
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: iconColor, size: 20),
+            const SizedBox(width: 6),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        ),
+      ],
     );
   }
 }

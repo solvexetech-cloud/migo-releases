@@ -1,0 +1,115 @@
+════════════════════════════════════════════════════════════════════════
+MIGO — NEW CHAT STARTER (2026-10-24)
+════════════════════════════════════════════════════════════════════════
+
+## 📌 ഈ ഫയൽ എന്തിന്?
+പുതിയ AI ചാറ്റ് തുടങ്ങുമ്പോൾ — MIGO project-ന്റെ full context.
+ഇത് + `MIGO-MASTER-PLAN.txt` (v4.2) — paste ചെയ്താൽ മതി.
+
+## 🎯 Project Overview
+- **MIGO** — Qatar/Kerala deal discovery platform (D4D competitor)
+- **Root:** `C:\Users\DELL\Documents\migo\`
+- **Firebase:** `migo-app-3030e` (me-central1, Doha)
+- **Owner:** solvexe.tech@gmail.com
+- **Admin Panel:** https://migo-app-3030e.web.app (LIVE)
+
+## 🚀 3-Apps Ecosystem
+1.  **MIGO (Customer App):** `mobile/` — PDF Reader (Magazine), QR Claim, Wallet.
+2.  **MIGO Business App:** `migo-business/` — Offer CRUD, Bookings, QR Scan, Analytics, Profile, Reserve Settings, **My Flyers (PDF/Image upload)**.
+3.  **MIGO Admin Panel:** `admin/` — Multi-role admin (super_admin/admin/agency/moderator), **Flyers Management (Approve/Reject/Edit Expiry/Delete), Viewers Dialog**.
+
+## 📊 Current Status (Master Plan v4.2)
+- PHASE A, B, C, E, J: ✅ 100%
+- PHASE D: 🟡 85% (D4 AdMob pending)
+- PHASE H: 🟡 95% (Blaze needed)
+- **PHASE I: 🟡 89% (24/27 tasks)**
+  - ✅ I1-I12, I15, I16, I17, I18, I19
+  - ✅ I20: My Flyers (Business App) — Image upload, thumbnail, view tracking.
+  - ✅ I21: Flyers Management (Admin Panel) — Approve/Reject/Edit Expiry/Delete.
+  - ✅ I22: MIGO Magazine (Customer App) — PDF reader, page tracking, "I have read this flyer".
+  - ✅ I23: Flyer view tracking — `viewedBy`, `fullyViewedBy`.
+  - ✅ I24: Home Screen — Magazine banner + compact categories.
+  - ✅ I25: Business App — Claim fix (QR, status bug, Activate → live).
+  - ✅ I26: Customer App — QR real image fix + Wallet stats.
+  - ⬜ I27: Staff Web App (Future).
+
+## 📋 PHASE I — Remaining Tasks
+- I13: Play Store setup (Needs Card)
+- I14: Testing + polish (3h)
+- I27: Staff Web App (Future)
+- I11: Revenue reports (Skip)
+- D4: AdMob fix (Pending Flutter SDK)
+
+## 🔑 Test Accounts
+| Role | Email | Password |
+|------|-------|----------|
+| **Super Admin** | test1@migoapp.com | Migo@2026 |
+| **Business** | business@migoapp.com | Business@2026 |
+| **Agency** | kakkanad2@migoapp.com | Agency@2026 |
+| **Staff/Moderator** | staff1@migoapp.com | Staff@2026 |
+| **Customer** | test7@migoapp.com | Migo@2026 |
+| **Customer** | test12@migoapp.com | Migo@2026 |
+
+## ⚠️ Known Issues / Pending
+- 🚨 **AgenciesPage** — Creates Firestore doc only (no Auth user). Needs Cloud Functions (Blaze).
+- 🚨 **Staff/Moderator** — No UI to create (manual Firebase Console).
+- 🟡 **ListTile warnings** — Cosmetic.
+- 🟡 **NoShowLogPage** — Permission errors for agency.
+- 🟡 **Firestore Rules** — `users` update relaxed for testing (temporary).
+- 🟡 **D4 AdMob** — Build blocked (Flutter SDK compatibility).
+- 🟡 **Country Filter (Flutter):** Pending — flyers should be shown based on user's countryCode (QA).
+
+## 🎯 Immediate Next Steps
+1.  **I14 — Testing + Polish (3h):** Full E2E flow (Customer → Business → Admin).
+2.  **Country Filter:** Implement `countryCode` filter for flyers in Customer App.
+3.  **I13 — Play Store Setup (2h):** App icon, splash, signed APK, listing.
+4.  **D4 — AdMob Fix:** When Flutter SDK supports.
+5.  **I27 — Staff Web App:** For multi-counter redemption.
+
+## 📁 Key Files Reference (Updated)
+### Mobile (Customer App):
+- `lib/features/magazine/magazine_screen.dart` — PDF Reader (Magazine)
+- `lib/features/auth/welcome_screen.dart` — Fixed overflow
+- `lib/features/wallet/wallet_screen.dart` — Fixed stats (claims)
+- `lib/services/firestore_service.dart` — Claim coin removed
+- `lib/features/deals/offer_detail_screen.dart` — Reserve ON/OFF fix
+- `lib/features/home/home_screen.dart` — Magazine banner + compact categories
+
+### Business App:
+- `lib/features/offers/my_flyers_screen.dart` — Image upload (JPEG/PNG), thumbnail, view tracking.
+- `lib/services/cloudinary_service.dart` — Fixed `upload()` for web + mobile.
+- `lib/features/offers/my_offers_screen.dart` — Fixed UI (buttons alignment).
+- `lib/features/dashboard/dashboard_screen.dart` — Stats + Offer Stats.
+
+### Admin Panel:
+- `admin/src/pages/FlyersPage.jsx` — Approve/Reject/Edit Expiry/Delete, Viewers Dialog (user list).
+- `admin/src/pages/AgencyDashboard.jsx` — Flyer stats (Total Flyers, Views, Fully Read).
+- `admin/src/hooks/useRoleNav.js` — Role-based sidebar.
+
+## 🔄 Common Commands
+### Customer App:
+```powershell
+cd C:\Users\DELL\Documents\migo\mobile
+flutter run -d edge --web-port=8085
+flutter build apk --release
+
+
+
+
+
+
+Business App:  cd C:\Users\DELL\Documents\migo\migo-business
+flutter run -d edge --web-port=8081
+flutter build apk --release
+
+
+Admin Panel:  cd C:\Users\DELL\Documents\migo\admin
+npm run dev
+npm run build
+firebase deploy --only hosting
+
+
+Firebase Deploy:  cd C:\Users\DELL\Documents\migo
+firebase deploy --only firestore:rules
+firebase deploy --only hosting
+

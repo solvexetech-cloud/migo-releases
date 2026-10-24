@@ -1,0 +1,432 @@
+# ═══════════════════════════════════════════════════════
+# MIGO — MASTER PLAN
+# Version: v4.3
+# Date: October 25, 2026
+# Owner: solvexe.tech@gmail.com
+# ═══════════════════════════════════════════════════════
+
+## 📌 ഈ ഡോക്യുമെന്റിനെ കുറിച്ച്
+ഇത് MIGO ആപ്പിന്റെ പൂർണ്ണ റോഡ്മാപ്പ് ആണ്.
+പുതിയ ചാറ്റ് തുടങ്ങുമ്പോൾ ഈ ഫയൽ AI-ക്ക് paste ചെയ്താൽ
+എല്ലാം മനസ്സിലാകും.
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 1: പ്രോജക്ട് അവസ്ഥ (Project Status)
+═══════════════════════════════════════════════════════
+
+### 📁 ലൊക്കേഷൻ
+Root: C:\Users\DELL\Documents\migo\
+├── mobile/      → Flutter app (Customer App)
+├── migo-business/ → Flutter app (Business App)
+├── admin/       → React admin panel (LIVE)
+├── _seed/       → Node.js seed scripts
+└── backend/     → NestJS (future)
+
+### 🌐 ലൈവ് URL-കൾ
+- Firebase Project: migo-app-3030e
+- Admin Panel: https://migo-app-3030e.web.app
+- Referral Landing: https://migo-app-3030e.web.app/r/{CODE}
+- APK Releases: https://github.com/solvexetech-cloud/migo-releases
+- Firestore Region: me-central1 (Doha)
+- Cloudinary: zxl1kb8h
+- GitHub Repo: github.com/solvexetech-cloud/migo-releases
+
+### ✅ പൂർത്തിയായത് (v1.3.1)
+- Customer mobile app (Flutter)
+- Business owner dashboard
+- Admin panel (React, deployed + mobile responsive)
+- Firebase backend (Auth + Firestore)
+- Cloudinary image uploads
+- QR code redemption + auto-expire
+- Referral system (working landing page + APK)
+- Group deals
+- Notifications (in-app + FCM push)
+- Dark mode + Light mode
+- 6-tier Role System (super_admin → customer)
+- Dynamic Categories (Firestore + admin CRUD)
+- Geographic Hierarchy (Qatar + Kerala)
+- Location-aware customer flow
+- APK v1.3.1 (69.8 MB) — GitHub Releases
+- Git backups: 2026-10-06, 2026-10-07
+
+### ⏳ ബാക്കിയുള്ളത് — Phase-wise
+
+#### PHASE A — അടിയന്തിരം (High Priority)
+- [✅] #1 Expired offers auto-hide
+- [✅] #2 Duplicate offer button
+- [✅] #3 QR auto-expire
+- [✅] #4 Push notifications (FCM)
+- [✅] #5 Business logo + cover photo
+
+#### PHASE B — അടിത്തറ (Foundation)
+- [✅] #6 Firestore Security Rules
+- [✅] #7 6-tier Role System
+- [✅] #8 Geographic Hierarchy (Country→Zone→Area)
+- [✅] #9 Database Schema Redesign
+- [✅] #10 Dynamic Categories
+
+#### PHASE C — അഡ്മിൻ ഫുൾ കൺട്രോൾ
+- [✅] #11 Business CRUD (Add/Edit/Delete)
+- [✅] #12 Revenue Dashboard (all sources)
+- [✅] #13 Reviews Management (Positive/Negative)
+- [✅] #14 Package Pricing Editor
+- [✅] #15 Responsive Admin (mobile/tablet/desktop)
+- [✅] #16 Staff Panel (via RolesPage)
+- [✅] #17 Agency Panel
+
+#### PHASE D — ഡാറ്റ + മാർക്കറ്റിംഗ്
+- [✅] #18 Google Maps Integration (OpenStreetMap)
+- [✅] #19 Customer Behavior Analytics
+- [✅] #20 Revenue Split Engine
+- [🟡] #21 Google Ads / AdMob — 75% (Code Complete)
+- [ ] #22 Digital Marketing Dashboard
+- [✅] #23-A Country System (7 countries) — DONE 2026-10-08
+- [✅] #23-B Language Framework (EN + AR + RTL) — DONE 2026-10-08
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 2: Geographic Hierarchy
+═══════════════════════════════════════════════════════
+
+### 🌍 Country → Zone → Area Structure
+
+┌─────────────────────────────────────────────────────┐
+│  COUNTRIES (7 seeded — D6-A 2026-10-08)             │
+│  ├── 🇶🇦 Qatar (QA) — QAR — +974                     │
+│  ├── 🇦🇪 UAE (AE) — AED — +971                        │
+│  ├── 🇸🇦 Saudi Arabia (SA) — SAR — +966               │
+│  ├── 🇰🇼 Kuwait (KW) — KWD — +965                     │
+│  ├── 🇧🇭 Bahrain (BH) — BHD — +973                    │
+│  ├── 🇴🇲 Oman (OM) — OMR — +968                       │
+│  └── 🇮🇳 India (IN) — INR — +91                       │
+│                                                     │
+│  Each country has: nameAr, dialCode, locales[],     │
+│  rtl, timezone, dateFormat                          │
+│                                                     │
+│  Qatar + Kerala full zone/area hierarchy            │
+│  GCC expansion ready (admin can add)                │
+└─────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 3: Role System (6 Tiers)
+═══════════════════════════════════════════════════════
+
+| # | Role | Access | ഉദാഹരണം |
+|---|------|--------|---------|
+| 1 | super_admin | എല്ലാം | Owner (നിങ്ങൾ) |
+| 2 | admin | Country/State മാനേജ് | Regional Manager |
+| 3 | agency | ഒരു ഏരിയ മാത്രം | Kakkanad Franchise |
+| 4 | moderator | Reviews, offers, users | Staff |
+| 5 | business | അവരുടെ കട മാത്രം | Shawarma Shop |
+| 6 | customer | Shopping only | End user |
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 4: Database Schema (v2.4)
+═══════════════════════════════════════════════════════
+
+### Core Collections
+- users/{uid} — profile, coins, role, countryCode, currency, locale, fcmToken, savedFlyers[]
+- businesses/{id} — ownerUid, name, category, countryCode, zoneId, areaId, agencyUid, status, orderLink, whatsappNumber
+- flyers/{id} — businessId, businessName, title, description, discountTag, category, orderLink, whatsappNumber, countryCode, imageUrls[], thumbnailUrl, status, viewedBy[], fullyViewedBy[], startDate, endDate
+- offers/{id} — businessId, title, prices, currency, type, status, areaId
+- claims/{id} — userUid, businessId, offerId, currency, status, redeemedAt
+- reviews/{id} — userUid, businessId, rating, comment, isPositive
+- referrals/{id} — referrerUid, referredUid, status, rewardAmount
+- notifications/{id} — userUid, title, body, type, read
+- coin_transactions/{id} — uid, amount, type, description
+- saved_offers/{uid_offerId}
+- saved_businesses/{uid_businessId}
+- group_deals/{offerId}
+- categories/{slug}
+- countries/{code} — nameAr, dialCode, locales[], rtl, timezone, dateFormat
+- zones/{slug}
+- areas/{slug}
+- agencies/{id} — ownerUid, areaIds[], revenueShare, status
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 5: Phase-wise Task List
+═══════════════════════════════════════════════════════
+
+### PHASE A — അടിയന്തിരം (Complete!)
+| # | Task | Time | Status |
+|---|------|------|--------|
+| A1 | Expired offers auto-hide | 15m | ✅ |
+| A2 | Duplicate offer button | 30m | ✅ |
+| A3 | QR auto-expire | 20m | ✅ |
+| A4 | Push notifications (FCM) | 45m | ✅ |
+| A5 | Business logo + cover | 30m | ✅ |
+
+**PHASE A — 100% COMPLETE** 🎉
+
+### PHASE B — അടിത്തറ (Complete!)
+| # | Task | Time | Status |
+|---|------|------|--------|
+| B1 | Firestore Security Rules | 1h | ✅ |
+| B2 | 6-tier Role System | 2h | ✅ |
+| B3 | Geographic Hierarchy | 2h | ✅ |
+| B4 | Database Schema Redesign | 1h | ✅ |
+| B5 | Dynamic Categories | 45m | ✅ |
+
+**PHASE B — 100% COMPLETE** 🎉
+
+### PHASE C — അഡ്മിൻ ഫുൾ കൺട്രോൾ (Complete!)
+| # | Task | Time | Status |
+|---|------|------|--------|
+| C1 | Business CRUD | 1.5h | ✅ DONE 2026-10-08 |
+| C2 | Revenue Dashboard | 2h | ✅ DONE 2026-10-08 |
+| C3 | Reviews Management | 1h | ✅ DONE 2026-10-08 |
+| C4 | Package Pricing Editor | 45m | ✅ DONE 2026-10-08 |
+| C5 | Responsive Admin | 1h | ✅ DONE |
+| C6 | Staff Panel | 2h | ✅ DONE (via RolesPage) |
+| C7 | Agency Panel | 2.5h | ✅ DONE 2026-10-08 |
+
+**PHASE C — 100% COMPLETE** 🎉
+
+### PHASE D — ഡാറ്റ + മാർക്കറ്റിംഗ്
+| # | Task | Time | Status |
+|---|------|------|--------|
+| D1 | Google Maps → OpenStreetMap | 1.5h | ✅ DONE 2026-10-08 |
+| D2 | Customer Behavior Analytics | 2h | ✅ DONE 2026-10-08 |
+| D3 | Revenue Split Engine | 1.5h | ✅ DONE 2026-10-10 |
+| D4 | Google Ads / AdMob | 1h | 🟡 75% (Code Complete) |
+| D5 | Digital Marketing Dashboard | 2h | ✅ DONE 2026-10-13 |
+| D6-A | Country System (7 countries) | 1.5h | ✅ DONE 2026-10-08 |
+| D6-B | Language Framework (EN+AR) + RTL | 2.5h | ✅ DONE 2026-10-08 |
+
+**PHASE D — 85% (6/7)** 🎯
+
+### PHASE H — MIGO Reserve (Guaranteed Reservation System)
+
+| # | Task | Time | Priority |
+|---|------|------|----------|
+| H1 | Data models (Flutter) | 1h | 🔥🔥🔥 |
+| H2 | ReservationService | 2h | 🔥🔥🔥 |
+| H3 | Booking screen (customer) | 2h | 🔥🔥🔥 |
+| H4 | Countdown timer widget | 1h | 🔥🔥🔥 |
+| H5 | My Bookings screen | 1.5h | 🔥🔥 |
+| H6 | Reservation detail + QR | 1.5h | 🔥🔥 |
+| H7 | Rules screen + accept flow | 1h | 🔥🔥 |
+| H8 | Shop dashboard (bookings list) | 2h | 🔥🔥 |
+| H9 | QR pickup scan (shop side) | 1.5h | 🔥🔥 |
+| H10 | Admin ReservationsPage | 2h | 🔥 |
+| H11 | Admin ReservationRulesPage | 1.5h | 🔥 |
+| H12 | Admin ReservationConfigPage | 1h | 🔥 |
+| H13 | Push notifications (5-stage) | 1.5h | 🔥 |
+| H14 | No-show tracking + ban | 1.5h | 🔥 |
+| H15 | Token booking (optional) | 1.5h | 🔥 |
+| H16 | Group reserve (bonus) | 2h | 🔥 |
+| H17 | Firestore rules + indexes | 1h | 🔥🔥 |
+| H18 | Seed reservation_config | 30m | 🔥 |
+| H19 | Testing + edge cases | 2h | 🔥🔥 |
+
+**Total PHASE H: ~30 hours**
+**Progress: 95% (6/7 + Testing 90%)**
+
+### PHASE E — Growth & Viral System (Free Phase)
+
+| # | Task | Time | Priority |
+|---|------|------|----------|
+| E1 | Auto-referral (Install Referrer + URL) | 4h | ✅ DONE 2026-10-15 |
+| E2 | Offer share (all users) | 3h | 🔥🔥🔥 |
+| E3 | Deep link + auto-apply code | 5h | ✅ DONE 2026-10-14 |
+| E4 | Claim attribution tracking | 3h | ✅ DONE 2026-10-14 |
+| E5 | User rewards (coins only, free) | 3h | ✅ DONE 2026-10-14 |
+| E6 | Vlogger accounts (free) | 5h | ✅ DONE 2026-10-14 |
+| E7 | Vlogger dashboard (data only, no cash) | 5h | ✅ DONE 2026-10-15 |
+| E8 | Public creator profiles | 4h | ✅ DONE 2026-10-14 |
+| E9 | Business analytics (referrer tracking) | 4h | ✅ DONE 2026-10-15 |
+| E10 | Anti-fraud basic | 3h | ✅ DONE 2026-10-15 |
+
+**Total PHASE E: ~39 hours**
+**Progress: 100% (10/10)**
+
+### PHASE J — Multi-Role Admin Panel
+
+| # | Task | Time | Priority |
+|---|------|------|----------|
+| J1 | RoleContext + useRoleNav hook | 2h | 🔥🔥🔥 |
+| J2 | App.jsx — role-based routing | 2h | 🔥🔥🔥 |
+| J3 | AdminLayout — role-based sidebar | 1.5h | 🔥🔥🔥 |
+| J4 | Login redirect logic | 1h | 🔥🔥 |
+| J5 | Agency Dashboard | 4h | 🔥🔥 |
+| J6 | Staff Dashboard | 3h | 🔥🔥 |
+| J7 | Firestore query filters (per role) | 2h | 🔥🔥🔥 |
+| J8 | Rules verification + tighten | 1h | 🔥 |
+| J9 | Testing + polish | 2h | 🔥 |
+
+**Total PHASE J: ~17 hours**
+**Progress: 100% (9/9)**
+
+### PHASE I — Business App (MIGO Business)
+
+| # | Task | Time | Status |
+|---|------|------|--------|
+| I1 | Flutter project setup | 2h | ✅ DONE 2026-10-16 |
+| I2 | Firebase config | 1h | ✅ DONE 2026-10-16 |
+| I3 | FlutterFire CLI + dependencies | 1h | ✅ DONE 2026-10-16 |
+| I4 | Login screen | 2h | ✅ DONE 2026-10-16 |
+| I5 | Signup flow (Business Registration) | 3h | ✅ DONE 2026-10-25 (New) |
+| I6 | Dashboard | 4h | ✅ DONE 2026-10-16 |
+| I7 | Offer CRUD (advanced) | 5h | ✅ DONE 2026-10-16 |
+| I8 | Reservations management | 4h | ✅ DONE 2026-10-16 |
+| I9 | QR scanner | 3h | ✅ DONE 2026-10-16 |
+| I10 | Analytics dashboard | 4h | ✅ DONE 2026-10-16 |
+| I11 | Revenue reports | 3h | ⏭️ Skip (future) |
+| I12 | Profile + settings | 2h | ✅ DONE 2026-10-16 |
+| I13 | Play Store setup | 2h | ⬜ NEXT |
+| I14 | Testing + polish | 3h | 🟡 90% (Country filter + E2E) |
+| I15 | Reserve Settings | 4h | ✅ DONE 2026-10-16 |
+| I15.1 | Status bug fix (Activate → live) | 30m | ✅ DONE 2026-10-16 |
+| I16 | Camera Fix (R8 ProGuard) | 2h | ✅ DONE 2026-10-17 |
+| I17 | Customer Claims (Business App) | 2h | ✅ DONE 2026-10-21 |
+| I18 | Dashboard Stats + Offer Stats | 2h | ✅ DONE 2026-10-21 |
+| I19 | Reserve ON/OFF button fix | 1h | ✅ DONE 2026-10-21 |
+| I20 | My Flyers (Business App) — Image/PDF upload | 4h | ✅ DONE 2026-10-23 |
+| I21 | Flyers Management (Admin Panel) | 3h | ✅ DONE 2026-10-23 |
+| I22 | MIGO Magazine (Customer App) | 4h | ✅ DONE 2026-10-23 |
+| I23 | Flyer view tracking (viewedBy, fullyViewedBy) | 2h | ✅ DONE 2026-10-23 |
+| I24 | Home screen — Magazine banner + compact categories | 1h | ✅ DONE 2026-10-23 |
+| I25 | Business App — Claim fix (QR, status bug) | 3h | ✅ DONE 2026-10-23 |
+| I26 | Customer App — QR real image fix + Wallet stats | 2h | ✅ DONE 2026-10-23 |
+| I27 | Country Filter (Flyers) | 2h | ✅ DONE 2026-10-24 |
+| I28 | Business Registration (Sign Up) | 3h | ✅ DONE 2026-10-25 |
+| I29 | Flyer Save/Like + Saved Flyers page | 3h | ✅ DONE 2026-10-25 |
+| I30 | Flyer Share + WhatsApp/Shop Online Buttons | 2h | ✅ DONE 2026-10-25 |
+| I31 | Staff Web App | - | ⬜ Future |
+
+**Total PHASE I: ~48 hours**
+**Progress: 95% (30/31)** 📈
+
+### PHASE F — Coin System (Free Initially)
+
+| # | Task | Time | Priority |
+|---|------|------|----------|
+| F1 | Coin value: QAR 0.01 (initial) | 1h | 🔥🔥 |
+| F2 | Remove daily login coin | 1h | 🔥🔥 |
+| F3 | Remove instant share coin | 1h | 🔥🔥 |
+| F4 | Add "share → redeem" coin | 4h | 🔥🔥 |
+| F5 | Referral (redeem-triggered) | 3h | 🔥🔥 |
+| F6 | Coin Partner system (business opt-in) | 4h | 🔥 |
+| F7 | Coin redemption at checkout | 4h | 🔥 |
+| F8 | Milestone system | 3h | 🔥 |
+| F9 | Admin coin config | 4h | 🔥 |
+| F10 | Coin economy dashboard | 4h | 🔥 |
+| F11 | Business settlement | 4h | 🔥 |
+| F12 | Coin expiry (60 days) | 2h | 🔥 |
+| F13 | Fraud detection | 3h | 🔥 |
+
+**Total PHASE F: ~42 hours**
+**Progress: 0% (0/13)**
+
+### PHASE G — Monetization (Gradual)
+
+| # | Task | Time | Priority |
+|---|------|------|----------|
+| G1 | Free + Paid subscription plans | 4h | 🔥🔥 |
+| G2 | Payment gateway (QPay/Stripe) | 6h | 🔥 |
+| G3 | Subscription billing | 4h | 🔥 |
+| G4 | Per-offer fee (beyond free) | 3h | 🔥 |
+| G5 | Small commission (0.5% initial) | 4h | 🔥 |
+| G6 | Vlogger commission (tier-based) | 5h | 🔥 |
+| G7 | Business dashboard (ROI) | 4h | 🔥 |
+| G8 | Vlogger earnings dashboard | 4h | 🔥 |
+| G9 | Payout system | 4h | 🔥 |
+| G10 | Revenue reports | 3h | 🔥 |
+| G11 | Commission verification (7-day hold) | 3h | 🔥 |
+| G12 | Anti-fraud (monetization) | 3h | 🔥 |
+
+**Total PHASE G: ~50 hours**
+**Progress: 0% (0/12)**
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 6: Progress Tracker
+═══════════════════════════════════════════════════════
+
+### Legend
+✅ Done | 🟡 Partial | ⏳ In Progress | ❌ Not Started
+
+### Overall Progress
+
+PHASE A: [✅✅✅✅✅] 100% (5/5) 🎉
+PHASE B: [✅✅✅✅✅] 100% (5/5) 🎉
+PHASE C: [✅✅✅✅✅✅✅] 100% (7/7) 🎉
+PHASE D: [✅✅✅🟡✅✅✅] 85% (6/7)
+PHASE E: [✅✅✅✅✅✅✅✅✅✅] 100% (10/10) 🎉
+PHASE J: [✅✅✅✅✅✅✅✅✅] 100% (9/9) 🎉
+PHASE I: [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜] 95% (30/31) 📈
+PHASE F: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/13)
+PHASE G: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/12)
+PHASE H: [✅✅✅✅✅✅🟡] 95% (6/7 + Testing 90%)
+BONUS:  Referral ✅, Location ✅, GitHub ✅, Responsive ✅, Admin CRUD ✅
+
+TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅] 100% (40/40) 🎉
+
+### Change Log
+
+- 2026-10-25: **PHASE I — Business Registration (Sign Up) Completed**
+  - Created `register_screen.dart` in `migo-business/lib/features/auth/`
+  - LoginScreen updated with "Don't have an account? Register" button
+  - Auto-creates Firebase Auth user + Firestore `businesses` document (status: pending)
+  - Country selection added to registration form.
+- 2026-10-25: **Country Filter for Flyers (Customer App)**
+  - `magazine_screen.dart` updated to filter flyers by `countryCode` based on user's `country`.
+  - Handled cases where country is "Qatar" or "QA".
+- 2026-10-25: **Flyer Save/Like Feature**
+  - Users can now save flyers (stored in `users.savedFlyers[]`).
+  - Added "Saved Flyers" screen accessible from Magazine AppBar.
+- 2026-10-25: **Flyer Share & Action Buttons**
+  - Added Share button in Flyer Reader.
+  - Added "WhatsApp" and "Shop Online" buttons in Flyer Reader (if links provided by business).
+  - Business App: Upload form now includes fields for `description`, `discountTag`, `orderLink`, `whatsappNumber`.
+  - Flyer Reader UI improved (pagination, title display).
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 7: Important Info
+═══════════════════════════════════════════════════════
+
+### Firebase
+- Project: migo-app-3030e
+- Account: solvexe.tech@gmail.com
+- Firestore Region: me-central1 (Doha)
+
+### Test Accounts
+- Super Admin: test1@migoapp.com / Migo@2026 (role: super_admin)
+- Admin: (create when needed)
+- Agency: kakkanad2@migoapp.com / Agency@2026 (role: agency)
+- Staff/Moderator: staff1@migoapp.com / Staff@2026 (role: moderator)
+- Customer: test2@migoapp.com / Migo@2026
+
+### Setup Completed (2026-10-10)
+- Android Studio: Rabbit 2026.2.1
+- Android Emulator: Medium Phone API 37.0 (Android 17)
+- Java: Temurin 17.0.20.101
+- Flutter JDK: C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot
+
+### Backups
+- migo-backup-2026-10-06
+- migo-backup-2026-10-07
+- MIGO-MASTER-PLAN-v2.6-BACKUP.txt
+- MIGO-MASTER-PLAN-v2.7-BACKUP.txt
+- MIGO-MASTER-PLAN-v4.2-BACKUP.txt (2026-10-25)
+
+### APK Files
+- Desktop: MIGO-v1.3.1.apk (69.8 MB)
+- GitHub: solvexetech-cloud/migo-releases
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 8: Next Steps (Priority Order)
+═══════════════════════════════════════════════════════
+
+### Immediate (Next Session)
+1. **I13 Play Store** — icon + splash + build (2h)
+2. **D4 AdMob Fix** — optional (1-2h)
+3. **PHASE F** — Coin System (future)
+
+### Priority Order (Current)
+1. **PHASE I — Business App** (40h) — 95% (Just Play Store left)
+2. **PHASE J — Multi-Role Admin Panel** (17h) — COMPLETE
+3. **PHASE F — Coin System** (42h) — RETENTION 🔥
+4. **PHASE G — Monetization** (50h) — REVENUE 🔥
+
+═══════════════════════════════════════════════════════
+END OF MASTER PLAN v4.3
+═══════════════════════════════════════════════════════
