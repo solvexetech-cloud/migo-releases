@@ -5,6 +5,7 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
   doc,
   updateDoc,
   deleteDoc,
@@ -16,6 +17,9 @@ export default function FlyersPage() {
   const [editingExpiry, setEditingExpiry] = useState(null);
   const [newExpiryDate, setNewExpiryDate] = useState('');
 
+  // Viewers Dialog state
+  const [viewersDialog, setViewersDialog] = useState(null); // { title, viewed, fullyRead }
+
   useEffect(() => {
     fetchFlyers();
   }, []);
@@ -23,14 +27,12 @@ export default function FlyersPage() {
   async function fetchFlyers() {
     setLoading(true);
     try {
-      // Pending, Approved, Rejected എല്ലാം കാണിക്കാം
       const q = query(collection(db, 'flyers'));
       const snapshot = await getDocs(q);
       const list = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      // പുതിയത് ആദ്യം വരാൻ sort ചെയ്യാം
       list.sort((a, b) => {
         const aTime = a.createdAt?.seconds || 0;
         const bTime = b.createdAt?.seconds || 0;
@@ -42,6 +44,45 @@ export default function FlyersPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function getViewerNames(uids) {
+    if (!uids || !Array.isArray(uids) || uids.length === 0) return [];
+    try {
+      const names = [];
+      for (const uid of uids) {
+        if (typeof uid !== 'string') {
+          names.push(String(uid));
+          continue;
+        }
+        try {
+          const userSnap = await getDoc(doc(db, 'users', uid));
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            const name = userData.displayName || userData.email || uid;
+            names.push(name);
+          } else {
+            names.push(uid);
+          }
+        } catch (e) {
+          names.push(uid);
+        }
+      }
+      return names;
+    } catch (error) {
+      console.error('Error fetching user names:', error);
+      return [];
+    }
+  }
+
+  async function showViewers(flyer) {
+    const viewed = await getViewerNames(flyer.viewedBy);
+    const fullyRead = await getViewerNames(flyer.fullyViewedBy);
+    setViewersDialog({
+      title: flyer.title,
+      viewed,
+      fullyRead,
+    });
   }
 
   async function handleApprove(id) {
@@ -332,10 +373,110 @@ export default function FlyersPage() {
                   >
                     🗑️ Delete
                   </button>
+
+                  <button
+                    onClick={() => showViewers(flyer)}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#3B82F6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      fontWeight: 700,
+                      fontSize: 13,
+                    }}
+                  >
+                    👥 Viewers
+                  </button>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Viewers Dialog */}
+      {viewersDialog && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => setViewersDialog(null)}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: 12,
+              padding: 24,
+              maxWidth: 500,
+              width: '90%',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 16, color: '#0B2B5B' }}>
+              👥 Viewers — {viewersDialog.title}
+            </h2>
+
+            <div style={{ marginBottom: 16 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: '#666', marginBottom: 8 }}>
+                👁️ Viewed by ({viewersDialog.viewed.length})
+              </h3>
+              {viewersDialog.viewed.length === 0 ? (
+                <p style={{ color: '#999', fontSize: 13 }}>No viewers yet.</p>
+              ) : (
+                <ul style={{ margin: 0, paddingLeft: 20 }}>
+                  {viewersDialog.viewed.map((name, i) => (
+                    <li key={i} style={{ fontSize: 13, marginBottom: 4 }}>{name}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: '#666', marginBottom: 8 }}>
+                ✅ Fully Read ({viewersDialog.fullyRead.length})
+              </h3>
+              {viewersDialog.fullyRead.length === 0 ? (
+                <p style={{ color: '#999', fontSize: 13 }}>No one has fully read it yet.</p>
+              ) : (
+                <ul style={{ margin: 0, paddingLeft: 20 }}>
+                  {viewersDialog.fullyRead.map((name, i) => (
+                    <li key={i} style={{ fontSize: 13, marginBottom: 4 }}>{name}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <button
+              onClick={() => setViewersDialog(null)}
+              style={{
+                width: '100%',
+                padding: '10px 16px',
+                background: '#0B2B5B',
+                color: 'white',
+                border: 'none',
+                borderRadius: 6,
+                cursor: 'pointer',
+                fontWeight: 700,
+                fontSize: 14,
+              }}
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
     </div>
