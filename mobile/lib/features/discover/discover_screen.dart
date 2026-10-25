@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../core/localization/locale_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../core/utils/migo_animations.dart';
@@ -15,14 +16,14 @@ import '../deals/offer_detail_screen.dart';
 enum SortMode { newest, bestSavings, expiringSoon }
 
 extension SortModeX on SortMode {
-  String get label {
+  String label(bool isAr) {
     switch (this) {
       case SortMode.newest:
-        return 'Newest';
+        return isAr ? 'الأحدث' : 'Newest';
       case SortMode.bestSavings:
-        return 'Best savings';
+        return isAr ? 'أفضل التوفير' : 'Best savings';
       case SortMode.expiringSoon:
-        return 'Expiring soon';
+        return isAr ? 'تنتهي قريبًا' : 'Expiring soon';
     }
   }
 }
@@ -42,7 +43,7 @@ class DiscoverScreen extends StatefulWidget {
 }
 
 class _DiscoverScreenState extends State<DiscoverScreen> {
-    final _searchController = TextEditingController();
+  final _searchController = TextEditingController();
   String _query = '';
   Timer? _searchDebounce;
   String? _category;
@@ -65,7 +66,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   }
 
   Future<void> _autoDetectArea() async {
-    // If initial area passed, use it
     if (widget.initialArea != null) {
       setState(() => _autoDetecting = false);
       _resolveAreaName(widget.initialArea!);
@@ -118,7 +118,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       if (!mounted) return;
       setState(() {
         _areas = areas;
-        // Resolve name if already set
         if (_areaId != null && _areaName == null) {
           _resolveAreaName(_areaId!);
         }
@@ -148,7 +147,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   Future<void> _selectAreaPill(AreaModel area) async {
     if (_areaId == area.id) {
-      // Deselect → All Areas
       setState(() {
         _areaId = null;
         _areaName = null;
@@ -161,7 +159,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       _areaName = area.name;
     });
 
-    // Persist
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) {
       await LocationService.instance.saveSelectedArea(
@@ -214,238 +211,239 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Discover'),
-        actions: [
-          // Location chip
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: _LocationChip(
-              areaName: _areaName,
-              loading: _autoDetecting,
-              onTap: _changeLocation,
-            ),
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(170),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: Column(
-              children: [
-                                TextField(
-                  controller: _searchController,
-                  onChanged: (v) {
-                    setState(() => _query = v);
-                    // D2: Log search event (debounced 1.5s)
-                    _searchDebounce?.cancel();
-                    _searchDebounce = Timer(
-                      const Duration(milliseconds: 1500),
-                      () {
-                        if (v.trim().isNotEmpty) {
-                          AnalyticsService.instance.logSearch(query: v.trim());
-                        }
-                      },
-                    );
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Search deals, businesses, cuisines...',
-                    prefixIcon: const Icon(Icons.search),
-                    filled: true,
-                    fillColor: MigoColors.surfaceLight,
-                    contentPadding:
-                        const EdgeInsets.symmetric(vertical: 12),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none,
-                    ),
+    return ListenableBuilder(
+      listenable: LocaleProvider.instance,
+      builder: (context, _) {
+        final isAr = LocaleProvider.instance.locale == 'ar';
+
+        return Directionality(
+          textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(isAr ? 'اكتشف' : 'Discover'),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: _LocationChip(
+                    areaName: _areaName,
+                    loading: _autoDetecting,
+                    onTap: _changeLocation,
+                    isAr: isAr,
                   ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 40,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            _CategoryPill(
-                              label: 'All',
-                              selected: _category == null,
-                              onTap: () =>
-                                  setState(() => _category = null),
-                            ),
-                            const SizedBox(width: 6),
-                            ..._categories.map((c) => Padding(
-                                  padding:
-                                      const EdgeInsets.only(right: 6),
-                                  child: _CategoryPill(
-                                    label: c,
-                                    selected: _category == c,
-                                    onTap: () => setState(
-                                      () => _category =
-                                          _category == c ? null : c,
-                                    ),
-                                  ),
-                                )),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    PopupMenuButton<SortMode>(
-                      initialValue: _sort,
-                      icon: const Icon(Icons.sort),
-                      onSelected: (v) => setState(() => _sort = v),
-                      itemBuilder: (_) => SortMode.values
-                          .map((s) => PopupMenuItem(
-                                value: s,
-                                child: Text(s.label),
-                              ))
-                          .toList(),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Area filter row
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.place_outlined,
-                      size: 16,
-                      color: MigoColors.textSecondaryLight,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: SizedBox(
-                        height: 36,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            _AreaPill(
-                              label: 'All Areas',
-                              selected: _areaId == null,
-                              onTap: () => setState(() {
-                                _areaId = null;
-                                _areaName = null;
-                              }),
-                            ),
-                            const SizedBox(width: 6),
-                            ..._areas.map((a) => Padding(
-                                  padding:
-                                      const EdgeInsets.only(right: 6),
-                                  child: _AreaPill(
-                                    label: a.name,
-                                    selected: _areaId == a.id,
-                                    onTap: () => _selectAreaPill(a),
-                                  ),
-                                )),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
               ],
-            ),
-          ),
-        ),
-      ),
-      body: StreamBuilder<List<OfferModel>>(
-        stream: _areaId != null
-            ? FirestoreService.instance
-                .streamLiveOffersByArea(_areaId!)
-            : FirestoreService.instance.streamLiveOffers(limit: 50),
-        builder: (context, snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final all = snap.data ?? [];
-          final filtered = _applyFilters(all);
-
-          if (filtered.isEmpty) {
-            final hasFilters = _query.isNotEmpty ||
-                _category != null ||
-                _areaId != null;
-            return MigoEmptyState(
-              icon: hasFilters
-                  ? Icons.search_off
-                  : Icons.explore_outlined,
-              title: hasFilters
-                  ? 'No offers match your filters'
-                  : 'No offers yet',
-              body: hasFilters
-                  ? 'Try a different search, category, or area.'
-                  : 'Check back soon for new deals.',
-            );
-          }
-
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                child: Row(
-                  children: [
-                    Text(
-                      '${filtered.length} '
-                      '${filtered.length == 1 ? "offer" : "offers"}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: MigoColors.textSecondaryLight,
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(170),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _searchController,
+                        onChanged: (v) {
+                          setState(() => _query = v);
+                          _searchDebounce?.cancel();
+                          _searchDebounce = Timer(
+                            const Duration(milliseconds: 1500),
+                            () {
+                              if (v.trim().isNotEmpty) {
+                                AnalyticsService.instance.logSearch(query: v.trim());
+                              }
+                            },
+                          );
+                        },
+                        decoration: InputDecoration(
+                          hintText: isAr
+                              ? 'ابحث عن العروض، الشركات، المأكولات...'
+                              : 'Search deals, businesses, cuisines...',
+                          prefixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: MigoColors.surfaceLight,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
                       ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      'Sort: ${_sort.label}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: MigoColors.textSecondaryLight,
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: 40,
+                              child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                children: [
+                                  _CategoryPill(
+                                    label: isAr ? 'الكل' : 'All',
+                                    selected: _category == null,
+                                    onTap: () => setState(() => _category = null),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  ..._categories.map((c) => Padding(
+                                        padding: const EdgeInsets.only(right: 6),
+                                        child: _CategoryPill(
+                                          label: c,
+                                          selected: _category == c,
+                                          onTap: () => setState(
+                                            () => _category = _category == c ? null : c,
+                                          ),
+                                        ),
+                                      )),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          PopupMenuButton<SortMode>(
+                            initialValue: _sort,
+                            icon: const Icon(Icons.sort),
+                            onSelected: (v) => setState(() => _sort = v),
+                            itemBuilder: (_) => SortMode.values
+                                .map((s) => PopupMenuItem(
+                                      value: s,
+                                      child: Text(s.label(isAr)),
+                                    ))
+                                .toList(),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.place_outlined,
+                            size: 16,
+                            color: MigoColors.textSecondaryLight,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: SizedBox(
+                              height: 36,
+                              child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                children: [
+                                  _AreaPill(
+                                    label: isAr ? 'كل المناطق' : 'All Areas',
+                                    selected: _areaId == null,
+                                    onTap: () => setState(() {
+                                      _areaId = null;
+                                      _areaName = null;
+                                    }),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  ..._areas.map((a) => Padding(
+                                        padding: const EdgeInsets.only(right: 6),
+                                        child: _AreaPill(
+                                          label: a.name,
+                                          selected: _areaId == a.id,
+                                          onTap: () => _selectAreaPill(a),
+                                        ),
+                                      )),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 0.62,
-                  ),
-                  itemCount: filtered.length,
-                  itemBuilder: (context, i) {
-                    final o = filtered[i];
-                    return TapScale(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          FadeSlideRoute(
-                            child: OfferDetailScreen(offer: o),
+            ),
+            body: StreamBuilder<List<OfferModel>>(
+              stream: _areaId != null
+                  ? FirestoreService.instance.streamLiveOffersByArea(_areaId!)
+                  : FirestoreService.instance.streamLiveOffers(limit: 50),
+              builder: (context, snap) {
+                if (snap.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final all = snap.data ?? [];
+                final filtered = _applyFilters(all);
+
+                if (filtered.isEmpty) {
+                  final hasFilters = _query.isNotEmpty ||
+                      _category != null ||
+                      _areaId != null;
+                  return MigoEmptyState(
+                    icon: hasFilters ? Icons.search_off : Icons.explore_outlined,
+                    title: hasFilters
+                        ? (isAr ? 'لا توجد عروض تطابق تصفيتك' : 'No offers match your filters')
+                        : (isAr ? 'لا توجد عروض بعد' : 'No offers yet'),
+                    body: hasFilters
+                        ? (isAr ? 'جرب بحثًا أو فئة أو منطقة مختلفة.' : 'Try a different search, category, or area.')
+                        : (isAr ? 'تحقق مرة أخرى قريبًا للحصول على عروض جديدة.' : 'Check back soon for new deals.'),
+                  );
+                }
+
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                      child: Row(
+                        children: [
+                          Text(
+                            '${filtered.length} ${isAr ? 'عرض' : (filtered.length == 1 ? "offer" : "offers")}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: MigoColors.textSecondaryLight,
+                            ),
                           ),
-                        );
-                      },
-                      child: _OfferTile(
-                        offer: o,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            FadeSlideRoute(
-                              child: OfferDetailScreen(offer: o),
+                          const Spacer(),
+                          Text(
+                            isAr ? 'ترتيب: ${_sort.label(isAr)}' : 'Sort: ${_sort.label(isAr)}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: MigoColors.textSecondaryLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: GridView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: 0.62,
+                        ),
+                        itemCount: filtered.length,
+                        itemBuilder: (context, i) {
+                          final o = filtered[i];
+                          return TapScale(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                FadeSlideRoute(
+                                  child: OfferDetailScreen(offer: o),
+                                ),
+                              );
+                            },
+                            child: _OfferTile(
+                              offer: o,
+                              isAr: isAr,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  FadeSlideRoute(
+                                    child: OfferDetailScreen(offer: o),
+                                  ),
+                                );
+                              },
                             ),
                           );
                         },
                       ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -456,11 +454,13 @@ class _LocationChip extends StatelessWidget {
     required this.areaName,
     required this.loading,
     required this.onTap,
+    required this.isAr,
   });
 
   final String? areaName;
   final bool loading;
   final VoidCallback onTap;
+  final bool isAr;
 
   @override
   Widget build(BuildContext context) {
@@ -486,7 +486,7 @@ class _LocationChip extends StatelessWidget {
     }
 
     final hasArea = areaName != null && areaName!.isNotEmpty;
-    final displayText = hasArea ? areaName! : 'Set location';
+    final displayText = hasArea ? areaName! : (isAr ? 'تحديد الموقع' : 'Set location');
 
     return InkWell(
       onTap: onTap,
@@ -596,9 +596,7 @@ class _AreaPill extends StatelessWidget {
           color: selected ? MigoColors.success : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected
-                ? MigoColors.success
-                : MigoColors.dividerLight,
+            color: selected ? MigoColors.success : MigoColors.dividerLight,
           ),
         ),
         child: Text(
@@ -606,8 +604,7 @@ class _AreaPill extends StatelessWidget {
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w700,
-            color:
-                selected ? Colors.white : MigoColors.textSecondaryLight,
+            color: selected ? Colors.white : MigoColors.textSecondaryLight,
           ),
         ),
       ),
@@ -616,10 +613,15 @@ class _AreaPill extends StatelessWidget {
 }
 
 class _OfferTile extends StatelessWidget {
-  const _OfferTile({required this.offer, required this.onTap});
+  const _OfferTile({
+    required this.offer,
+    required this.onTap,
+    required this.isAr,
+  });
 
   final OfferModel offer;
   final VoidCallback onTap;
+  final bool isAr;
 
   @override
   Widget build(BuildContext context) {
@@ -725,7 +727,9 @@ class _OfferTile extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        'SAVE ${offer.currency} ${offer.savings.toStringAsFixed(0)}',
+                        isAr
+                            ? 'وفر ${offer.currency} ${offer.savings.toStringAsFixed(0)}'
+                            : 'SAVE ${offer.currency} ${offer.savings.toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w800,

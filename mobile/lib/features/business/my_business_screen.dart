@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../core/localization/locale_provider.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../models/business_model.dart';
 import '../../models/offer_model.dart';
@@ -33,13 +34,15 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
     );
   }
 
-  Future<void> _openCreateOffer(
+    Future<void> _openCreateOffer(
     BuildContext context,
     BusinessModel business,
   ) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => CreateOfferScreen(business: business),
+        builder: (_) => CreateOfferScreen(
+          business: business,
+        ),
       ),
     );
   }
@@ -195,17 +198,18 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
 
   // ---------- BOTTOM SHEETS ----------
   void _showLogoSheet(BusinessModel biz) {
+    final isAr = LocaleProvider.instance.locale == 'ar';
     showModalBottomSheet(
       context: context,
       builder: (_) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(
-              padding: EdgeInsets.all(12),
+            Padding(
+              padding: const EdgeInsets.all(12),
               child: Text(
-                'Business Logo',
-                style: TextStyle(
+                isAr ? 'شعار العمل' : 'Business Logo',
+                style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 16,
                 ),
@@ -213,7 +217,7 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Choose from gallery'),
+              title: Text(isAr ? 'اختر من المعرض' : 'Choose from gallery'),
               onTap: () {
                 Navigator.pop(context);
                 _pickLogo(ImageSource.gallery, biz.id);
@@ -221,7 +225,7 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text('Take a photo'),
+              title: Text(isAr ? 'التقط صورة' : 'Take a photo'),
               onTap: () {
                 Navigator.pop(context);
                 _pickLogo(ImageSource.camera, biz.id);
@@ -233,9 +237,9 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
                   Icons.delete_outline,
                   color: MigoColors.error,
                 ),
-                title: const Text(
-                  'Remove logo',
-                  style: TextStyle(color: MigoColors.error),
+                title: Text(
+                  isAr ? 'إزالة الشعار' : 'Remove logo',
+                  style: const TextStyle(color: MigoColors.error),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -249,17 +253,18 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
   }
 
   void _showCoverSheet(BusinessModel biz) {
+    final isAr = LocaleProvider.instance.locale == 'ar';
     showModalBottomSheet(
       context: context,
       builder: (_) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(
-              padding: EdgeInsets.all(12),
+            Padding(
+              padding: const EdgeInsets.all(12),
               child: Text(
-                'Cover Photo',
-                style: TextStyle(
+                isAr ? 'صورة الغلاف' : 'Cover Photo',
+                style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 16,
                 ),
@@ -267,7 +272,7 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Choose from gallery'),
+              title: Text(isAr ? 'اختر من المعرض' : 'Choose from gallery'),
               onTap: () {
                 Navigator.pop(context);
                 _pickCover(ImageSource.gallery, biz.id);
@@ -275,7 +280,7 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text('Take a photo'),
+              title: Text(isAr ? 'التقط صورة' : 'Take a photo'),
               onTap: () {
                 Navigator.pop(context);
                 _pickCover(ImageSource.camera, biz.id);
@@ -287,9 +292,9 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
                   Icons.delete_outline,
                   color: MigoColors.error,
                 ),
-                title: const Text(
-                  'Remove cover',
-                  style: TextStyle(color: MigoColors.error),
+                title: Text(
+                  isAr ? 'إزالة الغلاف' : 'Remove cover',
+                  style: const TextStyle(color: MigoColors.error),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -311,284 +316,296 @@ class _MyBusinessScreenState extends State<MyBusinessScreen> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('My Business')),
-      body: StreamBuilder<BusinessModel?>(
-        stream: FirestoreService.instance.streamMyBusiness(uid),
-        builder: (context, snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return ListenableBuilder(
+      listenable: LocaleProvider.instance,
+      builder: (context, _) {
+        final isAr = LocaleProvider.instance.locale == 'ar';
 
-          final biz = snap.data;
-          if (biz == null) {
-            return Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.storefront_outlined,
-                    size: 72,
-                    color: MigoColors.primary,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No business yet',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Register your business to start publishing offers on MIGO.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: MigoColors.textSecondaryLight),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    height: 52,
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _openRegister(context),
-                      icon: const Icon(Icons.add_business_outlined),
-                      label: const Text('Register business'),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
+        return Directionality(
+          textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(
+            appBar: AppBar(title: Text(isAr ? 'عملي' : 'My Business')),
+            body: StreamBuilder<BusinessModel?>(
+              stream: FirestoreService.instance.streamMyBusiness(uid),
+              builder: (context, snap) {
+                if (snap.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          return ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              // ---------- COVER PHOTO ----------
-              _CoverPhotoWidget(
-                coverUrl: biz.coverUrl,
-                uploading: _uploadingCover,
-                onTap: () => _showCoverSheet(biz),
-              ),
-              const SizedBox(height: 8),
-
-              // ---------- INFO CARD ----------
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: MigoColors.surfaceLight,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: MigoColors.dividerLight),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                final biz = snap.data;
+                if (biz == null) {
+                  return Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Logo
-                        _LogoWidget(
-                          logoUrl: biz.logoUrl,
-                          uploading: _uploadingLogo,
-                          onTap: () => _showLogoSheet(biz),
+                        const Icon(
+                          Icons.storefront_outlined,
+                          size: 72,
+                          color: MigoColors.primary,
                         ),
-                        const SizedBox(width: 14),
-                        // Name + category + address
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      biz.name,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleLarge,
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: _statusColor(biz.status)
-                                          .withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      biz.status.toUpperCase(),
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w800,
-                                        color: _statusColor(biz.status),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                biz.category,
-                                style: const TextStyle(
-                                  color: MigoColors.textSecondaryLight,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.place_outlined,
-                                    size: 14,
-                                    color: MigoColors.textSecondaryLight,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      biz.addressLine,
-                                      style: const TextStyle(fontSize: 12),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                        const SizedBox(height: 16),
+                        Text(
+                          isAr ? 'لا يوجد عمل بعد' : 'No business yet',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          isAr
+                              ? 'سجل عملك لبدء نشر العروض على ميجو.'
+                              : 'Register your business to start publishing offers on MIGO.',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: MigoColors.textSecondaryLight),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          height: 52,
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () => _openRegister(context),
+                            icon: const Icon(Icons.add_business_outlined),
+                            label: Text(isAr ? 'تسجيل عمل' : 'Register business'),
                           ),
                         ),
                       ],
                     ),
+                  );
+                }
+
+                return ListView(
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    _CoverPhotoWidget(
+                      coverUrl: biz.coverUrl,
+                      uploading: _uploadingCover,
+                      onTap: () => _showCoverSheet(biz),
+                      isAr: isAr,
+                    ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Tap logo or cover to change',
-                      style: TextStyle(
-                        fontSize: 11,
+
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: MigoColors.surfaceLight,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: MigoColors.dividerLight),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _LogoWidget(
+                                logoUrl: biz.logoUrl,
+                                uploading: _uploadingLogo,
+                                onTap: () => _showLogoSheet(biz),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            biz.name,
+                                            style: Theme.of(context).textTheme.titleLarge,
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: _statusColor(biz.status)
+                                                .withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            biz.status.toUpperCase(),
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w800,
+                                              color: _statusColor(biz.status),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      biz.category,
+                                      style: const TextStyle(
+                                        color: MigoColors.textSecondaryLight,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.place_outlined,
+                                          size: 14,
+                                          color: MigoColors.textSecondaryLight,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            biz.addressLine,
+                                            style: const TextStyle(fontSize: 12),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            isAr
+                                ? 'اضغط على الشعار أو الغلاف لتغييره'
+                                : 'Tap logo or cover to change',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: MigoColors.textSecondaryLight,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    if (biz.status == 'pending')
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: MigoColors.warning.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: MigoColors.warning.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.schedule, color: MigoColors.warning),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                isAr
+                                    ? 'عملك تحت المراجعة.'
+                                    : 'Your business is under review.',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (biz.status == 'approved') ...[
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: MigoColors.success.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: MigoColors.success.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.verified, color: MigoColors.success),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                isAr
+                                    ? 'تمت الموافقة! قم بإنشاء عرضك الأول أدناه.'
+                                    : 'Approved! Create your first offer below.',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 52,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _openCreateOffer(context, biz),
+                          icon: const Icon(Icons.add),
+                          label: Text(isAr ? 'إنشاء عرض' : 'Create offer'),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 52,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => ShopBookingsScreen(businessId: biz.id),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.event_note_outlined),
+                          label: Text(isAr ? 'حجوزات المتجر' : 'Shop Bookings'),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 52,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => RedeemScreen(business: biz),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.qr_code_scanner),
+                          label: Text(isAr ? 'استرداد المطالبة' : 'Redeem claim'),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 52,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const BusinessAnalyticsScreen(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.analytics_outlined),
+                          label: Text(isAr ? 'عرض التحليلات' : 'View analytics'),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    Text(
+                      isAr ? 'عروضك' : 'YOUR OFFERS',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        letterSpacing: 1.2,
+                        fontWeight: FontWeight.w700,
                         color: MigoColors.textSecondaryLight,
-                        fontStyle: FontStyle.italic,
                       ),
                     ),
+                    const SizedBox(height: 10),
+                    _MyOffersList(businessId: biz.id, business: biz, isAr: isAr),
                   ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (biz.status == 'pending')
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: MigoColors.warning.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: MigoColors.warning.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.schedule, color: MigoColors.warning),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Your business is under review.',
-                          style: TextStyle(fontSize: 13),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              if (biz.status == 'approved') ...[
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: MigoColors.success.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: MigoColors.success.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.verified, color: MigoColors.success),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Approved! Create your first offer below.',
-                          style: TextStyle(fontSize: 13),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 52,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _openCreateOffer(context, biz),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Create offer'),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  height: 52,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => ShopBookingsScreen(businessId: biz.id),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.event_note_outlined),
-                    label: const Text('Shop Bookings'),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  height: 52,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => RedeemScreen(business: biz),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.qr_code_scanner),
-                    label: const Text('Redeem claim'),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                                SizedBox(
-                  height: 52,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              const BusinessAnalyticsScreen(),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.analytics_outlined),
-                    label: const Text('View analytics'),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 24),
-              const Text(
-                'YOUR OFFERS',
-                style: TextStyle(
-                  fontSize: 12,
-                  letterSpacing: 1.2,
-                  fontWeight: FontWeight.w700,
-                  color: MigoColors.textSecondaryLight,
-                ),
-              ),
-              const SizedBox(height: 10),
-              _MyOffersList(businessId: biz.id, business: biz),
-            ],
-          );
-        },
-      ),
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -597,9 +614,11 @@ class _MyOffersList extends StatelessWidget {
   const _MyOffersList({
     required this.businessId,
     required this.business,
+    required this.isAr,
   });
   final String businessId;
   final BusinessModel business;
+  final bool isAr;
 
   @override
   Widget build(BuildContext context) {
@@ -621,10 +640,10 @@ class _MyOffersList extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: MigoColors.dividerLight),
             ),
-            child: const Center(
+            child: Center(
               child: Text(
-                'No offers yet',
-                style: TextStyle(color: MigoColors.textSecondaryLight),
+                isAr ? 'لا توجد عروض بعد' : 'No offers yet',
+                style: const TextStyle(color: MigoColors.textSecondaryLight),
               ),
             ),
           );
@@ -719,7 +738,7 @@ class _MyOffersList extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          'SAVE ${o.currency} ${o.savings.toStringAsFixed(0)}',
+                          '${isAr ? 'وفر' : 'SAVE'} ${o.currency} ${o.savings.toStringAsFixed(0)}',
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
@@ -742,9 +761,9 @@ class _MyOffersList extends StatelessWidget {
                             color: MigoColors.error.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Text(
-                            'EXPIRED',
-                            style: TextStyle(
+                          child: Text(
+                            isAr ? 'منتهي' : 'EXPIRED',
+                            style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
                               color: MigoColors.error,
@@ -754,19 +773,19 @@ class _MyOffersList extends StatelessWidget {
                       const Spacer(),
                       OutlinedButton.icon(
                         onPressed: () {
-                          Navigator.of(context).push(
+                                                    Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => CreateOfferScreen(
                                 business: business,
                                 initialOffer: o,
                               ),
                             ),
-                          );
+                          );;
                         },
-                        icon: const Icon(Icons.copy_outlined, size: 14),
-                        label: const Text(
-                          'Duplicate',
-                          style: TextStyle(fontSize: 12),
+                        icon: const Icon(Icons.edit_outlined, size: 14),
+                        label: Text(
+                          isAr ? 'تعديل' : 'Edit',
+                          style: const TextStyle(fontSize: 12),
                         ),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
@@ -782,8 +801,7 @@ class _MyOffersList extends StatelessWidget {
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  BusinessOfferReserveSettingsScreen(
+                              builder: (_) => BusinessOfferReserveSettingsScreen(
                                 offerId: o.id,
                                 businessId: businessId,
                               ),
@@ -791,9 +809,9 @@ class _MyOffersList extends StatelessWidget {
                           );
                         },
                         icon: const Icon(Icons.tune, size: 14),
-                        label: const Text(
-                          'Reserve',
-                          style: TextStyle(fontSize: 12),
+                        label: Text(
+                          isAr ? 'احتياطي' : 'Reserve',
+                          style: const TextStyle(fontSize: 12),
                         ),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
@@ -827,10 +845,12 @@ class _CoverPhotoWidget extends StatelessWidget {
     required this.coverUrl,
     required this.uploading,
     required this.onTap,
+    required this.isAr,
   });
   final String? coverUrl;
   final bool uploading;
   final VoidCallback onTap;
+  final bool isAr;
 
   @override
   Widget build(BuildContext context) {
@@ -859,27 +879,27 @@ class _CoverPhotoWidget extends StatelessWidget {
                       ),
                     ),
                   )
-                : const Center(
+                : Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.add_photo_alternate_outlined,
                           size: 48,
                           color: MigoColors.primary,
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
-                          'Add cover photo',
-                          style: TextStyle(
+                          isAr ? 'إضافة صورة الغلاف' : 'Add cover photo',
+                          style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             color: MigoColors.textPrimaryLight,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
-                          'Tap to upload',
-                          style: TextStyle(
+                          isAr ? 'اضغط للتحميل' : 'Tap to upload',
+                          style: const TextStyle(
                             fontSize: 11,
                             color: MigoColors.textSecondaryLight,
                           ),

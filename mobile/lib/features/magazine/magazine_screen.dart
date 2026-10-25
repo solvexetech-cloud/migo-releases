@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../core/localization/locale_provider.dart';
 import '../../core/theme/migo_colors.dart';
 
 class MagazineScreen extends StatefulWidget {
@@ -80,265 +81,276 @@ class _MagazineScreenState extends State<MagazineScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'MIGO Magazine',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: MigoColors.primary,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bookmarks),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const SavedFlyersScreen(),
-                ),
-              ).then((_) => _loadUserData());
-            },
-          ),
-        ],
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('flyers')
-            .where('status', isEqualTo: 'approved')
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+    return ListenableBuilder(
+      listenable: LocaleProvider.instance,
+      builder: (context, _) {
+        final isAr = LocaleProvider.instance.locale == 'ar';
 
-          final docs = snapshot.data?.docs ?? [];
-
-          final activeFlyers = docs.where((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            
-            String flyerCountry = (data['countryCode'] ?? data['country']) as String? ?? 'QA';
-            if (flyerCountry.toLowerCase() == 'qatar') {
-              flyerCountry = 'QA';
-            } else if (flyerCountry.length > 2) {
-              flyerCountry = flyerCountry.substring(0, 2).toUpperCase();
-            } else {
-              flyerCountry = flyerCountry.toUpperCase();
-            }
-
-            if (flyerCountry != _userCountry) return false;
-
-            DateTime? endDate;
-            final rawEndDate = data['endDate'];
-            if (rawEndDate is Timestamp) {
-              endDate = rawEndDate.toDate();
-            } else if (rawEndDate is Map && rawEndDate.containsKey('seconds')) {
-              endDate = DateTime.fromMillisecondsSinceEpoch((rawEndDate['seconds'] as int) * 1000);
-            } else if (rawEndDate is String) {
-              endDate = DateTime.tryParse(rawEndDate);
-            }
-            if (endDate == null) return true;
-            return endDate.isAfter(DateTime.now());
-          }).toList();
-
-          if (activeFlyers.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.menu_book_outlined, size: 64, color: Colors.grey),
-                  SizedBox(height: 12),
-                  Text('No magazines available', style: TextStyle(fontSize: 16, color: Colors.grey)),
-                ],
+        return Directionality(
+          textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(
+                isAr ? 'مجلة ميجو' : 'MIGO Magazine',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
-            );
-          }
-
-          return GridView.builder(
-            padding: const EdgeInsets.all(12),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // രണ്ട് കോളങ്ങൾ
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.65, // ഉയരവും വീതിയും ക്രമീകരിക്കാൻ
-            ),
-            itemCount: activeFlyers.length,
-            itemBuilder: (context, index) {
-              final data = activeFlyers[index].data() as Map<String, dynamic>;
-              final flyerId = activeFlyers[index].id;
-              final title = data['title'] as String? ?? 'Flyer';
-              final businessName = data['businessName'] as String? ?? '';
-              final category = data['category'] as String? ?? '';
-              final pdfUrl = data['pdfUrl'] as String? ?? '';
-              final logoUrl = data['logoUrl'] as String? ?? '';
-              final imageUrls = data['imageUrls'] as List?;
-              
-              String thumbnailUrl = data['thumbnailUrl'] as String? ?? '';
-              if (thumbnailUrl.isEmpty && imageUrls != null && imageUrls.isNotEmpty) {
-                thumbnailUrl = imageUrls.first.toString();
-              }
-              
-              DateTime? endDate;
-              final rawEndDate = data['endDate'];
-              if (rawEndDate is Timestamp) {
-                endDate = rawEndDate.toDate();
-              } else if (rawEndDate is Map && rawEndDate.containsKey('seconds')) {
-                endDate = DateTime.fromMillisecondsSinceEpoch((rawEndDate['seconds'] as int) * 1000);
-              } else if (rawEndDate is String) {
-                endDate = DateTime.tryParse(rawEndDate);
-              }
-
-              final isSaved = _savedFlyers.contains(flyerId);
-
-              return Card(
-                clipBehavior: Clip.antiAlias,
-                elevation: 2,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: InkWell(
-                  onTap: () {
+              iconTheme: const IconThemeData(color: Colors.white),
+              backgroundColor: MigoColors.primary,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.bookmarks),
+                  onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => FlyerReaderScreen(
-                          flyerId: flyerId,
-                          title: title,
-                          businessName: businessName,
-                          pdfUrl: pdfUrl,
-                          imageUrls: imageUrls,
-                          logoUrl: logoUrl,
-                          isSaved: isSaved,
-                          onSaveToggle: () => _toggleSaveFlyer(flyerId),
-                        ),
+                        builder: (_) => const SavedFlyersScreen(),
                       ),
-                    );
+                    ).then((_) => _loadUserData());
                   },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ഇമേജ് ഭാഗം
-                      Expanded(
-                        flex: 3,
-                        child: Stack(
-                          fit: StackFit.expand,
+                ),
+              ],
+            ),
+            body: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('flyers')
+                  .where('status', isEqualTo: 'approved')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text(isAr ? 'خطأ: ${snapshot.error}' : 'Error: ${snapshot.error}'));
+                }
+
+                final docs = snapshot.data?.docs ?? [];
+
+                final activeFlyers = docs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  
+                  String flyerCountry = (data['countryCode'] ?? data['country']) as String? ?? 'QA';
+                  if (flyerCountry.toLowerCase() == 'qatar') {
+                    flyerCountry = 'QA';
+                  } else if (flyerCountry.length > 2) {
+                    flyerCountry = flyerCountry.substring(0, 2).toUpperCase();
+                  } else {
+                    flyerCountry = flyerCountry.toUpperCase();
+                  }
+
+                  if (flyerCountry != _userCountry) return false;
+
+                  DateTime? endDate;
+                  final rawEndDate = data['endDate'];
+                  if (rawEndDate is Timestamp) {
+                    endDate = rawEndDate.toDate();
+                  } else if (rawEndDate is Map && rawEndDate.containsKey('seconds')) {
+                    endDate = DateTime.fromMillisecondsSinceEpoch((rawEndDate['seconds'] as int) * 1000);
+                  } else if (rawEndDate is String) {
+                    endDate = DateTime.tryParse(rawEndDate);
+                  }
+                  if (endDate == null) return true;
+                  return endDate.isAfter(DateTime.now());
+                }).toList();
+
+                if (activeFlyers.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.menu_book_outlined, size: 64, color: Colors.grey),
+                        const SizedBox(height: 12),
+                        Text(
+                          isAr ? 'لا توجد مجلات متاحة' : 'No magazines available',
+                          style: const TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return GridView.builder(
+                  padding: const EdgeInsets.all(12),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.65,
+                  ),
+                  itemCount: activeFlyers.length,
+                  itemBuilder: (context, index) {
+                    final data = activeFlyers[index].data() as Map<String, dynamic>;
+                    final flyerId = activeFlyers[index].id;
+                    final title = data['title'] as String? ?? 'Flyer';
+                    final businessName = data['businessName'] as String? ?? '';
+                    final category = data['category'] as String? ?? '';
+                    final pdfUrl = data['pdfUrl'] as String? ?? '';
+                    final logoUrl = data['logoUrl'] as String? ?? '';
+                    final imageUrls = data['imageUrls'] as List?;
+                    
+                    String thumbnailUrl = data['thumbnailUrl'] as String? ?? '';
+                    if (thumbnailUrl.isEmpty && imageUrls != null && imageUrls.isNotEmpty) {
+                      thumbnailUrl = imageUrls.first.toString();
+                    }
+                    
+                    DateTime? endDate;
+                    final rawEndDate = data['endDate'];
+                    if (rawEndDate is Timestamp) {
+                      endDate = rawEndDate.toDate();
+                    } else if (rawEndDate is Map && rawEndDate.containsKey('seconds')) {
+                      endDate = DateTime.fromMillisecondsSinceEpoch((rawEndDate['seconds'] as int) * 1000);
+                    } else if (rawEndDate is String) {
+                      endDate = DateTime.tryParse(rawEndDate);
+                    }
+
+                    final isSaved = _savedFlyers.contains(flyerId);
+
+                    return Card(
+                      clipBehavior: Clip.antiAlias,
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => FlyerReaderScreen(
+                                flyerId: flyerId,
+                                title: title,
+                                businessName: businessName,
+                                pdfUrl: pdfUrl,
+                                imageUrls: imageUrls,
+                                logoUrl: logoUrl,
+                                isSaved: isSaved,
+                                onSaveToggle: () => _toggleSaveFlyer(flyerId),
+                              ),
+                            ),
+                          );
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            thumbnailUrl.isNotEmpty
-                                ? Image.network(
-                                    thumbnailUrl,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, _, _) => Container(
-                                      color: Colors.grey.shade200,
-                                      child: const Center(
-                                        child: Icon(Icons.image_not_supported, size: 40, color: MigoColors.primary),
+                            Expanded(
+                              flex: 3,
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  thumbnailUrl.isNotEmpty
+                                      ? Image.network(
+                                          thumbnailUrl,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, _, _) => Container(
+                                            color: Colors.grey.shade200,
+                                            child: const Center(
+                                              child: Icon(Icons.image_not_supported, size: 40, color: MigoColors.primary),
+                                            ),
+                                          ),
+                                        )
+                                      : Container(
+                                          color: Colors.grey.shade200,
+                                          child: const Center(
+                                            child: Icon(Icons.menu_book, size: 40, color: MigoColors.primary),
+                                          ),
+                                        ),
+                                  Positioned(
+                                    top: 4,
+                                    right: isAr ? null : 4,
+                                    left: isAr ? 4 : null,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.8),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: IconButton(
+                                        iconSize: 20,
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        icon: Icon(
+                                          isSaved ? Icons.bookmark : Icons.bookmark_border,
+                                          color: isSaved ? MigoColors.primary : Colors.black54,
+                                        ),
+                                        onPressed: () => _toggleSaveFlyer(flyerId),
                                       ),
                                     ),
-                                  )
-                                : Container(
-                                    color: Colors.grey.shade200,
-                                    child: const Center(
-                                      child: Icon(Icons.menu_book, size: 40, color: MigoColors.primary),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          title,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.storefront, size: 12, color: Colors.grey),
+                                            const SizedBox(width: 4),
+                                            Expanded(
+                                              child: Text(
+                                                businessName,
+                                                style: const TextStyle(fontSize: 11, color: Colors.black54),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                            // ബുക്ക്മാർക്ക് ഐക്കൺ
-                            Positioned(
-                              top: 4,
-                              right: 4,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: IconButton(
-                                  iconSize: 20,
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  icon: Icon(
-                                    isSaved ? Icons.bookmark : Icons.bookmark_border,
-                                    color: isSaved ? MigoColors.primary : Colors.black54,
-                                  ),
-                                  onPressed: () => _toggleSaveFlyer(flyerId),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: MigoColors.accent.withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            category.toUpperCase(),
+                                            style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: MigoColors.accentDark),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        if (endDate != null)
+                                          Text(
+                                            '${endDate.day}/${endDate.month}',
+                                            style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                          ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      // ടെക്സ്റ്റ് ഭാഗം
-                      Expanded(
-                        flex: 2,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    title,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.storefront, size: 12, color: Colors.grey),
-                                      const SizedBox(width: 4),
-                                      Expanded(
-                                        child: Text(
-                                          businessName,
-                                          style: const TextStyle(fontSize: 11, color: Colors.black54),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: MigoColors.accent.withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      category.toUpperCase(),
-                                      style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: MigoColors.accentDark),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  if (endDate != null)
-                                    Text(
-                                      '${endDate.day}/${endDate.month}',
-                                      style: const TextStyle(fontSize: 10, color: Colors.grey),
-                                    ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -384,127 +396,137 @@ class _SavedFlyersScreenState extends State<SavedFlyersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Saved Flyers',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: MigoColors.primary,
-      ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _savedIds.isEmpty
-              ? const Center(child: Text('No saved flyers yet.'))
-              : StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('flyers')
-                      .where(FieldPath.documentId, whereIn: _savedIds)
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    final docs = snapshot.data!.docs;
+    return ListenableBuilder(
+      listenable: LocaleProvider.instance,
+      builder: (context, _) {
+        final isAr = LocaleProvider.instance.locale == 'ar';
 
-                    return GridView.builder(
-                      padding: const EdgeInsets.all(12),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 0.65,
-                      ),
-                      itemCount: docs.length,
-                      itemBuilder: (context, index) {
-                        final data = docs[index].data() as Map<String, dynamic>;
-                        final flyerId = docs[index].id;
-                        final title = data['title'] as String? ?? 'Flyer';
-                        final businessName = data['businessName'] as String? ?? '';
-                        final imageUrls = data['imageUrls'] as List?;
-                        
-                        String thumbnailUrl = data['thumbnailUrl'] as String? ?? '';
-                        if (thumbnailUrl.isEmpty && imageUrls != null && imageUrls.isNotEmpty) {
-                          thumbnailUrl = imageUrls.first.toString();
-                        }
+        return Directionality(
+          textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(
+                isAr ? 'المنشورات المحفوظة' : 'Saved Flyers',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              iconTheme: const IconThemeData(color: Colors.white),
+              backgroundColor: MigoColors.primary,
+            ),
+            body: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _savedIds.isEmpty
+                    ? Center(child: Text(isAr ? 'لا توجد منشورات محفوظة بعد.' : 'No saved flyers yet.'))
+                    : StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('flyers')
+                            .where(FieldPath.documentId, whereIn: _savedIds)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          final docs = snapshot.data!.docs;
 
-                        return Card(
-                          clipBehavior: Clip.antiAlias,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => FlyerReaderScreen(
-                                    flyerId: flyerId,
-                                    title: title,
-                                    businessName: businessName,
-                                    pdfUrl: data['pdfUrl'] as String? ?? '',
-                                    imageUrls: imageUrls,
-                                    logoUrl: data['logoUrl'] as String? ?? '',
-                                    isSaved: true,
-                                    onSaveToggle: () => _removeSave(flyerId),
+                          return GridView.builder(
+                            padding: const EdgeInsets.all(12),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 0.65,
+                            ),
+                            itemCount: docs.length,
+                            itemBuilder: (context, index) {
+                              final data = docs[index].data() as Map<String, dynamic>;
+                              final flyerId = docs[index].id;
+                              final title = data['title'] as String? ?? 'Flyer';
+                              final businessName = data['businessName'] as String? ?? '';
+                              final imageUrls = data['imageUrls'] as List?;
+                              
+                              String thumbnailUrl = data['thumbnailUrl'] as String? ?? '';
+                              if (thumbnailUrl.isEmpty && imageUrls != null && imageUrls.isNotEmpty) {
+                                thumbnailUrl = imageUrls.first.toString();
+                              }
+
+                              return Card(
+                                clipBehavior: Clip.antiAlias,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => FlyerReaderScreen(
+                                          flyerId: flyerId,
+                                          title: title,
+                                          businessName: businessName,
+                                          pdfUrl: data['pdfUrl'] as String? ?? '',
+                                          imageUrls: imageUrls,
+                                          logoUrl: data['logoUrl'] as String? ?? '',
+                                          isSaved: true,
+                                          onSaveToggle: () => _removeSave(flyerId),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        flex: 3,
+                                        child: thumbnailUrl.isNotEmpty
+                                            ? Image.network(thumbnailUrl, fit: BoxFit.cover, width: double.infinity)
+                                            : Container(color: Colors.grey.shade200, child: const Icon(Icons.image)),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                title,
+                                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      businessName,
+                                                      style: const TextStyle(fontSize: 11, color: Colors.black54),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                  IconButton(
+                                                    iconSize: 18,
+                                                    padding: EdgeInsets.zero,
+                                                    constraints: const BoxConstraints(),
+                                                    icon: const Icon(Icons.bookmark, color: MigoColors.primary),
+                                                    onPressed: () => _removeSave(flyerId),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               );
                             },
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: thumbnailUrl.isNotEmpty
-                                      ? Image.network(thumbnailUrl, fit: BoxFit.cover, width: double.infinity)
-                                      : Container(color: Colors.grey.shade200, child: const Icon(Icons.image)),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          title,
-                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                businessName,
-                                                style: const TextStyle(fontSize: 11, color: Colors.black54),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                            IconButton(
-                                              iconSize: 18,
-                                              padding: EdgeInsets.zero,
-                                              constraints: const BoxConstraints(),
-                                              icon: const Icon(Icons.bookmark, color: MigoColors.primary),
-                                              onPressed: () => _removeSave(flyerId),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
+                          );
+                        },
+                      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -592,13 +614,22 @@ class _FlyerReaderScreenState extends State<FlyerReaderScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You have fully read this flyer! ✅')),
+        SnackBar(
+          content: Text(
+            LocaleProvider.instance.locale == 'ar'
+                ? 'لقد قرأت هذا المنشور بالكامل! ✅'
+                : 'You have fully read this flyer! ✅',
+          ),
+        ),
       );
     }
   }
 
   void _shareFlyer() {
-    Share.share('Check out this flyer from ${widget.businessName} on MIGO app: ${widget.title}');
+    final isAr = LocaleProvider.instance.locale == 'ar';
+    Share.share(isAr
+        ? 'تحقق من هذا المنشور من ${widget.businessName} على تطبيق ميجو: ${widget.title}'
+        : 'Check out this flyer from ${widget.businessName} on MIGO app: ${widget.title}');
   }
 
   Future<void> _launchUrl(String url) async {
@@ -617,192 +648,210 @@ class _FlyerReaderScreenState extends State<FlyerReaderScreen> {
     final isImage = widget.imageUrls != null && widget.imageUrls!.isNotEmpty;
     final isPdf = widget.pdfUrl.isNotEmpty;
 
-    return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        backgroundColor: MigoColors.primary,
-        foregroundColor: Colors.white,
-        centerTitle: true, 
-        title: Column(
-          mainAxisSize: MainAxisSize.min, 
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              widget.businessName,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Text(
-              widget.title,
-              style: const TextStyle(fontSize: 12, color: Colors.white70),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(_isSaved ? Icons.bookmark : Icons.bookmark_border),
-            onPressed: () {
-              widget.onSaveToggle();
-              setState(() => _isSaved = !_isSaved);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: _shareFlyer,
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          if (isImage)
-            PageView.builder(
-              itemCount: widget.imageUrls!.length,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPage = index + 1;
-                  if (_currentPage == _totalPages) {
-                    _hasReachedLastPage = true;
-                  }
-                });
-              },
-              itemBuilder: (context, index) {
-                return InteractiveViewer(
-                  child: Image.network(
-                    widget.imageUrls![index].toString(),
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, _, _) => const Center(child: Text('Image not available')),
-                  ),
-                );
-              },
-            )
-          else if (isPdf)
-            SfPdfViewer.network(
-              widget.pdfUrl,
-              controller: _pdfViewerController,
-              onDocumentLoaded: (details) {
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  if (mounted) {
-                    setState(() => _totalPages = _pdfViewerController.pageCount);
-                  }
-                });
-              },
-              onPageChanged: (details) {
-                setState(() => _currentPage = details.newPageNumber);
-                if (details.newPageNumber == _totalPages) {
-                  setState(() => _hasReachedLastPage = true); 
-                }
-              },
-            )
-          else
-            const Center(child: Text('No content available')),
+    return ListenableBuilder(
+      listenable: LocaleProvider.instance,
+      builder: (context, _) {
+        final isAr = LocaleProvider.instance.locale == 'ar';
 
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '$_currentPage / $_totalPages',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          ),
-
-          if (_hasReachedLastPage && !_markedAsRead)
-            Positioned(
-              bottom: 70,
-              left: 20,
-              right: 20,
-              child: ElevatedButton(
-                onPressed: _markAsFullyRead,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: MigoColors.success,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: const Text('✅ I have read this flyer', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-              ),
-            ),
-          if (_markedAsRead)
-            Positioned(
-              bottom: 70,
-              left: 20,
-              right: 20,
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: MigoColors.success.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.check_circle, color: Colors.white, size: 20),
-                    SizedBox(width: 8),
-                    Text('You have already read this flyer', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-            ),
-
-          if (_orderLink.isNotEmpty || _whatsappNumber.isNotEmpty)
-            Positioned(
-              bottom: 120,
-              left: 20,
-              right: 20,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        return Directionality(
+          textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(
+            backgroundColor: Colors.grey.shade100,
+            appBar: AppBar(
+              backgroundColor: MigoColors.primary,
+              foregroundColor: Colors.white,
+              centerTitle: true, 
+              title: Column(
+                mainAxisSize: MainAxisSize.min, 
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  if (_whatsappNumber.isNotEmpty)
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          String phone = _whatsappNumber.replaceAll(RegExp(r'[^0-9]'), '');
-                          _launchUrl("https://wa.me/$phone");
-                        },
-                        icon: const Icon(Icons.chat, color: Colors.white),
-                        label: const Text('WhatsApp', style: TextStyle(color: Colors.white)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF25D366),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                      ),
-                    ),
-                  if (_orderLink.isNotEmpty) ...[
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          String url = _orderLink;
-                          if (!url.startsWith('http')) {
-                            url = 'https://$url';
-                          }
-                          _launchUrl(url);
-                        },
-                        icon: const Icon(Icons.shopping_cart, color: Colors.white),
-                        label: const Text('Shop Online', style: TextStyle(color: Colors.white)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                      ),
-                    ),
-                  ],
+                  Text(
+                    widget.businessName,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    widget.title,
+                    style: const TextStyle(fontSize: 12, color: Colors.white70),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
+              actions: [
+                IconButton(
+                  icon: Icon(_isSaved ? Icons.bookmark : Icons.bookmark_border),
+                  onPressed: () {
+                    widget.onSaveToggle();
+                    setState(() => _isSaved = !_isSaved);
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.share),
+                  onPressed: _shareFlyer,
+                ),
+              ],
             ),
-        ],
-      ),
+            body: Stack(
+              children: [
+                if (isImage)
+                  PageView.builder(
+                    itemCount: widget.imageUrls!.length,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentPage = index + 1;
+                        if (_currentPage == _totalPages) {
+                          _hasReachedLastPage = true;
+                        }
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      return InteractiveViewer(
+                        child: Image.network(
+                          widget.imageUrls![index].toString(),
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, _, _) => Center(
+                            child: Text(isAr ? 'الصورة غير متاحة' : 'Image not available'),
+                          ),
+                        ),
+                      );
+                    },
+                  )
+                else if (isPdf)
+                  SfPdfViewer.network(
+                    widget.pdfUrl,
+                    controller: _pdfViewerController,
+                    onDocumentLoaded: (details) {
+                      Future.delayed(const Duration(milliseconds: 500), () {
+                        if (mounted) {
+                          setState(() => _totalPages = _pdfViewerController.pageCount);
+                        }
+                      });
+                    },
+                    onPageChanged: (details) {
+                      setState(() => _currentPage = details.newPageNumber);
+                      if (details.newPageNumber == _totalPages) {
+                        setState(() => _hasReachedLastPage = true); 
+                      }
+                    },
+                  )
+                else
+                  Center(child: Text(isAr ? 'لا يوجد محتوى متاح' : 'No content available')),
+
+                Positioned(
+                  bottom: 20,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '$_currentPage / $_totalPages',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ),
+
+                if (_hasReachedLastPage && !_markedAsRead)
+                  Positioned(
+                    bottom: 70,
+                    left: 20,
+                    right: 20,
+                    child: ElevatedButton(
+                      onPressed: _markAsFullyRead,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: MigoColors.success,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: Text(
+                        isAr ? '✅ لقد قرأت هذا المنشور' : '✅ I have read this flyer',
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                if (_markedAsRead)
+                  Positioned(
+                    bottom: 70,
+                    left: 20,
+                    right: 20,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: MigoColors.success.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            isAr ? 'لقد قرأت هذا المنشور بالفعل' : 'You have already read this flyer',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                if (_orderLink.isNotEmpty || _whatsappNumber.isNotEmpty)
+                  Positioned(
+                    bottom: 120,
+                    left: 20,
+                    right: 20,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        if (_whatsappNumber.isNotEmpty)
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                String phone = _whatsappNumber.replaceAll(RegExp(r'[^0-9]'), '');
+                                _launchUrl("https://wa.me/$phone");
+                              },
+                              icon: const Icon(Icons.chat, color: Colors.white),
+                              label: Text(isAr ? 'واتساب' : 'WhatsApp', style: const TextStyle(color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF25D366),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                        if (_orderLink.isNotEmpty) ...[
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                String url = _orderLink;
+                                if (!url.startsWith('http')) {
+                                  url = 'https://$url';
+                                }
+                                _launchUrl(url);
+                              },
+                              icon: const Icon(Icons.shopping_cart, color: Colors.white),
+                              label: Text(isAr ? 'تسوق عبر الإنترنت' : 'Shop Online', style: const TextStyle(color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

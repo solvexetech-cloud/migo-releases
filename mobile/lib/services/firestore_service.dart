@@ -51,7 +51,7 @@ class FirestoreService {
     );
   }
 
-    Future<void> addCoins({
+  Future<void> addCoins({
     required String uid,
     required int amount,
     required String reason,
@@ -183,7 +183,6 @@ class FirestoreService {
       return BusinessModel.fromMap(doc.id, doc.data());
     });
   }
- 
 
   /// Get all businesses (for client-side filtering).
   Future<List<BusinessModel>> getAllBusinesses() async {
@@ -259,7 +258,6 @@ class FirestoreService {
     await _categories.doc(id).delete();
   }
 
-
   // ---------- GEOGRAPHY (B3) ----------
   CollectionReference<Map<String, dynamic>> get _countries =>
       _db.collection('countries');
@@ -334,7 +332,6 @@ class FirestoreService {
     return AreaModel.fromMap(slug, snap.data()!);
   }
 
-
   // ---------- OFFERS ----------
   CollectionReference<Map<String, dynamic>> get _offers =>
       _db.collection('offers');
@@ -359,41 +356,73 @@ class FirestoreService {
             .toList());
   }
 
-    Stream<List<OfferModel>> streamLiveOffers({int limit = 20}) {
-    return _offers
-        .where('status', isEqualTo: 'live')
-        .limit(limit)
-        .snapshots()
-        .map((snap) {
-      final now = DateTime.now();
-      final list = snap.docs
-          .map((d) => OfferModel.fromMap(d.id, d.data()))
-          .where((o) => o.endAt.isAfter(now))
-          .toList();
-      list.sort((a, b) => b.startAt.compareTo(a.startAt));
-      return list;
-    });
-  }
+  Stream<List<OfferModel>> streamLiveOffers({int limit = 20, String? countryCode}) {
+  var query = _offers.where('status', isEqualTo: 'live');
 
-    Stream<List<OfferModel>> streamLiveOffersByType(
-    String type, {
-    int limit = 10,
-  }) {
-    return _offers
-        .where('status', isEqualTo: 'live')
-        .where('type', isEqualTo: type)
-        .limit(limit)
-        .snapshots()
-        .map((snap) {
-      final now = DateTime.now();
-      final list = snap.docs
-          .map((d) => OfferModel.fromMap(d.id, d.data()))
-          .where((o) => o.endAt.isAfter(now))
-          .toList();
-      list.sort((a, b) => b.startAt.compareTo(a.startAt));
-      return list;
-    });
-  }
+  if (countryCode != null && countryCode.isNotEmpty) {
+  String normalizedCode = countryCode.toLowerCase();
+  if (normalizedCode.contains('qatar')) normalizedCode = 'QA';
+  else if (normalizedCode.contains('india')) normalizedCode = 'IN';
+  else if (normalizedCode.contains('uae') || normalizedCode.contains('emirates')) normalizedCode = 'AE';
+  else if (normalizedCode.contains('saudi')) normalizedCode = 'SA';
+  else if (normalizedCode.contains('kuwait')) normalizedCode = 'KW';
+  else if (normalizedCode.contains('oman')) normalizedCode = 'OM';
+  else if (normalizedCode.contains('bahrain')) normalizedCode = 'BH';
+  else normalizedCode = normalizedCode.toUpperCase();
+
+  query = query.where('countryCode', isEqualTo: normalizedCode);
+}
+
+  return query
+      .limit(limit)
+      .snapshots()
+      .map((snap) {
+    final now = DateTime.now();
+    final list = snap.docs
+        .map((d) => OfferModel.fromMap(d.id, d.data()))
+        .where((o) => o.endAt.isAfter(now))
+        .toList();
+    list.sort((a, b) => b.startAt.compareTo(a.startAt));
+    return list;
+  });
+}
+
+  Stream<List<OfferModel>> streamLiveOffersByType(
+  String type, {
+  int limit = 10,
+  String? countryCode,
+}) {
+  var query = _offers
+      .where('status', isEqualTo: 'live')
+      .where('type', isEqualTo: type);
+
+  if (countryCode != null && countryCode.isNotEmpty) {
+  String normalizedCode = countryCode.toLowerCase();
+  if (normalizedCode.contains('qatar')) normalizedCode = 'QA';
+  else if (normalizedCode.contains('india')) normalizedCode = 'IN';
+  else if (normalizedCode.contains('uae') || normalizedCode.contains('emirates')) normalizedCode = 'AE';
+  else if (normalizedCode.contains('saudi')) normalizedCode = 'SA';
+  else if (normalizedCode.contains('kuwait')) normalizedCode = 'KW';
+  else if (normalizedCode.contains('oman')) normalizedCode = 'OM';
+  else if (normalizedCode.contains('bahrain')) normalizedCode = 'BH';
+  else normalizedCode = normalizedCode.toUpperCase();
+
+  query = query.where('countryCode', isEqualTo: normalizedCode);
+}
+
+  return query
+      .limit(limit)
+      .snapshots()
+      .map((snap) {
+    final now = DateTime.now();
+    final list = snap.docs
+        .map((d) => OfferModel.fromMap(d.id, d.data()))
+        .where((o) => o.endAt.isAfter(now))
+        .toList();
+    list.sort((a, b) => b.startAt.compareTo(a.startAt));
+    return list;
+  });
+}
 
   Future<void> updateOffer(String id, Map<String, dynamic> data) async {
     await _offers.doc(id).set(
@@ -402,51 +431,83 @@ class FirestoreService {
     );
   }
 
-
   /// Stream live offers filtered by area.
   Stream<List<OfferModel>> streamLiveOffersByArea(
-    String areaId, {
-    int limit = 50,
-  }) {
-    return _offers
-        .where('status', isEqualTo: 'live')
-        .where('areaId', isEqualTo: areaId)
-        .limit(limit)
-        .snapshots()
-        .map((snap) {
-      final now = DateTime.now();
-      final list = snap.docs
-          .map((d) => OfferModel.fromMap(d.id, d.data()))
-          .where((o) => o.endAt.isAfter(now))
-          .toList();
-      list.sort((a, b) => b.startAt.compareTo(a.startAt));
-      return list;
-    });
-  }
+  String areaId, {
+  int limit = 50,
+  String? countryCode,
+}) {
+  var query = _offers
+      .where('status', isEqualTo: 'live')
+      .where('areaId', isEqualTo: areaId);
+
+  if (countryCode != null && countryCode.isNotEmpty) {
+  String normalizedCode = countryCode.toLowerCase();
+  if (normalizedCode.contains('qatar')) normalizedCode = 'QA';
+  else if (normalizedCode.contains('india')) normalizedCode = 'IN';
+  else if (normalizedCode.contains('uae') || normalizedCode.contains('emirates')) normalizedCode = 'AE';
+  else if (normalizedCode.contains('saudi')) normalizedCode = 'SA';
+  else if (normalizedCode.contains('kuwait')) normalizedCode = 'KW';
+  else if (normalizedCode.contains('oman')) normalizedCode = 'OM';
+  else if (normalizedCode.contains('bahrain')) normalizedCode = 'BH';
+  else normalizedCode = normalizedCode.toUpperCase();
+
+  query = query.where('countryCode', isEqualTo: normalizedCode);
+}
+
+  return query
+      .limit(limit)
+      .snapshots()
+      .map((snap) {
+    final now = DateTime.now();
+    final list = snap.docs
+        .map((d) => OfferModel.fromMap(d.id, d.data()))
+        .where((o) => o.endAt.isAfter(now))
+        .toList();
+    list.sort((a, b) => b.startAt.compareTo(a.startAt));
+    return list;
+  });
+}
 
   /// Stream live offers filtered by area AND type (e.g. flash).
   Stream<List<OfferModel>> streamLiveOffersByAreaAndType(
-    String areaId,
-    String type, {
-    int limit = 10,
-  }) {
-    return _offers
-        .where('status', isEqualTo: 'live')
-        .where('areaId', isEqualTo: areaId)
-        .where('type', isEqualTo: type)
-        .limit(limit)
-        .snapshots()
-        .map((snap) {
-      final now = DateTime.now();
-      final list = snap.docs
-          .map((d) => OfferModel.fromMap(d.id, d.data()))
-          .where((o) => o.endAt.isAfter(now))
-          .toList();
-      list.sort((a, b) => b.startAt.compareTo(a.startAt));
-      return list;
-    });
-  }
+  String areaId,
+  String type, {
+  int limit = 10,
+  String? countryCode,
+}) {
+  var query = _offers
+      .where('status', isEqualTo: 'live')
+      .where('areaId', isEqualTo: areaId)
+      .where('type', isEqualTo: type);
 
+  if (countryCode != null && countryCode.isNotEmpty) {
+  String normalizedCode = countryCode.toLowerCase();
+  if (normalizedCode.contains('qatar')) normalizedCode = 'QA';
+  else if (normalizedCode.contains('india')) normalizedCode = 'IN';
+  else if (normalizedCode.contains('uae') || normalizedCode.contains('emirates')) normalizedCode = 'AE';
+  else if (normalizedCode.contains('saudi')) normalizedCode = 'SA';
+  else if (normalizedCode.contains('kuwait')) normalizedCode = 'KW';
+  else if (normalizedCode.contains('oman')) normalizedCode = 'OM';
+  else if (normalizedCode.contains('bahrain')) normalizedCode = 'BH';
+  else normalizedCode = normalizedCode.toUpperCase();
+
+  query = query.where('countryCode', isEqualTo: normalizedCode);
+}
+
+  return query
+      .limit(limit)
+      .snapshots()
+      .map((snap) {
+    final now = DateTime.now();
+    final list = snap.docs
+        .map((d) => OfferModel.fromMap(d.id, d.data()))
+        .where((o) => o.endAt.isAfter(now))
+        .toList();
+    list.sort((a, b) => b.startAt.compareTo(a.startAt));
+    return list;
+  });
+}
 
   // ---------- GROUP DEALS ----------
   CollectionReference<Map<String, dynamic>> get _groupDeals =>
@@ -534,7 +595,7 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> get _claims =>
       _db.collection('claims');
 
-    Future<String> createClaim(ClaimModel claim) async {
+  Future<String> createClaim(ClaimModel claim) async {
     // PHASE E — E4: Fetch referrerUid from user doc
     String? referrerUid;
     try {
@@ -553,9 +614,9 @@ class FirestoreService {
       claimMap['referrerUid'] = referrerUid;
     }
 
-        // ആദ്യം ഒരു പുതിയ ഡോക്യുമെന്റ് റഫറൻസ് ഉണ്ടാക്കുന്നു
+    // ആദ്യം ഒരു പുതിയ ഡോക്യുമെന്റ് റഫറൻസ് ഉണ്ടാക്കുന്നു
     final ref = _claims.doc();
-    
+
     // ആ റഫറൻസിന്റെ ഐഡി claimMap-ലേക്ക് ചേർക്കുന്നു
     claimMap['claimId'] = ref.id;
 
@@ -567,12 +628,10 @@ class FirestoreService {
       'updatedAt': FieldValue.serverTimestamp(),
     });
 
-    
-
-        await createNotification(
+    await createNotification(
       NotificationModel.newDraft(
         userUid: claim.userUid,
-        type: NotifType.coinEarned, 
+        type: NotifType.coinEarned,
         title: 'Offer Claimed',
         body: 'You claimed "${claim.offerTitle}" at ${claim.businessName}.',
         targetRoute: 'claim',
@@ -657,13 +716,13 @@ class FirestoreService {
     });
 
     await addCoins(
-  uid: claim.userUid,
-  amount: 25,
-  reason: 'Redeemed "${claim.offerTitle}"',
-  bypassCaps: true,   // ← പുതിയത്
-);
+      uid: claim.userUid,
+      amount: 25,
+      reason: 'Redeemed "${claim.offerTitle}"',
+      bypassCaps: true,
+    );
 
-        await createNotification(
+    await createNotification(
       NotificationModel.newDraft(
         userUid: claim.userUid,
         type: NotifType.coinEarned,
@@ -680,7 +739,7 @@ class FirestoreService {
       final config = configSnap.data();
       final enabled = config?['enabled'] as bool? ?? false;
       final coins = (config?['coinsPerRedeem'] as num?)?.toInt() ?? 10;
-      
+
       if (enabled) {
         await addCoins(
           uid: sharedBy,
@@ -819,7 +878,7 @@ class FirestoreService {
     return code;
   }
 
-    Future<String?> findUidByReferralCode(String code) async {
+  Future<String?> findUidByReferralCode(String code) async {
     try {
       debugPrint('🔵 findUidByReferralCode: code=$code');
       final snap = await _users
@@ -941,7 +1000,6 @@ class FirestoreService {
   }
 
   // ---------- NOTIFICATIONS ----------
-
   CollectionReference<Map<String, dynamic>> get _notifications =>
       _db.collection('notifications');
 
@@ -997,7 +1055,6 @@ class FirestoreService {
   }
 
   // ---------- SAVED OFFERS & BUSINESSES ----------
-
   CollectionReference<Map<String, dynamic>> get _savedOffers =>
       _db.collection('saved_offers');
 
@@ -1014,7 +1071,7 @@ class FirestoreService {
     return snap.exists;
   }
 
-    Future<void> toggleSaveOffer({
+  Future<void> toggleSaveOffer({
     required String uid,
     required String offerId,
     String? businessId,

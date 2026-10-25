@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb, Uint8List;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../core/theme/migo_gradients.dart';
 import '../../core/theme/migo_theme.dart';
@@ -10,7 +12,7 @@ import '../../models/offer_model.dart';
 import '../../services/cloudinary_service.dart';
 import '../../services/offer_service.dart';
 
-/// PHASE I — Advanced Create/Edit Offer
+/// PHASE I — Advanced Create/Edit Offer with Reserve & Country
 class CreateOfferScreen extends StatefulWidget {
   const CreateOfferScreen({
     super.key,
@@ -38,19 +40,21 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
   final _offerPriceCtrl = TextEditingController();
   final _termsCtrl = TextEditingController();
   final _dailyLimitCtrl = TextEditingController();
+  
+  // പുതിയ ഫീൽഡുകൾ
+  final _whatsappCtrl = TextEditingController();
+  final _orderLinkCtrl = TextEditingController();
+  final _totalSlotsCtrl = TextEditingController(text: '10');
+  final _maxPerCustomerCtrl = TextEditingController(text: '1');
 
   String _type = 'standard';
-  
-  // പുതിയതായി ചേർത്ത Category വേരിയബിൾ
   String _category = 'food'; 
-  static const _categories = [
-    {'value': 'food', 'label': 'Food & Dining'},
-    {'value': 'beauty', 'label': 'Beauty & Wellness'},
-    {'value': 'retail', 'label': 'Retail & Shopping'},
-    {'value': 'services', 'label': 'Services'},
-  ];
-
   int _durationDays = 7;
+  
+  // റിസർവേഷൻ ഓപ്ഷനുകൾ
+  bool _isReservable = false;
+  String _countryCode = 'QA'; // ഡിഫോൾട്ട് രാജ്യം
+
   bool _loading = false;
   bool _uploadingImage = false;
   String? _error;
@@ -64,6 +68,14 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
 
   bool get isEdit => widget.existingOffer != null;
 
+  static const _categories = [
+    {'value': 'food', 'label': 'Food & Dining'},
+    {'value': 'supermarket', 'label': 'Supermarket'},
+    {'value': 'beauty', 'label': 'Beauty & Wellness'},
+    {'value': 'retail', 'label': 'Retail & Shopping'},
+    {'value': 'services', 'label': 'Services'},
+  ];
+
   static const _offerTypes = [
     {'value': 'standard', 'label': 'Standard Deal'},
     {'value': 'flash', 'label': 'Flash Deal'},
@@ -72,9 +84,20 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
     {'value': 'group', 'label': 'Group Deal'},
   ];
 
+  static const _countries = [
+    {'code': 'QA', 'name': 'Qatar 🇶🇦'},
+    {'code': 'AE', 'name': 'UAE 🇦🇪'},
+    {'code': 'SA', 'name': 'Saudi Arabia 🇸🇦'},
+    {'code': 'KW', 'name': 'Kuwait 🇰🇼'},
+    {'code': 'OM', 'name': 'Oman 🇴🇲'},
+    {'code': 'BH', 'name': 'Bahrain 🇧🇭'},
+    {'code': 'IN', 'name': 'India 🇮🇳'},
+  ];
+
   @override
   void initState() {
     super.initState();
+    _loadBusinessCountry();
     final o = widget.existingOffer;
     if (o != null) {
       _titleCtrl.text = o.title;
@@ -83,10 +106,19 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
       _offerPriceCtrl.text = o.offerPrice.toStringAsFixed(0);
       _imageUrl = o.imageUrl.isNotEmpty ? o.imageUrl : null;
       _type = o.type.isNotEmpty ? o.type : 'standard';
-      // എഡിറ്റ് ചെയ്യുമ്പോൾ നിലവിലുള്ള category എടുക്കാൻ
-      if (o.category.isNotEmpty) {
-        _category = o.category;
-      }
+      if (o.category.isNotEmpty) _category = o.category;
+    }
+  }
+
+  Future<void> _loadBusinessCountry() async {
+    final bizSnap = await FirebaseFirestore.instance
+        .collection('businesses')
+        .doc(widget.businessId)
+        .get();
+    if (bizSnap.exists && mounted) {
+      setState(() {
+        _countryCode = bizSnap.data()?['countryCode'] as String? ?? 'QA';
+      });
     }
   }
 
@@ -98,6 +130,10 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
     _offerPriceCtrl.dispose();
     _termsCtrl.dispose();
     _dailyLimitCtrl.dispose();
+    _whatsappCtrl.dispose();
+    _orderLinkCtrl.dispose();
+    _totalSlotsCtrl.dispose();
+    _maxPerCustomerCtrl.dispose();
     super.dispose();
   }
 
@@ -157,7 +193,6 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
     });
 
     try {
-      // Upload image if picked
       String? imageUrl = _imageUrl;
       if (_pickedFile != null || _pickedBytes != null) {
         setState(() => _uploadingImage = true);
@@ -182,30 +217,35 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
 
       String? err;
       if (isEdit) {
+        // എഡിറ്റ് ചെയ്യുമ്പോൾ
         err = await OfferService.instance.updateOffer(
           offerId: widget.existingOffer!.id,
           title: _titleCtrl.text.trim(),
           description: _descCtrl.text.trim(),
           category: _category,
-              type: _type,
+          type: _type,
           imageUrl: imageUrl ?? '',
           originalPrice: double.tryParse(_originalPriceCtrl.text.trim()) ?? 0,
           offerPrice: double.tryParse(_offerPriceCtrl.text.trim()) ?? 0,
           endDate: null,
         );
       } else {
+        // പുതിയ ഓഫർ ഉണ്ടാക്കുമ്പോൾ
         err = await OfferService.instance.createOffer(
           businessId: widget.businessId,
           businessName: widget.businessName,
           areaId: widget.areaId,
           title: _titleCtrl.text.trim(),
           description: _descCtrl.text.trim(),
-          category: _category, // ഇവിടെയും _category ഉപയോഗിക്കുന്നു
+          category: _category,
           imageUrl: imageUrl ?? '',
           originalPrice: double.tryParse(_originalPriceCtrl.text.trim()) ?? 0,
           offerPrice: double.tryParse(_offerPriceCtrl.text.trim()) ?? 0,
           currency: 'QAR',
           type: _type,
+          countryCode: _countryCode, // കൺട്രി കോഡ് പാസ് ചെയ്യുന്നു
+          whatsappNumber: _whatsappCtrl.text.trim(),
+          orderLink: _orderLinkCtrl.text.trim(),
         );
       }
 
@@ -215,9 +255,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              isEdit
-                  ? 'Offer updated!'
-                  : 'Offer created! Waiting for admin approval.',
+              isEdit ? 'Offer updated!' : 'Offer created! Waiting for admin approval.',
             ),
             backgroundColor: MigoColors.success,
           ),
@@ -273,9 +311,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                         hintText: 'e.g. Family Meal Deal',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (v) => v == null || v.trim().isEmpty
-                          ? 'Required'
-                          : null,
+                      validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
                     ),
                     const SizedBox(height: 16),
 
@@ -287,13 +323,11 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                         labelText: 'Description',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (v) => v == null || v.trim().isEmpty
-                          ? 'Required'
-                          : null,
+                      validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
                     ),
                     const SizedBox(height: 16),
 
-                    // Category Dropdown (പുതിയതായി ചേർത്തത്)
+                    // Category Dropdown
                     DropdownButtonFormField<String>(
                       initialValue: _category,
                       decoration: const InputDecoration(
@@ -307,6 +341,23 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                               ))
                           .toList(),
                       onChanged: (v) => setState(() => _category = v ?? 'food'),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Country Dropdown
+                    DropdownButtonFormField<String>(
+                      initialValue: _countryCode,
+                      decoration: const InputDecoration(
+                        labelText: 'Country',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: _countries
+                          .map((c) => DropdownMenuItem(
+                                value: c['code'],
+                                child: Text(c['name']!),
+                              ))
+                          .toList(),
+                      onChanged: (v) => setState(() => _countryCode = v ?? 'QA'),
                     ),
                     const SizedBox(height: 16),
 
@@ -333,21 +384,15 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _originalPriceCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             onChanged: (_) => setState(() {}),
                             decoration: const InputDecoration(
                               labelText: 'Original price',
                               border: OutlineInputBorder(),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty) {
-                                return 'Required';
-                              }
-                              if (double.tryParse(v) == null) {
-                                return 'Invalid';
-                              }
+                              if (v == null || v.isEmpty) return 'Required';
+                              if (double.tryParse(v) == null) return 'Invalid';
                               return null;
                             },
                           ),
@@ -356,24 +401,18 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _offerPriceCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             onChanged: (_) => setState(() {}),
                             decoration: const InputDecoration(
                               labelText: 'MIGO price',
                               border: OutlineInputBorder(),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty) {
-                                return 'Required';
-                              }
+                              if (v == null || v.isEmpty) return 'Required';
                               final n = double.tryParse(v);
                               if (n == null) return 'Invalid';
                               final orig = double.tryParse(_originalPriceCtrl.text);
-                              if (orig != null && n >= orig) {
-                                return 'Must be < original';
-                              }
+                              if (orig != null && n >= orig) return 'Must be < original';
                               return null;
                             },
                           ),
@@ -392,11 +431,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(
-                              Icons.check_circle,
-                              size: 18,
-                              color: MigoColors.success,
-                            ),
+                            const Icon(Icons.check_circle, size: 18, color: MigoColors.success),
                             const SizedBox(width: 8),
                             Text(
                               'Customer saves QAR ${previewSavings.toStringAsFixed(0)}',
@@ -450,6 +485,97 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                         border: OutlineInputBorder(),
                       ),
                     ),
+                    const SizedBox(height: 16),
+
+                    // WhatsApp & Order Link
+                    TextFormField(
+                      controller: _whatsappCtrl,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: 'WhatsApp Number (Optional)',
+                        hintText: '+974 XXXX XXXX',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.chat, color: Colors.green),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _orderLinkCtrl,
+                      keyboardType: TextInputType.url,
+                      decoration: const InputDecoration(
+                        labelText: 'Online Order Link (Optional)',
+                        hintText: 'https://yourwebsite.com',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.shopping_cart, color: Colors.orange),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // ═══════════════════════════════════════════════════
+                    // RESERVE SECTION
+                    // ═══════════════════════════════════════════════════
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: MigoColors.primary.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: MigoColors.primary.withValues(alpha: 0.2)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Allow Reservations?',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                              Switch(
+                                value: _isReservable,
+                                onChanged: (v) => setState(() => _isReservable = v),
+                                activeColor: MigoColors.primary,
+                              ),
+                            ],
+                          ),
+                          const Text(
+                            'Customers can book this offer in advance.',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                          if (_isReservable) ...[
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _totalSlotsCtrl,
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Total Slots',
+                                      border: OutlineInputBorder(),
+                                      isDense: true,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _maxPerCustomerCtrl,
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Max per Customer',
+                                      border: OutlineInputBorder(),
+                                      isDense: true,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
 
                     // Error
                     if (_error != null) ...[
@@ -463,10 +589,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                         ),
                         child: Text(
                           _error!,
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontSize: 13,
-                          ),
+                          style: const TextStyle(color: Colors.red, fontSize: 13),
                         ),
                       ),
                     ],
@@ -514,10 +637,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                     const Text(
                       'New offers start as pending and go live once approved by MIGO.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: MigoColors.textSecondary,
-                      ),
+                      style: TextStyle(fontSize: 12, color: MigoColors.textSecondary),
                     ),
                   ],
                 ),

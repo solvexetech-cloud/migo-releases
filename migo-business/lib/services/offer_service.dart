@@ -37,13 +37,20 @@ class OfferService {
     required String type,
     DateTime? startDate,
     DateTime? endDate,
-    bool reserveEnabled = false,
-    int totalStock = 0,
-    int maxPerCustomer = 1,
+    String? countryCode, // പുതിയത്
+    String? whatsappNumber, // പുതിയത്
+    String? orderLink, // പുതിയത്
   }) async {
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) return 'Not signed in';
+
+      // ബിസിനസ്സിന്റെ രാജ്യം എടുക്കാൻ
+      String finalCountry = countryCode ?? 'QA';
+      if (countryCode == null || countryCode.isEmpty) {
+        final bizSnap = await _db.collection('businesses').doc(businessId).get();
+        finalCountry = bizSnap.data()?['countryCode'] as String? ?? 'QA';
+      }
 
       await _db.collection('offers').add({
         // Core fields
@@ -59,6 +66,9 @@ class OfferService {
         'offerPrice': offerPrice,
         'currency': currency,
         'type': type,
+        'countryCode': finalCountry, // രാജ്യം സേവ് ചെയ്യുന്നു
+        'whatsappNumber': whatsappNumber ?? '',
+        'orderLink': orderLink ?? '',
         
         // Status
         'status': 'pending', // Needs admin approval
@@ -67,18 +77,18 @@ class OfferService {
         'startDate': startDate != null ? Timestamp.fromDate(startDate) : null,
         'endDate': endDate != null ? Timestamp.fromDate(endDate) : null,
         
-        // Reserve settings (എപ്പോഴും true, ഡീഫോൾട്ട് 20)
-        'reserveEnabled': reserveEnabled || true,
-        'totalStock': totalStock > 0 ? totalStock : 20,
-        'totalSlots': totalStock > 0 ? totalStock : 20,
+        // Reserve settings (ഡീഫോൾട്ട് ആയി OFF ആയിരിക്കും, 'Reserve Settings' പേജിൽ പോയി ഓൺ ചെയ്യാം)
+        'reserveEnabled': false, 
+        'totalStock': 0,
+        'totalSlots': 0,
         'bookedSlots': 0,
-        'maxPerCustomer': maxPerCustomer,
+        'maxPerCustomer': 1,
         'reserve': {
-          'enabled': true,
-          'totalSlots': totalStock > 0 ? totalStock : 20,
+          'enabled': false,
+          'totalSlots': 0,
           'holdHours': 6,
           'tokenRequired': false,
-          'maxPerCustomer': maxPerCustomer,
+          'maxPerCustomer': 1,
         },
         
         // Counters
@@ -106,6 +116,8 @@ class OfferService {
     required double originalPrice,
     required double offerPrice,
     DateTime? endDate,
+    String? whatsappNumber, // പുതിയത്
+    String? orderLink, // പുതിയത്
   }) async {
     try {
       await _db.collection('offers').doc(offerId).update({
@@ -117,6 +129,8 @@ class OfferService {
         'originalPrice': originalPrice,
         'offerPrice': offerPrice,
         'endDate': endDate != null ? Timestamp.fromDate(endDate) : null,
+        'whatsappNumber': whatsappNumber ?? '',
+        'orderLink': orderLink ?? '',
         'updatedAt': FieldValue.serverTimestamp(),
       });
       return null;

@@ -23,19 +23,22 @@ class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   Future<void> _signOut(BuildContext context) async {
+    final isAr = LocaleProvider.instance.locale == 'ar';
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Sign out'),
-        content: const Text('Are you sure you want to sign out?'),
+        title: Text(isAr ? 'تسجيل الخروج' : 'Sign out'),
+        content: Text(isAr
+            ? 'هل أنت متأكد أنك تريد تسجيل الخروج؟'
+            : 'Are you sure you want to sign out?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(isAr ? 'إلغاء' : 'Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Sign out'),
+            child: Text(isAr ? 'تسجيل الخروج' : 'Sign out'),
           ),
         ],
       ),
@@ -59,236 +62,248 @@ class ProfileScreen extends StatelessWidget {
         stream: FirestoreService.instance.streamUser(firebaseUser.uid),
         builder: (context, snapshot) {
           final user = snapshot.data;
-          return CustomScrollView(
-            slivers: [
-              // Gradient hero header
-              SliverToBoxAdapter(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: MigoGradients.heroBlue,
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(28),
-                      bottomRight: Radius.circular(28),
-                    ),
-                  ),
-                  child: SafeArea(
-                    bottom: false,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                      child: Column(
-                        children: [
-                          const Text(
-                            'Profile',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              letterSpacing: -0.4,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              gradient: MigoGradients.gold,
-                              shape: BoxShape.circle,
-                            ),
-                            child: CircleAvatar(
-                              radius: 42,
-                              backgroundColor: Colors.white,
-                              child: Text(
-                                (user?.displayName ??
-                                        firebaseUser.email ??
-                                        'M')
-                                    .substring(0, 1)
-                                    .toUpperCase(),
-                                style: const TextStyle(
-                                  fontSize: 34,
-                                  fontWeight: FontWeight.w900,
-                                  color: MigoColors.primary,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            user?.displayName ??
-                                firebaseUser.email ??
-                                'MIGO User',
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            firebaseUser.email ?? '',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.white70,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _HeroStat(
-                                  label: 'Coins',
-                                  value: '${user?.coins ?? 0}',
-                                  icon: Icons.monetization_on,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: _HeroStat(
-                                  label: 'Level',
-                                  value: user?.loyaltyLevel ?? 'Bronze',
-                                  icon: Icons.emoji_events,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: _HeroStat(
-                                  label: 'City',
-                                  value: user?.city ?? 'Doha',
-                                  icon: Icons.place,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+          
+          // ListenableBuilder ഉപയോഗിച്ച് ഭാഷ മാറുമ്പോൾ UI അപ്ഡേറ്റ് ആകാൻ
+          return ListenableBuilder(
+            listenable: LocaleProvider.instance,
+            builder: (context, _) {
+              final isAr = LocaleProvider.instance.locale == 'ar';
 
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // D6-A: Country switcher
-                      if (user != null) ...[
-                        const Text(
-                          'LOCATION & CURRENCY',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.5,
-                            color: MigoColors.textSecondaryLight,
+              return Directionality(
+                textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+                child: CustomScrollView(
+                  slivers: [
+                    // Gradient hero header
+                    SliverToBoxAdapter(
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          gradient: MigoGradients.heroBlue,
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(28),
+                            bottomRight: Radius.circular(28),
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        _CountrySwitcher(
-                          currentCountryCode:
-                              user.currentCountryCode ?? user.country,
-                          currentCurrency: user.currency,
-                          uid: user.uid,
+                        child: SafeArea(
+                          bottom: false,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                            child: Column(
+                              children: [
+                                Text(
+                                  isAr ? 'الملف الشخصي' : 'Profile',
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                    letterSpacing: -0.4,
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                Container(
+                                  padding: const EdgeInsets.all(3),
+                                  decoration: BoxDecoration(
+                                    gradient: MigoGradients.gold,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: CircleAvatar(
+                                    radius: 42,
+                                    backgroundColor: Colors.white,
+                                    child: Text(
+                                      (user?.displayName ??
+                                              firebaseUser.email ??
+                                              'M')
+                                          .substring(0, 1)
+                                          .toUpperCase(),
+                                      style: const TextStyle(
+                                        fontSize: 34,
+                                        fontWeight: FontWeight.w900,
+                                        color: MigoColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  user?.displayName ??
+                                      firebaseUser.email ??
+                                      'MIGO User',
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  firebaseUser.email ?? '',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _HeroStat(
+                                        label: isAr ? 'عملات' : 'Coins',
+                                        value: '${user?.coins ?? 0}',
+                                        icon: Icons.monetization_on,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: _HeroStat(
+                                        label: isAr ? 'المستوى' : 'Level',
+                                        value: user?.loyaltyLevel ?? 'Bronze',
+                                        icon: Icons.emoji_events,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: _HeroStat(
+                                        label: isAr ? 'المدينة' : 'City',
+                                        value: user?.city ?? 'Doha',
+                                        icon: Icons.place,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        const _LanguageSwitcher(),
-                        const SizedBox(height: 20),
-                      ],
-                      const Text(
-                        'ACTIVITY',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.5,
-                          color: MigoColors.textSecondaryLight,
+                      ),
+                    ),
+
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // D6-A: Country switcher
+                            if (user != null) ...[
+                              Text(
+                                isAr ? 'الموقع والعملة' : 'LOCATION & CURRENCY',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.5,
+                                  color: MigoColors.textSecondaryLight,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              _CountrySwitcher(
+                                currentCountryCode:
+                                    user.currentCountryCode ?? user.country,
+                                currentCurrency: user.currency,
+                                uid: user.uid,
+                              ),
+                              const SizedBox(height: 8),
+                              const _LanguageSwitcher(),
+                              const SizedBox(height: 20),
+                            ],
+                            Text(
+                              isAr ? 'النشاط' : 'ACTIVITY',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.5,
+                                color: MigoColors.textSecondaryLight,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            _MenuTile(
+                              icon: Icons.receipt_long_outlined,
+                              label: isAr ? 'مطالباتي' : 'My Claims',
+                              color: MigoColors.primary,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const MyClaimsScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 8),
+                            _MenuTile(
+                              icon: Icons.event_available_outlined,
+                              label: isAr ? 'حجوزاتي' : 'My Bookings',
+                              color: const Color(0xFF7C3AED),
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const MyBookingsScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            _MenuTile(
+                              icon: Icons.menu_book,
+                              label: isAr ? 'مجلة MIGO' : 'MIGO Magazine',
+                              color: MigoColors.primary,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const MagazineScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 8),
+                            _CreatorMenuTile(isAr: isAr),
+                            const SizedBox(height: 8),
+                            _MenuTile(
+                              icon: Icons.card_giftcard,
+                              label: isAr ? 'دعوة الأصدقاء' : 'Invite Friends',
+                              color: MigoColors.accent,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const ReferralScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              isAr ? 'الأعمال' : 'BUSINESS',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.5,
+                                color: MigoColors.textSecondaryLight,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            _MenuTile(
+                              icon: Icons.storefront_outlined,
+                              label: isAr ? 'عملي' : 'My Business',
+                              color: MigoColors.success,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const MyBusinessScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 32),
+                            OutlinedButton.icon(
+                              onPressed: () => _signOut(context),
+                              icon: const Icon(Icons.logout),
+                              label: Text(isAr ? 'تسجيل الخروج' : 'Sign out'),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      _MenuTile(
-                        icon: Icons.receipt_long_outlined,
-                        label: 'My Claims',
-                        color: MigoColors.primary,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const MyClaimsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      _MenuTile(
-                        icon: Icons.event_available_outlined,
-                        label: 'My Bookings',
-                        color: const Color(0xFF7C3AED),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const MyBookingsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                                  _MenuTile(
-                        icon: Icons.menu_book,
-                        label: 'MIGO Magazine',
-                        color: MigoColors.primary,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const MagazineScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      const _CreatorMenuTile(),
-                      const SizedBox(height: 8),
-                      _MenuTile(
-                        icon: Icons.card_giftcard,
-                        label: 'Invite Friends',
-                        color: MigoColors.accent,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const ReferralScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        'BUSINESS',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.5,
-                          color: MigoColors.textSecondaryLight,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _MenuTile(
-                        icon: Icons.storefront_outlined,
-                        label: 'My Business',
-                        color: MigoColors.success,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const MyBusinessScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 32),
-                      OutlinedButton.icon(
-                        onPressed: () => _signOut(context),
-                        icon: const Icon(Icons.logout),
-                        label: const Text('Sign out'),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              );
+            },
           );
         },
       ),
@@ -398,8 +413,10 @@ class _MenuTile extends StatelessWidget {
                   ),
                 ),
               ),
-              const Icon(
-                Icons.chevron_right,
+              Icon(
+                LocaleProvider.instance.locale == 'ar'
+                    ? Icons.chevron_left // RTL ആണെങ്കിൽ ഇടത്തോട്ട് അമ്പടയാളം
+                    : Icons.chevron_right,
                 color: MigoColors.textSecondaryLight,
               ),
             ],
@@ -411,10 +428,11 @@ class _MenuTile extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════
-// PHASE E — E6: Creator Menu Tile
+// Creator Menu Tile
 // ═══════════════════════════════════════════════════════════
 class _CreatorMenuTile extends StatelessWidget {
-  const _CreatorMenuTile();
+  final bool isAr;
+  const _CreatorMenuTile({this.isAr = false});
 
   @override
   Widget build(BuildContext context) {
@@ -431,7 +449,9 @@ class _CreatorMenuTile extends StatelessWidget {
           icon: isCreator
               ? Icons.dashboard_outlined
               : Icons.movie_creation_outlined,
-          label: isCreator ? 'Creator Dashboard' : 'Become a Creator',
+          label: isCreator
+              ? (isAr ? 'لوحة المبدع' : 'Creator Dashboard')
+              : (isAr ? 'كن مبدعاً' : 'Become a Creator'),
           color: const Color(0xFFD97706),
           onTap: () {
             Navigator.of(context).push(
@@ -478,6 +498,7 @@ class _CountrySwitcher extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isAr = LocaleProvider.instance.locale == 'ar';
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(14),
@@ -511,9 +532,9 @@ class _CountrySwitcher extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Country',
-                      style: TextStyle(
+                    Text(
+                      isAr ? 'الدولة' : 'Country',
+                      style: const TextStyle(
                         fontSize: 11,
                         color: MigoColors.textSecondaryLight,
                         fontWeight: FontWeight.w600,
@@ -531,8 +552,8 @@ class _CountrySwitcher extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
-                Icons.keyboard_arrow_right,
+              Icon(
+                isAr ? Icons.keyboard_arrow_left : Icons.keyboard_arrow_right,
                 color: MigoColors.textSecondaryLight,
               ),
             ],
@@ -616,83 +637,88 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: MigoColors.dividerLight,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Choose your country',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w900,
-                color: MigoColors.textPrimaryLight,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Currency changes automatically',
-              style: TextStyle(
-                fontSize: 12,
-                color: MigoColors.textSecondaryLight,
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (_loading)
-              const Padding(
-                padding: EdgeInsets.all(24),
-                child: CircularProgressIndicator(),
-              )
-            else
-              Flexible(
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: _countries.length,
-                  separatorBuilder: (_, _) => Divider(
-                    height: 1,
-                    color: MigoColors.dividerLight,
-                  ),
-                  itemBuilder: (context, i) {
-                    final c = _countries[i];
-                    final selected = c.code == widget.currentCode;
-                    return ListTile(
-                      onTap: _saving ? null : () => _select(c),
-                      leading: Text(
-                        c.flag.isNotEmpty ? c.flag : '🌐',
-                        style: const TextStyle(fontSize: 26),
-                      ),
-                      title: Text(
-                        c.name,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      subtitle: Text(
-                        '${c.currency} · ${c.dialCode}',
-                        style: const TextStyle(fontSize: 11),
-                      ),
-                      trailing: selected
-                          ? const Icon(
-                              Icons.check_circle,
-                              color: MigoColors.success,
-                            )
-                          : null,
-                    );
-                  },
+    final isAr = LocaleProvider.instance.locale == 'ar';
+    
+    return Directionality(
+      textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: MigoColors.dividerLight,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                isAr ? 'اختر دولتك' : 'Choose your country',
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                  color: MigoColors.textPrimaryLight,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                isAr ? 'تتغير العملة تلقائيًا' : 'Currency changes automatically',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: MigoColors.textSecondaryLight,
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (_loading)
+                const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator(),
+                )
+              else
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: _countries.length,
+                    separatorBuilder: (_, _) => Divider(
+                      height: 1,
+                      color: MigoColors.dividerLight,
+                    ),
+                    itemBuilder: (context, i) {
+                      final c = _countries[i];
+                      final selected = c.code == widget.currentCode;
+                      return ListTile(
+                        onTap: _saving ? null : () => _select(c),
+                        leading: Text(
+                          c.flag.isNotEmpty ? c.flag : '🌐',
+                          style: const TextStyle(fontSize: 26),
+                        ),
+                        title: Text(
+                          c.name,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        subtitle: Text(
+                          '${c.currency} · ${c.dialCode}',
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                        trailing: selected
+                            ? const Icon(
+                                Icons.check_circle,
+                                color: MigoColors.success,
+                              )
+                            : null,
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -715,72 +741,78 @@ class _LanguageSwitcher extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: MigoColors.dividerLight,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Choose your language',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w900,
-                  color: MigoColors.textPrimaryLight,
-                ),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'App text updates instantly',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: MigoColors.textSecondaryLight,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ...languages.map((lang) {
-                final selected = lang.code == current;
-                return ListTile(
-                  onTap: () async {
-                    Navigator.of(ctx).pop();
-                    await LocaleProvider.instance.setLocale(lang.code);
-                  },
-                  leading: Text(
-                    lang.code == 'ar' ? '🇸🇦' : '🇬🇧',
-                    style: const TextStyle(fontSize: 26),
-                  ),
-                  title: Text(
-                    lang.nameNative,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
+      builder: (ctx) {
+        final isAr = LocaleProvider.instance.locale == 'ar';
+        return Directionality(
+          textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: MigoColors.dividerLight,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  subtitle: Text(
-                    lang.name,
-                    style: const TextStyle(fontSize: 11),
+                  const SizedBox(height: 16),
+                  Text(
+                    isAr ? 'اختر لغتك' : 'Choose your language',
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
+                      color: MigoColors.textPrimaryLight,
+                    ),
                   ),
-                  trailing: selected
-                      ? const Icon(
-                          Icons.check_circle,
-                          color: MigoColors.success,
-                        )
-                      : null,
-                );
-              }),
-            ],
+                  const SizedBox(height: 4),
+                  Text(
+                    isAr ? 'يتم تحديث نص التطبيق على الفور' : 'App text updates instantly',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: MigoColors.textSecondaryLight,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ...languages.map((lang) {
+                    final selected = lang.code == current;
+                    return ListTile(
+                      onTap: () async {
+                        Navigator.of(ctx).pop();
+                        await LocaleProvider.instance.setLocale(lang.code);
+                      },
+                      leading: Text(
+                        lang.code == 'ar' ? '🇸🇦' : '🇬🇧',
+                        style: const TextStyle(fontSize: 26),
+                      ),
+                      title: Text(
+                        lang.nameNative,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      subtitle: Text(
+                        lang.name,
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                      trailing: selected
+                          ? const Icon(
+                              Icons.check_circle,
+                              color: MigoColors.success,
+                            )
+                          : null,
+                    );
+                  }),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -790,7 +822,8 @@ class _LanguageSwitcher extends StatelessWidget {
       listenable: LocaleProvider.instance,
       builder: (context, _) {
         final current = LocaleProvider.instance.locale;
-        final label = current == 'ar' ? 'العربية (Arabic)' : 'English';
+        final isAr = current == 'ar';
+        final label = isAr ? 'العربية (Arabic)' : 'English';
 
         return Material(
           color: Colors.white,
@@ -825,9 +858,9 @@ class _LanguageSwitcher extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Language',
-                          style: TextStyle(
+                        Text(
+                          isAr ? 'اللغة' : 'Language',
+                          style: const TextStyle(
                             fontSize: 11,
                             color: MigoColors.textSecondaryLight,
                             fontWeight: FontWeight.w600,
@@ -845,8 +878,8 @@ class _LanguageSwitcher extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Icon(
-                    Icons.keyboard_arrow_right,
+                  Icon(
+                    isAr ? Icons.keyboard_arrow_left : Icons.keyboard_arrow_right,
                     color: MigoColors.textSecondaryLight,
                   ),
                 ],

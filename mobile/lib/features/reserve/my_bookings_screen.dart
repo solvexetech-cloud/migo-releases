@@ -1,10 +1,7 @@
-// ═══════════════════════════════════════════════════════
-// MIGO — My Bookings Screen (PHASE H)
-// ═══════════════════════════════════════════════════════
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../core/localization/locale_provider.dart';
 import '../../models/reservation_model.dart';
 import '../../services/reservation_service.dart';
 import 'widgets/reservation_card.dart';
@@ -46,58 +43,80 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Bookings'),
-        backgroundColor: theme.scaffoldBackgroundColor,
-        elevation: 0,
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: const Color(0xFF7C3AED),
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: const Color(0xFF7C3AED),
-          tabs: const [
-            Tab(text: 'Active'),
-            Tab(text: 'Completed'),
-            Tab(text: 'Expired'),
-          ],
-        ),
-      ),
-      body: StreamBuilder<List<ReservationModel>>(
-        stream: ReservationService.instance.streamMyReservations(_uid!),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return ListenableBuilder(
+      listenable: LocaleProvider.instance,
+      builder: (context, _) {
+        final isAr = LocaleProvider.instance.locale == 'ar';
 
-          if (snapshot.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text('Error: ${snapshot.error}'),
+        return Directionality(
+          textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(isAr ? 'حجوزاتي' : 'My Bookings'),
+              backgroundColor: theme.scaffoldBackgroundColor,
+              elevation: 0,
+              bottom: TabBar(
+                controller: _tabController,
+                labelColor: const Color(0xFF7C3AED),
+                unselectedLabelColor: Colors.grey,
+                indicatorColor: const Color(0xFF7C3AED),
+                tabs: [
+                  Tab(text: isAr ? 'نشط' : 'Active'),
+                  Tab(text: isAr ? 'مكتمل' : 'Completed'),
+                  Tab(text: isAr ? 'منتهي' : 'Expired'),
+                ],
               ),
-            );
-          }
+            ),
+            body: StreamBuilder<List<ReservationModel>>(
+              stream: ReservationService.instance.streamMyReservations(_uid!),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          final all = snapshot.data ?? [];
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(isAr ? 'خطأ: ${snapshot.error}' : 'Error: ${snapshot.error}'),
+                    ),
+                  );
+                }
 
-          // Split into categories
-          final active = all.where((r) => r.status == 'reserved').toList();
-          final completed = all.where((r) => r.status == 'picked_up').toList();
-          final expired = all
-              .where((r) => r.status == 'expired' || r.status == 'cancelled')
-              .toList();
+                final all = snapshot.data ?? [];
 
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              _buildList(active, 'No active bookings', 'Book an offer to see it here'),
-              _buildList(completed, 'No completed bookings', 'Picked up bookings will appear here'),
-              _buildList(expired, 'No expired bookings', 'Expired or cancelled bookings appear here'),
-            ],
-          );
-        },
-      ),
+                // Split into categories
+                final active = all.where((r) => r.status == 'reserved').toList();
+                final completed = all.where((r) => r.status == 'picked_up').toList();
+                final expired = all
+                    .where((r) => r.status == 'expired' || r.status == 'cancelled')
+                    .toList();
+
+                return TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildList(
+                      active,
+                      isAr ? 'لا توجد حجوزات نشطة' : 'No active bookings',
+                      isAr ? 'احجز عرضًا لرؤيته هنا' : 'Book an offer to see it here',
+                    ),
+                    _buildList(
+                      completed,
+                      isAr ? 'لا توجد حجوزات مكتملة' : 'No completed bookings',
+                      isAr ? 'ستظهر الحجوزات التي تم استلامها هنا' : 'Picked up bookings will appear here',
+                    ),
+                    _buildList(
+                      expired,
+                      isAr ? 'لا توجد حجوزات منتهية' : 'No expired bookings',
+                      isAr ? 'تظهر الحجوزات المنتهية أو الملغاة هنا' : 'Expired or cancelled bookings appear here',
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 

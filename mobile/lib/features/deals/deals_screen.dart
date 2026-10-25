@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart'; // ഷെയർ ചെയ്യാൻ
+import 'package:share_plus/share_plus.dart';
+import '../../core/localization/locale_provider.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../core/theme/migo_gradients.dart';
 import '../../core/theme/migo_shadows.dart';
@@ -10,7 +11,7 @@ import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
 import '../../widgets/migo_empty_state.dart';
 import '../business/business_detail_screen.dart';
-import '../main/main_shell.dart'; // Discover ടാബിലേക്ക് പോകാൻ
+import '../main/main_shell.dart';
 import 'my_claims_screen.dart';
 
 class DealsScreen extends StatelessWidget {
@@ -23,145 +24,163 @@ class DealsScreen extends StatelessWidget {
       return const Scaffold(body: Center(child: Text('Not signed in')));
     }
 
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // Hero Header
-          SliverToBoxAdapter(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: MigoGradients.heroBlue,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(28),
-                  bottomRight: Radius.circular(28),
-                ),
-              ),
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'My Deals',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: -0.4,
+    return ListenableBuilder(
+      listenable: LocaleProvider.instance,
+      builder: (context, _) {
+        final isAr = LocaleProvider.instance.locale == 'ar';
+
+        return Directionality(
+          textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(
+            body: CustomScrollView(
+              slivers: [
+                // Hero Header
+                SliverToBoxAdapter(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: MigoGradients.heroBlue,
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(28),
+                        bottomRight: Radius.circular(28),
+                      ),
+                    ),
+                    child: SafeArea(
+                      bottom: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isAr ? 'عروضي' : 'My Deals',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                                letterSpacing: -0.4,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              isAr
+                                  ? 'العروض والشركات والمطالبات المحفوظة'
+                                  : 'Your saved offers, businesses, and claims',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.white70,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            _HeroAction(
+                              icon: Icons.receipt_long_outlined,
+                              title: isAr ? 'مطالباتي' : 'My Claims',
+                              body: isAr
+                                  ? 'عرض جميع العروض التي طالبت بها'
+                                  : 'View all your claimed offers',
+                              isAr: isAr,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  FadeSlideRoute(child: const MyClaimsScreen()),
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Your saved offers, businesses, and claims',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.white70,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      _HeroAction(
-                        icon: Icons.receipt_long_outlined,
-                        title: 'My Claims',
-                        body: 'View all your claimed offers',
-                        onTap: () {
-                          Navigator.of(context).push(
-                            FadeSlideRoute(child: const MyClaimsScreen()),
-                          );
-                        },
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ),
 
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-          // SAVED OFFERS
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: _SectionLabel('SAVED OFFERS'),
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 10)),
-          SliverToBoxAdapter(child: _SavedOffersRow(uid: uid)),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-          // SAVED BUSINESSES
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: _SectionLabel('SAVED BUSINESSES'),
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 10)),
-          SliverToBoxAdapter(child: _SavedBusinessesRow(uid: uid)),
-
-          // Explore More Deals Banner
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: MigoGradients.softBlue,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: MigoColors.primary.withValues(alpha: 0.1)),
+                // SAVED OFFERS
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: _SectionLabel(isAr ? 'العروض المحفوظة' : 'SAVED OFFERS'),
+                  ),
                 ),
-                child: Column(
-                  children: [
-                    const Icon(Icons.explore_outlined, size: 40, color: MigoColors.primary),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Looking for more?',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Discover amazing offers and save more on your favorite brands.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 13, color: MigoColors.textSecondaryLight),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Discover ടാബിലേക്ക് പോകാൻ
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (_) => const MainShell(initialIndex: 1), // 1 = Discover
+                const SliverToBoxAdapter(child: SizedBox(height: 10)),
+                SliverToBoxAdapter(
+                  child: _SavedOffersRow(uid: uid, isAr: isAr),
+                ),
+
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+                // SAVED BUSINESSES
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: _SectionLabel(isAr ? 'الشركات المحفوظة' : 'SAVED BUSINESSES'),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 10)),
+                SliverToBoxAdapter(
+                  child: _SavedBusinessesRow(uid: uid, isAr: isAr),
+                ),
+
+                // Explore More Deals Banner
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: MigoGradients.softBlue,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: MigoColors.primary.withValues(alpha: 0.1)),
+                      ),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.explore_outlined, size: 40, color: MigoColors.primary),
+                          const SizedBox(height: 12),
+                          Text(
+                            isAr ? 'تبحث عن المزيد؟' : 'Looking for more?',
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            isAr
+                                ? 'اكتشف عروضًا مذهلة ووفر المزيد على علاماتك التجارية المفضلة.'
+                                : 'Discover amazing offers and save more on your favorite brands.',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 13, color: MigoColors.textSecondaryLight),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(
+                                    builder: (_) => const MainShell(initialIndex: 1),
+                                  ),
+                                  (route) => false,
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                              ),
+                              child: Text(isAr ? 'استكشف العروض' : 'Explore Deals'),
                             ),
-                            (route) => false,
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                        ),
-                        child: const Text('Explore Deals'),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
+
+                const SliverToBoxAdapter(child: SizedBox(height: 32)),
+              ],
             ),
           ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 32)),
-        ],
-      ),
+        );
+      },
     );
   }
 }
-
-// ... (ബാക്കിയുള്ള ക്ലാസുകൾ താഴെ)
 
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel(this.text);
@@ -187,12 +206,14 @@ class _HeroAction extends StatelessWidget {
     required this.title,
     required this.body,
     required this.onTap,
+    required this.isAr,
   });
 
   final IconData icon;
   final String title;
   final String body;
   final VoidCallback onTap;
+  final bool isAr;
 
   @override
   Widget build(BuildContext context) {
@@ -242,7 +263,10 @@ class _HeroAction extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: Colors.white70),
+              Icon(
+                isAr ? Icons.chevron_left : Icons.chevron_right,
+                color: Colors.white70,
+              ),
             ],
           ),
         ),
@@ -252,8 +276,9 @@ class _HeroAction extends StatelessWidget {
 }
 
 class _SavedOffersRow extends StatelessWidget {
-  const _SavedOffersRow({required this.uid});
+  const _SavedOffersRow({required this.uid, required this.isAr});
   final String uid;
+  final bool isAr;
 
   @override
   Widget build(BuildContext context) {
@@ -268,14 +293,16 @@ class _SavedOffersRow extends StatelessWidget {
         }
         final offers = snap.data ?? [];
         if (offers.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: SizedBox(
               height: 200,
               child: MigoEmptyState(
                 icon: Icons.favorite_border,
-                title: 'No saved offers yet',
-                body: 'Tap the heart on any offer to save it here for later.',
+                title: isAr ? 'لا توجد عروض محفوظة بعد' : 'No saved offers yet',
+                body: isAr
+                    ? 'اضغط على القلب في أي عرض لحفظه هنا لاحقًا.'
+                    : 'Tap the heart on any offer to save it here for later.',
               ),
             ),
           );
@@ -300,7 +327,7 @@ class _SavedOffersRow extends StatelessWidget {
                     ),
                   );
                 },
-                child: _SavedOfferCard(offer: offers[i]),
+                child: _SavedOfferCard(offer: offers[i], isAr: isAr),
               ),
             ),
           ),
@@ -311,8 +338,9 @@ class _SavedOffersRow extends StatelessWidget {
 }
 
 class _SavedOfferCard extends StatelessWidget {
-  const _SavedOfferCard({required this.offer});
+  const _SavedOfferCard({required this.offer, required this.isAr});
   final OfferModel offer;
+  final bool isAr;
 
   @override
   Widget build(BuildContext context) {
@@ -352,7 +380,7 @@ class _SavedOfferCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    '${offer.percentOff}% OFF',
+                    '${offer.percentOff}% ${isAr ? 'خصم' : 'OFF'}',
                     style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
@@ -419,8 +447,9 @@ class _SavedOfferCard extends StatelessWidget {
 }
 
 class _SavedBusinessesRow extends StatelessWidget {
-  const _SavedBusinessesRow({required this.uid});
+  const _SavedBusinessesRow({required this.uid, required this.isAr});
   final String uid;
+  final bool isAr;
 
   @override
   Widget build(BuildContext context) {
@@ -435,11 +464,11 @@ class _SavedBusinessesRow extends StatelessWidget {
         }
         final businesses = snap.data ?? [];
         if (businesses.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: SizedBox(
               height: 100,
-              child: Center(child: Text('No saved businesses yet')),
+              child: Center(child: Text(isAr ? 'لا توجد شركات محفوظة بعد' : 'No saved businesses yet')),
             ),
           );
         }

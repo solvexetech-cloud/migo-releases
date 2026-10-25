@@ -1,11 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../core/config/app_config.dart';
+import '../../core/localization/locale_provider.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../core/theme/migo_gradients.dart';
 import '../../core/theme/migo_shadows.dart';
 import '../../core/utils/migo_animations.dart';
 import '../../models/area_model.dart';
+import '../../models/category_model.dart';
 import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
 import '../../services/location_service.dart';
@@ -29,22 +31,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String _selectedIntention = 'Eat';
-
+  String _selectedIntention = 'All';
   AreaModel? _currentArea;
+  String _userCountry = 'QA';
   bool _loadingArea = true;
-
-  static const _intentions = <({String label, IconData icon})>[
-    (label: 'Eat', icon: Icons.restaurant_outlined),
-    (label: 'Coffee', icon: Icons.local_cafe_outlined),
-    (label: 'Family', icon: Icons.family_restroom_outlined),
-    (label: 'Save Money', icon: Icons.savings_outlined),
-    (label: 'Celebrate', icon: Icons.celebration_outlined),
-    (label: 'Shop', icon: Icons.shopping_bag_outlined),
-    (label: 'Relax', icon: Icons.spa_outlined),
-    (label: 'Service', icon: Icons.build_outlined),
-    (label: 'Explore', icon: Icons.explore_outlined),
-  ];
 
   @override
   void initState() {
@@ -52,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _detectArea();
   }
 
-  Future<void> _detectArea() async {
+    Future<void> _detectArea() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
       setState(() => _loadingArea = false);
@@ -63,8 +53,33 @@ class _HomeScreenState extends State<HomeScreen> {
       final user = await FirestoreService.instance.getUser(uid);
       final area = await LocationService.instance.getDefaultArea(user);
       if (!mounted) return;
+      
+      // യൂസറുടെ രാജ്യം ശരിയായ കോഡിലേക്ക് മാറ്റുന്നു
+      String rawCountry = user?.country ?? 'QA';
+      String finalCountry = 'QA';
+      if (rawCountry.toLowerCase().contains('qatar')) {
+        finalCountry = 'QA';
+      } else if (rawCountry.toLowerCase().contains('india')) {
+        finalCountry = 'IN';
+      } else if (rawCountry.toLowerCase().contains('uae') || rawCountry.toLowerCase().contains('emirates')) {
+        finalCountry = 'AE';
+      } else if (rawCountry.toLowerCase().contains('saudi')) {
+        finalCountry = 'SA';
+      } else if (rawCountry.toLowerCase().contains('kuwait')) {
+        finalCountry = 'KW';
+      } else if (rawCountry.toLowerCase().contains('oman')) {
+        finalCountry = 'OM';
+      } else if (rawCountry.toLowerCase().contains('bahrain')) {
+        finalCountry = 'BH';
+      } else if (rawCountry.length > 2) {
+        finalCountry = rawCountry.substring(0, 2).toUpperCase();
+      } else {
+        finalCountry = rawCountry.toUpperCase();
+      }
+
       setState(() {
         _currentArea = area;
+        _userCountry = finalCountry;
         _loadingArea = false;
       });
     } catch (_) {
@@ -73,426 +88,424 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _changeLocation() async {
+    Future<void> _changeLocation() async {
     final selected = await LocationPickerModal.show(context);
     if (selected == null) return;
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
+    // ഏരിയയുടെ രാജ്യം കണ്ടെത്തുന്നു
+    String newCountryCode = 'QA';
+    if (selected.zoneSlug.isNotEmpty) {
+      if (selected.zoneSlug.contains('dubai') || 
+          selected.zoneSlug.contains('abu-dhabi') || 
+          selected.zoneSlug.contains('sharjah')) {
+        newCountryCode = 'AE';
+      } else if (selected.zoneSlug.contains('riyadh') || 
+                 selected.zoneSlug.contains('jeddah') || 
+                 selected.zoneSlug.contains('dammam')) {
+        newCountryCode = 'SA';
+      } else if (selected.zoneSlug.contains('kuwait')) {
+        newCountryCode = 'KW';
+      } else if (selected.zoneSlug.contains('muscat') || 
+                 selected.zoneSlug.contains('salalah')) {
+        newCountryCode = 'OM';
+      } else if (selected.zoneSlug.contains('manama') || 
+                 selected.zoneSlug.contains('muharraq')) {
+        newCountryCode = 'BH';
+      } else if (selected.zoneSlug.contains('kerala') || 
+                 selected.zoneSlug.contains('mumbai') || 
+                 selected.zoneSlug.contains('delhi') || 
+                 selected.zoneSlug.contains('bangalore') || 
+                 selected.zoneSlug.contains('chennai') ||
+                 selected.zoneSlug.contains('ernakulam') ||
+                 selected.zoneSlug.contains('thiruvananthapuram') ||
+                 selected.zoneSlug.contains('kozhikode') ||
+                 selected.zoneSlug.contains('thrissur')) {
+        newCountryCode = 'IN';
+      }
+    }
+
     await LocationService.instance.saveSelectedArea(
       uid: uid,
       areaId: selected.id,
-      countryCode: selected.zoneSlug.isNotEmpty
-          ? (_currentArea?.zoneSlug ?? 'QA')
-          : 'QA',
+      countryCode: newCountryCode,
     );
 
     if (!mounted) return;
-    setState(() => _currentArea = selected);
+    setState(() {
+      _currentArea = selected;
+      _userCountry = newCountryCode;
+    });
+  }
+
+  String get _selectedCategoryFilter {
+    if (_selectedIntention == 'All' || _selectedIntention == 'الكل') return 'all';
+    return _selectedIntention.toLowerCase();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // ---------- HERO HEADER ----------
-          SliverToBoxAdapter(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: MigoGradients.heroBlue,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
-                ),
-              ),
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 26),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Text(
-                            AppConfig.appName,
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              letterSpacing: 3,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Flexible(
-                            child: _LocationChip(
-                              loading: _loadingArea,
-                              areaName: _currentArea?.name,
-                              onTap: _changeLocation,
-                            ),
-                          ),
-                          const Spacer(),
-                          IconButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      const NotificationsScreen(),
-                                ),
-                              );
-                            },
-                            icon: StreamBuilder<int>(
-                              stream: FirestoreService.instance
-                                  .streamUnreadNotificationCount(
-                                FirebaseAuth
-                                        .instance.currentUser?.uid ??
-                                    '',
-                              ),
-                              builder: (context, snap) {
-                                final count = snap.data ?? 0;
-                                if (count == 0) {
-                                  return const Icon(
-                                    Icons.notifications_outlined,
-                                    color: Colors.white,
-                                  );
-                                }
-                                return Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    const Icon(
-                                      Icons.notifications_outlined,
-                                      color: Colors.white,
-                                    ),
-                                    Positioned(
-                                      right: -4,
-                                      top: -4,
-                                      child: Container(
-                                        padding:
-                                            const EdgeInsets.symmetric(
-                                          horizontal: 5,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: MigoColors.error,
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
-                                        child: Text(
-                                          count > 9 ? '9+' : '$count',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 22),
-                      const Text(
-                        'What can you discover\nor save today?',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          height: 1.25,
-                          letterSpacing: -0.4,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      MigoGoldButton(
-                        label: 'Pick For Me',
-                        icon: Icons.auto_awesome,
-                        onPressed: () => PickForMeSheet.show(context),
-                      ),
-                      const SizedBox(height: 14),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: MigoShadows.soft,
-                        ),
-                        child: TextField(
-                          readOnly: true,
-                          onTap: () {},
-                          decoration: InputDecoration(
-                            hintText:
-                                'Search businesses, deals, cuisines...',
-                            hintStyle: const TextStyle(
-                              color: MigoColors.textSecondaryLight,
-                              fontSize: 13,
-                            ),
-                            prefixIcon: const Icon(
-                              Icons.search,
-                              color: MigoColors.primary,
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding:
-                                const EdgeInsets.symmetric(vertical: 14),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+    return ListenableBuilder(
+      listenable: LocaleProvider.instance,
+      builder: (context, _) {
+        final isAr = LocaleProvider.instance.locale == 'ar';
 
-          // 🚀 MIGO Magazine Banner (ഒരു തവണ മാത്രം)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const MagazineScreen(),
-                    ),
-                  );
-                },
-                child: Container(
-                  height: 80,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [MigoColors.primary, MigoColors.primaryDark],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: MigoColors.primary.withValues(alpha: 0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+        return Directionality(
+          textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(
+            body: CustomScrollView(
+              slivers: [
+                // ---------- HERO HEADER ----------
+                SliverToBoxAdapter(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: MigoGradients.heroBlue,
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(24),
+                        bottomRight: Radius.circular(24),
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: MigoColors.accent,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.menu_book,
-                            color: Colors.black,
-                            size: 28,
-                          ),
-                        ),
-                      ),
-                      const Expanded(
+                    ),
+                    child: SafeArea(
+                      bottom: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Row(
+                              children: [
+                                Text(
+                                  isAr ? 'ميجو' : AppConfig.appName,
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                    letterSpacing: isAr ? 0 : 3,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Flexible(
+                                  child: _LocationChip(
+                                    loading: _loadingArea,
+                                    areaName: _currentArea?.name,
+                                    onTap: _changeLocation,
+                                    isAr: isAr,
+                                  ),
+                                ),
+                                const Spacer(),
+                                IconButton(
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => const NotificationsScreen(),
+                                      ),
+                                    );
+                                  },
+                                  icon: StreamBuilder<int>(
+                                    stream: FirestoreService.instance
+                                        .streamUnreadNotificationCount(
+                                      FirebaseAuth.instance.currentUser?.uid ?? '',
+                                    ),
+                                    builder: (context, snap) {
+                                      final count = snap.data ?? 0;
+                                      if (count == 0) {
+                                        return const Icon(
+                                          Icons.notifications_outlined,
+                                          color: Colors.white,
+                                        );
+                                      }
+                                      return Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          const Icon(
+                                            Icons.notifications_outlined,
+                                            color: Colors.white,
+                                          ),
+                                          Positioned(
+                                            right: isAr ? null : -4,
+                                            left: isAr ? -4 : null,
+                                            top: -4,
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 5,
+                                                vertical: 2,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: MigoColors.error,
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              child: Text(
+                                                count > 9 ? '9+' : '$count',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w800,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
                             Text(
-                              'MIGO Magazine',
-                              style: TextStyle(
+                              isAr
+                                  ? 'ماذا يمكنك أن تكتشف\nأو توفره اليوم؟'
+                                  : 'What can you discover\nor save today?',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
                                 color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w900,
+                                height: 1.2,
+                                letterSpacing: -0.4,
                               ),
                             ),
-                            SizedBox(height: 4),
-                            Text(
-                              'Discover the latest flyers & deals!',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
+                            const SizedBox(height: 16),
+                            MigoGoldButton(
+                              label: isAr ? 'اختر لي' : 'Pick For Me',
+                              icon: Icons.auto_awesome,
+                              onPressed: () => PickForMeSheet.show(context),
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: MigoShadows.soft,
+                              ),
+                              child: TextField(
+                                readOnly: true,
+                                onTap: () {},
+                                decoration: InputDecoration(
+                                  hintText: isAr
+                                      ? 'ابحث عن الأعمال، العروض، المأكولات...'
+                                      : 'Search businesses, deals, cuisines...',
+                                  hintStyle: const TextStyle(
+                                    color: MigoColors.textSecondaryLight,
+                                    fontSize: 13,
+                                  ),
+                                  prefixIcon: const Icon(
+                                    Icons.search,
+                                    color: MigoColors.primary,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const Padding(
-                        padding: EdgeInsets.only(right: 16),
-                        child: Icon(
-                          Icons.chevron_right,
-                          color: MigoColors.accent,
-                          size: 28,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // ---------- INTENTION CHIPS ----------
-          SliverToBoxAdapter(
-            child: Container(
-              color: MigoColors.backgroundLight,
-              padding: const EdgeInsets.fromLTRB(0, 20, 0, 8),
-              child: SizedBox(
-                height: 52,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: _intentions.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 8),
-                  itemBuilder: (context, i) {
-                    final item = _intentions[i];
-                    return IntentionChip(
-                      label: item.label,
-                      icon: item.icon,
-                      selected: _selectedIntention == item.label,
-                      onTap: () => setState(
-                        () => _selectedIntention = item.label,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-
-          // ---------- FLASH DEALS ----------
-          const SliverToBoxAdapter(child: SizedBox(height: 16)),
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: SectionHeader(title: '⚡ Flash Deals'),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: _FlashDealsRow(areaId: _currentArea?.id),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-          // ---------- NEARBY DEALS ----------
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: SectionHeader(title: 'Nearby Deals'),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: _NearbyDealsRow(areaId: _currentArea?.id),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 28)),
-
-          // ---------- CATEGORIES (Horizontal Scroll) ----------
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Browse Categories',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const DiscoverScreen(),
-                              ),
-                            );
-                          },
-                          child: const Text('See all'),
-                        ),
-                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: 90,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      itemCount: 6,
-                      itemBuilder: (context, index) {
-                        final categories = [
-                          {'name': 'Food', 'icon': Icons.restaurant},
-                          {'name': 'Beauty', 'icon': Icons.spa},
-                          {'name': 'Auto', 'icon': Icons.directions_car},
-                          {'name': 'Events', 'icon': Icons.celebration},
-                          {'name': 'Photo', 'icon': Icons.camera_alt},
-                          {'name': 'Fitness', 'icon': Icons.fitness_center},
-                        ];
-                        final cat = categories[index];
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => DiscoverScreen(
-                                  initialCategory: cat['name'] as String,
-                                ),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            width: 80,
-                            margin: const EdgeInsets.only(right: 12),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: MigoColors.primary
-                                        .withValues(alpha: 0.08),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    cat['icon'] as IconData,
-                                    color: MigoColors.primary,
-                                    size: 24,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  cat['name'] as String,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          ),
+                ),
+
+                // Store Flyers Banner
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const MagazineScreen()),
                         );
                       },
+                      child: Container(
+                        height: 65,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [MigoColors.primary, MigoColors.primaryDark],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: MigoColors.accent,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.local_offer,
+                                  color: Colors.black,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    isAr ? 'منشورات المتاجر' : 'Store Flyers',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    isAr
+                                        ? 'استكشف أحدث عروض المتاجر'
+                                        : 'Explore latest store offers',
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 12),
+                              child: Icon(
+                                isAr ? Icons.chevron_left : Icons.chevron_right,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ],
-              ),
+                ),
+
+                // ---------- DYNAMIC CATEGORIES ----------
+                SliverToBoxAdapter(
+                  child: Container(
+                    color: MigoColors.backgroundLight,
+                    padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+                    child: SizedBox(
+                      height: 45,
+                      child: StreamBuilder<List<CategoryModel>>(
+                        stream: FirestoreService.instance.streamCategories(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          final categories = snapshot.data!;
+                          
+                          final allCategories = [
+                            CategoryModel(
+                              id: 'all',
+                              name: isAr ? 'الكل' : 'All',
+                              icon: 'apps',
+                              order: 0,
+                              active: true,
+                            ),
+                            ...categories
+                          ];
+
+                          return ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            itemCount: allCategories.length,
+                            separatorBuilder: (_, _) => const SizedBox(width: 8),
+                            itemBuilder: (context, i) {
+                              final cat = allCategories[i];
+                              return IntentionChip(
+                                label: cat.name,
+                                icon: _getIconForCategory(cat.icon),
+                                selected: _selectedIntention == cat.name,
+                                onTap: () => setState(() => _selectedIntention = cat.name),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+
+                // ---------- FLASH DEALS ----------
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: SectionHeader(
+                      title: isAr ? '⚡ عروض سريعة' : '⚡ Flash Deals',
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: _FlashDealsRow(
+  areaId: _currentArea?.id, // ഏരിയ ഐഡി കൈമാറുന്നു
+  categoryFilter: _selectedCategoryFilter,
+  countryCode: _userCountry,
+  isAr: isAr,
+),
+                ),
+
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+
+                // ---------- NEARBY DEALS ----------
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: SectionHeader(
+                      title: isAr ? 'عروض قريبة' : 'Nearby Deals',
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: _NearbyDealsRow(
+  areaId: _currentArea?.id, // ഏരിയ ഐഡി കൈമാറുന്നു
+  categoryFilter: _selectedCategoryFilter,
+  countryCode: _userCountry,
+  isAr: isAr,
+),
+                ),
+
+                const SliverToBoxAdapter(child: SizedBox(height: 20)),
+              ],
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-        ],
-      ),
+        );
+      },
     );
+  }
+
+  IconData _getIconForCategory(String iconKey) {
+    switch (iconKey) {
+      case 'restaurant_outlined':
+        return Icons.restaurant_outlined;
+      case 'local_cafe_outlined':
+        return Icons.local_cafe_outlined;
+      case 'family_restroom_outlined':
+        return Icons.family_restroom_outlined;
+      case 'savings_outlined':
+        return Icons.savings_outlined;
+      case 'celebration_outlined':
+        return Icons.celebration_outlined;
+      case 'shopping_bag_outlined':
+        return Icons.shopping_bag_outlined;
+      case 'spa_outlined':
+        return Icons.spa_outlined;
+      case 'build_outlined':
+        return Icons.build_outlined;
+      case 'explore_outlined':
+        return Icons.explore_outlined;
+      default:
+        return Icons.local_offer_outlined;
+    }
   }
 }
 
@@ -502,11 +515,13 @@ class _LocationChip extends StatelessWidget {
     required this.loading,
     required this.areaName,
     required this.onTap,
+    required this.isAr,
   });
 
   final bool loading;
   final String? areaName;
   final VoidCallback onTap;
+  final bool isAr;
 
   @override
   Widget build(BuildContext context) {
@@ -535,7 +550,9 @@ class _LocationChip extends StatelessWidget {
     }
 
     final hasArea = areaName != null && areaName!.isNotEmpty;
-    final displayText = hasArea ? areaName! : 'Set location';
+    final displayText = hasArea
+        ? areaName!
+        : (isAr ? 'تحديد الموقع' : 'Set location');
     final bgColor = hasArea
         ? Colors.white.withValues(alpha: 0.18)
         : MigoColors.warning.withValues(alpha: 0.85);
@@ -585,49 +602,65 @@ class _LocationChip extends StatelessWidget {
 
 // ---------- FLASH DEALS ROW ----------
 class _FlashDealsRow extends StatelessWidget {
-  const _FlashDealsRow({this.areaId});
+  const _FlashDealsRow({
+    this.areaId,
+    this.categoryFilter,
+    this.countryCode,
+    required this.isAr,
+  });
   final String? areaId;
+  final String? categoryFilter;
+  final String? countryCode;
+  final bool isAr;
 
   @override
   Widget build(BuildContext context) {
     final stream = areaId != null
-        ? FirestoreService.instance
-            .streamLiveOffersByAreaAndType(areaId!, 'flash')
-        : FirestoreService.instance.streamLiveOffersByType('flash');
+        ? FirestoreService.instance.streamLiveOffersByAreaAndType(
+            areaId!,
+            'flash',
+            countryCode: countryCode,
+          )
+        : FirestoreService.instance.streamLiveOffersByType(
+            'flash',
+            countryCode: countryCode,
+          );
 
     return StreamBuilder<List<OfferModel>>(
       stream: stream,
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
           return SizedBox(
-            height: 200,
+            height: 230,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               itemCount: 2,
               separatorBuilder: (_, _) => const SizedBox(width: 12),
-              itemBuilder: (_, _) => const ShimmerBox(
-                width: 220,
-                height: 200,
-                radius: 16,
-              ),
+              itemBuilder: (_, _) => const ShimmerBox(width: 200, height: 230, radius: 16),
             ),
           );
         }
-        final offers = snap.data ?? [];
+        
+        var offers = snap.data ?? [];
+        
+        if (categoryFilter != null && categoryFilter != 'all') {
+          offers = offers.where((o) => o.category.toLowerCase().contains(categoryFilter!.toLowerCase())).toList();
+        }
+
         if (offers.isEmpty) {
-          return const SizedBox(
+          return SizedBox(
             height: 100,
             child: Center(
               child: Text(
-                'No flash deals in your area',
-                style: TextStyle(color: MigoColors.textSecondaryLight),
+                isAr ? 'لا توجد عروض سريعة في منطقتك' : 'No flash deals in your area',
+                style: const TextStyle(color: MigoColors.textSecondaryLight),
               ),
             ),
           );
         }
         return SizedBox(
-          height: 200,
+          height: 230,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -652,21 +685,35 @@ class _FlashDealsRow extends StatelessWidget {
 
 // ---------- NEARBY DEALS ROW ----------
 class _NearbyDealsRow extends StatelessWidget {
-  const _NearbyDealsRow({this.areaId});
+  const _NearbyDealsRow({
+    this.areaId,
+    this.categoryFilter,
+    this.countryCode,
+    required this.isAr,
+  });
   final String? areaId;
+  final String? categoryFilter;
+  final String? countryCode;
+  final bool isAr;
 
   @override
   Widget build(BuildContext context) {
     final stream = areaId != null
-        ? FirestoreService.instance.streamLiveOffersByArea(areaId!)
-        : FirestoreService.instance.streamLiveOffers(limit: 10);
+        ? FirestoreService.instance.streamLiveOffersByArea(
+            areaId!,
+            countryCode: countryCode,
+          )
+        : FirestoreService.instance.streamLiveOffers(
+            limit: 10,
+            countryCode: countryCode,
+          );
 
     return StreamBuilder<List<OfferModel>>(
       stream: stream,
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
           return SizedBox(
-            height: 400,
+            height: 300,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -674,12 +721,18 @@ class _NearbyDealsRow extends StatelessWidget {
               separatorBuilder: (_, _) => const SizedBox(width: 12),
               itemBuilder: (_, _) => const SizedBox(
                 width: 280,
-                child: ShimmerBox(height: 400, radius: 18),
+                child: ShimmerBox(height: 300, radius: 18),
               ),
             ),
           );
         }
-        final offers = snap.data ?? [];
+        
+        var offers = snap.data ?? [];
+        
+        if (categoryFilter != null && categoryFilter != 'all') {
+          offers = offers.where((o) => o.category.toLowerCase().contains(categoryFilter!.toLowerCase())).toList();
+        }
+
         if (offers.isEmpty) {
           return Container(
             margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -689,27 +742,27 @@ class _NearbyDealsRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: MigoColors.dividerLight),
             ),
-            child: const Column(
+            child: Column(
               children: [
-                Icon(
+                const Icon(
                   Icons.local_offer_outlined,
                   size: 48,
                   color: MigoColors.primary,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
-                  'No offers in your area',
-                  style: TextStyle(
+                  isAr ? 'لا توجد عروض في منطقتك' : 'No offers in your area',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: MigoColors.textPrimaryLight,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Change location or check back soon.',
+                  isAr ? 'تغيير الموقع أو التحقق مرة أخرى قريبا.' : 'Change location or check back soon.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 13,
                     color: MigoColors.textSecondaryLight,
                   ),
@@ -719,7 +772,7 @@ class _NearbyDealsRow extends StatelessWidget {
           );
         }
         return SizedBox(
-          height: 400,
+          height: 300,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),

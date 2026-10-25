@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/config/app_config.dart';
+import '../../core/localization/locale_provider.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../core/theme/migo_gradients.dart';
 import '../../core/theme/migo_shadows.dart';
@@ -21,244 +22,264 @@ class WalletScreen extends StatelessWidget {
       );
     }
 
-    return Scaffold(
-      body: StreamBuilder<UserModel?>(
-        stream: FirestoreService.instance.streamUser(uid),
-        builder: (context, userSnap) {
-          final user = userSnap.data;
-          return CustomScrollView(
-            slivers: [
-              // Deep Blue gradient header with coin card
-              SliverToBoxAdapter(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: MigoGradients.heroBlue,
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(28),
-                      bottomRight: Radius.circular(28),
-                    ),
-                  ),
-                  child: SafeArea(
-                    bottom: false,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Wallet',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              letterSpacing: -0.4,
-                            ),
+    return ListenableBuilder(
+      listenable: LocaleProvider.instance,
+      builder: (context, _) {
+        final isAr = LocaleProvider.instance.locale == 'ar';
+
+        return Directionality(
+          textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(
+            body: StreamBuilder<UserModel?>(
+              stream: FirestoreService.instance.streamUser(uid),
+              builder: (context, userSnap) {
+                final user = userSnap.data;
+                return CustomScrollView(
+                  slivers: [
+                    // Deep Blue gradient header with coin card
+                    SliverToBoxAdapter(
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          gradient: MigoGradients.heroBlue,
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(28),
+                            bottomRight: Radius.circular(28),
                           ),
-                          const SizedBox(height: 20),
-                          // Coin card
-                          Container(
-                            padding: const EdgeInsets.all(22),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                width: 1,
-                              ),
-                            ),
-                            child: Stack(
+                        ),
+                        child: SafeArea(
+                          bottom: false,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Positioned(
-                                  right: -20,
-                                  top: -20,
-                                  child: Container(
-                                    width: 100,
-                                    height: 100,
-                                    decoration: BoxDecoration(
-                                      color: MigoColors.accent
-                                          .withValues(alpha: 0.15),
-                                      shape: BoxShape.circle,
-                                    ),
+                                Text(
+                                  isAr ? 'المحفظة' : 'Wallet',
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                    letterSpacing: -0.4,
                                   ),
                                 ),
-                                Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(6),
+                                const SizedBox(height: 20),
+                                // Coin card
+                                Container(
+                                  padding: const EdgeInsets.all(22),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.08),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.15),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Stack(
+                                    children: [
+                                      Positioned(
+                                        right: isAr ? null : -20,
+                                        left: isAr ? -20 : null,
+                                        top: -20,
+                                        child: Container(
+                                          width: 100,
+                                          height: 100,
                                           decoration: BoxDecoration(
-                                            gradient: MigoGradients.gold,
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          child: const Icon(
-                                            Icons.monetization_on,
-                                            color: Colors.black,
-                                            size: 14,
+                                            color: MigoColors.accent
+                                                .withValues(alpha: 0.15),
+                                            shape: BoxShape.circle,
                                           ),
                                         ),
-                                        const SizedBox(width: 10),
-                                        const Text(
-                                          'MIGO COINS',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            letterSpacing: 2.5,
-                                            fontWeight: FontWeight.w900,
-                                            color: MigoColors.accent,
+                                      ),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.all(6),
+                                                decoration: BoxDecoration(
+                                                  gradient: MigoGradients.gold,
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: const Icon(
+                                                  Icons.monetization_on,
+                                                  color: Colors.black,
+                                                  size: 14,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Text(
+                                                isAr ? 'عملات ميجو' : 'MIGO COINS',
+                                                style: const TextStyle(
+                                                  fontSize: 10,
+                                                  letterSpacing: 2.5,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: MigoColors.accent,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 14),
-                                    Text(
-                                      '${user?.coins ?? 0}',
-                                      style: const TextStyle(
-                                        fontSize: 54,
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.white,
-                                        height: 1,
-                                        letterSpacing: -2,
+                                          const SizedBox(height: 14),
+                                          Text(
+                                            '${user?.coins ?? 0}',
+                                            style: const TextStyle(
+                                              fontSize: 54,
+                                              fontWeight: FontWeight.w900,
+                                              color: Colors.white,
+                                              height: 1,
+                                              letterSpacing: -2,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            isAr
+                                                ? 'اكسب المزيد من خلال المطالبة بالعروض واستردادها'
+                                                : 'Earn more by claiming and redeeming deals',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.white70,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    const Text(
-                                      'Earn more by claiming and redeeming deals',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.white70,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ),
 
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Stats grid
-                      _StatsGrid(uid: uid),
-                      const SizedBox(height: 20),
-                      // Savings
-                      _SavingsCard(uid: uid, user: user),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'Recent activity',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: MigoColors.textPrimaryLight,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      _ActivityList(uid: uid),
-                      const SizedBox(height: 24),
-                      // Earn more
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              MigoColors.accent.withValues(alpha: 0.12),
-                              MigoColors.accent.withValues(alpha: 0.04),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: MigoColors.accent.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: const Column(
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.tips_and_updates_outlined,
-                                  color: MigoColors.accentDark,
-                                  size: 20,
+                            // Stats grid
+                            _StatsGrid(uid: uid, isAr: isAr),
+                            const SizedBox(height: 20),
+                            // Savings
+                            _SavingsCard(uid: uid, user: user, isAr: isAr),
+                            const SizedBox(height: 24),
+                            Text(
+                              isAr ? 'النشاط الأخير' : 'Recent activity',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: MigoColors.textPrimaryLight,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            _ActivityList(uid: uid, isAr: isAr),
+                            const SizedBox(height: 24),
+                            // Earn more
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    MigoColors.accent.withValues(alpha: 0.12),
+                                    MigoColors.accent.withValues(alpha: 0.04),
+                                  ],
                                 ),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Earn more coins',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w800,
-                                    color: MigoColors.textPrimaryLight,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: MigoColors.accent.withValues(alpha: 0.3),
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.tips_and_updates_outlined,
+                                        color: MigoColors.accentDark,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        isAr ? 'اكسب المزيد من العملات' : 'Earn more coins',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w800,
+                                          color: MigoColors.textPrimaryLight,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 10),
+                                  _EarnRow(
+                                    icon: Icons.qr_code_scanner,
+                                    text: isAr
+                                        ? 'استرداد في المتجر  +25'
+                                        : 'Redeem at business  +25',
+                                  ),
+                                  const SizedBox(height: 6),
+                                  _EarnRow(
+                                    icon: Icons.person_add_alt,
+                                    text: isAr
+                                        ? 'أحصل على صديق  +50'
+                                        : 'Refer a friend  +50',
+                                  ),
+                                  const SizedBox(height: 6),
+                                  _EarnRow(
+                                    icon: Icons.star_outline,
+                                    text: isAr
+                                        ? 'اكتب مراجعة مفيدة  +10'
+                                        : 'Write useful review  +10',
+                                  ),
+                                ],
+                              ),
                             ),
-                            SizedBox(height: 10),
-                            _EarnRow(
-                              icon: Icons.qr_code_scanner,
-                              text: 'Redeem at business  +25',
-                            ),
-                            SizedBox(height: 6),
-                            _EarnRow(
-                              icon: Icons.person_add_alt,
-                              text: 'Refer a friend  +50',
-                            ),
-                            SizedBox(height: 6),
-                            _EarnRow(
-                              icon: Icons.star_outline,
-                              text: 'Write useful review  +10',
-                            ),
+                            const SizedBox(height: 20),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }
 
 class _StatsGrid extends StatelessWidget {
-  const _StatsGrid({required this.uid});
+  const _StatsGrid({required this.uid, required this.isAr});
   final String uid;
+  final bool isAr;
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-  stream: FirebaseFirestore.instance
-      .collection('claims') // reservations എന്നത് claims ആക്കി മാറ്റി
-      .where('userUid', isEqualTo: uid)
-      .where('status', isEqualTo: 'redeemed') // picked_up എന്നത് redeemed ആക്കി
-      .snapshots(),
-  builder: (context, snap) {
-    final claims = snap.data?.docs ?? [];
-    final businesses = claims
-        .map((doc) => (doc.data() as Map<String, dynamic>)['businessId'] as String?)
-        .where((id) => id != null)
-        .toSet()
-        .length;
+      stream: FirebaseFirestore.instance
+          .collection('claims')
+          .where('userUid', isEqualTo: uid)
+          .where('status', isEqualTo: 'redeemed')
+          .snapshots(),
+      builder: (context, snap) {
+        final claims = snap.data?.docs ?? [];
+        final businesses = claims
+            .map((doc) => (doc.data() as Map<String, dynamic>)['businessId'] as String?)
+            .where((id) => id != null)
+            .toSet()
+            .length;
 
         return Row(
           children: [
             Expanded(
               child: _StatTile(
-                label: 'Deals used',
+                label: isAr ? 'العروض المستخدمة' : 'Deals used',
                 value: '${claims.length}',
                 icon: Icons.check_circle_outline,
                 color: MigoColors.success,
@@ -267,7 +288,7 @@ class _StatsGrid extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: _StatTile(
-                label: 'Businesses',
+                label: isAr ? 'الشركات' : 'Businesses',
                 value: '$businesses',
                 icon: Icons.storefront_outlined,
                 color: MigoColors.primary,
@@ -276,7 +297,7 @@ class _StatsGrid extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: _StatTile(
-                label: 'Redeemed',
+                label: isAr ? 'تم استردادها' : 'Redeemed',
                 value: '${claims.length}',
                 icon: Icons.receipt_long_outlined,
                 color: MigoColors.accent,
@@ -348,17 +369,18 @@ class _StatTile extends StatelessWidget {
 }
 
 class _SavingsCard extends StatelessWidget {
-  const _SavingsCard({required this.uid, this.user});
+  const _SavingsCard({required this.uid, this.user, required this.isAr});
   final String uid;
   final UserModel? user;
+  final bool isAr;
 
   @override
   Widget build(BuildContext context) {
-        return StreamBuilder<QuerySnapshot>(
+    return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
-          .collection('claims') // reservations എന്നത് claims ആക്കി മാറ്റി
+          .collection('claims')
           .where('userUid', isEqualTo: uid)
-          .where('status', isEqualTo: 'redeemed') // picked_up എന്നത് redeemed ആക്കി
+          .where('status', isEqualTo: 'redeemed')
           .snapshots(),
       builder: (context, snap) {
         final claims = snap.data?.docs ?? [];
@@ -369,15 +391,14 @@ class _SavingsCard extends StatelessWidget {
         double thisMonth = 0;
         double lifetime = 0;
 
-        for (final doc in claims) { // reservations എന്നത് claims ആക്കി
+        for (final doc in claims) {
           final data = doc.data() as Map<String, dynamic>;
-          // claims-ൽ originalPrice, offerPrice എന്നിവയാണ് ഉള്ളത്
           final savings = ((data['originalPrice'] as num?)?.toDouble() ?? 0) - 
                           ((data['offerPrice'] as num?)?.toDouble() ?? 0);
           
           lifetime += savings;
           
-          final redeemedAt = (data['redeemedAt'] as Timestamp?)?.toDate(); // pickedUpAt -> redeemedAt
+          final redeemedAt = (data['redeemedAt'] as Timestamp?)?.toDate();
           if (redeemedAt != null && redeemedAt.isAfter(monthStart)) {
             thisMonth += savings;
           }
@@ -401,13 +422,13 @@ class _SavingsCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.savings, color: Colors.white, size: 20),
-                  SizedBox(width: 8),
+                  const Icon(Icons.savings, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
                   Text(
-                    'YOUR SAVINGS',
-                    style: TextStyle(
+                    isAr ? 'مدخراتك' : 'YOUR SAVINGS',
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 2,
@@ -423,9 +444,9 @@ class _SavingsCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'This month',
-                          style: TextStyle(
+                        Text(
+                          isAr ? 'هذا الشهر' : 'This month',
+                          style: const TextStyle(
                             fontSize: 11,
                             color: Colors.white70,
                             fontWeight: FontWeight.w600,
@@ -455,9 +476,9 @@ class _SavingsCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Lifetime',
-                          style: TextStyle(
+                        Text(
+                          isAr ? 'الإجمالي' : 'Lifetime',
+                          style: const TextStyle(
                             fontSize: 11,
                             color: Colors.white70,
                             fontWeight: FontWeight.w600,
@@ -488,8 +509,9 @@ class _SavingsCard extends StatelessWidget {
 }
 
 class _ActivityList extends StatelessWidget {
-  const _ActivityList({required this.uid});
+  const _ActivityList({required this.uid, required this.isAr});
   final String uid;
+  final bool isAr;
 
   @override
   Widget build(BuildContext context) {
@@ -511,10 +533,10 @@ class _ActivityList extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               boxShadow: MigoShadows.soft,
             ),
-            child: const Center(
+            child: Center(
               child: Text(
-                'No coin activity yet',
-                style: TextStyle(color: MigoColors.textSecondaryLight),
+                isAr ? 'لا يوجد نشاط للعملات بعد' : 'No coin activity yet',
+                style: const TextStyle(color: MigoColors.textSecondaryLight),
               ),
             ),
           );
@@ -567,7 +589,7 @@ class _ActivityList extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                _formatDate(t.createdAt),
+                                _formatDate(t.createdAt, isAr),
                                 style: const TextStyle(
                                   fontSize: 11,
                                   color: MigoColors.textSecondaryLight,
@@ -603,13 +625,13 @@ class _ActivityList extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime dt) {
+  String _formatDate(DateTime dt, bool isAr) {
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (diff.inMinutes < 1) return 'just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    if (diff.inMinutes < 1) return isAr ? 'الآن' : 'just now';
+    if (diff.inMinutes < 60) return isAr ? 'منذ ${diff.inMinutes} د' : '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return isAr ? 'منذ ${diff.inHours} س' : '${diff.inHours}h ago';
+    if (diff.inDays < 7) return isAr ? 'منذ ${diff.inDays} ي' : '${diff.inDays}d ago';
     return '${dt.day}/${dt.month}/${dt.year}';
   }
 }
