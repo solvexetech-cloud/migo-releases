@@ -23,6 +23,11 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
   String? _areaId;
   bool _loading = true;
 
+  // ഫിൽട്ടർ സ്റ്റേറ്റുകൾ
+  String _searchQuery = '';
+  String _filterType = 'all';
+  String _filterCountry = 'all';
+
   @override
   void initState() {
     super.initState();
@@ -78,13 +83,25 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final offers = snap.data ?? [];
+        final allOffers = snap.data ?? [];
+
+        // ഫിൽട്ടർ ചെയ്ത ഓഫറുകൾ
+        final filteredOffers = allOffers.where((o) {
+          final matchesSearch = o.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              o.description.toLowerCase().contains(_searchQuery.toLowerCase());
+          final matchesType = _filterType == 'all' || o.type == _filterType;
+          // countryCode ഇല്ലെങ്കിൽ 'QA' എന്ന് കണക്കാക്കുക
+          final offerCountry = o.countryCode ?? 'QA';
+          final matchesCountry = _filterCountry == 'all' || offerCountry == _filterCountry;
+          return matchesSearch && matchesType && matchesCountry;
+        }).toList();
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header
               Row(
                 children: [
                   Expanded(
@@ -100,7 +117,7 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${offers.length} total',
+                          '${filteredOffers.length} total',
                           style: const TextStyle(
                             color: MigoColors.textSecondary,
                             fontSize: 13,
@@ -116,12 +133,84 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
+
+              // Search Bar
+              TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search offers...',
+                  prefixIcon: const Icon(Icons.search),
+                  filled: true,
+                  fillColor: MigoColors.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                ),
+                onChanged: (v) => setState(() => _searchQuery = v),
+              ),
+              const SizedBox(height: 12),
+
+              // Filters Row
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _filterType,
+                      decoration: InputDecoration(
+                        labelText: 'Type',
+                        isDense: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'all', child: Text('All Types', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'standard', child: Text('Standard', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'flash', child: Text('Flash', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'group', child: Text('Group', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'hidden', child: Text('Hidden', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'birthday', child: Text('Birthday', style: TextStyle(fontSize: 12))),
+                      ],
+                      onChanged: (v) => setState(() => _filterType = v ?? 'all'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _filterCountry,
+                      decoration: InputDecoration(
+                        labelText: 'Country',
+                        isDense: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'all', child: Text('All', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'QA', child: Text('Qatar', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'AE', child: Text('UAE', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'SA', child: Text('Saudi', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'KW', child: Text('Kuwait', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'OM', child: Text('Oman', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'BH', child: Text('Bahrain', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: 'IN', child: Text('India', style: TextStyle(fontSize: 12))),
+                      ],
+                      onChanged: (v) => setState(() => _filterCountry = v ?? 'all'),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 20),
 
-              if (offers.isEmpty)
+              // Offers List
+              if (filteredOffers.isEmpty)
                 _emptyState(context)
               else
-                ...offers.map((o) => _offerCard(context, o)),
+                ...filteredOffers.map((o) => _offerCard(context, o)),
             ],
           ),
         );
@@ -142,7 +231,7 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
             ),
             const SizedBox(height: 12),
             const Text(
-              'No offers yet',
+              'No offers found',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -262,7 +351,7 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            // ── Action Buttons Row ──
+            // Action Buttons Row
             Row(
               children: [
                 Expanded(
@@ -297,7 +386,6 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Icons
                 _actionIcon(
                   icon: Icons.tune,
                   color: Colors.deepPurple,
@@ -334,7 +422,6 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
     );
   }
 
-  // ചെറിയ ഐക്കൺ ബട്ടൺ ഉണ്ടാക്കാൻ ഒരു ഹെൽപ്പർ
   Widget _actionIcon({
     required IconData icon,
     required Color color,
@@ -391,8 +478,7 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
     );
   }
 
-  Future<void> _toggleActive(
-      BuildContext context, OfferModel offer) async {
+  Future<void> _toggleActive(BuildContext context, OfferModel offer) async {
     final err = await OfferService.instance.toggleActive(
       offerId: offer.id,
       currentActive: offer.isActive,
@@ -405,8 +491,7 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
     }
   }
 
-  Future<void> _openReserveSettings(
-      BuildContext context, OfferModel offer) async {
+  Future<void> _openReserveSettings(BuildContext context, OfferModel offer) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => BusinessOfferReserveSettingsScreen(
@@ -417,14 +502,12 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
     );
   }
 
-  Future<void> _confirmDelete(
-      BuildContext context, OfferModel offer) async {
+  Future<void> _confirmDelete(BuildContext context, OfferModel offer) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Delete offer?'),
-        content:
-            Text('"${offer.title}" will be deleted permanently.'),
+        content: Text('"${offer.title}" will be deleted permanently.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),

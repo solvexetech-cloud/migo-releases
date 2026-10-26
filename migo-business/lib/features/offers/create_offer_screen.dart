@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../core/localization/locale_provider.dart';
 import '../../core/theme/migo_gradients.dart';
 import '../../core/theme/migo_theme.dart';
 import '../../models/offer_model.dart';
@@ -42,26 +43,24 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
   final _termsCtrl = TextEditingController();
   final _dailyLimitCtrl = TextEditingController();
   
-  // പുതിയ ഫീൽഡുകൾ
   final _whatsappCtrl = TextEditingController();
   final _orderLinkCtrl = TextEditingController();
   final _totalSlotsCtrl = TextEditingController(text: '10');
   final _maxPerCustomerCtrl = TextEditingController(text: '1');
+  final _minGroupCtrl = TextEditingController(text: '5');
+  final _maxGroupCtrl = TextEditingController();
 
   String _type = 'standard';
   String _category = 'food'; 
   int _durationDays = 7;
-  
-  // റിസർവേഷൻ ഓപ്ഷനുകൾ
   bool _isReservable = false;
-  String _countryCode = 'QA'; // ഡിഫോൾട്ട് രാജ്യം
+  String _countryCode = 'QA';
 
   bool _loading = false;
   bool _uploadingImage = false;
   String? _error;
   String? _imageUrl;
 
-  // Image picking
   File? _pickedFile;
   Uint8List? _pickedBytes;
   String? _pickedFilename;
@@ -135,12 +134,11 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
     _orderLinkCtrl.dispose();
     _totalSlotsCtrl.dispose();
     _maxPerCustomerCtrl.dispose();
+    _minGroupCtrl.dispose();
+    _maxGroupCtrl.dispose();
     super.dispose();
   }
 
-  // ═══════════════════════════════════════════════════
-  // IMAGE PICKER
-  // ═══════════════════════════════════════════════════
   Future<void> _pickImage(ImageSource source) async {
     try {
       final picked = await _picker.pickImage(
@@ -182,9 +180,6 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
     });
   }
 
-  // ═══════════════════════════════════════════════════
-  // SUBMIT
-  // ═══════════════════════════════════════════════════
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -208,14 +203,15 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
         if (uploaded == null) {
           if (!mounted) return;
           setState(() {
-            _error = 'Failed to upload image. Try again.';
+            _error = LocaleProvider.instance.locale == 'ar'
+                ? 'فشل تحميل الصورة. حاول مرة أخرى.'
+                : 'Failed to upload image. Try again.';
             _loading = false;
           });
           return;
         }
         imageUrl = uploaded;
       }
-
 
       // വിവർത്തനം ചെയ്യുന്നു
       final titleEn = _titleCtrl.text.trim();
@@ -230,15 +226,15 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
       if (descEn.isNotEmpty) {
         descAr = await TranslationService.instance.translate(descEn, 'ar');
       }
+
       String? err;
       if (isEdit) {
-        // എഡിറ്റ് ചെയ്യുമ്പോൾ
         err = await OfferService.instance.updateOffer(
           offerId: widget.existingOffer!.id,
           title: titleEn,
-          description: descEn,
           titleEn: titleEn,
           titleAr: titleAr,
+          description: descEn,
           descriptionEn: descEn,
           descriptionAr: descAr,
           category: _category,
@@ -246,18 +242,17 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
           imageUrl: imageUrl ?? '',
           originalPrice: double.tryParse(_originalPriceCtrl.text.trim()) ?? 0,
           offerPrice: double.tryParse(_offerPriceCtrl.text.trim()) ?? 0,
-          endDate: null,
+          endDate: DateTime.now().add(Duration(days: _durationDays)),
         );
       } else {
-        // പുതിയ ഓഫർ ഉണ്ടാക്കുമ്പോൾ
-                err = await OfferService.instance.createOffer(
+        err = await OfferService.instance.createOffer(
           businessId: widget.businessId,
           businessName: widget.businessName,
           areaId: widget.areaId,
-          title: titleEn, // അടിസ്ഥാന ടൈറ്റിൽ
-          description: descEn, // അടിസ്ഥാന ഡിസ്ക്രിപ്ഷൻ
+          title: titleEn,
           titleEn: titleEn,
           titleAr: titleAr,
+          description: descEn,
           descriptionEn: descEn,
           descriptionAr: descAr,
           category: _category,
@@ -278,7 +273,11 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              isEdit ? 'Offer updated!' : 'Offer created! Waiting for admin approval.',
+              isEdit
+                  ? (LocaleProvider.instance.locale == 'ar' ? 'تم تحديث العرض!' : 'Offer updated!')
+                  : (LocaleProvider.instance.locale == 'ar'
+                      ? 'تم إنشاء العرض! في انتظار موافقة المسؤول.'
+                      : 'Offer created! Waiting for admin approval.'),
             ),
             backgroundColor: MigoColors.success,
           ),
@@ -299,383 +298,417 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
     }
   }
 
-  // ═══════════════════════════════════════════════════
-  // BUILD
-  // ═══════════════════════════════════════════════════
   @override
   Widget build(BuildContext context) {
-    final previewSavings = (double.tryParse(_originalPriceCtrl.text) ?? 0) -
-        (double.tryParse(_offerPriceCtrl.text) ?? 0);
+    return ListenableBuilder(
+      listenable: LocaleProvider.instance,
+      builder: (context, _) {
+        final isAr = LocaleProvider.instance.locale == 'ar';
+        final previewSavings = (double.tryParse(_originalPriceCtrl.text) ?? 0) -
+            (double.tryParse(_offerPriceCtrl.text) ?? 0);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(isEdit ? 'Edit Offer' : 'Create Offer'),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 600),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _imagePickerCard(),
-                    const SizedBox(height: 20),
+        return Directionality(
+          textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(
+                isEdit
+                    ? (isAr ? 'تعديل العرض' : 'Edit Offer')
+                    : (isAr ? 'إنشاء عرض' : 'Create Offer'),
+              ),
+            ),
+            body: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _imagePickerCard(isAr),
+                          const SizedBox(height: 20),
 
-                    // Title
-                    TextFormField(
-                      controller: _titleCtrl,
-                      onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
-                        labelText: 'Offer title',
-                        hintText: 'e.g. Family Meal Deal',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Description
-                    TextFormField(
-                      controller: _descCtrl,
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: 'Description',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Category Dropdown
-                    DropdownButtonFormField<String>(
-                      initialValue: _category,
-                      decoration: const InputDecoration(
-                        labelText: 'Category',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: _categories
-                          .map((t) => DropdownMenuItem(
-                                value: t['value'],
-                                child: Text(t['label']!),
-                              ))
-                          .toList(),
-                      onChanged: (v) => setState(() => _category = v ?? 'food'),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Country Dropdown
-                    DropdownButtonFormField<String>(
-                      initialValue: _countryCode,
-                      decoration: const InputDecoration(
-                        labelText: 'Country',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: _countries
-                          .map((c) => DropdownMenuItem(
-                                value: c['code'],
-                                child: Text(c['name']!),
-                              ))
-                          .toList(),
-                      onChanged: (v) => setState(() => _countryCode = v ?? 'QA'),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Offer Type
-                    DropdownButtonFormField<String>(
-                      initialValue: _type,
-                      decoration: const InputDecoration(
-                        labelText: 'Offer type',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: _offerTypes
-                          .map((t) => DropdownMenuItem(
-                                value: t['value'],
-                                child: Text(t['label']!),
-                              ))
-                          .toList(),
-                      onChanged: (v) => setState(() => _type = v ?? 'standard'),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Prices
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _originalPriceCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          TextFormField(
+                            controller: _titleCtrl,
                             onChanged: (_) => setState(() {}),
-                            decoration: const InputDecoration(
-                              labelText: 'Original price',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: isAr ? 'عنوان العرض' : 'Offer title',
+                              hintText: isAr ? 'مثال: عرض وجبة العائلة' : 'e.g. Family Meal Deal',
+                              border: const OutlineInputBorder(),
                             ),
-                            validator: (v) {
-                              if (v == null || v.isEmpty) return 'Required';
-                              if (double.tryParse(v) == null) return 'Invalid';
-                              return null;
-                            },
+                            validator: (v) => v == null || v.trim().isEmpty
+                                ? (isAr ? 'مطلوب' : 'Required')
+                                : null,
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _offerPriceCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            onChanged: (_) => setState(() {}),
-                            decoration: const InputDecoration(
-                              labelText: 'MIGO price',
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (v) {
-                              if (v == null || v.isEmpty) return 'Required';
-                              final n = double.tryParse(v);
-                              if (n == null) return 'Invalid';
-                              final orig = double.tryParse(_originalPriceCtrl.text);
-                              if (orig != null && n >= orig) return 'Must be < original';
-                              return null;
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(height: 16),
 
-                    // Savings preview
-                    if (previewSavings > 0) ...[
-                      const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: MigoColors.success.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.check_circle, size: 18, color: MigoColors.success),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Customer saves QAR ${previewSavings.toStringAsFixed(0)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: MigoColors.success,
-                                fontSize: 13,
+                          TextFormField(
+                            controller: _descCtrl,
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              labelText: isAr ? 'الوصف' : 'Description',
+                              border: const OutlineInputBorder(),
+                            ),
+                            validator: (v) => v == null || v.trim().isEmpty
+                                ? (isAr ? 'مطلوب' : 'Required')
+                                : null,
+                          ),
+                          const SizedBox(height: 16),
+
+                          DropdownButtonFormField<String>(
+                            initialValue: _category,
+                            decoration: InputDecoration(
+                              labelText: isAr ? 'الفئة' : 'Category',
+                              border: const OutlineInputBorder(),
+                            ),
+                            items: _categories
+                                .map((t) => DropdownMenuItem(
+                                      value: t['value'],
+                                      child: Text(t['label']!),
+                                    ))
+                                .toList(),
+                            onChanged: (v) => setState(() => _category = v ?? 'food'),
+                          ),
+                          const SizedBox(height: 16),
+
+                          DropdownButtonFormField<String>(
+                            initialValue: _countryCode,
+                            decoration: InputDecoration(
+                              labelText: isAr ? 'الدولة' : 'Country',
+                              border: const OutlineInputBorder(),
+                            ),
+                            items: _countries
+                                .map((c) => DropdownMenuItem(
+                                      value: c['code'],
+                                      child: Text(c['name']!),
+                                    ))
+                                .toList(),
+                            onChanged: (v) => setState(() => _countryCode = v ?? 'QA'),
+                          ),
+                          const SizedBox(height: 16),
+
+                          DropdownButtonFormField<String>(
+                            initialValue: _type,
+                            decoration: InputDecoration(
+                              labelText: isAr ? 'نوع العرض' : 'Offer type',
+                              border: const OutlineInputBorder(),
+                            ),
+                            items: _offerTypes
+                                .map((t) => DropdownMenuItem(
+                                      value: t['value'],
+                                      child: Text(t['label']!),
+                                    ))
+                                .toList(),
+                            onChanged: (v) => setState(() => _type = v ?? 'standard'),
+                          ),
+                    if (_type == 'group') ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _minGroupCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Min people',
+                                border: OutlineInputBorder(),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _maxGroupCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Max people (opt)',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
-                    const SizedBox(height: 16),
+                          const SizedBox(height: 16),
 
-                    // Duration
-                    DropdownButtonFormField<int>(
-                      initialValue: _durationDays,
-                      decoration: const InputDecoration(
-                        labelText: 'Duration',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 1, child: Text('1 day')),
-                        DropdownMenuItem(value: 3, child: Text('3 days')),
-                        DropdownMenuItem(value: 7, child: Text('7 days')),
-                        DropdownMenuItem(value: 14, child: Text('14 days')),
-                        DropdownMenuItem(value: 30, child: Text('30 days')),
-                      ],
-                      onChanged: (v) => setState(() => _durationDays = v ?? 7),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Daily limit
-                    TextFormField(
-                      controller: _dailyLimitCtrl,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Daily limit (optional)',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Terms
-                    TextFormField(
-                      controller: _termsCtrl,
-                      maxLines: 2,
-                      decoration: const InputDecoration(
-                        labelText: 'Terms (optional)',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // WhatsApp & Order Link
-                    TextFormField(
-                      controller: _whatsappCtrl,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        labelText: 'WhatsApp Number (Optional)',
-                        hintText: '+974 XXXX XXXX',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.chat, color: Colors.green),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _orderLinkCtrl,
-                      keyboardType: TextInputType.url,
-                      decoration: const InputDecoration(
-                        labelText: 'Online Order Link (Optional)',
-                        hintText: 'https://yourwebsite.com',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.shopping_cart, color: Colors.orange),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // ═══════════════════════════════════════════════════
-                    // RESERVE SECTION
-                    // ═══════════════════════════════════════════════════
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: MigoColors.primary.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: MigoColors.primary.withValues(alpha: 0.2)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
-                                'Allow Reservations?',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _originalPriceCtrl,
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  onChanged: (_) => setState(() {}),
+                                  decoration: InputDecoration(
+                                    labelText: isAr ? 'السعر الأصلي' : 'Original price',
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                  validator: (v) {
+                                    if (v == null || v.isEmpty) return isAr ? 'مطلوب' : 'Required';
+                                    if (double.tryParse(v) == null) return isAr ? 'غير صالح' : 'Invalid';
+                                    return null;
+                                  },
+                                ),
                               ),
-                              Switch(
-                                value: _isReservable,
-                                onChanged: (v) => setState(() => _isReservable = v),
-                                activeColor: MigoColors.primary,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _offerPriceCtrl,
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  onChanged: (_) => setState(() {}),
+                                  decoration: InputDecoration(
+                                    labelText: isAr ? 'سعر ميجو' : 'MIGO price',
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                  validator: (v) {
+                                    if (v == null || v.isEmpty) return isAr ? 'مطلوب' : 'Required';
+                                    final n = double.tryParse(v);
+                                    if (n == null) return isAr ? 'غير صالح' : 'Invalid';
+                                    final orig = double.tryParse(_originalPriceCtrl.text);
+                                    if (orig != null && n >= orig) {
+                                      return isAr ? 'يجب أن يكون أقل من الأصلي' : 'Must be < original';
+                                    }
+                                    return null;
+                                  },
+                                ),
                               ),
                             ],
                           ),
-                          const Text(
-                            'Customers can book this offer in advance.',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
-                          ),
-                          if (_isReservable) ...[
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _totalSlotsCtrl,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Total Slots',
-                                      border: OutlineInputBorder(),
-                                      isDense: true,
+
+                          if (previewSavings > 0) ...[
+                            const SizedBox(height: 10),
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: MigoColors.success.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.check_circle, size: 18, color: MigoColors.success),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    isAr
+                                        ? 'وفر العميل QAR ${previewSavings.toStringAsFixed(0)}'
+                                        : 'Customer saves QAR ${previewSavings.toStringAsFixed(0)}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      color: MigoColors.success,
+                                      fontSize: 13,
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _maxPerCustomerCtrl,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Max per Customer',
-                                      border: OutlineInputBorder(),
-                                      isDense: true,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                          const SizedBox(height: 16),
 
-                    // Error
-                    if (_error != null) ...[
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.red.shade50,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.red.shade200),
-                        ),
-                        child: Text(
-                          _error!,
-                          style: const TextStyle(color: Colors.red, fontSize: 13),
-                        ),
-                      ),
-                    ],
+                          DropdownButtonFormField<int>(
+                            initialValue: _durationDays,
+                            decoration: InputDecoration(
+                              labelText: isAr ? 'المدة' : 'Duration',
+                              border: const OutlineInputBorder(),
+                            ),
+                            items: [
+                              DropdownMenuItem(value: 1, child: Text(isAr ? 'يوم واحد' : '1 day')),
+                              DropdownMenuItem(value: 3, child: Text(isAr ? '3 أيام' : '3 days')),
+                              DropdownMenuItem(value: 7, child: Text(isAr ? '7 أيام' : '7 days')),
+                              DropdownMenuItem(value: 14, child: Text(isAr ? '14 يومًا' : '14 days')),
+                              DropdownMenuItem(value: 30, child: Text(isAr ? '30 يومًا' : '30 days')),
+                            ],
+                            onChanged: (v) => setState(() => _durationDays = v ?? 7),
+                          ),
+                          const SizedBox(height: 16),
 
-                    const SizedBox(height: 24),
+                          TextFormField(
+                            controller: _dailyLimitCtrl,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: isAr ? 'الحد اليومي (اختياري)' : 'Daily limit (optional)',
+                              border: const OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
 
-                    SizedBox(
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: _loading ? null : _submit,
-                        child: _loading
-                            ? Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
+                          TextFormField(
+                            controller: _termsCtrl,
+                            maxLines: 2,
+                            decoration: InputDecoration(
+                              labelText: isAr ? 'الشروط (اختياري)' : 'Terms (optional)',
+                              border: const OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          TextFormField(
+                            controller: _whatsappCtrl,
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration(
+                              labelText: isAr ? 'رقم الواتساب (اختياري)' : 'WhatsApp Number (Optional)',
+                              hintText: '+974 XXXX XXXX',
+                              border: const OutlineInputBorder(),
+                              prefixIcon: const Icon(Icons.chat, color: Colors.green),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _orderLinkCtrl,
+                            keyboardType: TextInputType.url,
+                            decoration: InputDecoration(
+                              labelText: isAr ? 'رابط الطلب عبر الإنترنت (اختياري)' : 'Online Order Link (Optional)',
+                              hintText: 'https://yourwebsite.com',
+                              border: const OutlineInputBorder(),
+                              prefixIcon: const Icon(Icons.shopping_cart, color: Colors.orange),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: MigoColors.primary.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: MigoColors.primary.withValues(alpha: 0.2)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      isAr ? 'السماح بالحجوزات؟' : 'Allow Reservations?',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                                     ),
+                                    Switch(
+                                      value: _isReservable,
+                                      onChanged: (v) => setState(() => _isReservable = v),
+                                      activeColor: MigoColors.primary,
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  isAr
+                                      ? 'يمكن للعملاء حجز هذا العرض مسبقًا.'
+                                      : 'Customers can book this offer in advance.',
+                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                ),
+                                if (_isReservable) ...[
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: TextFormField(
+                                          controller: _totalSlotsCtrl,
+                                          keyboardType: TextInputType.number,
+                                          decoration: InputDecoration(
+                                            labelText: isAr ? 'إجمالي الفتحات' : 'Total Slots',
+                                            border: const OutlineInputBorder(),
+                                            isDense: true,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: TextFormField(
+                                          controller: _maxPerCustomerCtrl,
+                                          keyboardType: TextInputType.number,
+                                          decoration: InputDecoration(
+                                            labelText: isAr ? 'الحد الأقصى للعميل' : 'Max per Customer',
+                                            border: const OutlineInputBorder(),
+                                            isDense: true,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  if (_uploadingImage) ...[
-                                    const SizedBox(width: 12),
-                                    const Text(
-                                      'Uploading image…',
-                                      style: TextStyle(
-                                        color: Colors.white,
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          if (_error != null) ...[
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade50,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.red.shade200),
+                              ),
+                              child: Text(
+                                _error!,
+                                style: const TextStyle(color: Colors.red, fontSize: 13),
+                              ),
+                            ),
+                          ],
+
+                          const SizedBox(height: 24),
+
+                          SizedBox(
+                            height: 52,
+                            child: ElevatedButton(
+                              onPressed: _loading ? null : _submit,
+                              child: _loading
+                                  ? Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        if (_uploadingImage) ...[
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            isAr ? 'جارٍ تحميل الصورة…' : 'Uploading image…',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    )
+                                  : Text(
+                                      isEdit
+                                          ? (isAr ? 'تحديث العرض' : 'Update Offer')
+                                          : (isAr ? 'إنشاء عرض' : 'Create Offer'),
+                                      style: const TextStyle(
+                                        fontSize: 16,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
-                                  ],
-                                ],
-                              )
-                            : Text(
-                                isEdit ? 'Update Offer' : 'Create Offer',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            isAr
+                                ? 'تبدأ العروض الجديدة قيد الانتظار وتصبح نشطة بعد موافقة ميجو.'
+                                : 'New offers start as pending and go live once approved by MIGO.',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 12, color: MigoColors.textSecondary),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'New offers start as pending and go live once approved by MIGO.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: MigoColors.textSecondary),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  // ═══════════════════════════════════════════════════
-  // IMAGE PICKER CARD
-  // ═══════════════════════════════════════════════════
-  Widget _imagePickerCard() {
+  Widget _imagePickerCard(bool isAr) {
     final hasImage = _pickedFile != null ||
         _pickedBytes != null ||
         (_imageUrl != null && _imageUrl!.isNotEmpty);
@@ -724,27 +757,29 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                     topRight: Radius.circular(16),
                   ),
                 ),
-                child: const Column(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.image_outlined,
                       size: 48,
                       color: MigoColors.primary,
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
-                      'Add a photo to your offer',
-                      style: TextStyle(
+                      isAr ? 'أضف صورة لعرضك' : 'Add a photo to your offer',
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: MigoColors.textPrimary,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Businesses with photos get 3× more claims',
-                      style: TextStyle(
+                      isAr
+                          ? 'الشركات التي لديها صور تحصل على مطالبات أكثر بـ 3 مرات'
+                          : 'Businesses with photos get 3× more claims',
+                      style: const TextStyle(
                         fontSize: 11,
                         color: MigoColors.textSecondary,
                       ),
@@ -760,12 +795,11 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () => _pickImage(ImageSource.gallery),
-                    icon: const Icon(
-                      Icons.photo_library_outlined,
-                      size: 16,
-                    ),
+                    icon: const Icon(Icons.photo_library_outlined, size: 16),
                     label: Text(
-                      hasImage ? 'Change' : 'Gallery',
+                      hasImage
+                          ? (isAr ? 'تغيير' : 'Change')
+                          : (isAr ? 'المعرض' : 'Gallery'),
                       style: const TextStyle(fontSize: 13),
                     ),
                     style: OutlinedButton.styleFrom(
@@ -777,13 +811,10 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () => _pickImage(ImageSource.camera),
-                    icon: const Icon(
-                      Icons.camera_alt_outlined,
-                      size: 16,
-                    ),
-                    label: const Text(
-                      'Camera',
-                      style: TextStyle(fontSize: 13),
+                    icon: const Icon(Icons.camera_alt_outlined, size: 16),
+                    label: Text(
+                      isAr ? 'الكاميرا' : 'Camera',
+                      style: const TextStyle(fontSize: 13),
                     ),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -798,7 +829,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                       Icons.delete_outline,
                       color: MigoColors.error,
                     ),
-                    tooltip: 'Remove image',
+                    tooltip: isAr ? 'إزالة الصورة' : 'Remove image',
                   ),
                 ],
               ],

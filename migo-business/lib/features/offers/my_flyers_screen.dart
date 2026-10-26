@@ -31,6 +31,10 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
 
   List<({String name, Uint8List bytes})> _selectedImages = [];
 
+  // ഫിൽട്ടർ സ്റ്റേറ്റുകൾ
+  String _searchQuery = '';
+  String _filterCountry = 'all';
+
   final List<String> _categories = [
     'Food & Dining',
     'Supermarket',
@@ -74,7 +78,6 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
 
   Future<void> _pickImages() async {
     try {
-      // allowMultiple: true ഒഴിവാക്കി
       final files = await FilePicker.pickFiles(
         type: FileType.image,
       );
@@ -434,6 +437,53 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
               ),
             ),
 
+            // Search & Filters
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              color: Colors.white,
+              child: Column(
+                children: [
+                  TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search flyers...',
+                      prefixIcon: const Icon(Icons.search),
+                      filled: true,
+                      fillColor: MigoColors.surface,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    ),
+                    onChanged: (v) => setState(() => _searchQuery = v),
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    initialValue: _filterCountry,
+                    decoration: InputDecoration(
+                      labelText: 'Country',
+                      isDense: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'all', child: Text('All', style: TextStyle(fontSize: 12))),
+                      DropdownMenuItem(value: 'QA', child: Text('Qatar', style: TextStyle(fontSize: 12))),
+                      DropdownMenuItem(value: 'AE', child: Text('UAE', style: TextStyle(fontSize: 12))),
+                      DropdownMenuItem(value: 'SA', child: Text('Saudi', style: TextStyle(fontSize: 12))),
+                      DropdownMenuItem(value: 'KW', child: Text('Kuwait', style: TextStyle(fontSize: 12))),
+                      DropdownMenuItem(value: 'OM', child: Text('Oman', style: TextStyle(fontSize: 12))),
+                      DropdownMenuItem(value: 'BH', child: Text('Bahrain', style: TextStyle(fontSize: 12))),
+                      DropdownMenuItem(value: 'IN', child: Text('India', style: TextStyle(fontSize: 12))),
+                    ],
+                    onChanged: (v) => setState(() => _filterCountry = v ?? 'all'),
+                  ),
+                ],
+              ),
+            ),
+
             // Flyers List
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -450,9 +500,19 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
-                final docs = snapshot.data?.docs ?? [];
+                final allDocs = snapshot.data?.docs ?? [];
 
-                if (docs.isEmpty) {
+                // ഫിൽട്ടർ ചെയ്ത ഡോക്യുമെന്റുകൾ
+                final filteredDocs = allDocs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final title = (data['title'] ?? '').toString().toLowerCase();
+                  final matchesSearch = title.contains(_searchQuery.toLowerCase());
+                  final country = data['countryCode'] as String? ?? 'QA';
+                  final matchesCountry = _filterCountry == 'all' || country == _filterCountry;
+                  return matchesSearch && matchesCountry;
+                }).toList();
+
+                if (filteredDocs.isEmpty) {
                   return const Padding(
                     padding: EdgeInsets.all(20),
                     child: Center(
@@ -461,7 +521,7 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                         children: [
                           Icon(Icons.picture_as_pdf_outlined, size: 64, color: Colors.grey),
                           SizedBox(height: 12),
-                          Text('No flyers uploaded yet.', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                          Text('No flyers found', style: TextStyle(fontSize: 16, color: Colors.grey)),
                         ],
                       ),
                     ),
@@ -472,9 +532,10 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: docs.length,
+                  itemCount: filteredDocs.length,
                   itemBuilder: (context, index) {
-                    final data = docs[index].data() as Map<String, dynamic>;
+                    final doc = filteredDocs[index];
+                    final data = doc.data() as Map<String, dynamic>;
                     final status = data['status'] as String? ?? 'pending';
                     final Color statusColor = status == 'approved'
                         ? MigoColors.success
@@ -482,14 +543,14 @@ class _MyFlyersScreenState extends State<MyFlyersScreen> {
                             ? MigoColors.warning
                             : MigoColors.error;
                     DateTime? endDate;
-final rawEndDate = data['endDate'];
-if (rawEndDate is Timestamp) {
-  endDate = rawEndDate.toDate();
-} else if (rawEndDate is Map && rawEndDate.containsKey('seconds')) {
-  endDate = DateTime.fromMillisecondsSinceEpoch((rawEndDate['seconds'] as int) * 1000);
-} else if (rawEndDate is String) {
-  endDate = DateTime.tryParse(rawEndDate);
-}
+                    final rawEndDate = data['endDate'];
+                    if (rawEndDate is Timestamp) {
+                      endDate = rawEndDate.toDate();
+                    } else if (rawEndDate is Map && rawEndDate.containsKey('seconds')) {
+                      endDate = DateTime.fromMillisecondsSinceEpoch((rawEndDate['seconds'] as int) * 1000);
+                    } else if (rawEndDate is String) {
+                      endDate = DateTime.tryParse(rawEndDate);
+                    }
                     final viewed = (data['viewedBy'] as List?) ?? [];
                     final fullyRead = (data['fullyViewedBy'] as List?) ?? [];
                     final thumbnailUrl = data['thumbnailUrl'] as String? ?? '';
@@ -565,7 +626,7 @@ if (rawEndDate is Timestamp) {
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete_outline, color: MigoColors.error),
-                                  onPressed: () => _deleteFlyer(docs[index].id),
+                                  onPressed: () => _deleteFlyer(doc.id),
                                 ),
                               ],
                             ),

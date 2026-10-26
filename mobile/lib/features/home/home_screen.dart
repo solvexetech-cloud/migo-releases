@@ -511,7 +511,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 SliverToBoxAdapter(
                   child: _FlashDealsRow(
-  areaId: _currentArea?.id, // ഏരിയ ഐഡി കൈമാറുന്നു
+  areaId: null, // ഏരിയ ഫിൽട്ടർ ഒഴിവാക്കി
   categoryFilter: _selectedCategoryFilter,
   countryCode: _userCountry,
   isAr: isAr,
@@ -531,7 +531,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 SliverToBoxAdapter(
                   child: _NearbyDealsRow(
-  areaId: _currentArea?.id, // ഏരിയ ഐഡി കൈമാറുന്നു
+  areaId: null, // ഏരിയ ഫിൽട്ടർ ഒഴിവാക്കി
   categoryFilter: _selectedCategoryFilter,
   countryCode: _userCountry,
   isAr: isAr,
@@ -768,7 +768,7 @@ class _NearbyDealsRow extends StatelessWidget {
             countryCode: countryCode,
           )
         : FirestoreService.instance.streamLiveOffers(
-            limit: 10,
+            limit: 50,
             countryCode: countryCode,
           );
 

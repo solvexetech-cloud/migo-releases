@@ -1,3 +1,5 @@
+import 'terms_screen.dart';
+import '../../core/localization/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,6 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String _selectedCountry = 'QA';
   bool _loading = false;
   bool _obscure = true;
+  bool _termsAccepted = false;
 
   final List<Map<String, String>> _countries = [
     {'code': 'QA', 'name': 'Qatar 🇶🇦'},
@@ -41,6 +44,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (!_termsAccepted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            LocaleProvider.instance.locale == 'ar'
+                ? 'يرجى الموافقة على الشروط والأحكام.'
+                : 'Please accept the Terms & Conditions',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     setState(() => _loading = true);
 
@@ -117,10 +134,75 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final isWide = MediaQuery.of(context).size.width >= 800;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Register Business'),
+            appBar: AppBar(
+        title: Text(
+          LocaleProvider.instance.locale == 'ar' ? 'تسجيل عمل' : 'Register Business',
+        ),
         backgroundColor: const Color(0xFF0B2B5B),
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.language),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                builder: (ctx) {
+                  final isAr = LocaleProvider.instance.locale == 'ar';
+                  return SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            isAr ? 'اختر لغتك' : 'Choose your language',
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ListTile(
+                            leading: const Text('🇸🇦', style: TextStyle(fontSize: 26)),
+                            title: const Text('العربية (Arabic)', style: TextStyle(fontWeight: FontWeight.w800)),
+                            trailing: isAr ? const Icon(Icons.check_circle, color: Colors.green) : null,
+                            onTap: () async {
+                              Navigator.pop(ctx);
+                              await LocaleProvider.instance.setLocale('ar');
+                              setState(() {});
+                            },
+                          ),
+                          ListTile(
+                            leading: const Text('🇬🇧', style: TextStyle(fontSize: 26)),
+                            title: const Text('English', style: TextStyle(fontWeight: FontWeight.w800)),
+                            trailing: !isAr ? const Icon(Icons.check_circle, color: Colors.green) : null,
+                            onTap: () async {
+                              Navigator.pop(ctx);
+                              await LocaleProvider.instance.setLocale('en');
+                              setState(() {});
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -233,6 +315,50 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         },
                       ),
                       const SizedBox(height: 24),
+
+                      // Terms & Conditions
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _termsAccepted,
+                            onChanged: (v) => setState(() => _termsAccepted = v ?? false),
+                            activeColor: const Color(0xFF0B2B5B),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const TermsScreen()),
+                                );
+                              },
+                              child: RichText(
+                                text: TextSpan(
+                                  style: const TextStyle(fontSize: 13, color: Colors.black87),
+                                  children: [
+                                    TextSpan(
+                                      text: LocaleProvider.instance.locale == 'ar'
+                                          ? 'أوافق على '
+                                          : 'I agree to the ',
+                                    ),
+                                    TextSpan(
+                                      text: LocaleProvider.instance.locale == 'ar'
+                                          ? 'الشروط والأحكام'
+                                          : 'Terms & Conditions',
+                                      style: const TextStyle(
+                                        color: Color(0xFF0B2B5B),
+                                        fontWeight: FontWeight.w700,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
 
                       // രജിസ്റ്റർ ബട്ടൺ
                       SizedBox(
