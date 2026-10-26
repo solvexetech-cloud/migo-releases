@@ -6,7 +6,11 @@ class OfferModel {
   final String businessId;
   final String businessName;
   final String title;
+  final String titleEn;
+  final String titleAr;
   final String description;
+  final String descriptionEn;
+  final String descriptionAr;
   final String category;
   final String imageUrl;
   final double originalPrice;
@@ -30,7 +34,11 @@ class OfferModel {
     required this.businessId,
     required this.businessName,
     required this.title,
+    required this.titleEn,
+    required this.titleAr,
     required this.description,
+    required this.descriptionEn,
+    required this.descriptionAr,
     required this.category,
     required this.imageUrl,
     required this.originalPrice,
@@ -61,12 +69,18 @@ class OfferModel {
   }
 
   factory OfferModel.fromMap(String id, Map<String, dynamic> map) {
+    final baseTitle = (map['title'] ?? '') as String;
+    final baseDesc = (map['description'] ?? '') as String;
     return OfferModel(
       id: id,
       businessId: (map['businessId'] ?? '') as String,
       businessName: (map['businessName'] ?? '') as String,
-      title: (map['title'] ?? '') as String,
-      description: (map['description'] ?? '') as String,
+      title: baseTitle,
+      titleEn: (map['titleEn'] ?? baseTitle) as String,
+      titleAr: (map['titleAr'] ?? baseTitle) as String,
+      description: baseDesc,
+      descriptionEn: (map['descriptionEn'] ?? baseDesc) as String,
+      descriptionAr: (map['descriptionAr'] ?? baseDesc) as String,
       category: (map['category'] ?? '') as String,
       imageUrl: (map['imageUrl'] ?? '') as String,
       originalPrice: ((map['originalPrice'] ?? 0) as num).toDouble(),
@@ -92,7 +106,11 @@ class OfferModel {
       'businessId': businessId,
       'businessName': businessName,
       'title': title,
+      'titleEn': titleEn,
+      'titleAr': titleAr,
       'description': description,
+      'descriptionEn': descriptionEn,
+      'descriptionAr': descriptionAr,
       'category': category,
       'imageUrl': imageUrl,
       'originalPrice': originalPrice,
@@ -110,5 +128,63 @@ class OfferModel {
       'maxPerCustomer': maxPerCustomer,
       'updatedAt': FieldValue.serverTimestamp(),
     };
+  }
+
+  OfferModel copyWith({
+    String? id,
+    String? businessId,
+    String? businessName,
+    String? title,
+    String? titleEn,
+    String? titleAr,
+    String? description,
+    String? descriptionEn,
+    String? descriptionAr,
+    String? category,
+    String? imageUrl,
+    double? originalPrice,
+    double? offerPrice,
+    String? currency,
+    String? type,
+    String? status,
+    String? areaId,
+    DateTime? startDate,
+    DateTime? endDate,
+    int? totalStock,
+    int? claimedCount,
+    int? bookedSlots,
+    bool? reserveEnabled,
+    int? maxPerCustomer,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return OfferModel(
+      id: id ?? this.id,
+      businessId: businessId ?? this.businessId,
+      businessName: businessName ?? this.businessName,
+      title: title ?? this.title,
+      titleEn: titleEn ?? this.titleEn,
+      titleAr: titleAr ?? this.titleAr,
+      description: description ?? this.description,
+      descriptionEn: descriptionEn ?? this.descriptionEn,
+      descriptionAr: descriptionAr ?? this.descriptionAr,
+      category: category ?? this.category,
+      imageUrl: imageUrl ?? this.imageUrl,
+      originalPrice: originalPrice ?? this.originalPrice,
+      offerPrice: offerPrice ?? this.offerPrice,
+      currency: currency ?? this.currency,
+      type: type ?? this.type,
+      status: status ?? this.status,
+      areaId: areaId ?? this.areaId,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      totalStock: totalStock ?? this.totalStock,
+      claimedCount: claimedCount ?? this.claimedCount,
+      bookedSlots: bookedSlots ?? this.bookedSlots,
+      reserveEnabled: reserveEnabled ?? this.reserveEnabled,
+      maxPerCustomer: maxPerCustomer ?? this.maxPerCustomer,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 }

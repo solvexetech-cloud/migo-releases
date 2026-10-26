@@ -11,6 +11,7 @@ import '../../core/theme/migo_theme.dart';
 import '../../models/offer_model.dart';
 import '../../services/cloudinary_service.dart';
 import '../../services/offer_service.dart';
+import '../../services/translation_service.dart';
 
 /// PHASE I — Advanced Create/Edit Offer with Reserve & Country
 class CreateOfferScreen extends StatefulWidget {
@@ -215,13 +216,31 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
         imageUrl = uploaded;
       }
 
+
+      // വിവർത്തനം ചെയ്യുന്നു
+      final titleEn = _titleCtrl.text.trim();
+      final descEn = _descCtrl.text.trim();
+      
+      String titleAr = titleEn;
+      String descAr = descEn;
+      
+      if (titleEn.isNotEmpty) {
+        titleAr = await TranslationService.instance.translate(titleEn, 'ar');
+      }
+      if (descEn.isNotEmpty) {
+        descAr = await TranslationService.instance.translate(descEn, 'ar');
+      }
       String? err;
       if (isEdit) {
         // എഡിറ്റ് ചെയ്യുമ്പോൾ
         err = await OfferService.instance.updateOffer(
           offerId: widget.existingOffer!.id,
-          title: _titleCtrl.text.trim(),
-          description: _descCtrl.text.trim(),
+          title: titleEn,
+          description: descEn,
+          titleEn: titleEn,
+          titleAr: titleAr,
+          descriptionEn: descEn,
+          descriptionAr: descAr,
           category: _category,
           type: _type,
           imageUrl: imageUrl ?? '',
@@ -231,19 +250,23 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
         );
       } else {
         // പുതിയ ഓഫർ ഉണ്ടാക്കുമ്പോൾ
-        err = await OfferService.instance.createOffer(
+                err = await OfferService.instance.createOffer(
           businessId: widget.businessId,
           businessName: widget.businessName,
           areaId: widget.areaId,
-          title: _titleCtrl.text.trim(),
-          description: _descCtrl.text.trim(),
+          title: titleEn, // അടിസ്ഥാന ടൈറ്റിൽ
+          description: descEn, // അടിസ്ഥാന ഡിസ്ക്രിപ്ഷൻ
+          titleEn: titleEn,
+          titleAr: titleAr,
+          descriptionEn: descEn,
+          descriptionAr: descAr,
           category: _category,
           imageUrl: imageUrl ?? '',
           originalPrice: double.tryParse(_originalPriceCtrl.text.trim()) ?? 0,
           offerPrice: double.tryParse(_offerPriceCtrl.text.trim()) ?? 0,
           currency: 'QAR',
           type: _type,
-          countryCode: _countryCode, // കൺട്രി കോഡ് പാസ് ചെയ്യുന്നു
+          countryCode: _countryCode,
           whatsappNumber: _whatsappCtrl.text.trim(),
           orderLink: _orderLinkCtrl.text.trim(),
         );

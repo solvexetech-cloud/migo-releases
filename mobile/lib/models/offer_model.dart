@@ -49,7 +49,11 @@ class OfferModel {
     required this.businessId,
     required this.businessName,
     required this.title,
+    required this.titleEn,
+    required this.titleAr,
     required this.description,
+    required this.descriptionEn,
+    required this.descriptionAr,
     required this.originalPrice,
     required this.offerPrice,
     required this.currency,
@@ -68,8 +72,7 @@ class OfferModel {
     this.reserveHoldHours = 6,
     this.reserveTokenRequired = false,
     this.reserveMaxPerCustomer = 1,
-    this.status = 'pending', // pending | live | paused | expired
-    // B3 Geography (denormalized from business for fast filtering)
+    this.status = 'pending',
     this.countryCode,
     this.zoneId,
     this.areaId,
@@ -81,7 +84,11 @@ class OfferModel {
   final String businessId;
   final String businessName;
   final String title;
+  final String titleEn;
+  final String titleAr;
   final String description;
+  final String descriptionEn;
+  final String descriptionAr;
   final double originalPrice;
   final double offerPrice;
   final String currency;
@@ -103,13 +110,8 @@ class OfferModel {
   final String status;
 
   // ---------- B3 GEOGRAPHY ----------
-  /// Country code (QA, IN, AE)
   final String? countryCode;
-
-  /// Zone slug (doha-metro, ernakulam)
   final String? zoneId;
-
-  /// Area slug (the-pearl, kakkanad)
   final String? areaId;
 
   final DateTime? createdAt;
@@ -134,7 +136,6 @@ class OfferModel {
     return diff < 0 ? 0 : diff;
   }
 
-  /// Does this offer have geography assigned?
   bool get hasGeography =>
       countryCode != null &&
       countryCode!.isNotEmpty &&
@@ -147,7 +148,11 @@ class OfferModel {
     required String businessId,
     required String businessName,
     required String title,
+    String? titleEn,
+    String? titleAr,
     required String description,
+    String? descriptionEn,
+    String? descriptionAr,
     required double originalPrice,
     required double offerPrice,
     required String currency,
@@ -158,18 +163,25 @@ class OfferModel {
     String? terms,
     int? dailyLimit,
     int? totalLimit,
-    // B3 geography
     String? countryCode,
     String? zoneId,
     String? areaId,
   }) {
     final now = DateTime.now();
+    final tEn = titleEn ?? title;
+    final tAr = titleAr ?? title;
+    final dEn = descriptionEn ?? description;
+    final dAr = descriptionAr ?? description;
     return OfferModel(
       id: '',
       businessId: businessId,
       businessName: businessName,
       title: title,
+      titleEn: tEn,
+      titleAr: tAr,
       description: description,
+      descriptionEn: dEn,
+      descriptionAr: dAr,
       originalPrice: originalPrice,
       offerPrice: offerPrice,
       currency: currency,
@@ -189,12 +201,18 @@ class OfferModel {
   }
 
   factory OfferModel.fromMap(String id, Map<String, dynamic> map) {
+    final baseTitle = (map['title'] ?? '') as String;
+    final baseDesc = (map['description'] ?? '') as String;
     return OfferModel(
       id: id,
       businessId: (map['businessId'] ?? '') as String,
       businessName: (map['businessName'] ?? '') as String,
-      title: (map['title'] ?? '') as String,
-      description: (map['description'] ?? '') as String,
+      title: baseTitle,
+      titleEn: (map['titleEn'] ?? baseTitle) as String,
+      titleAr: (map['titleAr'] ?? baseTitle) as String,
+      description: baseDesc,
+      descriptionEn: (map['descriptionEn'] ?? baseDesc) as String,
+      descriptionAr: (map['descriptionAr'] ?? baseDesc) as String,
       originalPrice: (map['originalPrice'] as num? ?? 0).toDouble(),
       offerPrice: (map['offerPrice'] as num? ?? 0).toDouble(),
       currency: (map['currency'] ?? 'QAR') as String,
@@ -215,7 +233,6 @@ class OfferModel {
       reserveTokenRequired: (map['reserve'] as Map<String, dynamic>?)?['tokenRequired'] as bool? ?? false,
       reserveMaxPerCustomer: ((map['reserve'] as Map<String, dynamic>?)?['maxPerCustomer'] as num?)?.toInt() ?? 1,
       status: (map['status'] ?? 'pending') as String,
-      // B3 geography
       countryCode: map['countryCode'] as String?,
       zoneId: map['zoneId'] as String?,
       areaId: map['areaId'] as String?,
@@ -229,7 +246,11 @@ class OfferModel {
       'businessId': businessId,
       'businessName': businessName,
       'title': title,
+      'titleEn': titleEn,
+      'titleAr': titleAr,
       'description': description,
+      'descriptionEn': descriptionEn,
+      'descriptionAr': descriptionAr,
       'originalPrice': originalPrice,
       'offerPrice': offerPrice,
       'currency': currency,
@@ -243,7 +264,6 @@ class OfferModel {
       'totalLimit': totalLimit,
       'claimedCount': claimedCount,
       'status': status,
-      // B3 geography
       'countryCode': countryCode,
       'zoneId': zoneId,
       'areaId': areaId,
@@ -270,7 +290,11 @@ class OfferModel {
       businessId: businessId,
       businessName: businessName,
       title: title,
+      titleEn: titleEn,
+      titleAr: titleAr,
       description: description,
+      descriptionEn: descriptionEn,
+      descriptionAr: descriptionAr,
       originalPrice: originalPrice,
       offerPrice: offerPrice,
       currency: currency,

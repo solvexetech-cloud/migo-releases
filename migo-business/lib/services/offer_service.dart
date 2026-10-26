@@ -28,7 +28,11 @@ class OfferService {
     required String businessName,
     required String areaId,
     required String title,
+    required String titleEn,
+    required String titleAr,
     required String description,
+    required String descriptionEn,
+    required String descriptionAr,
     required String category,
     required String imageUrl,
     required double originalPrice,
@@ -37,9 +41,9 @@ class OfferService {
     required String type,
     DateTime? startDate,
     DateTime? endDate,
-    String? countryCode, // പുതിയത്
-    String? whatsappNumber, // പുതിയത്
-    String? orderLink, // പുതിയത്
+    String? countryCode,
+    String? whatsappNumber,
+    String? orderLink,
   }) async {
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -59,25 +63,29 @@ class OfferService {
         'areaId': areaId.trim().toLowerCase(),
         'businessAreaId': areaId.trim().toLowerCase(),
         'title': title,
+        'titleEn': titleEn,
+        'titleAr': titleAr,
         'description': description,
+        'descriptionEn': descriptionEn,
+        'descriptionAr': descriptionAr,
         'category': category,
         'imageUrl': imageUrl,
         'originalPrice': originalPrice,
         'offerPrice': offerPrice,
         'currency': currency,
         'type': type,
-        'countryCode': finalCountry, // രാജ്യം സേവ് ചെയ്യുന്നു
+        'countryCode': finalCountry,
         'whatsappNumber': whatsappNumber ?? '',
         'orderLink': orderLink ?? '',
         
         // Status
-        'status': 'pending', // Needs admin approval
+        'status': 'pending',
         
         // Dates
         'startDate': startDate != null ? Timestamp.fromDate(startDate) : null,
         'endDate': endDate != null ? Timestamp.fromDate(endDate) : null,
         
-        // Reserve settings (ഡീഫോൾട്ട് ആയി OFF ആയിരിക്കും, 'Reserve Settings' പേജിൽ പോയി ഓൺ ചെയ്യാം)
+        // Reserve settings
         'reserveEnabled': false, 
         'totalStock': 0,
         'totalSlots': 0,
@@ -109,20 +117,28 @@ class OfferService {
   Future<String?> updateOffer({
     required String offerId,
     required String title,
+    required String titleEn,
+    required String titleAr,
     required String description,
+    required String descriptionEn,
+    required String descriptionAr,
     required String category,
     required String type,
     required String imageUrl,
     required double originalPrice,
     required double offerPrice,
     DateTime? endDate,
-    String? whatsappNumber, // പുതിയത്
-    String? orderLink, // പുതിയത്
+    String? whatsappNumber,
+    String? orderLink,
   }) async {
     try {
       await _db.collection('offers').doc(offerId).update({
         'title': title,
+        'titleEn': titleEn,
+        'titleAr': titleAr,
         'description': description,
+        'descriptionEn': descriptionEn,
+        'descriptionAr': descriptionAr,
         'category': category,
         'type': type,
         'imageUrl': imageUrl,

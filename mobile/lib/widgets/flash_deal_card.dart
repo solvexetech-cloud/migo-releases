@@ -107,7 +107,7 @@ class FlashDealCard extends StatelessWidget {
                                   style: TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: textSecondary),
                                 ),
                                 const SizedBox(height: 2),
-                                Text(
+                                                                Text(
                                   offer.title,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,

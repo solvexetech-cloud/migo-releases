@@ -167,7 +167,7 @@ class OfferCard extends StatelessWidget {
                                   Icon(_getCategoryIcon(), size: 12, color: categoryColor),
                                   const SizedBox(width: 4),
                                   Text(
-                                    offer.type.label.toUpperCase(),
+                                   _getOfferTypeLabel(offer.type, isAr).toUpperCase(),
                                     style: TextStyle(
                                       fontSize: 9,
                                       fontWeight: FontWeight.w900,
@@ -226,17 +226,17 @@ class OfferCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 3),
-                            // Title (flex)
+                                                        // Title (flex)
                             Expanded(
                               child: Text(
-                                offer.title,
+                                isAr ? offer.titleAr : offer.titleEn,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w800,
                                   color: textPrimary,
-                                  height: 1.2,
+                                  height: 1.1,
                                 ),
                               ),
                             ),
@@ -343,4 +343,20 @@ class OfferCard extends StatelessWidget {
       },
     );
   }
+String _getOfferTypeLabel(OfferType type, bool isAr) {
+  switch (type) {
+    case OfferType.standard:
+      return isAr ? 'عرض قياسي' : 'Standard Deal';
+    case OfferType.flash:
+      return isAr ? 'عرض سريع' : 'Flash Deal';
+    case OfferType.group:
+      return isAr ? 'عرض جماعي' : 'Group Deal';
+    case OfferType.hidden:
+      return isAr ? 'جوهرة مخفية' : 'Hidden Gem';
+    case OfferType.birthday:
+      return isAr ? 'عرض عيد ميلاد' : 'Birthday Deal';
+    default:
+      return isAr ? 'عرض' : 'Deal';
+  }
+ }
 }

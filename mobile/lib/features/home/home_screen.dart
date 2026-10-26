@@ -92,6 +92,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final selected = await LocationPickerModal.show(context);
     if (selected == null) return;
 
+
+
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
@@ -138,6 +140,63 @@ class _HomeScreenState extends State<HomeScreen> {
       _currentArea = selected;
       _userCountry = newCountryCode;
     });
+  }
+
+  void _showLanguagePicker() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        final isAr = LocaleProvider.instance.locale == 'ar';
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  isAr ? 'اختر لغتك' : 'Choose your language',
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: const Text('🇸🇦', style: TextStyle(fontSize: 26)),
+                  title: const Text('العربية (Arabic)', style: TextStyle(fontWeight: FontWeight.w800)),
+                  trailing: isAr ? const Icon(Icons.check_circle, color: Colors.green) : null,
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    await LocaleProvider.instance.setLocale('ar');
+                  },
+                ),
+                ListTile(
+                  leading: const Text('🇬🇧', style: TextStyle(fontSize: 26)),
+                  title: const Text('English', style: TextStyle(fontWeight: FontWeight.w800)),
+                  trailing: !isAr ? const Icon(Icons.check_circle, color: Colors.green) : null,
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    await LocaleProvider.instance.setLocale('en');
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   String get _selectedCategoryFilter {
@@ -194,6 +253,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     isAr: isAr,
                                   ),
                                 ),
+                                IconButton(
+                                  icon: const Icon(Icons.language, color: Colors.white),
+                                  onPressed: _showLanguagePicker,
+                                ),
+
                                 const Spacer(),
                                 IconButton(
                                   onPressed: () {
