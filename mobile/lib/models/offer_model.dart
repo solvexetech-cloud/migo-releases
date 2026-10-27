@@ -74,6 +74,7 @@ class OfferModel {
     this.reserveMaxPerCustomer = 1,
     this.status = 'pending',
     this.isPromoted = false,
+    this.promotedUntil,
     this.countryCode,
     this.zoneId,
     this.areaId,
@@ -110,6 +111,7 @@ class OfferModel {
   final int reserveMaxPerCustomer;
   final String status;
   final bool isPromoted;
+  final DateTime? promotedUntil;
 
   // ---------- B3 GEOGRAPHY ----------
   final String? countryCode;
@@ -236,6 +238,7 @@ class OfferModel {
       reserveMaxPerCustomer: ((map['reserve'] as Map<String, dynamic>?)?['maxPerCustomer'] as num?)?.toInt() ?? 1,
       status: (map['status'] ?? 'pending') as String,
       isPromoted: (map['isPromoted'] ?? false) as bool,
+      promotedUntil: (map['promotedUntil'] as Timestamp?)?.toDate(),
       countryCode: map['countryCode'] as String?,
       zoneId: map['zoneId'] as String?,
       areaId: map['areaId'] as String?,
@@ -268,6 +271,7 @@ class OfferModel {
       'claimedCount': claimedCount,
       'status': status,
       'isPromoted': isPromoted,
+      'promotedUntil': promotedUntil != null ? Timestamp.fromDate(promotedUntil!) : null,
       'countryCode': countryCode,
       'zoneId': zoneId,
       'areaId': areaId,
@@ -282,6 +286,7 @@ class OfferModel {
     String? imageUrl,
     String? status,
     bool? isPromoted,
+    DateTime? promotedUntil,
     int? claimedCount,
     String? terms,
     int? dailyLimit,
@@ -314,6 +319,7 @@ class OfferModel {
       claimedCount: claimedCount ?? this.claimedCount,
       status: status ?? this.status,
       isPromoted: isPromoted ?? this.isPromoted,
+      promotedUntil: promotedUntil ?? this.promotedUntil,
       countryCode: countryCode ?? this.countryCode,
       zoneId: zoneId ?? this.zoneId,
       areaId: areaId ?? this.areaId,

@@ -382,9 +382,13 @@ class FirestoreService {
         .map((d) => OfferModel.fromMap(d.id, d.data()))
         .where((o) => o.endAt.isAfter(now))
         .toList();
-          list.sort((a, b) {
-        if (a.isPromoted && !b.isPromoted) return -1;
-        if (!a.isPromoted && b.isPromoted) return 1;
+      list.sort((a, b) {
+        // 🆕 പ്രൊമോഷൻ സമയം കഴിഞ്ഞിട്ടുണ്ടോ എന്ന് ചെക്ക് ചെയ്യുന്നു
+        final aPromoted = a.isPromoted && (a.promotedUntil == null || a.promotedUntil!.isAfter(now));
+        final bPromoted = b.isPromoted && (b.promotedUntil == null || b.promotedUntil!.isAfter(now));
+
+        if (aPromoted && !bPromoted) return -1;
+        if (!aPromoted && bPromoted) return 1;
         return b.startAt.compareTo(a.startAt);
       });
     return list;
@@ -423,9 +427,13 @@ class FirestoreService {
         .map((d) => OfferModel.fromMap(d.id, d.data()))
         .where((o) => o.endAt.isAfter(now))
         .toList();
-          list.sort((a, b) {
-        if (a.isPromoted && !b.isPromoted) return -1;
-        if (!a.isPromoted && b.isPromoted) return 1;
+      list.sort((a, b) {
+        // 🆕 പ്രൊമോഷൻ സമയം കഴിഞ്ഞിട്ടുണ്ടോ എന്ന് ചെക്ക് ചെയ്യുന്നു
+        final aPromoted = a.isPromoted && (a.promotedUntil == null || a.promotedUntil!.isAfter(now));
+        final bPromoted = b.isPromoted && (b.promotedUntil == null || b.promotedUntil!.isAfter(now));
+
+        if (aPromoted && !bPromoted) return -1;
+        if (!aPromoted && bPromoted) return 1;
         return b.startAt.compareTo(a.startAt);
       });
     return list;
@@ -472,9 +480,13 @@ class FirestoreService {
         .map((d) => OfferModel.fromMap(d.id, d.data()))
         .where((o) => o.endAt.isAfter(now))
         .toList();
-          list.sort((a, b) {
-        if (a.isPromoted && !b.isPromoted) return -1;
-        if (!a.isPromoted && b.isPromoted) return 1;
+      list.sort((a, b) {
+        // 🆕 പ്രൊമോഷൻ സമയം കഴിഞ്ഞിട്ടുണ്ടോ എന്ന് ചെക്ക് ചെയ്യുന്നു
+        final aPromoted = a.isPromoted && (a.promotedUntil == null || a.promotedUntil!.isAfter(now));
+        final bPromoted = b.isPromoted && (b.promotedUntil == null || b.promotedUntil!.isAfter(now));
+
+        if (aPromoted && !bPromoted) return -1;
+        if (!aPromoted && bPromoted) return 1;
         return b.startAt.compareTo(a.startAt);
       });
     return list;
@@ -516,9 +528,13 @@ class FirestoreService {
         .map((d) => OfferModel.fromMap(d.id, d.data()))
         .where((o) => o.endAt.isAfter(now))
         .toList();
-          list.sort((a, b) {
-        if (a.isPromoted && !b.isPromoted) return -1;
-        if (!a.isPromoted && b.isPromoted) return 1;
+      list.sort((a, b) {
+        // 🆕 പ്രൊമോഷൻ സമയം കഴിഞ്ഞിട്ടുണ്ടോ എന്ന് ചെക്ക് ചെയ്യുന്നു
+        final aPromoted = a.isPromoted && (a.promotedUntil == null || a.promotedUntil!.isAfter(now));
+        final bPromoted = b.isPromoted && (b.promotedUntil == null || b.promotedUntil!.isAfter(now));
+
+        if (aPromoted && !bPromoted) return -1;
+        if (!aPromoted && bPromoted) return 1;
         return b.startAt.compareTo(a.startAt);
       });
     return list;

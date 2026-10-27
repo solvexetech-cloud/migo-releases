@@ -297,7 +297,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                     ),
                                   ),
                                   const Spacer(),
-                                  if (o.isPromoted)
+                                  if (o.isPromoted && (o.promotedUntil == null || o.promotedUntil!.isAfter(DateTime.now())))
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                       decoration: BoxDecoration(

@@ -1,3 +1,4 @@
+import 'dart:async'; // 🆕 Timer-ന് വേണ്ടി ചേർത്തത്
 import 'package:flutter/material.dart';
 import '../core/localization/locale_provider.dart';
 import '../core/theme/migo_colors.dart';
@@ -5,7 +6,8 @@ import '../core/theme/migo_gradients.dart';
 import '../core/theme/migo_shadows.dart';
 import '../models/offer_model.dart';
 
-class OfferCard extends StatelessWidget {
+// 🆕 StatelessWidget മാറ്റി StatefulWidget ആ ്കി
+class OfferCard extends StatefulWidget {
   const OfferCard({
     super.key,
     required this.offer,
@@ -19,9 +21,44 @@ class OfferCard extends StatelessWidget {
   final int verifiedPercent;
   final VoidCallback? onTap;
 
+  @override
+  State<OfferCard> createState() => _OfferCardState();
+}
+
+class _OfferCardState extends State<OfferCard> {
+  Timer? _promoTimer; // 🆕 ടൈമർ വേരിയബിൾ
+
+  @override
+  void initState() {
+    super.initState();
+    _startPromoTimer();
+  }
+
+  // 🆕 പ്രൊമോഷൻ സമയം കഴിയുമ്പോൾ UI റിഫ്രെഷ് ചെയ്യാനുള്ള ടൈമർ
+  void _startPromoTimer() {
+    final offer = widget.offer;
+    if (offer.isPromoted && offer.promotedUntil != null) {
+      final now = DateTime.now();
+      if (offer.promotedUntil!.isAfter(now)) {
+        final diff = offer.promotedUntil!.difference(now);
+        _promoTimer = Timer(diff, () {
+          if (mounted) {
+            setState(() {}); // സമയം കഴിഞ്ഞാൽ UI അപ്ഡേറ്റ് ചെയ്യുന്നു
+          }
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _promoTimer?.cancel(); // 🆕 മെമ്മറി ലീക്ക് ഒഴിവാക്കാൻ
+    super.dispose();
+  }
+
   // കാറ്റഗറി അനുസരിച്ച് നിറം നൽകുന്നു
   Color _getCategoryColor() {
-    final cat = offer.category.toLowerCase();
+    final cat = widget.offer.category.toLowerCase();
     if (cat.contains('food')) return Colors.orange;
     if (cat.contains('beauty')) return Colors.pink;
     if (cat.contains('supermarket')) return Colors.green;
@@ -33,7 +70,7 @@ class OfferCard extends StatelessWidget {
 
   // കാറ്റഗറി അനുസരിച്ച് ഐക്കൺ നൽകുന്നു
   IconData _getCategoryIcon() {
-    final cat = offer.category.toLowerCase();
+    final cat = widget.offer.category.toLowerCase();
     if (cat.contains('food')) return Icons.restaurant;
     if (cat.contains('beauty')) return Icons.spa;
     if (cat.contains('supermarket')) return Icons.local_grocery_store;
@@ -44,7 +81,7 @@ class OfferCard extends StatelessWidget {
   }
 
   LinearGradient _placeholderGradient() {
-    final c = offer.category.toLowerCase();
+    final c = widget.offer.category.toLowerCase();
     if (c.contains('food')) {
       return const LinearGradient(
         colors: [Color(0xFFFFE0B2), Color(0xFFFFB74D)],
@@ -82,6 +119,10 @@ class OfferCard extends StatelessWidget {
     final textPrimary = MigoColors.textPrimary(context);
     final textSecondary = MigoColors.textSecondary(context);
     final categoryColor = _getCategoryColor();
+    final offer = widget.offer; // 🆕 എളുപ്പത്തിന്
+
+    // 🆕 സമയം കഴിഞ്ഞോ എന്ന് ചെക്ക് ചെയ്യുന്നു
+    final isPromoActive = offer.isPromoted && (offer.promotedUntil == null || offer.promotedUntil!.isAfter(DateTime.now()));
 
     return ListenableBuilder(
       listenable: LocaleProvider.instance,
@@ -103,7 +144,7 @@ class OfferCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(18),
             child: InkWell(
               borderRadius: BorderRadius.circular(18),
-              onTap: onTap,
+              onTap: widget.onTap,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: Column(
@@ -204,7 +245,7 @@ class OfferCard extends StatelessWidget {
                             ),
                           ),
                           // 🆕 Promoted Badge (bottom-left)
-                          if (offer.isPromoted)
+                          if (isPromoActive)
                             Positioned(
                               bottom: 10,
                               left: isAr ? null : 10,
@@ -343,7 +384,7 @@ class OfferCard extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 3),
                                 Text(
-                                  '${distanceKm.toStringAsFixed(1)} ${isAr ? 'كم' : 'km'}',
+                                  '${widget.distanceKm.toStringAsFixed(1)} ${isAr ? 'كم' : 'km'}',
                                   style: TextStyle(
                                     fontSize: 10,
                                     color: textSecondary,
@@ -357,7 +398,7 @@ class OfferCard extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 3),
                                 Text(
-                                  '$verifiedPercent%',
+                                  '${widget.verifiedPercent}%',
                                   style: const TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,

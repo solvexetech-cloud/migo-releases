@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from 'react';
-import { collection, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export default function AllOffersPage() {
@@ -9,6 +9,11 @@ export default function AllOffersPage() {
   // Edit Modal State
   const [editingOffer, setEditingOffer] = useState(null);
   const [editLoading, setEditLoading] = useState(false);
+
+  // 🆕 Promote Modal State
+  const [promotingOffer, setPromotingOffer] = useState(null);
+  const [promoteDate, setPromoteDate] = useState('');
+  const [isPromoActiveInModal, setIsPromoActiveInModal] = useState(false); // 🆕
 
   // ഫിൽട്ടർ സ്റ്റേറ്റുകൾ
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,10 +38,6 @@ export default function AllOffersPage() {
     await updateDoc(doc(db, 'offers', id), { status: 'paused' });
   };
 
-  const handleReject = async (id) => {
-    await updateDoc(doc(db, 'offers', id), { status: 'rejected' });
-  };
-
   const handleDelete = async (id) => {
     const confirmMsg = isAr ? 'هل أنت متأكد أنك تريد حذف هذا العرض؟' : 'Are you sure you want to delete this offer?';
     if (window.confirm(confirmMsg)) {
@@ -44,15 +45,51 @@ export default function AllOffersPage() {
     }
   };
 
-  const handlePromote = async (id, currentStatus) => {
-    try {
-      await updateDoc(doc(db, 'offers', id), { isPromoted: !currentStatus });
-    } catch (error) {
-      console.error("Error updating promotion:", error);
+  // 🆕 Promote ചെയ്യുമ്പോൾ തീയതി ചോദിക്കാൻ (സമയം കഴിഞ്ഞോ എന്ന് ചെക്ക് ചെയ്യുന്നു)
+  const handlePromoteClick = (offer) => {
+    const isActive = offer.isPromoted && (!offer.promotedUntil || offer.promotedUntil.toDate() > new Date());
+    
+    setPromotingOffer(offer);
+    setIsPromoActiveInModal(isActive);
+
+    if (isActive) {
+      // അൺപ്രൊമോട്ട് ചെയ്യാൻ (സമയം കഴിഞ്ഞിട്ടില്ലെങ്കിൽ)
+      setPromoteDate('');
+    } else {
+      // പുതിയതായി പ്രൊമോട്ട് ചെയ്യാൻ (സമയം കഴിഞ്ഞിട്ടുണ്ടെങ്കിൽ)
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      setPromoteDate(tomorrow.toISOString().slice(0, 16));
     }
   };
 
-  // 🆕 Edit ചെയ്ത് സേവ് ചെയ്യാനുള്ള ഫങ്ക്ഷൻ
+  // 🆕 പ്രൊമോഷൻ സേവ് ചെയ്യാൻ
+  const handleSavePromotion = async () => {
+    if (!promotingOffer) return;
+    try {
+      if (isPromoActiveInModal) {
+        // അൺപ്രൊമോട്ട് ചെയ്യുന്നു
+        await updateDoc(doc(db, 'offers', promotingOffer.id), {
+          isPromoted: false,
+          promotedUntil: null,
+        });
+      } else {
+        // പ്രൊമോട്ട് ചെയ്യുന്നു
+        if (!promoteDate) {
+          alert(isAr ? "الرجاء تحديد التاريخ والوقت" : "Please select a date and time.");
+          return;
+        }
+        await updateDoc(doc(db, 'offers', promotingOffer.id), {
+          isPromoted: true,
+          promotedUntil: Timestamp.fromDate(new Date(promoteDate)),
+        });
+      }
+      setPromotingOffer(null);
+    } catch (error) {
+      alert("Failed to update promotion: " + error.message);
+    }
+  };
+
   const handleSaveEdit = async () => {
     if (!editingOffer) return;
     setEditLoading(true);
@@ -63,7 +100,7 @@ export default function AllOffersPage() {
         offerPrice: Number(editingOffer.offerPrice),
         status: editingOffer.status,
       });
-      setEditingOffer(null); // Close modal on success
+      setEditingOffer(null);
     } catch (error) {
       alert("Failed to update offer: " + error.message);
     } finally {
@@ -80,7 +117,6 @@ export default function AllOffersPage() {
     return matchesSearch && matchesType && matchesCountry;
   });
 
-  // ഭാഷാ വിവർത്തനങ്ങൾ
   const t = {
     title: isAr ? 'جميع العروض' : 'All Offers',
     search: isAr ? 'البحث بالعنوان أو النشاط التجاري...' : 'Search by title or business...',
@@ -104,40 +140,23 @@ export default function AllOffersPage() {
   return (
     <div dir={isAr ? 'rtl' : 'ltr'} style={{ padding: 24, textAlign: isAr ? 'right' : 'left' }}>
       
-      {/* Header & Language Toggle */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>{t.title}</h1>
-        <button 
-          onClick={() => setIsAr(!isAr)}
-          style={{ padding: '8px 16px', backgroundColor: '#1e3a8a', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold' }}
-        >
+        <button onClick={() => setIsAr(!isAr)} style={{ padding: '8px 16px', backgroundColor: '#1e3a8a', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold' }}>
           {isAr ? 'English' : 'العربية'}
         </button>
       </div>
 
-      {/* Filters */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-        <input
-          type="text"
-          placeholder={t.search}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 6, minWidth: 250, flex: 1 }}
-        />
+        <input type="text" placeholder={t.search} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 6, minWidth: 250, flex: 1 }} />
         <select value={filterType} onChange={(e) => setFilterType(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 6 }}>
           <option value="all">{t.allTypes}</option>
           <option value="standard">Standard</option>
           <option value="flash">Flash</option>
           <option value="group">Group</option>
         </select>
-        <select value={filterCountry} onChange={(e) => setFilterCountry(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 6 }}>
-          <option value="all">{t.allCountries}</option>
-          <option value="QA">Qatar</option>
-          <option value="AE">UAE</option>
-        </select>
       </div>
 
-      {/* Table */}
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', backgroundColor: 'white', borderRadius: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
           <thead>
@@ -150,10 +169,15 @@ export default function AllOffersPage() {
             </tr>
           </thead>
           <tbody>
-            {filteredOffers.map(offer => (
+            {filteredOffers.map(offer => {
+              // 🆕 സമയം കഴിഞ്ഞോ എന്ന് ചെക്ക് ചെയ്യുന്നു
+              const isPromoActive = offer.isPromoted && (!offer.promotedUntil || offer.promotedUntil.toDate() > new Date());
+              
+              return (
               <tr key={offer.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
                 <td style={{ padding: 12 }}>
-                  {offer.isPromoted && <span style={{ marginRight: 4 }}>⭐</span>}
+                  {/* 🆕 isPromoted എന്നത് മാറ്റി isPromoActive എന്നാക്കി */}
+                  {isPromoActive && <span style={{ marginRight: 4 }}>⭐</span>}
                   {offer.title}
                 </td>
                 <td style={{ padding: 12 }}>{offer.businessName}</td>
@@ -175,23 +199,55 @@ export default function AllOffersPage() {
                     <button onClick={() => handleApprove(offer.id)} style={{ padding: '6px 10px', backgroundColor: '#22c55e', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>{t.approve}</button>
                   )}
                   
+                  {/* 🆕 Promote ബട്ടൺ (isPromoActive ഉപയോഗിച്ചു) */}
                   <button 
-                    onClick={() => handlePromote(offer.id, offer.isPromoted)} 
-                    style={{ padding: '6px 10px', backgroundColor: offer.isPromoted ? '#f59e0b' : '#d1d5db', color: offer.isPromoted ? 'white' : '#374151', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
+                    onClick={() => handlePromoteClick(offer)} 
+                    style={{ padding: '6px 10px', backgroundColor: isPromoActive ? '#f59e0b' : '#d1d5db', color: isPromoActive ? 'white' : '#374151', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
                   >
-                    {offer.isPromoted ? t.featured : t.promote}
+                    {isPromoActive ? t.featured : t.promote}
                   </button>
 
                   <button onClick={() => setEditingOffer(offer)} style={{ padding: '6px 10px', backgroundColor: '#8b5cf6', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>{t.edit}</button>
                   <button onClick={() => handleDelete(offer.id)} style={{ padding: '6px 10px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>{t.delete}</button>
                 </td>
               </tr>
-            ))}
+            )})}
           </tbody>
         </table>
       </div>
 
-      {/* 🆕 Edit Modal (Popup) */}
+      {/* 🆕 Promote Modal */}
+      {promotingOffer && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, direction: 'ltr' }}>
+          <div style={{ backgroundColor: 'white', padding: 24, borderRadius: 8, width: 350 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16 }}>
+              {/* 🆕 isPromoActiveInModal ഉപയോഗിച്ചു */}
+              {isPromoActiveInModal ? 'Remove Promotion' : 'Promote Offer'}
+            </h2>
+            
+            {!isPromoActiveInModal && (
+              <>
+                <label style={{ display: 'block', fontSize: 12, color: '#6b7280', marginBottom: 4 }}>Promote Until (Date & Time)</label>
+                <input 
+                  type="datetime-local" 
+                  value={promoteDate} 
+                  onChange={(e) => setPromoteDate(e.target.value)}
+                  style={{ width: '100%', padding: 8, border: '1px solid #d1d5db', borderRadius: 4, marginBottom: 20 }} 
+                />
+              </>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button onClick={() => setPromotingOffer(null)} style={{ padding: '8px 16px', backgroundColor: '#e5e7eb', color: '#374151', border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+              <button onClick={handleSavePromotion} style={{ padding: '8px 16px', backgroundColor: '#f59e0b', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: 600 }}>
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
       {editingOffer && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, direction: 'ltr' }}>
           <div style={{ backgroundColor: 'white', padding: 24, borderRadius: 8, width: 400, maxWidth: '90%' }}>
