@@ -71,12 +71,17 @@ class IntentionChip extends StatelessWidget {
                     : (isDark ? MigoColors.accent : MigoColors.primary),
               ),
               const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: selected ? Colors.white : unselectedFg,
+              // 🆕 Flexible ചേർത്തു (ടെക്സ്റ്റ് വലുതായാൽ Overflow ആകാതിരിക്കാൻ)
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1, // ഒരു വരിയിൽ മാത്രം
+                  overflow: TextOverflow.ellipsis, // കവിഞ്ഞാൽ ... വരാൻ
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: selected ? Colors.white : unselectedFg,
+                  ),
                 ),
               ),
             ],
