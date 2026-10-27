@@ -5,13 +5,12 @@ import { useRole, ROLES } from '../contexts/RoleContext';
 // ═══════════════════════════════════════════════════
 const ALL_ITEMS = [
   { to: '/', label: 'Dashboard', icon: '📊' },
-  { to: '/businesses', label: 'Businesses', icon: '🏢' },
+  { to: '/businesses', label: 'Businesses', icon: '🏢' }, // 🆕 Pending ഉം ഇവിടെ തന്നെ കാണാം
   { to: '/map', label: 'Business Map', icon: '🗺️' },
   { to: '/analytics', label: 'Analytics', icon: '📊' },
-  { to: '/pending-businesses', label: 'Pending', icon: '⏳' },
-  { to: '/offers', label: 'Pending Offers', icon: '🎁' },
+  // { to: '/pending-businesses', label: 'Pending', icon: '⏳' }, 🆕 ഒഴിവാക്കി
   { to: '/all-offers', label: 'All Offers', icon: '🏷️' },
-  { to: '/flyers', label: 'Flyers', icon: '📄' }, // ✅ ഇവിടെ ചേർത്തു
+  { to: '/flyers', label: 'Flyers', icon: '📄' },
   { to: '/users', label: 'Users', icon: '👥' },
   { to: '/creators', label: 'Creators', icon: '🎬' },
   { to: '/fraud-logs', label: 'Fraud Logs', icon: '🚨' },
@@ -46,15 +45,15 @@ const ROLE_PATHS = {
     '/businesses',
     '/map',
     '/analytics',
-    '/pending-businesses',
-    '/offers',
+    // '/pending-businesses', 🆕 ഒഴിവാക്കി
     '/users',
     '/creators',
     '/reviews',
     '/reservations',
     '/no-show-log',
     '/revenue',
-    '/flyers', // ✅ ചേർത്തു
+    '/flyers',
+    '/all-offers',
   ],
 
   // Agency — own area only
@@ -63,24 +62,23 @@ const ROLE_PATHS = {
     '/agency-dashboard',
     '/businesses',
     '/map',
-    '/pending-businesses',
-    '/offers',
+    // '/pending-businesses', 🆕 ഒഴിവാക്കി
     '/reviews',
     '/reservations',
     '/no-show-log',
-    '/flyers', // ✅ ചേർത്തു
+    '/flyers',
   ],
 
   // Moderator (Staff) — approvals + reviews
   [ROLES.MODERATOR]: [
     '/',
     '/staff-dashboard',
-    '/pending-businesses',
-    '/offers',
+    '/businesses', // 🆕 Pending അപ്രൂവൽ ഇവിടെ നിന്ന് ചെയ്യാം
+    // '/pending-businesses', 🆕 ഒഴിവാക്കി
     '/reviews',
     '/users',
     '/fraud-logs',
-    '/flyers', // ✅ ചേർത്തു
+    '/flyers',
   ],
 };
 

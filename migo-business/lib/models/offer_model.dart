@@ -18,6 +18,7 @@ class OfferModel {
   final String currency;
   final String type;
   final String status;
+  final bool isPromoted;
   final String areaId;
   final String? countryCode;
   final String? whatsappNumber;
@@ -49,6 +50,7 @@ class OfferModel {
     required this.currency,
     required this.type,
     required this.status,
+    this.isPromoted = false,
     required this.areaId,
     this.countryCode,
     this.whatsappNumber,
@@ -94,6 +96,7 @@ class OfferModel {
       currency: (map['currency'] ?? 'QAR') as String,
       type: (map['type'] ?? 'standard') as String,
       status: (map['status'] ?? 'pending') as String,
+      isPromoted: (map['isPromoted'] ?? false) as bool,
       areaId: (map['areaId'] ?? '') as String,
       countryCode: map['countryCode'] as String?,
       whatsappNumber: map['whatsappNumber'] as String?,
@@ -127,6 +130,7 @@ class OfferModel {
       'currency': currency,
       'type': type,
       'status': status,
+      'isPromoted': isPromoted,
       'areaId': areaId,
       'countryCode': countryCode,
       'whatsappNumber': whatsappNumber,
@@ -145,6 +149,7 @@ class OfferModel {
   OfferModel copyWith({
     String? imageUrl,
     String? status,
+    bool? isPromoted,
     int? claimedCount,
     String? terms,
     int? dailyLimit,
@@ -170,6 +175,7 @@ class OfferModel {
       currency: currency,
       type: type,
       status: status ?? this.status,
+      isPromoted: isPromoted ?? this.isPromoted,
       areaId: areaId ?? this.areaId,
       countryCode: countryCode ?? this.countryCode,
       whatsappNumber: whatsappNumber,

@@ -382,7 +382,11 @@ class FirestoreService {
         .map((d) => OfferModel.fromMap(d.id, d.data()))
         .where((o) => o.endAt.isAfter(now))
         .toList();
-    list.sort((a, b) => b.startAt.compareTo(a.startAt));
+          list.sort((a, b) {
+        if (a.isPromoted && !b.isPromoted) return -1;
+        if (!a.isPromoted && b.isPromoted) return 1;
+        return b.startAt.compareTo(a.startAt);
+      });
     return list;
   });
 }
@@ -419,7 +423,11 @@ class FirestoreService {
         .map((d) => OfferModel.fromMap(d.id, d.data()))
         .where((o) => o.endAt.isAfter(now))
         .toList();
-    list.sort((a, b) => b.startAt.compareTo(a.startAt));
+          list.sort((a, b) {
+        if (a.isPromoted && !b.isPromoted) return -1;
+        if (!a.isPromoted && b.isPromoted) return 1;
+        return b.startAt.compareTo(a.startAt);
+      });
     return list;
   });
 }
@@ -464,7 +472,11 @@ class FirestoreService {
         .map((d) => OfferModel.fromMap(d.id, d.data()))
         .where((o) => o.endAt.isAfter(now))
         .toList();
-    list.sort((a, b) => b.startAt.compareTo(a.startAt));
+          list.sort((a, b) {
+        if (a.isPromoted && !b.isPromoted) return -1;
+        if (!a.isPromoted && b.isPromoted) return 1;
+        return b.startAt.compareTo(a.startAt);
+      });
     return list;
   });
 }
@@ -504,7 +516,11 @@ class FirestoreService {
         .map((d) => OfferModel.fromMap(d.id, d.data()))
         .where((o) => o.endAt.isAfter(now))
         .toList();
-    list.sort((a, b) => b.startAt.compareTo(a.startAt));
+          list.sort((a, b) {
+        if (a.isPromoted && !b.isPromoted) return -1;
+        if (!a.isPromoted && b.isPromoted) return 1;
+        return b.startAt.compareTo(a.startAt);
+      });
     return list;
   });
 }

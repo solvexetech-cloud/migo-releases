@@ -73,6 +73,7 @@ class OfferModel {
     this.reserveTokenRequired = false,
     this.reserveMaxPerCustomer = 1,
     this.status = 'pending',
+    this.isPromoted = false,
     this.countryCode,
     this.zoneId,
     this.areaId,
@@ -108,6 +109,7 @@ class OfferModel {
   final bool reserveTokenRequired;
   final int reserveMaxPerCustomer;
   final String status;
+  final bool isPromoted;
 
   // ---------- B3 GEOGRAPHY ----------
   final String? countryCode;
@@ -233,6 +235,7 @@ class OfferModel {
       reserveTokenRequired: (map['reserve'] as Map<String, dynamic>?)?['tokenRequired'] as bool? ?? false,
       reserveMaxPerCustomer: ((map['reserve'] as Map<String, dynamic>?)?['maxPerCustomer'] as num?)?.toInt() ?? 1,
       status: (map['status'] ?? 'pending') as String,
+      isPromoted: (map['isPromoted'] ?? false) as bool,
       countryCode: map['countryCode'] as String?,
       zoneId: map['zoneId'] as String?,
       areaId: map['areaId'] as String?,
@@ -264,6 +267,7 @@ class OfferModel {
       'totalLimit': totalLimit,
       'claimedCount': claimedCount,
       'status': status,
+      'isPromoted': isPromoted,
       'countryCode': countryCode,
       'zoneId': zoneId,
       'areaId': areaId,
@@ -274,9 +278,10 @@ class OfferModel {
     };
   }
 
-  OfferModel copyWith({
+    OfferModel copyWith({
     String? imageUrl,
     String? status,
+    bool? isPromoted,
     int? claimedCount,
     String? terms,
     int? dailyLimit,
@@ -308,6 +313,7 @@ class OfferModel {
       totalLimit: totalLimit ?? this.totalLimit,
       claimedCount: claimedCount ?? this.claimedCount,
       status: status ?? this.status,
+      isPromoted: isPromoted ?? this.isPromoted,
       countryCode: countryCode ?? this.countryCode,
       zoneId: zoneId ?? this.zoneId,
       areaId: areaId ?? this.areaId,

@@ -9,6 +9,7 @@ import {
   query,
   serverTimestamp,
   updateDoc,
+  getDoc, // 🆕 ഇമെയിൽ കണ്ടെത്താൻ ചേർത്തത്
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -34,6 +35,7 @@ const EMPTY_FORM = {
   areaId: '',
   status: 'approved',
   verified: false,
+  ownerEmail: '', // 🆕 ഇമെയിൽ കാണിക്കാൻ ചേർത്തത്
 };
 
 const STATUS_FILTERS = [
@@ -136,7 +138,20 @@ export default function BusinessesPage() {
     setShowModal(true);
   }
 
-  function openEdit(b) {
+  // 🆕 Edit ചെയ്യുമ്പോൾ ഇമെയിൽ കണ്ടെത്താനുള്ള ഫങ്ക്ഷൻ
+  async function openEdit(b) {
+    let ownerEmail = 'N/A';
+    if (b.ownerUid) {
+      try {
+        const userSnap = await getDoc(doc(db, 'users', b.ownerUid));
+        if (userSnap.exists()) {
+          ownerEmail = userSnap.data().email || 'No email found';
+        }
+      } catch (err) {
+        console.error("Error fetching email:", err);
+      }
+    }
+
     setEditingId(b.id);
     setForm({
       name: b.name || '',
@@ -159,6 +174,7 @@ export default function BusinessesPage() {
       areaId: b.areaId || '',
       status: b.status || 'approved',
       verified: b.verified ?? false,
+      ownerEmail: ownerEmail, // 🆕 ഇമെയിൽ ഫോമിലേക്ക് ചേർക്കുന്നു
     });
     setError('');
     setShowModal(true);
@@ -629,6 +645,17 @@ function Modal({
         >
           {editingId ? 'Edit Business' : 'Add Business'}
         </h2>
+
+        {/* 🆕 ഇമെയിൽ കാണിക്കാനുള്ള ഫീൽഡ് (Edit ചെയ്യുമ്പോൾ മാത്രം) */}
+        {editingId && (
+          <Field label="Owner Login Email (Read-only)">
+            <input
+              style={{ ...inputStyle, backgroundColor: '#f3f4f6', cursor: 'not-allowed', color: '#6B7280' }}
+              value={form.ownerEmail || 'N/A'}
+              disabled
+            />
+          </Field>
+        )}
 
         <Row>
           <Field label="Name *">

@@ -47,8 +47,14 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
   final _orderLinkCtrl = TextEditingController();
   final _totalSlotsCtrl = TextEditingController(text: '10');
   final _maxPerCustomerCtrl = TextEditingController(text: '1');
+
+  // Group Deal Controllers
   final _minGroupCtrl = TextEditingController(text: '5');
   final _maxGroupCtrl = TextEditingController();
+
+  // Dynamic Categories
+  List<Map<String, String>> _dynamicCategories = [];
+  bool _loadingCategories = true;
 
   String _type = 'standard';
   String _category = 'food'; 
@@ -67,14 +73,6 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
   final _picker = ImagePicker();
 
   bool get isEdit => widget.existingOffer != null;
-
-  static const _categories = [
-    {'value': 'food', 'label': 'Food & Dining'},
-    {'value': 'supermarket', 'label': 'Supermarket'},
-    {'value': 'beauty', 'label': 'Beauty & Wellness'},
-    {'value': 'retail', 'label': 'Retail & Shopping'},
-    {'value': 'services', 'label': 'Services'},
-  ];
 
   static const _offerTypes = [
     {'value': 'standard', 'label': 'Standard Deal'},
@@ -98,6 +96,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
   void initState() {
     super.initState();
     _loadBusinessCountry();
+    _loadCategories();
     final o = widget.existingOffer;
     if (o != null) {
       _titleCtrl.text = o.title;
@@ -107,6 +106,41 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
       _imageUrl = o.imageUrl.isNotEmpty ? o.imageUrl : null;
       _type = o.type.isNotEmpty ? o.type : 'standard';
       if (o.category.isNotEmpty) _category = o.category;
+    }
+  }
+
+    Future<void> _loadCategories() async {
+    try {
+      // 🆕 orderBy ഒഴിവാക്കി, ലഭിച്ചതിനെ ആപ്പിൽ വെച്ച് സോർട്ട് ചെയ്യുന്നു
+      final snap = await FirebaseFirestore.instance
+          .collection('categories')
+          .where('active', isEqualTo: true)
+          .get();
+
+      if (mounted) {
+        final loadedCats = snap.docs.map((doc) {
+          final data = doc.data();
+          return <String, String>{
+            'value': doc.id,
+            'label': (data['name'] as String?) ?? doc.id,
+          };
+        }).toList();
+
+        // പേരിന്റെ അക്ഷരമാല ക്രമത്തിൽ സോർട്ട് ചെയ്യുന്നു (Order ഫീൽഡ് ഇല്ലെങ്കിൽ പോലും വർക്ക് ചെയ്യും)
+        loadedCats.sort((a, b) => (a['label'] ?? '').compareTo(b['label'] ?? ''));
+
+        setState(() {
+          _dynamicCategories = loadedCats;
+          
+          if (_dynamicCategories.isNotEmpty && !_dynamicCategories.any((c) => c['value'] == _category)) {
+            _category = _dynamicCategories.first['value']!;
+          }
+          _loadingCategories = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading categories: $e'); // 🆕 എറർ കൺസോളിൽ കാണാൻ
+      if (mounted) setState(() => _loadingCategories = false);
     }
   }
 
@@ -213,7 +247,6 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
         imageUrl = uploaded;
       }
 
-      // വിവർത്തനം ചെയ്യുന്നു
       final titleEn = _titleCtrl.text.trim();
       final descEn = _descCtrl.text.trim();
       
@@ -228,6 +261,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
       }
 
       String? err;
+
       if (isEdit) {
         err = await OfferService.instance.updateOffer(
           offerId: widget.existingOffer!.id,
@@ -265,6 +299,37 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
           whatsappNumber: _whatsappCtrl.text.trim(),
           orderLink: _orderLinkCtrl.text.trim(),
         );
+
+        // 🆕 പുതിയ ഗ്രൂപ്പ് ഡീൽ ഉണ്ടാക്കാനുള്ള കോഡ്
+        if (err == null && _type == 'group') {
+          try {
+            final snap = await FirebaseFirestore.instance
+                .collection('offers')
+                .where('businessId', isEqualTo: widget.businessId)
+                .where('title', isEqualTo: titleEn)
+                .limit(1)
+                .get();
+
+            if (snap.docs.isNotEmpty) {
+              final newOfferId = snap.docs.first.id;
+              
+              await FirebaseFirestore.instance.collection('group_deals').doc(newOfferId).set({
+                'offerId': newOfferId,
+                'minParticipants': int.tryParse(_minGroupCtrl.text.trim()) ?? 5,
+                'maxParticipants': _maxGroupCtrl.text.trim().isEmpty 
+                    ? null 
+                    : int.tryParse(_maxGroupCtrl.text.trim()),
+                'participantUids': [],
+                'status': 'open',
+                'deadline': DateTime.now().add(Duration(days: _durationDays)),
+                'createdAt': FieldValue.serverTimestamp(),
+                'updatedAt': FieldValue.serverTimestamp(),
+              });
+            }
+          } catch (e) {
+            debugPrint('Failed to create group deal: $e');
+          }
+        }
       }
 
       if (!mounted) return;
@@ -358,24 +423,32 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                           ),
                           const SizedBox(height: 16),
 
-                          DropdownButtonFormField<String>(
-                            initialValue: _category,
-                            decoration: InputDecoration(
-                              labelText: isAr ? 'الفئة' : 'Category',
-                              border: const OutlineInputBorder(),
-                            ),
-                            items: _categories
-                                .map((t) => DropdownMenuItem(
-                                      value: t['value'],
-                                      child: Text(t['label']!),
-                                    ))
-                                .toList(),
-                            onChanged: (v) => setState(() => _category = v ?? 'food'),
-                          ),
+                          // 🆕 Dynamic Category Dropdown
+                          _loadingCategories
+                              ? const Center(child: CircularProgressIndicator())
+                              : DropdownButtonFormField<String>(
+                                  initialValue: _category,
+                                  isExpanded: true, // Overflow ഫിക്സ്
+                                  decoration: InputDecoration(
+                                    labelText: isAr ? 'الفئة' : 'Category',
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                  items: _dynamicCategories
+                                      .map((t) => DropdownMenuItem(
+                                            value: t['value'],
+                                            child: Text(
+                                              t['label']!,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ))
+                                      .toList(),
+                                  onChanged: (v) => setState(() => _category = v ?? ''),
+                                ),
                           const SizedBox(height: 16),
 
                           DropdownButtonFormField<String>(
                             initialValue: _countryCode,
+                            isExpanded: true, // Overflow ഫിക്സ്
                             decoration: InputDecoration(
                               labelText: isAr ? 'الدولة' : 'Country',
                               border: const OutlineInputBorder(),
@@ -392,6 +465,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
 
                           DropdownButtonFormField<String>(
                             initialValue: _type,
+                            isExpanded: true, // Overflow ഫിക്സ്
                             decoration: InputDecoration(
                               labelText: isAr ? 'نوع العرض' : 'Offer type',
                               border: const OutlineInputBorder(),
@@ -404,34 +478,38 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                 .toList(),
                             onChanged: (v) => setState(() => _type = v ?? 'standard'),
                           ),
-                    if (_type == 'group') ...[
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _minGroupCtrl,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: 'Min people',
-                                border: OutlineInputBorder(),
-                              ),
+                          
+                          // Group Deal Fields
+                          if (_type == 'group') ...[
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _minGroupCtrl,
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Min people',
+                                      border: OutlineInputBorder(),
+                                      isDense: true,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _maxGroupCtrl,
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Max people (opt)',
+                                      border: OutlineInputBorder(),
+                                      isDense: true,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _maxGroupCtrl,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: 'Max people (opt)',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
                           const SizedBox(height: 16),
 
                           Row(
@@ -489,14 +567,18 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                 children: [
                                   const Icon(Icons.check_circle, size: 18, color: MigoColors.success),
                                   const SizedBox(width: 8),
-                                  Text(
-                                    isAr
-                                        ? 'وفر العميل QAR ${previewSavings.toStringAsFixed(0)}'
-                                        : 'Customer saves QAR ${previewSavings.toStringAsFixed(0)}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      color: MigoColors.success,
-                                      fontSize: 13,
+                                  Expanded(
+                                    child: Text(
+                                      isAr
+                                          ? 'وفر العميل QAR ${previewSavings.toStringAsFixed(0)}'
+                                          : 'Customer saves QAR ${previewSavings.toStringAsFixed(0)}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        color: MigoColors.success,
+                                        fontSize: 13,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
@@ -507,6 +589,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
 
                           DropdownButtonFormField<int>(
                             initialValue: _durationDays,
+                            isExpanded: true,
                             decoration: InputDecoration(
                               labelText: isAr ? 'المدة' : 'Duration',
                               border: const OutlineInputBorder(),
