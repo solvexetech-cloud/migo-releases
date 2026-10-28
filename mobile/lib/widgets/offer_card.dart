@@ -5,6 +5,7 @@ import '../core/theme/migo_colors.dart';
 import '../core/theme/migo_gradients.dart';
 import '../core/theme/migo_shadows.dart';
 import '../models/offer_model.dart';
+import '../services/firestore_service.dart';
 
 // 🆕 StatelessWidget മാറ്റി StatefulWidget ആ ്കി
 class OfferCard extends StatefulWidget {
@@ -390,20 +391,30 @@ class _OfferCardState extends State<OfferCard> {
                                     color: textSecondary,
                                   ),
                                 ),
-                                const Spacer(),
-                                const Icon(
-                                  Icons.verified,
-                                  size: 12,
-                                  color: MigoColors.success,
-                                ),
-                                const SizedBox(width: 3),
-                                Text(
-                                  '${widget.verifiedPercent}%',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: MigoColors.success,
-                                  ),
+                                                                const Spacer(),
+                                // 🆕 Reviews Star ചേർത്തു
+                                FutureBuilder<({double average, int count})>(
+                                  future: FirestoreService.instance.getBusinessRating(offer.businessId),
+                                  builder: (context, snapshot) {
+                                    if (!snapshot.hasData || snapshot.data!.count == 0) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    final rating = snapshot.data!.average;
+                                    return Row(
+                                      children: [
+                                        const Icon(Icons.star, size: 12, color: Colors.amber),
+                                        const SizedBox(width: 2),
+                                        Text(
+                                          rating.toStringAsFixed(1),
+                                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.black87),
+                                        ),
+                                        Text(
+                                          ' (${snapshot.data!.count})',
+                                          style: TextStyle(fontSize: 9, color: textSecondary),
+                                        ),
+                                      ],
+                                    );
+                                  },
                                 ),
                               ],
                             ),

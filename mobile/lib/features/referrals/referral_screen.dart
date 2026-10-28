@@ -5,9 +5,6 @@ import '../../core/theme/migo_colors.dart';
 import '../../models/referral_model.dart';
 import '../../services/firestore_service.dart';
 
-/// Base URL for referral links.
-/// Current: Firebase Hosting (Option A).
-/// Future: custom domain (e.g. migo.app) via B3.10 migration.
 const String _referralBaseUrl = 'https://migo-app-3030e.web.app/r';
 
 class ReferralScreen extends StatefulWidget {
@@ -20,6 +17,7 @@ class ReferralScreen extends StatefulWidget {
 class _ReferralScreenState extends State<ReferralScreen> {
   String? _code;
   bool _loading = true;
+  int _referralReward = 50; // 🆕 ഡിഫോൾട്ട് മൂല്യം
 
   @override
   void initState() {
@@ -31,9 +29,14 @@ class _ReferralScreenState extends State<ReferralScreen> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
     final code = await FirestoreService.instance.ensureReferralCode(uid);
+    
+    // 🆕 അഡ്മിൻ സെറ്റിംഗ്സിൽ നിന്ന് റെഫറൽ കോയിൻ എണ്ണം എടുക്കുന്നു
+    final settings = await FirestoreService.instance.getCoinSettings();
+
     if (!mounted) return;
     setState(() {
       _code = code;
+      _referralReward = settings.referralReward;
       _loading = false;
     });
   }
@@ -44,8 +47,8 @@ class _ReferralScreenState extends State<ReferralScreen> {
     return 'Join me on MIGO — exclusive deals in Qatar & Kerala! 🎁\n\n'
         'Use my code: $_code\n'
         'Sign up here: ${_buildReferralLink()}\n\n'
-        'You get +30 MIGO Coins after your first deal, '
-        'and I get +50! 💰';
+        'You get +$_referralReward MIGO Coins after your first deal, '
+        'and I get +$_referralReward! 💰';
   }
 
   Future<void> _copyCode() async {
@@ -107,10 +110,11 @@ class _ReferralScreenState extends State<ReferralScreen> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'You get +50, your friend gets +30 after their first claim.',
+                      // 🆕 ഡൈനാമിക് ടെക്സ്റ്റ്
+                      Text(
+                        'You get +$_referralReward, your friend gets +$_referralReward after their first claim.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: Colors.white70,
                         ),
@@ -169,7 +173,6 @@ class _ReferralScreenState extends State<ReferralScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Preview of the share text
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(

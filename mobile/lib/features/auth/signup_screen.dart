@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/config/app_config.dart';
 import '../../core/localization/locale_provider.dart';
 import '../../core/theme/migo_colors.dart';
-import '../../core/theme/migo_gradients.dart';
 import '../../models/country_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
@@ -152,7 +151,7 @@ class _SignupScreenState extends State<SignupScreen> {
         return;
       }
 
-      final cred = await AuthService.instance.signUp(
+            final cred = await AuthService.instance.signUp(
         email: email,
         password: password,
         countryCode: _selectedCountry!.code,
@@ -161,13 +160,39 @@ class _SignupScreenState extends State<SignupScreen> {
         locale: _selectedCountry!.locale,
       );
 
+      final newUid = cred.user?.uid;
+      
+      // 🆕 ഇമെയിലും വിവരങ്ങളും ഫയർബേസിലേക്ക് സേവ് ചെയ്യുന്നു (അഡ്മിൻ പാനലിൽ കാണാൻ)
+      if (newUid != null) {
+        await FirestoreService.instance.updateUser(newUid, {
+          'email': email,
+          'role': 'customer',
+          'currentCountryCode': _selectedCountry!.code,
+          'country': _selectedCountry!.name,
+          'currency': _selectedCountry!.currency,
+        });
+      }
+
+      // 🆕 സൈൻ അപ്പ് ബോണസ് കോയിൻസ്
+      if (newUid != null) {
+        final settings = await FirestoreService.instance.getCoinSettings();
+        if (settings.signupReward > 0) {
+          await FirestoreService.instance.addCoins(
+            uid: newUid,
+            amount: settings.signupReward,
+            reason: 'Welcome bonus',
+            bypassCaps: true,
+          );
+        }
+      }
+
+      // റെഫറൽ കോഡ് ചെക്ക് ചെയ്യുന്നു
       String? referrerUid;
       if (referralCode.isNotEmpty) {
         referrerUid = await FirestoreService.instance
             .findUidByReferralCode(referralCode);
       }
 
-      final newUid = cred.user?.uid;
       if (newUid != null && referrerUid != null && referrerUid.isNotEmpty) {
         bool referralSuccess = false;
         for (int attempt = 0; attempt < 5 && !referralSuccess; attempt++) {
@@ -385,7 +410,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                           ),
 
-                    // Referral banner
+                    // Referral banner (🆕 ഹാർഡ്കോഡ് ഒഴിവാക്കി പൊതുവായി എഴുതി)
                     if (_referralFromUrl) ...[
                       const SizedBox(height: 16),
                       Container(
@@ -420,8 +445,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                   const SizedBox(height: 2),
                                   Text(
                                     isAr
-                                        ? 'سجل للحصول على +30 عملة ميجو بعد أول مطالبة.'
-                                        : 'Sign up to get +30 MIGO Coins after your first claim.',
+                                        ? 'سجل للحصول على عملات ميجو إضافية بعد أول مطالبة.'
+                                        : 'Sign up to get extra MIGO Coins after your first claim.',
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: MigoColors.success.withValues(alpha: 0.9),

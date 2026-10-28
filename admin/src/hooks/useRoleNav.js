@@ -15,6 +15,7 @@ const ALL_ITEMS = [
   { to: '/creators', label: 'Creators', icon: '🎬' },
   { to: '/fraud-logs', label: 'Fraud Logs', icon: '🚨' },
   { to: '/categories', label: 'Categories', icon: '📁' },
+  { to: '/coin-settings', label: 'Coin Settings', icon: '🪙' },
   { to: '/roles', label: 'Roles', icon: '🔑' },
   { to: '/agencies', label: 'Agencies', icon: '🤝' },
   { to: '/pricing', label: 'Pricing', icon: '💵' },

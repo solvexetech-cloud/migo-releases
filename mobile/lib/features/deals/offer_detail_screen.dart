@@ -76,7 +76,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
     }
   }
 
-  Future<void> _claim() async {
+    Future<void> _claim() async {
     final isAr = LocaleProvider.instance.locale == 'ar';
     if (_uid == null) {
       _snack(isAr ? 'يرجى تسجيل الدخول أولاً.' : 'Please sign in first.');
@@ -102,10 +102,18 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
       );
 
       await FirestoreService.instance.createClaim(claim);
+      
+      // 🆕 അഡ്മിൻ സെറ്റിംഗ്സിൽ നിന്ന് കോയിൻ എണ്ണം എടുക്കുന്നു
+      final settings = await FirestoreService.instance.getCoinSettings();
+      final int claimCoins = settings.claimReward;
+
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => ClaimSuccessScreen(offer: widget.offer),
+          builder: (_) => ClaimSuccessScreen(
+            offer: widget.offer,
+            coinsAwarded: claimCoins, // 🆕 ഡൈനാമിക് ആക്കി
+          ),
         ),
       );
     } catch (e) {

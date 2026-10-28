@@ -9,6 +9,7 @@ import '../models/zone_model.dart';
 import '../models/area_model.dart';
 import '../models/claim_model.dart';
 import '../models/coin_transaction_model.dart';
+import '../models/coin_settings_model.dart';
 import '../models/group_deal_model.dart';
 import '../models/notification_model.dart';
 import '../models/offer_model.dart';
@@ -22,6 +23,20 @@ class FirestoreService {
   static final FirestoreService instance = FirestoreService._();
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  // 🆕 കോയിൻ സെറ്റിംഗ്സ് വായിക്കാൻ
+  Future<CoinSettingsModel> getCoinSettings() async {
+    try {
+      final doc = await _db.collection('config').doc('coin_settings').get();
+      if (doc.exists && doc.data() != null) {
+        return CoinSettingsModel.fromMap(doc.data()!);
+      }
+    } catch (e) {
+      debugPrint('Error fetching coin settings: $e');
+    }
+    // എറർ വന്നാൽ ഡിഫോൾട്ട് മൂല്യങ്ങൾ നൽകുന്നു
+    return CoinSettingsModel.fromMap({});
+  }
 
   // ---------- USERS ----------
   CollectionReference<Map<String, dynamic>> get _users =>
@@ -51,19 +66,22 @@ class FirestoreService {
     );
   }
 
-  Future<void> addCoins({
+    Future<void> addCoins({
     required String uid,
     required int amount,
     required String reason,
-    bool bypassCaps = false,  // ← Admin/referral/redeem bypass
+    bool bypassCaps = false,
   }) async {
-    // PHASE E — E5: Daily + monthly caps (unless bypassed)
+    // 🆕 അഡ്മിൻ സെറ്റിംഗ്സിൽ നിന്ന് ലിമിറ്റുകൾ എടുക്കുന്നു
     if (!bypassCaps && amount > 0) {
+      final settings = await getCoinSettings();
+      final dailyCap = settings.dailyLimit;
+      final monthlyCap = settings.monthlyLimit;
+
       final now = DateTime.now();
       final todayStart = DateTime(now.year, now.month, now.day);
       final monthStart = DateTime(now.year, now.month, 1);
 
-      // Fetch today's + month's earned coins
       final dailySnap = await _db
           .collection('coin_transactions')
           .where('uid', isEqualTo: uid)
@@ -88,32 +106,20 @@ class FirestoreService {
         if (amt > 0) monthlyEarned += amt;
       }
 
-      const dailyCap = 20;
-      const monthlyCap = 200;
-
-      // Check caps
-      if (dailyEarned >= dailyCap) {
-        debugPrint('⚠️ Daily cap reached ($dailyEarned/$dailyCap) — skipping');
-        return;
-      }
-      if (monthlyEarned >= monthlyCap) {
-        debugPrint('⚠️ Monthly cap reached ($monthlyEarned/$monthlyCap) — skipping');
+      if (dailyEarned >= dailyCap || monthlyEarned >= monthlyCap) {
+        debugPrint('⚠️ Coin cap reached — skipping');
         return;
       }
 
-      // Clamp amount to remaining cap
       final dailyRemaining = dailyCap - dailyEarned;
       final monthlyRemaining = monthlyCap - monthlyEarned;
-      final maxAllowed = dailyRemaining < monthlyRemaining
-          ? dailyRemaining
-          : monthlyRemaining;
+      final maxAllowed = dailyRemaining < monthlyRemaining ? dailyRemaining : monthlyRemaining;
+      
       if (amount > maxAllowed) {
         amount = maxAllowed;
-        debugPrint('⚠️ Amount clamped to $amount (cap limit)');
       }
     }
 
-    // Update user coins
     await _users.doc(uid).set(
       {
         'coins': FieldValue.increment(amount),
@@ -122,7 +128,6 @@ class FirestoreService {
       SetOptions(merge: true),
     );
 
-    // Log transaction
     await _db.collection('coin_transactions').add({
       'uid': uid,
       'amount': amount,
@@ -747,18 +752,22 @@ class FirestoreService {
       'redeemedBy': businessId,
     });
 
+        // 🆕 അഡ്മിൻ സെറ്റിംഗ്സിൽ നിന്ന് കോയിൻ എണ്ണം എടുക്കുന്നു
+    final settings = await getCoinSettings();
+    final int claimCoins = settings.claimReward;
+
     await addCoins(
       uid: claim.userUid,
-      amount: 25,
+      amount: claimCoins,
       reason: 'Redeemed "${claim.offerTitle}"',
       bypassCaps: true,
     );
 
-    await createNotification(
+        await createNotification(
       NotificationModel.newDraft(
         userUid: claim.userUid,
         type: NotifType.coinEarned,
-        title: '+25 MIGO Coins',
+        title: '+$claimCoins MIGO Coins', // 🆕 ഡൈനാമിക് ആക്കി
         body: 'Your "${claim.offerTitle}" was redeemed at ${claim.businessName}.',
         targetRoute: 'wallet',
       ),
@@ -801,18 +810,21 @@ class FirestoreService {
   Future<String> createReview(ReviewModel review) async {
     final ref = await _reviews.add(review.toMap());
 
+        final settings = await getCoinSettings();
+    final int reviewCoins = settings.reviewReward;
+
     await addCoins(
       uid: review.userUid,
-      amount: 10,
+      amount: reviewCoins,
       reason: 'Wrote review for ${review.businessName}',
       bypassCaps: true,
     );
 
-    await createNotification(
+        await createNotification(
       NotificationModel.newDraft(
         userUid: review.userUid,
         type: NotifType.coinEarned,
-        title: '+10 MIGO Coins',
+        title: '+$reviewCoins MIGO Coins', // 🆕 ഡൈനാമിക് ആക്കി
         body: 'Thanks for reviewing ${review.businessName}.',
         targetRoute: 'wallet',
       ),
@@ -997,15 +1009,19 @@ class FirestoreService {
       'rewardedAt': FieldValue.serverTimestamp(),
       'referredFirstClaimAt': FieldValue.serverTimestamp(),
     });
+        // 🆕 അഡ്മിൻ സെറ്റിംഗ്സിൽ നിന്ന് റെഫറൽ കോയിൻസ് എടുക്കുന്നു
+    final settings = await getCoinSettings();
+    final int refReward = settings.referralReward;
+
     await addCoins(
       uid: referredBy,
-      amount: referral.referrerReward,
+      amount: refReward,
       reason: 'Referral bonus (${map['email'] ?? uid})',
       bypassCaps: true,
     );
     await addCoins(
       uid: uid,
-      amount: referral.referredReward,
+      amount: refReward,
       reason: 'Welcome referral bonus',
       bypassCaps: true,
     );
@@ -1015,8 +1031,7 @@ class FirestoreService {
         userUid: referredBy,
         type: NotifType.referralReward,
         title: 'Referral reward received',
-        body:
-            '+${referral.referrerReward} coins — your friend just made their first claim.',
+        body: '+$refReward coins — your friend just made their first claim.',
         targetRoute: 'wallet',
       ),
     );
@@ -1025,7 +1040,7 @@ class FirestoreService {
         userUid: uid,
         type: NotifType.referralReward,
         title: 'Welcome bonus unlocked',
-        body: '+${referral.referredReward} coins from your referral.',
+        body: '+$refReward coins from your referral.',
         targetRoute: 'wallet',
       ),
     );

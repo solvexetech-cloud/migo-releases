@@ -19,6 +19,7 @@ import CreatorsPage from './pages/CreatorsPage';
 import FraudLogsPage from './pages/FraudLogsPage';
 import CategoriesPage from './pages/CategoriesPage';
 import RolesPage from './pages/RolesPage';
+import CoinSettingsPage from './pages/CoinSettingsPage';
 import {
   RoleProvider,
   useRole,
@@ -174,6 +175,7 @@ export default function App() {
                     <Route path="/marketing" element={<MarketingDashboardPage />} />
                     <Route path="/fraud-logs" element={<FraudLogsPage />} />
                     <Route path="/flyers" element={<FlyersPage />} />
+                    <Route path="/coin-settings" element={<CoinSettingsPage />} />
                   </Routes>
                 </AdminLayout>
               ) : (
