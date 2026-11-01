@@ -214,8 +214,11 @@ class MyClaimsScreen extends StatelessWidget {
                                       ),
                                     );
                                   },
-                                  icon: const Icon(Icons.qr_code, size: 20),
-                                  label: Text(isAr ? 'عرض رمز QR' : 'Show QR Code'),
+                                   icon: const Icon(Icons.qr_code, size: 20),
+                                  label: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(isAr ? 'عرض رمز QR' : 'Show QR Code'),
+                                  ),
                                 ),
                               ),
                             ],

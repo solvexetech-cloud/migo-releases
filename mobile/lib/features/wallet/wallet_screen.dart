@@ -150,16 +150,29 @@ class WalletScreen extends StatelessWidget {
                                               Row(
                                                 crossAxisAlignment: CrossAxisAlignment.end,
                                                 children: [
-                                                  Text(
-                                                    '${user?.coins ?? 0}',
-                                                    style: const TextStyle(
-                                                      fontSize: 54,
-                                                      fontWeight: FontWeight.w900,
-                                                      color: Colors.white,
-                                                      height: 1,
-                                                      letterSpacing: -2,
-                                                    ),
+                                                                                                Text(
+                                                '${user?.coins ?? 0}',
+                                                style: const TextStyle(
+                                                  fontSize: 54,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: Colors.white,
+                                                  height: 1,
+                                                  letterSpacing: -2,
+                                                ),
+                                              ),
+                                                                                            // 🆕 എക്സ്പയറി തീയതി കാണിക്കാൻ
+                                              if (user?.coinsExpireAt != null && (user?.coins ?? 0) > 0) ...[
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  isAr 
+                                                    ? 'تنتهي صلاحية العملات في ${user!.coinsExpireAt!.day}/${user.coinsExpireAt!.month}/${user.coinsExpireAt!.year}'
+                                                    : 'Coins expire on ${user!.coinsExpireAt!.day}/${user.coinsExpireAt!.month}/${user.coinsExpireAt!.year}',
+                                                  style: const TextStyle(
+                                                    fontSize: 10,
+                                                    color: Colors.white54,
                                                   ),
+                                                ),
+                                              ],
                                                   if (fiatValueText.isNotEmpty) ...[
                                                     const SizedBox(width: 8),
                                                     Padding(

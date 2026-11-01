@@ -31,6 +31,7 @@ export default function CoinSettingsPage() {
   const [selectedCountryToAdd, setSelectedCountryToAdd] = useState('');
 
   const [expiryDays, setExpiryDays] = useState(60);
+  const [maxRedemptionPercent, setMaxRedemptionPercent] = useState(10);
 
   useEffect(() => {
     fetchSettings();
@@ -63,6 +64,7 @@ export default function CoinSettingsPage() {
         if (data.caps) setCaps(data.caps);
         if (data.countryRates) setCountryRates(data.countryRates);
         if (data.expiryDays) setExpiryDays(data.expiryDays);
+        if (data.maxRedemptionPercent) setMaxRedemptionPercent(data.maxRedemptionPercent);
       }
     } catch (error) {
       console.error("Error fetching settings: ", error);
@@ -80,6 +82,7 @@ export default function CoinSettingsPage() {
         caps,
         countryRates,
         expiryDays,
+        maxRedemptionPercent,
         updatedAt: new Date(),
       });
       setMessage('Settings saved successfully! ✅');
@@ -185,6 +188,11 @@ export default function CoinSettingsPage() {
           <div>
             <label style={{ display: 'block', fontSize: 13, color: '#6b7280', marginBottom: 4 }}>Coin Expiry (Days)</label>
             <input type="number" value={expiryDays} onChange={(e) => setExpiryDays(Number(e.target.value))} style={inputStyle} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, color: '#6b7280', marginBottom: 4 }}>Max Redemption (%)</label>
+            <input type="number" value={maxRedemptionPercent} onChange={(e) => setMaxRedemptionPercent(Number(e.target.value))} style={inputStyle} />
+            <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>Max % of bill that can be paid with coins (e.g. 10%).</p>
           </div>
         </div>
       </div>

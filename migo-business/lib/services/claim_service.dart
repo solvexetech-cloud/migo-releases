@@ -59,17 +59,23 @@ class ClaimService {
     });
 
     // 4. Add coins to customer
+    final configSnap = await _db.collection('config').doc('coin_settings').get();
+    final config = configSnap.data();
+    final int claimReward = (config?['rewards']?['claim'] as num?)?.toInt() ?? 10;
+    final int expiryDays = (config?['expiryDays'] as num?)?.toInt() ?? 60;
+
     await _addCoins(
       uid: claim.userUid,
-      amount: 25,
+      amount: claimReward,
       reason: 'Redeemed "${claim.offerTitle}"',
+      expiryDays: expiryDays,
     );
 
     // 5. Notification
     await _notifications.add({
       'userUid': claim.userUid,
       'type': 'coinEarned',
-      'title': '+25 MIGO Coins',
+      'title': '+$claimReward MIGO Coins',
       'body': 'Your "${claim.offerTitle}" was redeemed at ${claim.businessName}.',
       'targetRoute': 'wallet',
       'read': false,
@@ -79,15 +85,57 @@ class ClaimService {
     debugPrint('✅ Claim redeemed');
   }
 
+  // 🆕 Coin Payment Accept (Pay with Coins)
+  Future<void> acceptCoinPayment({
+    required String paymentId,
+    required String customerUid,
+    required int coinsUsed,
+    required String businessId,
+  }) async {
+    final ref = _db.collection('coin_payments').doc(paymentId);
+    
+    await _db.runTransaction((tx) async {
+      final snap = await tx.get(ref);
+      if (!snap.exists) throw Exception("Payment request not found");
+      if (snap.data()!['status'] != 'pending') throw Exception("Already processed");
+
+      // 1. പേയ്‌മെന്റ് സ്റ്റാറ്റസ് അപ്ഡേറ്റ് ചെയ്യുന്നു
+      tx.update(ref, {
+        'status': 'accepted',
+        'acceptedAt': FieldValue.serverTimestamp(),
+      });
+
+      // 2. കസ്റ്റമറുടെ കോയിൻസ് കുറയ്ക്കുന്നു
+      final userRef = _users.doc(customerUid);
+      tx.update(userRef, {
+        'coins': FieldValue.increment(-coinsUsed),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      // 3. കോയിൻ ട്രാൻസാക്ഷൻ ലോഗ് ചെയ്യുന്നു
+      final txRef = _db.collection('coin_transactions').doc();
+      tx.set(txRef, {
+        'uid': customerUid,
+        'amount': -coinsUsed,
+        'type': 'spent',
+        'description': 'Paid at business ($businessId)',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
   Future<void> _addCoins({
     required String uid,
     required int amount,
     required String reason,
+    required int expiryDays,
   }) async {
     try {
-      // Users കളക്ഷനിൽ 'coins' മാത്രം അപ്ഡേറ്റ് ചെയ്യുന്നു (updatedAt ഇല്ല)
+      final expiryDate = DateTime.now().add(Duration(days: expiryDays));
+
       await _users.doc(uid).update({
         'coins': FieldValue.increment(amount),
+        'coinsExpireAt': Timestamp.fromDate(expiryDate),
       });
 
       await _db.collection('coin_transactions').add({

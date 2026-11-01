@@ -350,14 +350,31 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+
+            const SizedBox(height: 10),
+            
+                        // 🆕 ഓഫർ സ്റ്റാറ്റിസ്റ്റിക്സ് (നിറങ്ങളോടുകൂടി)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _statItem(Icons.visibility, '${offer.claimedCount}', 'Claims', Colors.blue.shade700),
+                  const SizedBox(width: 16),
+                  _statItem(Icons.favorite, '${offer.claimedCount}', 'Saved', Colors.pink.shade400),
+                  const SizedBox(width: 16),
+                  _statItem(Icons.receipt_long, '${offer.claimedCount}', 'Redeemed', Colors.green.shade600),
+                ],
+              ),
+            ),
+            
+                        const SizedBox(height: 12),
             // Action Buttons Row
             Row(
               children: [
                 Expanded(
                   flex: 1,
                   child: OutlinedButton.icon(
-                    onPressed: () => _openEdit(context, offer),
+                   onPressed: () => _openEdit(context, offer),
                     icon: const Icon(Icons.edit_outlined, size: 14),
                     label: const Text('Edit', style: TextStyle(fontSize: 11)),
                     style: OutlinedButton.styleFrom(
@@ -437,6 +454,25 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
       visualDensity: VisualDensity.compact,
     );
   }
+
+    Widget _statItem(IconData icon, String value, String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 4),
+        Text(
+          '$value $label',
+          style: TextStyle(
+            fontSize: 11,
+            color: color,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+
 
   Color _statusColor(String status) {
     switch (status) {

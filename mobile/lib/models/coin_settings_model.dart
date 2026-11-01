@@ -6,6 +6,7 @@ class CoinSettingsModel {
   final int dailyLimit;
   final int monthlyLimit;
   final int expiryDays;
+  final int maxRedemptionPercent;
   final Map<String, double> countryRates; // ഉദാ: {'QA': 1.0, 'IN': 10.0}
 
   CoinSettingsModel({
@@ -16,6 +17,7 @@ class CoinSettingsModel {
     required this.dailyLimit,
     required this.monthlyLimit,
     required this.expiryDays,
+    required this.maxRedemptionPercent,
     required this.countryRates,
   });
 
@@ -32,6 +34,7 @@ class CoinSettingsModel {
       dailyLimit: (caps['daily'] as num?)?.toInt() ?? 50,
       monthlyLimit: (caps['monthly'] as num?)?.toInt() ?? 500,
       expiryDays: (map['expiryDays'] as num?)?.toInt() ?? 60,
+      maxRedemptionPercent: (map['maxRedemptionPercent'] as num?)?.toInt() ?? 10,
       countryRates: rawRates.map((key, value) => MapEntry(key, (value as num).toDouble())),
     );
   }

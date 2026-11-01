@@ -442,6 +442,40 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                   ),
                               ],
 
+                              // 🆕 ഷോപ്പിന്റെ മുഴുവൻ വിവരങ്ങളും കാണാനുള്ള ബട്ടൺ
+                              const SizedBox(height: 24),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 50,
+                                child: OutlinedButton.icon(
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => BusinessDetailScreen(
+                                          businessId: o.businessId,
+                                          businessName: o.businessName,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.storefront, color: MigoColors.primary),
+                                  label: Text(
+                                    isAr ? 'عرض ملف المتجر' : 'View Shop Profile',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: MigoColors.primary,
+                                    ),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: MigoColors.primary, width: 2),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                ),
+                              ),
+
+                              // Reviews Section
+
                               // Reviews Section
                               const SizedBox(height: 24),
                               Row(

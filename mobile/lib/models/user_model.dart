@@ -10,6 +10,7 @@ class UserModel {
     this.country = 'QA',
     this.currentAreaId,
     this.currentCountryCode,
+    this.coinsExpireAt, // 🆕 കൺസ്ട്രക്ടറിൽ ചേർത്തു
     this.city = 'Doha',
     this.currency = 'QAR',
     this.locale = 'en',
@@ -28,8 +29,10 @@ class UserModel {
   final String? displayName;
   final String? phone;
   final String country;
+  
   /// User's currently selected area (persisted).
   final String? currentAreaId;
+  final DateTime? coinsExpireAt; // 🆕 കോയിൻ എക്സ്പയറി തീയതി
 
   /// User's currently selected country code.
   final String? currentCountryCode;
@@ -54,7 +57,7 @@ class UserModel {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-    factory UserModel.fresh({
+  factory UserModel.fresh({
     required String uid,
     required String email,
     String? displayName,
@@ -92,6 +95,7 @@ class UserModel {
       country: (map['country'] ?? 'QA') as String,
       currentAreaId: map['currentAreaId'] as String?,
       currentCountryCode: map['currentCountryCode'] as String?,
+      coinsExpireAt: (map['coinsExpireAt'] as Timestamp?)?.toDate(), // 🆕 fromMap-ൽ ചേർത്തു
       city: (map['city'] ?? 'Doha') as String,
       currency: (map['currency'] ?? 'QAR') as String,
       locale: (map['locale'] ?? 'en') as String,
@@ -116,6 +120,7 @@ class UserModel {
       'country': country,
       'currentAreaId': currentAreaId,
       'currentCountryCode': currentCountryCode,
+      'coinsExpireAt': coinsExpireAt != null ? Timestamp.fromDate(coinsExpireAt!) : null, // 🆕 toMap-ൽ ചേർത്തു
       'city': city,
       'currency': currency,
       'locale': locale,
@@ -138,6 +143,7 @@ class UserModel {
     String? country,
     String? currentAreaId,
     String? currentCountryCode,
+    DateTime? coinsExpireAt, // 🆕 copyWith-ൽ ചേർത്തു
     String? city,
     String? currency,
     String? locale,
@@ -157,6 +163,7 @@ class UserModel {
       currentAreaId: currentAreaId ?? this.currentAreaId,
       currentCountryCode:
       currentCountryCode ?? this.currentCountryCode,
+      coinsExpireAt: coinsExpireAt ?? this.coinsExpireAt, // 🆕 copyWith-ൽ ചേർത്തു
       city: city ?? this.city,
       currency: currency ?? this.currency,
       locale: locale ?? this.locale,
@@ -174,9 +181,7 @@ class UserModel {
 }
 
 
-
 /// MIGO user roles — 6-tier system.
-///
 /// Tier order (highest to lowest):
 ///   super_admin > admin > moderator > agency > business > customer
 extension UserRoleX on UserModel {

@@ -120,9 +120,14 @@ class FirestoreService {
       }
     }
 
+        // 🆕 കോയിൻ എക്സ്പയറി തീയതി കണക്കാക്കുന്നു
+    final settings = await getCoinSettings();
+    final expiryDate = DateTime.now().add(Duration(days: settings.expiryDays));
+
     await _users.doc(uid).set(
       {
         'coins': FieldValue.increment(amount),
+        'coinsExpireAt': Timestamp.fromDate(expiryDate), // 🆕 എക്സ്പയറി തീയതി സേവ് ചെയ്യുന്നു
         'updatedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),
@@ -817,7 +822,7 @@ class FirestoreService {
       uid: review.userUid,
       amount: reviewCoins,
       reason: 'Wrote review for ${review.businessName}',
-      bypassCaps: true,
+      bypassCaps: false,
     );
 
         await createNotification(
@@ -1017,13 +1022,13 @@ class FirestoreService {
       uid: referredBy,
       amount: refReward,
       reason: 'Referral bonus (${map['email'] ?? uid})',
-      bypassCaps: true,
+      bypassCaps: false,
     );
     await addCoins(
       uid: uid,
       amount: refReward,
       reason: 'Welcome referral bonus',
-      bypassCaps: true,
+      bypassCaps: false,
     );
 
     await createNotification(
@@ -1044,6 +1049,67 @@ class FirestoreService {
         targetRoute: 'wallet',
       ),
     );
+  }
+
+
+  // ---------- COIN PAYMENTS (PARTNER SYSTEM) ----------
+  CollectionReference<Map<String, dynamic>> get _coinPayments =>
+      _db.collection('coin_payments');
+
+  // 🆕 കസ്റ്റമർ QR ഉണ്ടാക്കാൻ (ബിസിനസിൽ നിന്ന് സ്കാൻ ചെയ്യാൻ)
+  Future<void> createCoinPaymentRequest(Map<String, dynamic> paymentData) async {
+    await _coinPayments.doc(paymentData['id']).set({
+      ...paymentData,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // 🆕 ബിസിനസ് ആപ്പിൽ പെൻഡിംഗ് പേയ്‌മെന്റുകൾ കാണാൻ
+  Stream<List<Map<String, dynamic>>> streamBusinessCoinPayments(String businessId) {
+    return _coinPayments
+        .where('businessId', isEqualTo: businessId)
+        .where('status', isEqualTo: 'pending')
+        .snapshots()
+        .map((snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+  }
+
+  // 🆕 ബിസിനസ് കോയിൻ പേയ്‌മെന്റ് അക്സെപ്റ്റ് ചെയ്യുമ്പോൾ
+  Future<void> acceptCoinPayment({
+    required String paymentId,
+    required String customerUid,
+    required int coinsUsed,
+    required String businessId,
+  }) async {
+    final ref = _coinPayments.doc(paymentId);
+    
+    await _db.runTransaction((tx) async {
+      final snap = await tx.get(ref);
+      if (!snap.exists) throw Exception("Payment request not found");
+      if (snap.data()!['status'] != 'pending') throw Exception("Already processed");
+
+      // 1. പേയ്‌മെന്റ് സ്റ്റാറ്റസ് അപ്ഡേറ്റ് ചെയ്യുന്നു
+      tx.update(ref, {
+        'status': 'accepted',
+        'acceptedAt': FieldValue.serverTimestamp(),
+      });
+
+      // 2. കസ്റ്റമറുടെ കോയിൻസ് കുറയ്ക്കുന്നു
+      final userRef = _users.doc(customerUid);
+      tx.update(userRef, {
+        'coins': FieldValue.increment(-coinsUsed),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      // 3. കോയിൻ ട്രാൻസാക്ഷൻ ലോഗ് ചെയ്യുന്നു
+      final txRef = _db.collection('coin_transactions').doc();
+      tx.set(txRef, {
+        'uid': customerUid,
+        'amount': -coinsUsed,
+        'type': 'spent',
+        'description': 'Paid at business (ID: $businessId)',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    });
   }
 
   // ---------- NOTIFICATIONS ----------

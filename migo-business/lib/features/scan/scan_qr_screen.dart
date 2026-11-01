@@ -4,6 +4,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../core/theme/migo_gradients.dart';
 import '../../core/theme/migo_theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/claim_service.dart';
 import '../../services/reservation_service.dart';
 
@@ -89,6 +90,47 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
     });
 
     try {
+
+      // ── MIGO_PAY_ QR (Pay with Coins) ──
+      if (trimmed.startsWith('MIGO_PAY_')) {
+        final paymentId = trimmed.substring(9); // 'MIGO_PAY_' ഒഴിവാക്കി ID എടുക്കുന്നു
+        
+        // പേയ്‌മെന്റ് വിവരങ്ങൾ ഫയർബേസിൽ നിന്ന് എടുക്കുന്നു
+        final paymentDoc = await FirebaseFirestore.instance
+            .collection('coin_payments')
+            .doc(paymentId)
+            .get();
+
+        if (!paymentDoc.exists) {
+          throw Exception('Invalid or expired payment QR');
+        }
+
+        final data = paymentDoc.data()!;
+        if (data['status'] != 'pending') {
+          throw Exception('This payment is already ${data['status']}');
+        }
+
+        final customerUid = data['userId'] as String;
+        final coinsUsed = (data['coinsUsed'] as num).toInt();
+        final billAmount = (data['billAmount'] as num).toDouble();
+        final currency = data['currency'] as String? ?? 'QAR';
+
+        // 🆕 കോയിൻ പേയ്‌മെന്റ് അക്സെപ്റ്റ് ചെയ്യുന്നു
+        await ClaimService.instance.acceptCoinPayment(
+          paymentId: paymentId,
+          customerUid: customerUid,
+          coinsUsed: coinsUsed,
+          businessId: widget.businessId,
+        );
+
+        if (!mounted) return;
+        setState(() {
+          _successMsg = '✅ Payment Accepted!\nBill: $currency ${billAmount.toStringAsFixed(2)}\nCoins Used: $coinsUsed';
+          _codeController.clear();
+          _cameraMode = false;
+        });
+        return;
+      }
       // ── RSV_ QR ──
       if (trimmed.startsWith('RSV_')) {
         final qrCode = trimmed.substring(4);
@@ -145,9 +187,8 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
         businessId: widget.businessId,
       );
       if (!mounted) return;
-      setState(() {
-        _successMsg =
-            'Claim redeemed! +25 coins sent to customer. ✅';
+            setState(() {
+        _successMsg = 'Claim redeemed successfully! Coins sent to customer. ✅';
         _codeController.clear();
         _cameraMode = false;
       });
