@@ -6,7 +6,7 @@ import '../../models/business_model.dart';
 import '../reviews/business_reviews_screen.dart';
 import '../deals/offer_detail_screen.dart';
 import '../../models/offer_model.dart';
-import '../wallet/pay_with_coins_screen.dart';
+
 
 class BusinessDetailScreen extends StatelessWidget {
   final String businessId;
@@ -250,31 +250,7 @@ class BusinessDetailScreen extends StatelessWidget {
 
                       const SizedBox(height: 24),
 
-                      // 🆕 Pay with Coins Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => PayWithCoinsScreen(business: business),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.monetization_on, color: Colors.black),
-                          label: Text(
-                            isAr ? 'الدفع بالعملات' : 'Pay with Coins',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.amber,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
+                      
 
                       // Reviews Section
                       Container(

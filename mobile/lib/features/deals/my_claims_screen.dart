@@ -4,10 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/localization/locale_provider.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../models/claim_model.dart';
-import '../../models/coin_settings_model.dart'; // 🆕 ഇംപോർട്ട്
-import '../../services/firestore_service.dart'; // 🆕 ഇംപോർട്ട്
+import '../../models/coin_settings_model.dart';
+import '../../models/offer_model.dart'; // 🆕 ഓഫർ മോഡൽ
+import '../../services/firestore_service.dart';
 import '../reviews/write_review_screen.dart';
 import 'qr_code_screen.dart';
+import '../wallet/pay_with_coins_screen.dart'; // 🆕 പേയ്‌മെന്റ് സ്ക്രീൻ
 
 class MyClaimsScreen extends StatelessWidget {
   const MyClaimsScreen({super.key});
@@ -30,7 +32,7 @@ class MyClaimsScreen extends StatelessWidget {
             appBar: AppBar(
               title: Text(isAr ? 'العروض النشطة والمستخدمة' : 'Active & Used Deals'),
             ),
-            body: FutureBuilder<CoinSettingsModel>( // 🆕 FutureBuilder ചേർത്തു
+            body: FutureBuilder<CoinSettingsModel>(
               future: FirestoreService.instance.getCoinSettings(),
               builder: (context, settingsSnap) {
                 final reviewReward = settingsSnap.data?.reviewReward ?? 10;
@@ -91,177 +93,227 @@ class MyClaimsScreen extends StatelessWidget {
                         final originalPrice = (data['originalPrice'] as num?)?.toDouble() ?? 0;
                         final offerPrice = (data['offerPrice'] as num?)?.toDouble() ?? 0;
                         final currency = data['currency'] as String? ?? 'QAR';
+                        final businessId = data['businessId'] as String? ?? '';
+                        final offerId = data['offerId'] as String? ?? '';
 
-                        return Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: MigoColors.surfaceLight,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: MigoColors.dividerLight),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
+                        return FutureBuilder<OfferModel?>(
+                          future: FirestoreService.instance.getOffer(offerId), // 🆕 ഓഫർ ലോഡ് ചെയ്യുന്നു
+                          builder: (context, offerSnap) {
+                            final offer = offerSnap.data;
+                            final business = offer != null ? null : null; // ഇവിടെ ബിസിനസ് ലോഡ് ചെയ്യണം, പക്ഷേ ഇപ്പോൾ വേണ്ട
+
+                            return Column(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: BoxDecoration(
+                                    color: MigoColors.surfaceLight,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(color: MigoColors.dividerLight),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Expanded(
-                                        child: Text(
-                                          title,
-                                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                                        ),
-                                      ),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                        decoration: BoxDecoration(
-                                          color: isRedeemed
-                                              ? MigoColors.success.withValues(alpha: 0.15)
-                                              : MigoColors.primary.withValues(alpha: 0.15),
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: Text(
-                                          isRedeemed
-                                              ? (isAr ? 'مستخدم' : 'USED')
-                                              : (isAr ? 'نشط' : 'ACTIVE'),
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w800,
-                                            color: isRedeemed ? MigoColors.success : MigoColors.primary,
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              title,
+                                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    businessName,
-                                    style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        '$currency ${originalPrice.toStringAsFixed(0)}',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          decoration: TextDecoration.lineThrough,
-                                          color: MigoColors.textSecondaryLight,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        '$currency ${offerPrice.toStringAsFixed(0)}',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w800,
-                                          color: MigoColors.primary,
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      if (isRedeemed)
-                                        Row(
-                                          children: [
-                                            const Icon(Icons.check_circle, size: 20, color: MigoColors.success),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              isAr ? 'مستخدم' : 'Used',
-                                              style: const TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w700,
-                                                color: MigoColors.success,
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color: isRedeemed
+                                                  ? MigoColors.success.withValues(alpha: 0.15)
+                                                  : MigoColors.primary.withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              isRedeemed
+                                                  ? (isAr ? 'مستخدم' : 'USED')
+                                                  : (isAr ? 'نشط' : 'ACTIVE'),
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w800,
+                                                color: isRedeemed ? MigoColors.success : MigoColors.primary,
                                               ),
                                             ),
-                                          ],
-                                        )
-                                      else
-                                        Row(
-                                          children: [
-                                            const Icon(Icons.qr_code, size: 20, color: MigoColors.primary),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              isAr ? 'عرض QR' : 'Show QR',
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        businessName,
+                                        style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Row(
+                                        children: [
+                                          Flexible(
+                                            child: Text(
+                                              '$currency ${originalPrice.toStringAsFixed(0)}',
                                               style: const TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w700,
+                                                fontSize: 12,
+                                                decoration: TextDecoration.lineThrough,
+                                                color: MigoColors.textSecondaryLight,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Flexible(
+                                            child: Text(
+                                              '$currency ${offerPrice.toStringAsFixed(0)}',
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w800,
                                                 color: MigoColors.primary,
                                               ),
+                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                          const Spacer(),
+                                          if (isRedeemed)
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.check_circle, size: 20, color: MigoColors.success),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  isAr ? 'مستخدم' : 'Used',
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: MigoColors.success,
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                          else
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.qr_code, size: 20, color: MigoColors.primary),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  isAr ? 'عرض QR' : 'Show QR',
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: MigoColors.primary,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                        ],
+                                      ),
                                     ],
                                   ),
+                                ),
+
+                                                                // 🆕 Pay with Coins Toggle (ചെറിയ സ്വിച്ച്)
+                                if (!isRedeemed && offer != null) ...[
+                                  const SizedBox(height: 6),
+                                  SwitchListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    title: Text(
+                                      isAr ? 'الدفع بالعملات' : 'Pay with Coins',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.amber,
+                                      ),
+                                    ),
+                                    value: false,
+                                    activeColor: Colors.amber,
+                                    onChanged: (val) async {
+                                      if (val) {
+                                        final biz = await FirestoreService.instance.getBusiness(businessId);
+                                        if (biz != null && context.mounted) {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) => PayWithCoinsScreen(
+                                                business: biz,
+                                                offer: offer,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
+                                  ),
                                 ],
-                              ),
-                            ),
 
-                            if (!isRedeemed) ...[
-                              const SizedBox(height: 6),
-                              SizedBox(
-                                width: double.infinity,
-                                child: FilledButton.icon(
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: MigoColors.primary,
-                                  ),
-                                  onPressed: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => QrCodeScreen(
-                                          claimId: doc.id,
-                                          offerTitle: title,
-                                          businessName: businessName,
-                                        ),
+                                // Show QR Code ബട്ടൺ
+                                if (!isRedeemed) ...[
+                                  const SizedBox(height: 6),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: FilledButton.icon(
+                                      style: FilledButton.styleFrom(
+                                        backgroundColor: MigoColors.primary,
                                       ),
-                                    );
-                                  },
-                                   icon: const Icon(Icons.qr_code, size: 20),
-                                  label: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(isAr ? 'عرض رمز QR' : 'Show QR Code'),
-                                  ),
-                                ),
-                              ),
-                            ],
-
-                            if (isRedeemed) ...[
-                              const SizedBox(height: 6),
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton.icon(
-                                  onPressed: () async {
-                                    final res = await Navigator.of(context).push<bool>(
-                                      MaterialPageRoute(
-                                        builder: (_) => WriteReviewScreen(
-                                          claim: ClaimModel(
-                                            id: doc.id,
-                                            userUid: uid,
-                                            businessId: data['businessId'] ?? '',
-                                            businessName: data['businessName'] ?? '',
-                                            offerId: data['offerId'] ?? '',
-                                            offerTitle: data['offerTitle'] ?? '',
-                                            originalPrice: (data['originalPrice'] as num?)?.toDouble() ?? 0,
-                                            offerPrice: (data['offerPrice'] as num?)?.toDouble() ?? 0,
-                                            currency: data['currency'] ?? 'QAR',
-                                            status: ClaimStatus.redeemed,
-                                            claimedAt: (data['claimedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-                                            expiresAt: (data['expiresAt'] as Timestamp?)?.toDate() ?? DateTime.now().add(const Duration(days: 7)),
-                                            redeemedAt: (data['redeemedAt'] as Timestamp?)?.toDate(),
+                                      onPressed: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) => QrCodeScreen(
+                                              claimId: doc.id,
+                                              offerTitle: title,
+                                              businessName: businessName,
+                                            ),
                                           ),
-                                        ),
+                                        );
+                                      },
+                                      icon: const Icon(Icons.qr_code, size: 20),
+                                      label: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(isAr ? 'عرض رمز QR' : 'Show QR Code'),
                                       ),
-                                    );
-                                  },
-                                  icon: const Icon(Icons.rate_review_outlined, size: 16),
-                                  // 🆕 ഡൈനാമിക് ടെക്സ്റ്റ്
-                                  label: Text(
-                                    isAr
-                                        ? 'اكتب مراجعة · +$reviewReward عملات'
-                                        : 'Write a review · +$reviewReward coins',
+                                    ),
                                   ),
-                                ),
-                              ),
-                            ],
-                          ],
+                                ],
+
+                                // Write Review ബട്ടൺ
+                                if (isRedeemed) ...[
+                                  const SizedBox(height: 6),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: OutlinedButton.icon(
+                                      onPressed: () async {
+                                        await Navigator.of(context).push<bool>(
+                                          MaterialPageRoute(
+                                            builder: (_) => WriteReviewScreen(
+                                              claim: ClaimModel(
+                                                id: doc.id,
+                                                userUid: uid,
+                                                businessId: businessId,
+                                                businessName: businessName,
+                                                offerId: offerId,
+                                                offerTitle: title,
+                                                originalPrice: originalPrice,
+                                                offerPrice: offerPrice,
+                                                currency: currency,
+                                                status: ClaimStatus.redeemed,
+                                                claimedAt: (data['claimedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+                                                expiresAt: (data['expiresAt'] as Timestamp?)?.toDate() ?? DateTime.now().add(const Duration(days: 7)),
+                                                redeemedAt: (data['redeemedAt'] as Timestamp?)?.toDate(),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      icon: const Icon(Icons.rate_review_outlined, size: 16),
+                                      label: Text(
+                                        isAr
+                                            ? 'اكتب مراجعة · +$reviewReward عملات'
+                                            : 'Write a review · +$reviewReward coins',
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            );
+                          },
                         );
                       },
                     );

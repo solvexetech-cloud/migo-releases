@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // 🆕 Live Stream-ന് വേണ്ടി
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../core/localization/locale_provider.dart';
 import '../../core/theme/migo_colors.dart';
@@ -9,27 +9,29 @@ import '../../models/business_model.dart';
 import '../../models/coin_settings_model.dart';
 import '../../models/user_model.dart';
 import '../../services/firestore_service.dart';
+import '../../models/offer_model.dart';
 
 class PayWithCoinsScreen extends StatefulWidget {
   final BusinessModel business;
+  final OfferModel offer;
 
-  const PayWithCoinsScreen({super.key, required this.business});
+  const PayWithCoinsScreen({
+    super.key,
+    required this.business,
+    required this.offer,
+  });
 
   @override
   State<PayWithCoinsScreen> createState() => _PayWithCoinsScreenState();
 }
 
 class _PayWithCoinsScreenState extends State<PayWithCoinsScreen> {
-  final _billController = TextEditingController();
-  double _billAmount = 0;
   int _coinsToUse = 0;
   bool _isGeneratingQR = false;
 
   UserModel? _user;
   CoinSettingsModel? _settings;
   bool _loading = true;
-  
-  String? _activePaymentId; // 🆕 QR ജനറേറ്റ് ചെയ്താൽ അതിന്റെ ID സൂക്ഷിക്കാൻ
 
   @override
   void initState() {
@@ -49,32 +51,29 @@ class _PayWithCoinsScreenState extends State<PayWithCoinsScreen> {
         _user = user;
         _settings = settings;
         _loading = false;
+        if (user != null && settings != null) {
+          _calculateCoins();
+        }
       });
     }
   }
 
   void _calculateCoins() {
     if (_settings == null || _user == null) return;
-    
-    final maxPercent = _settings!.maxRedemptionPercent / 100.0;
-    final maxValue = _billAmount * maxPercent;
+
     final rate = _settings!.getValueFor100Coins(_user!.currentCountryCode ?? 'QA');
-    
+    final maxPercent = _settings!.maxRedemptionPercent / 100.0;
+    final billAmount = widget.offer.offerPrice; // 🆕 ഓഫറിന്റെ വില
+    final maxValue = billAmount * maxPercent;
     final maxCoins = (maxValue / (rate / 100)).floor();
-    
+
     setState(() {
-      _coinsToUse = maxCoins > (_user!.coins) ? _user!.coins : maxCoins;
+      _coinsToUse = maxCoins > _user!.coins ? _user!.coins : maxCoins;
     });
   }
 
-  @override
-  void dispose() {
-    _billController.dispose();
-    super.dispose();
-  }
-
   Future<void> _generateQR() async {
-    if (_coinsToUse <= 0 || _billAmount <= 0) return;
+    if (_coinsToUse <= 0) return;
 
     setState(() => _isGeneratingQR = true);
 
@@ -86,10 +85,13 @@ class _PayWithCoinsScreenState extends State<PayWithCoinsScreen> {
       final paymentData = {
         'id': paymentId,
         'userId': uid,
-        'userName': _user?.displayName ?? 'Customer',
+        'userName': _user?.displayName ?? _user?.email ?? 'Customer',
+        'userEmail': _user?.email ?? '',
         'businessId': widget.business.id,
         'businessName': widget.business.name,
-        'billAmount': _billAmount,
+        'offerId': widget.offer.id,
+        'offerTitle': widget.offer.title,
+        'billAmount': widget.offer.offerPrice, // 🆕 ഓഫറിന്റെ വില
         'coinsUsed': _coinsToUse,
         'currency': widget.business.currency,
         'status': 'pending',
@@ -100,10 +102,7 @@ class _PayWithCoinsScreenState extends State<PayWithCoinsScreen> {
 
       if (!mounted) return;
 
-      setState(() {
-        _isGeneratingQR = false;
-        _activePaymentId = paymentId; // 🆕 ID സേവ് ചെയ്യുന്നു
-      });
+      setState(() => _isGeneratingQR = false);
 
       // 🆕 QR കോഡും സ്റ്റാറ്റസും കാണിക്കാൻ പോപ്പ്അപ്പ്
       showDialog(
@@ -116,13 +115,11 @@ class _PayWithCoinsScreenState extends State<PayWithCoinsScreen> {
                 .doc(paymentId)
                 .snapshots(),
             builder: (context, snapshot) {
-              // 1. പേയ്‌മെന്റ് സ്റ്റാറ്റസ് ചെക്ക് ചെയ്യുന്നു
               if (snapshot.hasData && snapshot.data!.exists) {
                 final data = snapshot.data!.data() as Map<String, dynamic>;
                 final status = data['status'] as String?;
 
                 if (status == 'accepted') {
-                  // 🆕 പേയ്‌മെന്റ് വിജയിച്ചാൽ ഈ സക്സസ് സ്ക്രീൻ കാണിക്കും
                   return Dialog(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     child: Padding(
@@ -150,7 +147,6 @@ class _PayWithCoinsScreenState extends State<PayWithCoinsScreen> {
                           ),
                           const SizedBox(height: 24),
                           
-                          // 🆕 ബാക്കി കോയിൻ ബാലൻസ് കാണിക്കാൻ
                           FutureBuilder<UserModel?>(
                             future: FirestoreService.instance.getUser(_user!.uid),
                             builder: (context, userSnap) {
@@ -175,8 +171,8 @@ class _PayWithCoinsScreenState extends State<PayWithCoinsScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: () {
-                                Navigator.pop(ctx); // ഡയലോഗ് ക്ലോസ് ചെയ്യുന്നു
-                                Navigator.pop(context); // സ്ക്രീൻ ക്ലോസ് ചെയ്യുന്നു
+                                Navigator.pop(ctx);
+                                Navigator.pop(context);
                               },
                               child: const Text('Done'),
                             ),
@@ -188,7 +184,7 @@ class _PayWithCoinsScreenState extends State<PayWithCoinsScreen> {
                 }
               }
 
-              // 2. സ്റ്റാറ്റസ് pending ആണെങ്കിൽ QR കാണിക്കും
+              // സ്റ്റാറ്റസ് pending ആണെങ്കിൽ QR കാണിക്കും
               return Dialog(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 child: Padding(
@@ -208,7 +204,7 @@ class _PayWithCoinsScreenState extends State<PayWithCoinsScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Bill: ${widget.business.currency} ${_billAmount.toStringAsFixed(2)}',
+                        'Bill: ${widget.business.currency} ${widget.offer.offerPrice.toStringAsFixed(2)}',
                         style: const TextStyle(fontSize: 14),
                       ),
                       Text(
@@ -216,7 +212,7 @@ class _PayWithCoinsScreenState extends State<PayWithCoinsScreen> {
                         style: const TextStyle(fontSize: 14, color: MigoColors.success),
                       ),
                       const SizedBox(height: 24),
-                      const CircularProgressIndicator(), // പേയ്‌മെന്റിനായി കാത്തിരിക്കുന്നു
+                      const CircularProgressIndicator(),
                       const SizedBox(height: 8),
                       const Text('Waiting for shop to scan...', style: TextStyle(fontSize: 12, color: Colors.grey)),
                     ],
@@ -258,6 +254,7 @@ class _PayWithCoinsScreenState extends State<PayWithCoinsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Business & Offer Info
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -276,30 +273,23 @@ class _PayWithCoinsScreenState extends State<PayWithCoinsScreen> {
                           '${widget.business.category} · ${widget.business.city}',
                           style: const TextStyle(fontSize: 13, color: MigoColors.textSecondaryLight),
                         ),
+                        const Divider(),
+                        Text(
+                          widget.offer.title,
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${widget.business.currency} ${widget.offer.offerPrice.toStringAsFixed(2)}',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: MigoColors.primary),
+                        ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
-                  TextField(
-                    controller: _billController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      labelText: isAr ? 'إجمالي الفاتورة' : 'Total Bill Amount',
-                      prefixText: '${widget.business.currency} ',
-                      border: const OutlineInputBorder(),
-                    ),
-                    onChanged: (val) {
-                      setState(() {
-                        _billAmount = double.tryParse(val) ?? 0;
-                        _calculateCoins();
-                      });
-                    },
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  if (_billAmount > 0 && _user != null && _settings != null) ...[
+
+                  // Payment Summary
+                  if (_user != null && _settings != null) ...[
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -353,7 +343,7 @@ class _PayWithCoinsScreenState extends State<PayWithCoinsScreen> {
                                 ),
                               ),
                               Text(
-                                '${widget.business.currency} ${(_billAmount - (_coinsToUse * (_settings!.getValueFor100Coins(_user!.currentCountryCode ?? 'QA') / 100))).toStringAsFixed(2)}',
+                                '${widget.business.currency} ${(widget.offer.offerPrice - (_coinsToUse * (_settings!.getValueFor100Coins(_user!.currentCountryCode ?? 'QA') / 100))).toStringAsFixed(2)}',
                                 style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
                             ],

@@ -90,54 +90,101 @@ class WalletScreen extends StatelessWidget {
                                       ),
                                     ),
                                     const SizedBox(height: 20),
-                                    // Coin card
+
+                                                                        // 🆕 Coin Card (Animated & Glowing)
                                     Container(
-                                      padding: const EdgeInsets.all(22),
+                                      padding: const EdgeInsets.all(24),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.08),
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: Colors.white.withValues(alpha: 0.15),
-                                          width: 1,
+                                        gradient: const LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            Color(0xFF1E3A8A), // Deep Blue
+                                            Color(0xFF0F2B5B),
+                                          ],
                                         ),
+                                        borderRadius: BorderRadius.circular(24),
+                                        border: Border.all(
+                                          color: MigoColors.accent.withValues(alpha: 0.3),
+                                          width: 1.5,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: MigoColors.accent.withValues(alpha: 0.15),
+                                            blurRadius: 30,
+                                            spreadRadius: 5,
+                                            offset: const Offset(0, 10),
+                                          ),
+                                        ],
                                       ),
                                       child: Stack(
                                         children: [
+                                          // Background Coin Stack Animation
                                           Positioned(
                                             right: isAr ? null : -20,
                                             left: isAr ? -20 : null,
                                             top: -20,
-                                            child: Container(
-                                              width: 100,
-                                              height: 100,
-                                              decoration: BoxDecoration(
-                                                color: MigoColors.accent.withValues(alpha: 0.15),
-                                                shape: BoxShape.circle,
-                                              ),
+                                            child: Column(
+                                              children: List.generate(3, (i) {
+                                                return TweenAnimationBuilder<double>(
+                                                  tween: Tween(begin: 0.0, end: 1.0),
+                                                  duration: Duration(milliseconds: 800 + (i * 200)),
+                                                  curve: Curves.easeOutBack,
+                                                  builder: (context, value, child) {
+                                                    return Transform.scale(
+                                                      scale: value,
+                                                      child: Transform.translate(
+                                                        offset: Offset(0, i * 15.0),
+                                                        child: Container(
+                                                          width: 80 - (i * 15),
+                                                          height: 80 - (i * 15),
+                                                          decoration: BoxDecoration(
+                                                            color: MigoColors.accent.withValues(alpha: 0.1 + (i * 0.05)),
+                                                            shape: BoxShape.circle,
+                                                            border: Border.all(
+                                                              color: MigoColors.accent.withValues(alpha: 0.2),
+                                                              width: 1,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                );
+                                              }),
                                             ),
                                           ),
+                                          
+                                          // Content
                                           Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Row(
                                                 children: [
                                                   Container(
-                                                    padding: const EdgeInsets.all(6),
+                                                    padding: const EdgeInsets.all(8),
                                                     decoration: BoxDecoration(
                                                       gradient: MigoGradients.gold,
-                                                      borderRadius: BorderRadius.circular(8),
+                                                      borderRadius: BorderRadius.circular(10),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.black.withValues(alpha: 0.2),
+                                                          blurRadius: 5,
+                                                          offset: const Offset(0, 2),
+                                                        ),
+                                                      ],
                                                     ),
                                                     child: const Icon(
                                                       Icons.monetization_on,
                                                       color: Colors.black,
-                                                      size: 14,
+                                                      size: 18,
                                                     ),
                                                   ),
-                                                  const SizedBox(width: 10),
+                                                  const SizedBox(width: 12),
                                                   Text(
                                                     isAr ? 'عملات ميجو' : 'MIGO COINS',
                                                     style: const TextStyle(
-                                                      fontSize: 10,
+                                                      fontSize: 12,
                                                       letterSpacing: 2.5,
                                                       fontWeight: FontWeight.w900,
                                                       color: MigoColors.accent,
@@ -145,22 +192,64 @@ class WalletScreen extends StatelessWidget {
                                                   ),
                                                 ],
                                               ),
-                                              const SizedBox(height: 14),
-                                              // 🆕 കോയിൻസും അതിന്റെ ഫിയറ്റ് വാല്യുവും
-                                              Row(
-                                                crossAxisAlignment: CrossAxisAlignment.end,
-                                                children: [
-                                                                                                Text(
-                                                '${user?.coins ?? 0}',
-                                                style: const TextStyle(
-                                                  fontSize: 54,
-                                                  fontWeight: FontWeight.w900,
-                                                  color: Colors.white,
-                                                  height: 1,
-                                                  letterSpacing: -2,
-                                                ),
+                                              const SizedBox(height: 20),
+                                              
+                                              // Animated Coin Count
+                                              TweenAnimationBuilder<int>(
+                                                tween: IntTween(begin: 0, end: user?.coins ?? 0),
+                                                duration: const Duration(milliseconds: 1500),
+                                                curve: Curves.easeOutCubic,
+                                                builder: (context, value, child) {
+                                                  return Row(
+                                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                                    children: [
+                                                      Text(
+                                                        '$value',
+                                                        style: const TextStyle(
+                                                          fontSize: 56,
+                                                          fontWeight: FontWeight.w900,
+                                                          color: Colors.white,
+                                                          height: 1,
+                                                          letterSpacing: -2,
+                                                          shadows: [
+                                                            Shadow(
+                                                              color: Colors.black26,
+                                                              blurRadius: 10,
+                                                              offset: Offset(0, 4),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      if (fiatValueText.isNotEmpty) ...[
+                                                        const SizedBox(width: 10),
+                                                        Padding(
+                                                          padding: const EdgeInsets.only(bottom: 10),
+                                                          child: Container(
+                                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                            decoration: BoxDecoration(
+                                                              color: MigoColors.success.withValues(alpha: 0.2),
+                                                              borderRadius: BorderRadius.circular(8),
+                                                              border: Border.all(
+                                                                color: MigoColors.success.withValues(alpha: 0.5),
+                                                              ),
+                                                            ),
+                                                            child: Text(
+                                                              fiatValueText,
+                                                              style: const TextStyle(
+                                                                fontSize: 13,
+                                                                fontWeight: FontWeight.w800,
+                                                                color: MigoColors.success,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ],
+                                                  );
+                                                },
                                               ),
-                                                                                            // 🆕 എക്സ്പയറി തീയതി കാണിക്കാൻ
+                                              
+                                              // 🆕 എക്സ്പയറി തീയതി
                                               if (user?.coinsExpireAt != null && (user?.coins ?? 0) > 0) ...[
                                                 const SizedBox(height: 4),
                                                 Text(
@@ -173,37 +262,15 @@ class WalletScreen extends StatelessWidget {
                                                   ),
                                                 ),
                                               ],
-                                                  if (fiatValueText.isNotEmpty) ...[
-                                                    const SizedBox(width: 8),
-                                                    Padding(
-                                                      padding: const EdgeInsets.only(bottom: 8),
-                                                      child: Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                                        decoration: BoxDecoration(
-                                                          color: MigoColors.success.withValues(alpha: 0.2),
-                                                          borderRadius: BorderRadius.circular(6),
-                                                        ),
-                                                        child: Text(
-                                                          fiatValueText,
-                                                          style: const TextStyle(
-                                                            fontSize: 12,
-                                                            fontWeight: FontWeight.w700,
-                                                            color: MigoColors.success,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ],
-                                              ),
-                                              const SizedBox(height: 6),
+                                              
+                                              const SizedBox(height: 8),
                                               Text(
                                                 isAr
                                                     ? 'اكسب المزيد من خلال المطالبة بالعروض واستردادها'
                                                     : 'Earn more by claiming and redeeming deals',
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.white70,
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Colors.white.withValues(alpha: 0.7),
                                                   fontWeight: FontWeight.w500,
                                                 ),
                                               ),
