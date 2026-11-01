@@ -19,6 +19,8 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+  final _nameController = TextEditingController(); // 🆕 പേര്
+  final _mobileController = TextEditingController(); // 🆕 മൊബൈൽ
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
@@ -99,6 +101,8 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
+    _mobileController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
@@ -109,11 +113,20 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _submit() async {
     setState(() => _error = null);
 
+    final name = _nameController.text.trim();
+    final mobile = _mobileController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     final confirm = _confirmController.text;
     final referralCode = _referralController.text.trim().toUpperCase();
 
+    // 🆕 വാലിഡേഷൻ
+    if (name.isEmpty || mobile.isEmpty) {
+      setState(() => _error = LocaleProvider.instance.locale == 'ar'
+          ? 'يرجى إدخال الاسم ورقم الهاتف.'
+          : 'Please enter your name and mobile number.');
+      return;
+    }
     if (email.isEmpty || password.isEmpty) {
       setState(() => _error = LocaleProvider.instance.locale == 'ar'
           ? 'يرجى ملء جميع الحقول.'
@@ -151,7 +164,7 @@ class _SignupScreenState extends State<SignupScreen> {
         return;
       }
 
-            final cred = await AuthService.instance.signUp(
+      final cred = await AuthService.instance.signUp(
         email: email,
         password: password,
         countryCode: _selectedCountry!.code,
@@ -162,9 +175,12 @@ class _SignupScreenState extends State<SignupScreen> {
 
       final newUid = cred.user?.uid;
       
-      // 🆕 ഇമെയിലും വിവരങ്ങളും ഫയർബേസിലേക്ക് സേവ് ചെയ്യുന്നു (അഡ്മിൻ പാനലിൽ കാണാൻ)
+      // 🆕 ഇമെയിലും പേരും ഫോണും ഫയർബേസിലേക്ക് സേവ് ചെയ്യുന്നു
       if (newUid != null) {
         await FirestoreService.instance.updateUser(newUid, {
+          'name': name, // 🆕 പേര്
+          'displayName': name, // 🆕 പേര്
+          'phone': mobile, // 🆕 മൊബൈൽ
           'email': email,
           'role': 'customer',
           'currentCountryCode': _selectedCountry!.code,
@@ -410,7 +426,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                           ),
 
-                    // Referral banner (🆕 ഹാർഡ്കോഡ് ഒഴിവാക്കി പൊതുവായി എഴുതി)
+                    // Referral banner
                     if (_referralFromUrl) ...[
                       const SizedBox(height: 16),
                       Container(
@@ -462,6 +478,35 @@ class _SignupScreenState extends State<SignupScreen> {
                     ],
 
                     const SizedBox(height: 24),
+
+                    // 🆕 പേര്
+                    TextField(
+                      controller: _nameController,
+                      keyboardType: TextInputType.name,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: InputDecoration(
+                        labelText: isAr ? 'الاسم الكامل' : 'Full Name',
+                        prefixIcon: const Icon(Icons.person_outline),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 🆕 മൊബൈൽ നമ്പർ
+                    TextField(
+                      controller: _mobileController,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        labelText: isAr ? 'رقم الهاتف' : 'Mobile Number',
+                        prefixIcon: const Icon(Icons.phone_outlined),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
 
                     // Email
                     TextField(

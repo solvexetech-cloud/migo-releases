@@ -428,5 +428,25 @@ TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅�
 4. **PHASE G — Monetization** (50h) — REVENUE 🔥
 
 ═══════════════════════════════════════════════════════
+## PHASE K — Coin Payments & Advanced UI (v4.4)
+═══════════════════════════════════════════════════════
+
+| # | Task | Time | Status |
+|---|------|------|--------|
+| K1 | Coin Settings: Max Redemption % & Expiry | 1h | ✅ DONE 2026-11-01 |
+| K2 | Signup Bonus & Dynamic Coin Values | 1h | ✅ DONE 2026-11-01 |
+| K3 | Pay with Coins (Customer QR Generation) | 3h | ✅ DONE 2026-11-01 |
+| K4 | Pay with Coins (Business Scan & Accept) | 2h | ✅ DONE 2026-11-01 |
+| K5 | Coin Payments Report (Admin Panel) | 1.5h | ✅ DONE 2026-11-01 |
+| K6 | Offer Stats (Claims, Saved, Redeemed) | 1h | ✅ DONE 2026-11-01 |
+| K7 | Animated Coin Card (Wallet UI) | 1h | ✅ DONE 2026-11-01 |
+| K8 | Pay with Coins Toggle (My Claims) | 1h | ✅ DONE 2026-11-01 |
+| K9 | Business Detail Screen (View Shop Profile) | 1h | ✅ DONE 2026-11-01 |
+| K10 | Signup Bonus & Coin Expiry Logic | 1h | ✅ DONE 2026-11-01 |
+
+**Total PHASE K: ~13.5 hours**
+**Progress: 100% (10/10)** 🎉
+
+═══════════════════════════════════════════════════════
 END OF MASTER PLAN v4.3
 ═══════════════════════════════════════════════════════
