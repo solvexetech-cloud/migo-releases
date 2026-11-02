@@ -340,7 +340,7 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    'SAVE ${offer.discountPercent}%',
+                    'SAVE ${offer.percentOff}%',
                     style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
@@ -389,11 +389,11 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () => _toggleActive(context, offer),
                     icon: Icon(
-                      offer.isActive ? Icons.pause_circle_outline : Icons.play_circle_outline,
+                      offer.status == 'live' ? Icons.pause_circle_outline : Icons.play_circle_outline,
                       size: 14,
                     ),
                     label: Text(
-                      offer.isActive ? 'Pause' : 'Activate',
+                      offer.status == 'live' ? 'Pause' : 'Activate',
                       style: const TextStyle(fontSize: 11),
                     ),
                     style: OutlinedButton.styleFrom(
@@ -517,7 +517,7 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
   Future<void> _toggleActive(BuildContext context, OfferModel offer) async {
     final err = await OfferService.instance.toggleActive(
       offerId: offer.id,
-      currentActive: offer.isActive,
+      currentActive: offer.status == 'live',
     );
     if (!context.mounted) return;
     if (err != null) {

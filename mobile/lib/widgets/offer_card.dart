@@ -319,18 +319,24 @@ class _OfferCardState extends State<OfferCard> {
                               ),
                             ),
                             const SizedBox(height: 6),
-                            // Price row
+                                                        // Price row
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text(
-                                  '${offer.currency} ${offer.offerPrice.toStringAsFixed(0)}',
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w900,
-                                    color: MigoColors.primaryLight,
-                                    height: 1,
-                                    letterSpacing: -0.5,
+                                Flexible( // 🆕 ഇത് ചേർത്തു
+                                  child: FittedBox( // 🆕 ഇത് ചേർത്തു
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      '${offer.currency} ${offer.offerPrice.toStringAsFixed(0)}',
+                                      style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w900,
+                                        color: MigoColors.primaryLight,
+                                        height: 1,
+                                        letterSpacing: -0.5,
+                                      ),
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 6),
@@ -352,7 +358,7 @@ class _OfferCardState extends State<OfferCard> {
                               ],
                             ),
                             const SizedBox(height: 6),
-                            // Save badge
+                                                        // Save badge
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 7,
@@ -362,15 +368,18 @@ class _OfferCardState extends State<OfferCard> {
                                 color: MigoColors.success.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: Text(
-                                isAr
-                                    ? 'وفر ${offer.currency} ${offer.savings.toStringAsFixed(0)}'
-                                    : 'SAVE ${offer.currency} ${offer.savings.toStringAsFixed(0)}',
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                  color: MigoColors.success,
-                                  letterSpacing: 0.3,
+                              child: FittedBox( // 🆕 ഇത് ചേർത്തു
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  isAr
+                                      ? 'وفر ${offer.currency} ${offer.savings.toStringAsFixed(0)}'
+                                      : 'SAVE ${offer.currency} ${offer.savings.toStringAsFixed(0)}',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    color: MigoColors.success,
+                                    letterSpacing: 0.3,
+                                  ),
                                 ),
                               ),
                             ),
@@ -432,7 +441,7 @@ class _OfferCardState extends State<OfferCard> {
     );
   }
 
-  String _getOfferTypeLabel(OfferType type, bool isAr) {
+    String _getOfferTypeLabel(OfferType type, bool isAr) {
     switch (type) {
       case OfferType.standard:
         return isAr ? 'عرض قياسي' : 'Standard Deal';
@@ -440,6 +449,11 @@ class _OfferCardState extends State<OfferCard> {
         return isAr ? 'عرض سريع' : 'Flash Deal';
       case OfferType.group:
         return isAr ? 'عرض جماعي' : 'Group Deal';
+      // 🆕 ഈ രണ്ട് കേസുകൾ കൂടി ചേർക്കുക
+      case OfferType.groupAllOrNothing:
+        return isAr ? 'عرض جماعي' : 'GROUP DEAL';
+      case OfferType.groupProgressive:
+        return isAr ? 'عرض تدريجي' : 'GROUP DEAL';
       case OfferType.hidden:
         return isAr ? 'جوهرة مخفية' : 'Hidden Gem';
       case OfferType.birthday:

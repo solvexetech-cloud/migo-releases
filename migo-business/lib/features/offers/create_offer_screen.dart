@@ -51,6 +51,13 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
   // Group Deal Controllers
   final _minGroupCtrl = TextEditingController(text: '5');
   final _maxGroupCtrl = TextEditingController();
+  // 🆕 Plan A & Plan B controllers
+  final _requiredClaimsCtrl = TextEditingController(text: '10');
+  final _maxSlotsCtrl = TextEditingController(text: '13');
+  final _groupTimerCtrl = TextEditingController(text: '48');
+  final _redemptionWindowCtrl = TextEditingController(text: '24');
+  final _floorPriceCtrl = TextEditingController();
+  final _stepPriceCtrl = TextEditingController();
 
   // Dynamic Categories
   List<Map<String, String>> _dynamicCategories = [];
@@ -61,6 +68,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
   int _durationDays = 7;
   bool _isReservable = false;
   String _countryCode = 'QA';
+  bool _lockOnSlotsFull = false; // 🆕 Plan B
 
   bool _loading = false;
   bool _uploadingImage = false;
@@ -74,12 +82,13 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
 
   bool get isEdit => widget.existingOffer != null;
 
-  static const _offerTypes = [
+    static const _offerTypes = [
     {'value': 'standard', 'label': 'Standard Deal'},
     {'value': 'flash', 'label': 'Flash Deal'},
     {'value': 'hidden', 'label': 'Hidden Gem'},
     {'value': 'birthday', 'label': 'Birthday Special'},
-    {'value': 'group', 'label': 'Group Deal'},
+    {'value': 'group_all_or_nothing', 'label': 'Group Deal (All-or-Nothing)'},
+    {'value': 'group_progressive', 'label': 'Group Deal (Progressive)'},
   ];
 
   static const _countries = [
@@ -98,14 +107,30 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
     _loadBusinessCountry();
     _loadCategories();
     final o = widget.existingOffer;
-    if (o != null) {
+        if (o != null) {
       _titleCtrl.text = o.title;
       _descCtrl.text = o.description;
       _originalPriceCtrl.text = o.originalPrice.toStringAsFixed(0);
       _offerPriceCtrl.text = o.offerPrice.toStringAsFixed(0);
-      _imageUrl = o.imageUrl.isNotEmpty ? o.imageUrl : null;
-      _type = o.type.isNotEmpty ? o.type : 'standard';
+            _imageUrl = (o.imageUrl != null && o.imageUrl!.isNotEmpty)
+          ? o.imageUrl
+          : null;
+      _type = o.type.id;
       if (o.category.isNotEmpty) _category = o.category;
+      // 🆕 Plan A/B fields load
+      if (o.requiredClaims != null) {
+        _requiredClaimsCtrl.text = o.requiredClaims.toString();
+      }
+      if (o.maxSlots != null) _maxSlotsCtrl.text = o.maxSlots.toString();
+      if (o.groupTimerHours != null) {
+        _groupTimerCtrl.text = o.groupTimerHours.toString();
+      }
+      if (o.redemptionWindowHours != null) {
+        _redemptionWindowCtrl.text = o.redemptionWindowHours.toString();
+      }
+      if (o.floorPrice != null) _floorPriceCtrl.text = o.floorPrice.toString();
+      if (o.stepPrice != null) _stepPriceCtrl.text = o.stepPrice.toString();
+      _lockOnSlotsFull = o.lockOnSlotsFull;
     }
   }
 
@@ -170,6 +195,12 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
     _maxPerCustomerCtrl.dispose();
     _minGroupCtrl.dispose();
     _maxGroupCtrl.dispose();
+    _requiredClaimsCtrl.dispose();
+    _maxSlotsCtrl.dispose();
+    _groupTimerCtrl.dispose();
+    _redemptionWindowCtrl.dispose();
+    _floorPriceCtrl.dispose();
+    _stepPriceCtrl.dispose();
     super.dispose();
   }
 
@@ -263,7 +294,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
       String? err;
 
       if (isEdit) {
-        err = await OfferService.instance.updateOffer(
+                err = await OfferService.instance.updateOffer(
           offerId: widget.existingOffer!.id,
           title: titleEn,
           titleEn: titleEn,
@@ -277,9 +308,32 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
           originalPrice: double.tryParse(_originalPriceCtrl.text.trim()) ?? 0,
           offerPrice: double.tryParse(_offerPriceCtrl.text.trim()) ?? 0,
           endDate: DateTime.now().add(Duration(days: _durationDays)),
+          // 🆕 Plan A/B fields
+          requiredClaims: _type == 'group_all_or_nothing'
+              ? int.tryParse(_requiredClaimsCtrl.text)
+              : null,
+          maxSlots: _type == 'group_all_or_nothing'
+              ? int.tryParse(_maxSlotsCtrl.text)
+              : null,
+          groupTimerHours: (_type == 'group_all_or_nothing' ||
+                  _type == 'group_progressive')
+              ? int.tryParse(_groupTimerCtrl.text)
+              : null,
+          redemptionWindowHours: (_type == 'group_all_or_nothing' ||
+                  _type == 'group_progressive')
+              ? int.tryParse(_redemptionWindowCtrl.text)
+              : null,
+          floorPrice: _type == 'group_progressive'
+              ? double.tryParse(_floorPriceCtrl.text)
+              : null,
+          stepPrice: _type == 'group_progressive'
+              ? double.tryParse(_stepPriceCtrl.text)
+              : null,
+          lockOnSlotsFull:
+              _type == 'group_progressive' ? _lockOnSlotsFull : null,
         );
       } else {
-        err = await OfferService.instance.createOffer(
+                err = await OfferService.instance.createOffer(
           businessId: widget.businessId,
           businessName: widget.businessName,
           areaId: widget.areaId,
@@ -298,38 +352,34 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
           countryCode: _countryCode,
           whatsappNumber: _whatsappCtrl.text.trim(),
           orderLink: _orderLinkCtrl.text.trim(),
+          // 🆕 Plan A/B fields
+          requiredClaims: _type == 'group_all_or_nothing'
+              ? int.tryParse(_requiredClaimsCtrl.text)
+              : null,
+          maxSlots: _type == 'group_all_or_nothing'
+              ? int.tryParse(_maxSlotsCtrl.text)
+              : null,
+          groupTimerHours: (_type == 'group_all_or_nothing' ||
+                  _type == 'group_progressive')
+              ? int.tryParse(_groupTimerCtrl.text)
+              : null,
+          redemptionWindowHours: (_type == 'group_all_or_nothing' ||
+                  _type == 'group_progressive')
+              ? int.tryParse(_redemptionWindowCtrl.text)
+              : null,
+          floorPrice: _type == 'group_progressive'
+              ? double.tryParse(_floorPriceCtrl.text)
+              : null,
+          stepPrice: _type == 'group_progressive'
+              ? double.tryParse(_stepPriceCtrl.text)
+              : null,
+          lockOnSlotsFull:
+              _type == 'group_progressive' ? _lockOnSlotsFull : null,
         );
 
-        // 🆕 പുതിയ ഗ്രൂപ്പ് ഡീൽ ഉണ്ടാക്കാനുള്ള കോഡ്
-        if (err == null && _type == 'group') {
-          try {
-            final snap = await FirebaseFirestore.instance
-                .collection('offers')
-                .where('businessId', isEqualTo: widget.businessId)
-                .where('title', isEqualTo: titleEn)
-                .limit(1)
-                .get();
-
-            if (snap.docs.isNotEmpty) {
-              final newOfferId = snap.docs.first.id;
-              
-              await FirebaseFirestore.instance.collection('group_deals').doc(newOfferId).set({
-                'offerId': newOfferId,
-                'minParticipants': int.tryParse(_minGroupCtrl.text.trim()) ?? 5,
-                'maxParticipants': _maxGroupCtrl.text.trim().isEmpty 
-                    ? null 
-                    : int.tryParse(_maxGroupCtrl.text.trim()),
-                'participantUids': [],
-                'status': 'open',
-                'deadline': DateTime.now().add(Duration(days: _durationDays)),
-                'createdAt': FieldValue.serverTimestamp(),
-                'updatedAt': FieldValue.serverTimestamp(),
-              });
-            }
-          } catch (e) {
-            debugPrint('Failed to create group deal: $e');
-          }
-        }
+        // 🆕 Plan A / Plan B ഫീൽഡുകൾ
+        // (OfferService-ൽ createOffer-ലേക്ക് നേരിട്ട് പോകുന്നു,
+        //  group_deals collection ആവശ്യമില്ല)
       }
 
       if (!mounted) return;
@@ -479,35 +529,214 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                             onChanged: (v) => setState(() => _type = v ?? 'standard'),
                           ),
                           
-                          // Group Deal Fields
-                          if (_type == 'group') ...[
+                                                    // 🆕 PLAN A — All-or-Nothing
+                          if (_type == 'group_all_or_nothing') ...[
                             const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _minGroupCtrl,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Min people',
-                                      border: OutlineInputBorder(),
-                                      isDense: true,
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.blue.shade200),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    isAr
+                                        ? 'الخطة أ: كل شيء أو لا شيء'
+                                        : 'Plan A: All-or-Nothing Setup',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _maxGroupCtrl,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Max people (opt)',
-                                      border: OutlineInputBorder(),
-                                      isDense: true,
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: TextFormField(
+                                          controller: _requiredClaimsCtrl,
+                                          keyboardType: TextInputType.number,
+                                          decoration: InputDecoration(
+                                            labelText: isAr
+                                                ? 'المطالبات المطلوبة (N)'
+                                                : 'Required Claims (N)',
+                                            border:
+                                                const OutlineInputBorder(),
+                                            isDense: true,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: TextFormField(
+                                          controller: _maxSlotsCtrl,
+                                          keyboardType: TextInputType.number,
+                                          decoration: InputDecoration(
+                                            labelText: isAr
+                                                ? 'الحد الأقصى للفتحات'
+                                                : 'Max Slots',
+                                            border:
+                                                const OutlineInputBorder(),
+                                            isDense: true,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: TextFormField(
+                                          controller: _groupTimerCtrl,
+                                          keyboardType: TextInputType.number,
+                                          decoration: InputDecoration(
+                                            labelText: isAr
+                                                ? 'مؤقت العرض (ساعات)'
+                                                : 'Deal Timer (hours)',
+                                            border:
+                                                const OutlineInputBorder(),
+                                            isDense: true,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: TextFormField(
+                                          controller: _redemptionWindowCtrl,
+                                          keyboardType: TextInputType.number,
+                                          decoration: InputDecoration(
+                                            labelText: isAr
+                                                ? 'نافذة الاسترداد (ساعات)'
+                                                : 'Redemption (hours)',
+                                            border:
+                                                const OutlineInputBorder(),
+                                            isDense: true,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+
+                          // 🆕 PLAN B — Progressive
+                          if (_type == 'group_progressive') ...[
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.purple.shade50,
+                                borderRadius: BorderRadius.circular(10),
+                                border:
+                                    Border.all(color: Colors.purple.shade200),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    isAr
+                                        ? 'الخطة ب: التسعير التدريجي'
+                                        : 'Plan B: Progressive Setup',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
                                     ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: TextFormField(
+                                          controller: _floorPriceCtrl,
+                                          keyboardType: const TextInputType
+                                              .numberWithOptions(decimal: true),
+                                          decoration: InputDecoration(
+                                            labelText: isAr
+                                                ? 'السعر الأدنى'
+                                                : 'Floor Price',
+                                            border:
+                                                const OutlineInputBorder(),
+                                            isDense: true,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: TextFormField(
+                                          controller: _stepPriceCtrl,
+                                          keyboardType: const TextInputType
+                                              .numberWithOptions(decimal: true),
+                                          decoration: InputDecoration(
+                                            labelText: isAr
+                                                ? 'خطوة انخفاض السعر'
+                                                : 'Price Drop Step',
+                                            border:
+                                                const OutlineInputBorder(),
+                                            isDense: true,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: TextFormField(
+                                          controller: _groupTimerCtrl,
+                                          keyboardType: TextInputType.number,
+                                          decoration: InputDecoration(
+                                            labelText: isAr
+                                                ? 'مؤقت المجموعة (ساعات)'
+                                                : 'Group Timer (hours)',
+                                            border:
+                                                const OutlineInputBorder(),
+                                            isDense: true,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: TextFormField(
+                                          controller: _redemptionWindowCtrl,
+                                          keyboardType: TextInputType.number,
+                                          decoration: InputDecoration(
+                                            labelText: isAr
+                                                ? 'نافذة الاسترداد (ساعات)'
+                                                : 'Redemption (hours)',
+                                            border:
+                                                const OutlineInputBorder(),
+                                            isDense: true,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          isAr
+                                              ? 'قفل عند امتلاء الفتحات؟'
+                                              : 'Lock when slots full?',
+                                        ),
+                                      ),
+                                      Switch(
+                                        value: _lockOnSlotsFull,
+                                        onChanged: (v) => setState(
+                                            () => _lockOnSlotsFull = v),
+                                        activeColor: MigoColors.primary,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                           const SizedBox(height: 16),

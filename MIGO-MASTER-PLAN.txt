@@ -1,7 +1,7 @@
 # ═══════════════════════════════════════════════════════
 # MIGO — MASTER PLAN
-# Version: v4.3
-# Date: October 25, 2026
+# Version: v4.4
+# Date: November 01, 2026
 # Owner: solvexe.tech@gmail.com
 # ═══════════════════════════════════════════════════════
 
@@ -124,15 +124,16 @@ Root: C:\Users\DELL\Documents\migo\
 ═══════════════════════════════════════════════════════
 
 ### Core Collections
-- users/{uid} — profile, coins, role, countryCode, currency, locale, fcmToken, savedFlyers[]
+- users/{uid} — profile, coins, coinsExpireAt, role, countryCode, currency, locale, fcmToken, savedFlyers[]
 - businesses/{id} — ownerUid, name, category, countryCode, zoneId, areaId, agencyUid, status, orderLink, whatsappNumber
 - flyers/{id} — businessId, businessName, title, description, discountTag, category, orderLink, whatsappNumber, countryCode, imageUrls[], thumbnailUrl, status, viewedBy[], fullyViewedBy[], startDate, endDate
-- offers/{id} — businessId, title, prices, currency, type, status, areaId
+- offers/{id} — businessId, title, prices, currency, type, status, areaId, isPromoted, promotedUntil
 - claims/{id} — userUid, businessId, offerId, currency, status, redeemedAt
 - reviews/{id} — userUid, businessId, rating, comment, isPositive
 - referrals/{id} — referrerUid, referredUid, status, rewardAmount
 - notifications/{id} — userUid, title, body, type, read
 - coin_transactions/{id} — uid, amount, type, description
+- coin_payments/{id} — id, userId, userName, userEmail, businessId, businessName, offerId, offerTitle, billAmount, coinsUsed, currency, status (pending/accepted), createdAt, acceptedAt
 - saved_offers/{uid_offerId}
 - saved_businesses/{uid_businessId}
 - group_deals/{offerId}
@@ -198,25 +199,25 @@ Root: C:\Users\DELL\Documents\migo\
 
 | # | Task | Time | Priority |
 |---|------|------|----------|
-| H1 | Data models (Flutter) | 1h | 🔥🔥🔥 |
-| H2 | ReservationService | 2h | 🔥🔥🔥 |
-| H3 | Booking screen (customer) | 2h | 🔥🔥🔥 |
-| H4 | Countdown timer widget | 1h | 🔥🔥🔥 |
-| H5 | My Bookings screen | 1.5h | 🔥🔥 |
-| H6 | Reservation detail + QR | 1.5h | 🔥🔥 |
-| H7 | Rules screen + accept flow | 1h | 🔥🔥 |
-| H8 | Shop dashboard (bookings list) | 2h | 🔥🔥 |
-| H9 | QR pickup scan (shop side) | 1.5h | 🔥🔥 |
-| H10 | Admin ReservationsPage | 2h | 🔥 |
-| H11 | Admin ReservationRulesPage | 1.5h | 🔥 |
-| H12 | Admin ReservationConfigPage | 1h | 🔥 |
-| H13 | Push notifications (5-stage) | 1.5h | 🔥 |
-| H14 | No-show tracking + ban | 1.5h | 🔥 |
-| H15 | Token booking (optional) | 1.5h | 🔥 |
-| H16 | Group reserve (bonus) | 2h | 🔥 |
-| H17 | Firestore rules + indexes | 1h | 🔥🔥 |
-| H18 | Seed reservation_config | 30m | 🔥 |
-| H19 | Testing + edge cases | 2h | 🔥🔥 |
+| H1 | Data models (Flutter) | 1h | ✅ |
+| H2 | ReservationService | 2h | ✅ |
+| H3 | Booking screen (customer) | 2h | ✅ |
+| H4 | Countdown timer widget | 1h | ✅ |
+| H5 | My Bookings screen | 1.5h | ✅ |
+| H6 | Reservation detail + QR | 1.5h | ✅ |
+| H7 | Rules screen + accept flow | 1h | ✅ |
+| H8 | Shop dashboard (bookings list) | 2h | ✅ |
+| H9 | QR pickup scan (shop side) | 1.5h | ✅ |
+| H10 | Admin ReservationsPage | 2h | ✅ |
+| H11 | Admin ReservationRulesPage | 1.5h | ✅ |
+| H12 | Admin ReservationConfigPage | 1h | ✅ |
+| H13 | Push notifications (5-stage) | 1.5h | ✅ |
+| H14 | No-show tracking + ban | 1.5h | ✅ |
+| H15 | Token booking (optional) | 1.5h | ✅ |
+| H16 | Group reserve (bonus) | 2h | ✅ |
+| H17 | Firestore rules + indexes | 1h | ✅ |
+| H18 | Seed reservation_config | 30m | ✅ |
+| H19 | Testing + edge cases | 2h | 🟡 90% |
 
 **Total PHASE H: ~30 hours**
 **Progress: 95% (6/7 + Testing 90%)**
@@ -226,7 +227,7 @@ Root: C:\Users\DELL\Documents\migo\
 | # | Task | Time | Priority |
 |---|------|------|----------|
 | E1 | Auto-referral (Install Referrer + URL) | 4h | ✅ DONE 2026-10-15 |
-| E2 | Offer share (all users) | 3h | 🔥🔥🔥 |
+| E2 | Offer share (all users) | 3h | ✅ DONE |
 | E3 | Deep link + auto-apply code | 5h | ✅ DONE 2026-10-14 |
 | E4 | Claim attribution tracking | 3h | ✅ DONE 2026-10-14 |
 | E5 | User rewards (coins only, free) | 3h | ✅ DONE 2026-10-14 |
@@ -243,15 +244,15 @@ Root: C:\Users\DELL\Documents\migo\
 
 | # | Task | Time | Priority |
 |---|------|------|----------|
-| J1 | RoleContext + useRoleNav hook | 2h | 🔥🔥🔥 |
-| J2 | App.jsx — role-based routing | 2h | 🔥🔥🔥 |
-| J3 | AdminLayout — role-based sidebar | 1.5h | 🔥🔥🔥 |
-| J4 | Login redirect logic | 1h | 🔥🔥 |
-| J5 | Agency Dashboard | 4h | 🔥🔥 |
-| J6 | Staff Dashboard | 3h | 🔥🔥 |
-| J7 | Firestore query filters (per role) | 2h | 🔥🔥🔥 |
-| J8 | Rules verification + tighten | 1h | 🔥 |
-| J9 | Testing + polish | 2h | 🔥 |
+| J1 | RoleContext + useRoleNav hook | 2h | ✅ |
+| J2 | App.jsx — role-based routing | 2h | ✅ |
+| J3 | AdminLayout — role-based sidebar | 1.5h | ✅ |
+| J4 | Login redirect logic | 1h | ✅ |
+| J5 | Agency Dashboard | 4h | ✅ |
+| J6 | Staff Dashboard | 3h | ✅ |
+| J7 | Firestore query filters (per role) | 2h | ✅ |
+| J8 | Rules verification + tighten | 1h | ✅ |
+| J9 | Testing + polish | 2h | ✅ |
 
 **Total PHASE J: ~17 hours**
 **Progress: 100% (9/9)**
@@ -264,7 +265,7 @@ Root: C:\Users\DELL\Documents\migo\
 | I2 | Firebase config | 1h | ✅ DONE 2026-10-16 |
 | I3 | FlutterFire CLI + dependencies | 1h | ✅ DONE 2026-10-16 |
 | I4 | Login screen | 2h | ✅ DONE 2026-10-16 |
-| I5 | Signup flow (Business Registration) | 3h | ✅ DONE 2026-10-25 (New) |
+| I5 | Signup flow (Business Registration) | 3h | ✅ DONE 2026-10-25 |
 | I6 | Dashboard | 4h | ✅ DONE 2026-10-16 |
 | I7 | Offer CRUD (advanced) | 5h | ✅ DONE 2026-10-16 |
 | I8 | Reservations management | 4h | ✅ DONE 2026-10-16 |
@@ -273,7 +274,7 @@ Root: C:\Users\DELL\Documents\migo\
 | I11 | Revenue reports | 3h | ⏭️ Skip (future) |
 | I12 | Profile + settings | 2h | ✅ DONE 2026-10-16 |
 | I13 | Play Store setup | 2h | ⬜ NEXT |
-| I14 | Testing + polish | 3h | 🟡 90% (Country filter + E2E) |
+| I14 | Testing + polish | 3h | 🟡 90% |
 | I15 | Reserve Settings | 4h | ✅ DONE 2026-10-16 |
 | I15.1 | Status bug fix (Activate → live) | 30m | ✅ DONE 2026-10-16 |
 | I16 | Camera Fix (R8 ProGuard) | 2h | ✅ DONE 2026-10-17 |
@@ -298,138 +299,46 @@ Root: C:\Users\DELL\Documents\migo\
 
 ### PHASE F — Coin System (Free Initially)
 
-| # | Task | Time | Priority |
-|---|------|------|----------|
-| F1 | Coin value: QAR 0.01 (initial) | 1h | 🔥🔥 |
-| F2 | Remove daily login coin | 1h | 🔥🔥 |
-| F3 | Remove instant share coin | 1h | 🔥🔥 |
-| F4 | Add "share → redeem" coin | 4h | 🔥🔥 |
-| F5 | Referral (redeem-triggered) | 3h | 🔥🔥 |
-| F6 | Coin Partner system (business opt-in) | 4h | 🔥 |
-| F7 | Coin redemption at checkout | 4h | 🔥 |
-| F8 | Milestone system | 3h | 🔥 |
-| F9 | Admin coin config | 4h | 🔥 |
-| F10 | Coin economy dashboard | 4h | 🔥 |
-| F11 | Business settlement | 4h | 🔥 |
-| F12 | Coin expiry (60 days) | 2h | 🔥 |
-| F13 | Fraud detection | 3h | 🔥 |
+| # | Task | Time | Status |
+|---|------|------|--------|
+| F1 | Coin value: QAR 0.01 (initial) | 1h | ✅ DONE 2026-11-01 |
+| F2 | Remove daily login coin | 1h | ✅ DONE 2026-11-01 |
+| F3 | Remove instant share coin | 1h | ✅ DONE 2026-11-01 |
+| F4 | Add "share → redeem" coin | 4h | ✅ DONE 2026-11-01 |
+| F5 | Referral (redeem-triggered) | 3h | ✅ DONE 2026-11-01 |
+| F6 | Coin Partner system (business opt-in) | 4h | ⬜ NEXT |
+| F7 | Coin redemption at checkout | 4h | ✅ DONE 2026-11-01 |
+| F8 | Milestone system | 3h | ⬜ |
+| F9 | Admin coin config | 4h | ✅ DONE 2026-11-01 |
+| F10 | Coin economy dashboard | 4h | ⬜ |
+| F11 | Business settlement | 4h | ⬜ |
+| F12 | Coin expiry (60 days) | 2h | ✅ DONE 2026-11-01 |
+| F13 | Fraud detection | 3h | ⬜ |
 
 **Total PHASE F: ~42 hours**
-**Progress: 0% (0/13)**
+**Progress: 46% (6/13)** 📈
 
 ### PHASE G — Monetization (Gradual)
 
 | # | Task | Time | Priority |
 |---|------|------|----------|
-| G1 | Free + Paid subscription plans | 4h | 🔥🔥 |
-| G2 | Payment gateway (QPay/Stripe) | 6h | 🔥 |
-| G3 | Subscription billing | 4h | 🔥 |
-| G4 | Per-offer fee (beyond free) | 3h | 🔥 |
-| G5 | Small commission (0.5% initial) | 4h | 🔥 |
-| G6 | Vlogger commission (tier-based) | 5h | 🔥 |
-| G7 | Business dashboard (ROI) | 4h | 🔥 |
-| G8 | Vlogger earnings dashboard | 4h | 🔥 |
-| G9 | Payout system | 4h | 🔥 |
-| G10 | Revenue reports | 3h | 🔥 |
-| G11 | Commission verification (7-day hold) | 3h | 🔥 |
-| G12 | Anti-fraud (monetization) | 3h | 🔥 |
+| G1 | Free + Paid subscription plans | 4h | ⬜ |
+| G2 | Payment gateway (QPay/Stripe) | 6h | ⬜ |
+| G3 | Subscription billing | 4h | ⬜ |
+| G4 | Per-offer fee (beyond free) | 3h | ⬜ |
+| G5 | Small commission (0.5% initial) | 4h | ⬜ |
+| G6 | Vlogger commission (tier-based) | 5h | ⬜ |
+| G7 | Business dashboard (ROI) | 4h | ⬜ |
+| G8 | Vlogger earnings dashboard | 4h | ⬜ |
+| G9 | Payout system | 4h | ⬜ |
+| G10 | Revenue reports | 3h | ⬜ |
+| G11 | Commission verification (7-day hold) | 3h | ⬜ |
+| G12 | Anti-fraud (monetization) | 3h | ⬜ |
 
 **Total PHASE G: ~50 hours**
 **Progress: 0% (0/12)**
 
-═══════════════════════════════════════════════════════
-## ഭാഗം 6: Progress Tracker
-═══════════════════════════════════════════════════════
-
-### Legend
-✅ Done | 🟡 Partial | ⏳ In Progress | ❌ Not Started
-
-### Overall Progress
-
-PHASE A: [✅✅✅✅✅] 100% (5/5) 🎉
-PHASE B: [✅✅✅✅✅] 100% (5/5) 🎉
-PHASE C: [✅✅✅✅✅✅✅] 100% (7/7) 🎉
-PHASE D: [✅✅✅🟡✅✅✅] 85% (6/7)
-PHASE E: [✅✅✅✅✅✅✅✅✅✅] 100% (10/10) 🎉
-PHASE J: [✅✅✅✅✅✅✅✅✅] 100% (9/9) 🎉
-PHASE I: [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜] 95% (30/31) 📈
-PHASE F: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/13)
-PHASE G: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/12)
-PHASE H: [✅✅✅✅✅✅🟡] 95% (6/7 + Testing 90%)
-BONUS:  Referral ✅, Location ✅, GitHub ✅, Responsive ✅, Admin CRUD ✅
-
-TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅] 100% (40/40) 🎉
-
-### Change Log
-
-- 2026-10-25: **PHASE I — Business Registration (Sign Up) Completed**
-  - Created `register_screen.dart` in `migo-business/lib/features/auth/`
-  - LoginScreen updated with "Don't have an account? Register" button
-  - Auto-creates Firebase Auth user + Firestore `businesses` document (status: pending)
-  - Country selection added to registration form.
-- 2026-10-25: **Country Filter for Flyers (Customer App)**
-  - `magazine_screen.dart` updated to filter flyers by `countryCode` based on user's `country`.
-  - Handled cases where country is "Qatar" or "QA".
-- 2026-10-25: **Flyer Save/Like Feature**
-  - Users can now save flyers (stored in `users.savedFlyers[]`).
-  - Added "Saved Flyers" screen accessible from Magazine AppBar.
-- 2026-10-25: **Flyer Share & Action Buttons**
-  - Added Share button in Flyer Reader.
-  - Added "WhatsApp" and "Shop Online" buttons in Flyer Reader (if links provided by business).
-  - Business App: Upload form now includes fields for `description`, `discountTag`, `orderLink`, `whatsappNumber`.
-  - Flyer Reader UI improved (pagination, title display).
-
-═══════════════════════════════════════════════════════
-## ഭാഗം 7: Important Info
-═══════════════════════════════════════════════════════
-
-### Firebase
-- Project: migo-app-3030e
-- Account: solvexe.tech@gmail.com
-- Firestore Region: me-central1 (Doha)
-
-### Test Accounts
-- Super Admin: test1@migoapp.com / Migo@2026 (role: super_admin)
-- Admin: (create when needed)
-- Agency: kakkanad2@migoapp.com / Agency@2026 (role: agency)
-- Staff/Moderator: staff1@migoapp.com / Staff@2026 (role: moderator)
-- Customer: test2@migoapp.com / Migo@2026
-
-### Setup Completed (2026-10-10)
-- Android Studio: Rabbit 2026.2.1
-- Android Emulator: Medium Phone API 37.0 (Android 17)
-- Java: Temurin 17.0.20.101
-- Flutter JDK: C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot
-
-### Backups
-- migo-backup-2026-10-06
-- migo-backup-2026-10-07
-- MIGO-MASTER-PLAN-v2.6-BACKUP.txt
-- MIGO-MASTER-PLAN-v2.7-BACKUP.txt
-- MIGO-MASTER-PLAN-v4.2-BACKUP.txt (2026-10-25)
-
-### APK Files
-- Desktop: MIGO-v1.3.1.apk (69.8 MB)
-- GitHub: solvexetech-cloud/migo-releases
-
-═══════════════════════════════════════════════════════
-## ഭാഗം 8: Next Steps (Priority Order)
-═══════════════════════════════════════════════════════
-
-### Immediate (Next Session)
-1. **I13 Play Store** — icon + splash + build (2h)
-2. **D4 AdMob Fix** — optional (1-2h)
-3. **PHASE F** — Coin System (future)
-
-### Priority Order (Current)
-1. **PHASE I — Business App** (40h) — 95% (Just Play Store left)
-2. **PHASE J — Multi-Role Admin Panel** (17h) — COMPLETE
-3. **PHASE F — Coin System** (42h) — RETENTION 🔥
-4. **PHASE G — Monetization** (50h) — REVENUE 🔥
-
-═══════════════════════════════════════════════════════
-## PHASE K — Coin Payments & Advanced UI (v4.4)
-═══════════════════════════════════════════════════════
+### PHASE K — Coin Payments & Advanced UI (v4.4)
 
 | # | Task | Time | Status |
 |---|------|------|--------|
@@ -448,5 +357,96 @@ TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅�
 **Progress: 100% (10/10)** 🎉
 
 ═══════════════════════════════════════════════════════
-END OF MASTER PLAN v4.3
+## ഭാഗം 6: Progress Tracker
+═══════════════════════════════════════════════════════
+
+### Legend
+✅ Done | 🟡 Partial | ⏳ In Progress | ❌ Not Started
+
+### Overall Progress
+
+PHASE A: [✅✅✅✅✅] 100% (5/5) 🎉
+PHASE B: [✅✅✅✅✅] 100% (5/5) 🎉
+PHASE C: [✅✅✅✅✅✅✅] 100% (7/7) 🎉
+PHASE D: [✅✅✅🟡✅✅✅] 85% (6/7)
+PHASE E: [✅✅✅✅✅✅✅✅✅✅] 100% (10/10) 🎉
+PHASE J: [✅✅✅✅✅✅✅✅✅] 100% (9/9) 🎉
+PHASE I: [✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅⬜] 95% (30/31) 📈
+PHASE F: [✅✅✅✅✅✅⬜⬜⬜⬜⬜⬜⬜] 46% (6/13) 📈
+PHASE G: [⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜] 0% (0/12)
+PHASE H: [✅✅✅✅✅✅🟡] 95% (6/7 + Testing 90%)
+PHASE K: [✅✅✅✅✅✅✅✅✅✅] 100% (10/10) 🎉
+BONUS:  Referral ✅, Location ✅, GitHub ✅, Responsive ✅, Admin CRUD ✅
+
+TOTAL:   [...✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅] 88% (50/57)
+
+### Change Log
+
+- 2026-11-01: **PHASE K — Coin Payments & Advanced UI (100%)**
+  - Admin Panel: Coin Settings page (Max Redemption %, Expiry, Country Rates).
+  - Customer App: Pay with Coins screen with QR generation.
+  - Business App: Scan QR → Accept payment → Deduct coins.
+  - Admin Panel: Coin Payments Report page.
+  - Business App: Offer Stats (Claims, Saved, Redeemed).
+  - Customer App: Animated Coin Card in Wallet.
+  - Customer App: Pay with Coins Toggle in My Claims.
+  - Customer App: View Shop Profile button in Offer Detail.
+  - Firestore: `coin_payments` collection with rules.
+  - Firestore: `coinsExpireAt` field in users.
+  - Firestore: `maxRedemptionPercent` in config.
+  - Git: Latest commit `c891329` pushed to GitHub.
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 7: Important Info
+═══════════════════════════════════════════════════════
+
+### Firebase
+- Project: migo-app-3030e
+- Account: solvexe.tech@gmail.com
+- Firestore Region: me-central1 (Doha)
+
+### Test Accounts
+- Super Admin: test1@migoapp.com / Migo@2026 (role: super_admin)
+- Admin: (create when needed)
+- Agency: kakkanad2@migoapp.com / Agency@2026 (role: agency)
+- Staff/Moderator: staff1@migoapp.com / Staff@2026 (role: moderator)
+- Customer: test2@migoapp.com / Migo@2026
+- Test User: test69@migoapp.com / (new signup)
+
+### Setup Completed (2026-10-10)
+- Android Studio: Rabbit 2026.2.1
+- Android Emulator: Medium Phone API 37.0 (Android 17)
+- Java: Temurin 17.0.20.101
+- Flutter JDK: C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot
+
+### Backups
+- migo-backup-2026-10-06
+- migo-backup-2026-10-07
+- MIGO-MASTER-PLAN-v2.6-BACKUP.txt
+- MIGO-MASTER-PLAN-v2.7-BACKUP.txt
+- MIGO-MASTER-PLAN-v4.2-BACKUP.txt (2026-10-25)
+- MIGO-MASTER-PLAN-v4.3-BACKUP.txt (2026-10-25)
+
+### APK Files
+- Desktop: MIGO-v1.3.1.apk (69.8 MB)
+- GitHub: solvexetech-cloud/migo-releases
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 8: Next Steps (Priority Order)
+═══════════════════════════════════════════════════════
+
+### Immediate (Next Session)
+1. **Build APKs** — Customer App & Business App (2h)
+2. **Deploy Admin Panel** — `npm run build` + `firebase deploy --only hosting` (30m)
+3. **Fix Overflow Errors** — Minor UI fixes (1h)
+4. **PHASE F (Coin Partner System)** — Complete remaining tasks (4h)
+
+### Priority Order (Current)
+1. **PHASE F — Coin System** (42h) — 46% (Coin Partner System pending)
+2. **PHASE G — Monetization** (50h) — REVENUE 🔥
+3. **PHASE I — Business App** (40h) — 95% (Just Play Store left)
+4. **PHASE H — MIGO Reserve** (30h) — 95% (Testing pending)
+
+═══════════════════════════════════════════════════════
+END OF MASTER PLAN v4.4
 ═══════════════════════════════════════════════════════

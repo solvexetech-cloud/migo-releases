@@ -4,21 +4,27 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 enum OfferType {
   standard,
   flash,
-  group,
+  group,              // 🆕 പഴയ ഡാറ്റയ്ക്ക് വേണ്ടി (backward compatibility)
+  groupAllOrNothing,  // 🆕 പ്ലാൻ A
+  groupProgressive,   // 🆕 പ്ലാൻ B
   hidden,
   birthday,
 }
 
 extension OfferTypeX on OfferType {
   String get id => name;
-  String get label {
+    String get label {
     switch (this) {
       case OfferType.standard:
         return 'Standard Deal';
       case OfferType.flash:
         return 'Flash Deal';
       case OfferType.group:
-        return 'Group Deal';
+        return 'Group Deal'; // പഴയത്
+      case OfferType.groupAllOrNothing:
+        return 'Group Deal (All-or-Nothing)'; // പ്ലാൻ A
+      case OfferType.groupProgressive:
+        return 'Group Deal (Progressive)';    // പ്ലാൻ B
       case OfferType.hidden:
         return 'Hidden Gem';
       case OfferType.birthday:
@@ -33,6 +39,14 @@ OfferType offerTypeFromString(String? s) {
       return OfferType.flash;
     case 'group':
       return OfferType.group;
+    case 'group_all_or_nothing': // 🆕 ഇതാണ് ഫയർബേസിൽ നിന്ന് വരുന്നത്
+      return OfferType.groupAllOrNothing;
+    case 'groupAllOrNothing':
+      return OfferType.groupAllOrNothing;
+    case 'group_progressive': // 🆕 ഇതും
+      return OfferType.groupProgressive;
+    case 'groupProgressive':
+      return OfferType.groupProgressive;
     case 'hidden':
       return OfferType.hidden;
     case 'birthday':
@@ -80,6 +94,16 @@ class OfferModel {
     this.areaId,
     this.createdAt,
     this.updatedAt,
+    // 🆕 ഗ്രൂപ്പ് ഡീൽ ഫീൽഡുകൾ
+    this.requiredClaims,
+    this.floorPrice,
+    this.stepPrice,
+    this.maxSlots,
+    this.groupTimerHours,
+    this.redemptionWindowHours,
+    this.lockOnSlotsFull = false,
+    this.finalPrice,
+    this.dealState = 'DRAFT', // DRAFT, OPEN, LIVE, LOCKED, ACTIVATED, CLOSED, EXPIRED
   });
 
   final String id;
@@ -121,6 +145,17 @@ class OfferModel {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
+  // 🆕 ഗ്രൂപ്പ് ഡീൽ ഫീൽഡുകൾ
+  final int? requiredClaims; // പ്ലാൻ A-യ്ക്ക് (ഉദാ: 10)
+  final double? floorPrice;  // പ്ലാൻ B-യ്ക്ക് (ഏറ്റവും കുറഞ്ഞ വില)
+  final double? stepPrice;   // പ്ലാൻ B-യ്ക്ക് (ഓരോ ക്ലെയിമിലും കുറയുന്ന വില)
+  final int? maxSlots;       // പ്ലാൻ A-യ്ക്ക് (waitlist-ന് വേണ്ടി)
+  final int? groupTimerHours; // ഡീൽ ടൈമർ (മണിക്കൂറിൽ)
+  final int? redemptionWindowHours; // റിഡീം ചെയ്യാനുള്ള സമയം
+  final bool lockOnSlotsFull; // പ്ലാൻ B-യ്ക്ക് (സ്ലോട്ട് നിറഞ്ഞാൽ ലോക്ക് ചെയ്യുക)
+  final double? finalPrice;   // പ്ലാൻ B-യ്ക്ക് (ലോക്ക് ചെയ്ത വില)
+  final String dealState;     // DRAFT, OPEN, LIVE, LOCKED, ACTIVATED, CLOSED, EXPIRED
+
   double get savings => originalPrice - offerPrice;
   int get percentOff => originalPrice > 0
       ? (((originalPrice - offerPrice) / originalPrice) * 100).round()
@@ -148,6 +183,18 @@ class OfferModel {
       areaId != null &&
       areaId!.isNotEmpty;
 
+  // 🆕 പ്ലാൻ B-യുടെ കറന്റ് പ്രൈസ് കണക്കാക്കാൻ
+  double get currentPrice {
+    if (type != OfferType.groupProgressive) return offerPrice;
+    
+    final currentClaims = claimedCount;
+    final flr = floorPrice ?? offerPrice;
+    final stp = stepPrice ?? 0.0;
+    
+    final calculated = originalPrice - (currentClaims * stp);
+    return calculated < flr ? flr : calculated;
+  }
+
   factory OfferModel.newDraft({
     required String businessId,
     required String businessName,
@@ -170,6 +217,13 @@ class OfferModel {
     String? countryCode,
     String? zoneId,
     String? areaId,
+    int? requiredClaims,
+    double? floorPrice,
+    double? stepPrice,
+    int? maxSlots,
+    int? groupTimerHours,
+    int? redemptionWindowHours,
+    bool lockOnSlotsFull = false,
   }) {
     final now = DateTime.now();
     final tEn = titleEn ?? title;
@@ -201,6 +255,13 @@ class OfferModel {
       areaId: areaId,
       createdAt: now,
       updatedAt: now,
+      requiredClaims: requiredClaims,
+      floorPrice: floorPrice,
+      stepPrice: stepPrice,
+      maxSlots: maxSlots,
+      groupTimerHours: groupTimerHours,
+      redemptionWindowHours: redemptionWindowHours,
+      lockOnSlotsFull: lockOnSlotsFull,
     );
   }
 
@@ -244,6 +305,16 @@ class OfferModel {
       areaId: map['areaId'] as String?,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
       updatedAt: (map['updatedAt'] as Timestamp?)?.toDate(),
+      // 🆕 ഗ്രൂപ്പ് ഡീൽ ഫീൽഡുകൾ
+      requiredClaims: (map['requiredClaims'] as num?)?.toInt(),
+      floorPrice: (map['floorPrice'] as num?)?.toDouble(),
+      stepPrice: (map['stepPrice'] as num?)?.toDouble(),
+      maxSlots: (map['maxSlots'] as num?)?.toInt(),
+      groupTimerHours: (map['groupTimerHours'] as num?)?.toInt(),
+      redemptionWindowHours: (map['redemptionWindowHours'] as num?)?.toInt(),
+      lockOnSlotsFull: (map['lockOnSlotsFull'] as bool?) ?? false,
+      finalPrice: (map['finalPrice'] as num?)?.toDouble(),
+      dealState: (map['dealState'] ?? 'DRAFT') as String,
     );
   }
 
@@ -279,10 +350,20 @@ class OfferModel {
           ? Timestamp.fromDate(createdAt!)
           : FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
+      // 🆕 ഗ്രൂപ്പ് ഡീൽ ഫീൽഡുകൾ
+      'requiredClaims': requiredClaims,
+      'floorPrice': floorPrice,
+      'stepPrice': stepPrice,
+      'maxSlots': maxSlots,
+      'groupTimerHours': groupTimerHours,
+      'redemptionWindowHours': redemptionWindowHours,
+      'lockOnSlotsFull': lockOnSlotsFull,
+      'finalPrice': finalPrice,
+      'dealState': dealState,
     };
   }
 
-    OfferModel copyWith({
+  OfferModel copyWith({
     String? imageUrl,
     String? status,
     bool? isPromoted,
@@ -294,6 +375,16 @@ class OfferModel {
     String? countryCode,
     String? zoneId,
     String? areaId,
+    // 🆕
+    int? requiredClaims,
+    double? floorPrice,
+    double? stepPrice,
+    int? maxSlots,
+    int? groupTimerHours,
+    int? redemptionWindowHours,
+    bool? lockOnSlotsFull,
+    double? finalPrice,
+    String? dealState,
   }) {
     return OfferModel(
       id: id,
@@ -325,6 +416,15 @@ class OfferModel {
       areaId: areaId ?? this.areaId,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
+      requiredClaims: requiredClaims ?? this.requiredClaims,
+      floorPrice: floorPrice ?? this.floorPrice,
+      stepPrice: stepPrice ?? this.stepPrice,
+      maxSlots: maxSlots ?? this.maxSlots,
+      groupTimerHours: groupTimerHours ?? this.groupTimerHours,
+      redemptionWindowHours: redemptionWindowHours ?? this.redemptionWindowHours,
+      lockOnSlotsFull: lockOnSlotsFull ?? this.lockOnSlotsFull,
+      finalPrice: finalPrice ?? this.finalPrice,
+      dealState: dealState ?? this.dealState,
     );
   }
 }

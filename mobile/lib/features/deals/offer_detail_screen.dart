@@ -2,11 +2,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../reserve/booking_screen.dart';
 import '../../core/localization/locale_provider.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../models/claim_model.dart';
-import '../../models/group_deal_model.dart';
 import '../../models/offer_model.dart';
 import '../../models/review_model.dart';
 import '../../services/firestore_service.dart';
@@ -25,34 +25,34 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
   bool _loading = false;
   bool _checkingExisting = true;
   ClaimModel? _existingClaim;
-  GroupDealModel? _groupDeal;
-  bool _groupDealLoaded = false;
+  bool _isJoinedGroup = false;
 
   String? get _uid => FirebaseAuth.instance.currentUser?.uid;
+
+  bool get _isPlanA => widget.offer.type == OfferType.groupAllOrNothing || widget.offer.type == OfferType.group;
+  bool get _isPlanB => widget.offer.type == OfferType.groupProgressive;
+  bool get _isGroupDeal => _isPlanA || _isPlanB;
 
   @override
   void initState() {
     super.initState();
     _checkExisting();
-    if (widget.offer.type == OfferType.group) {
-      _listenGroupDeal();
-    }
+    _checkGroupJoined();
   }
 
-  void _listenGroupDeal() {
-    FirestoreService.instance.streamGroupDeal(widget.offer.id).listen(
-      (deal) {
-        if (!mounted) return;
+  Future<void> _checkGroupJoined() async {
+    if (_uid == null || !_isGroupDeal) return;
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('group_joins')
+          .doc('${widget.offer.id}_$_uid')
+          .get();
+      if (mounted) {
         setState(() {
-          _groupDeal = deal;
-          _groupDealLoaded = true;
+          _isJoinedGroup = doc.exists;
         });
-      },
-      onError: (_) {
-        if (!mounted) return;
-        setState(() => _groupDealLoaded = true);
-      },
-    );
+      }
+    } catch (_) {}
   }
 
   Future<void> _checkExisting() async {
@@ -76,7 +76,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
     }
   }
 
-    Future<void> _claim() async {
+  Future<void> _claim() async {
     final isAr = LocaleProvider.instance.locale == 'ar';
     if (_uid == null) {
       _snack(isAr ? 'يرجى تسجيل الدخول أولاً.' : 'Please sign in first.');
@@ -102,8 +102,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
       );
 
       await FirestoreService.instance.createClaim(claim);
-      
-      // 🆕 അഡ്മിൻ സെറ്റിംഗ്സിൽ നിന്ന് കോയിൻ എണ്ണം എടുക്കുന്നു
+
       final settings = await FirestoreService.instance.getCoinSettings();
       final int claimCoins = settings.claimReward;
 
@@ -112,7 +111,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
         MaterialPageRoute(
           builder: (_) => ClaimSuccessScreen(
             offer: widget.offer,
-            coinsAwarded: claimCoins, // 🆕 ഡൈനാമിക് ആക്കി
+            coinsAwarded: claimCoins,
           ),
         ),
       );
@@ -125,27 +124,38 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
   }
 
   Future<void> _toggleJoin() async {
-    if (_uid == null || _groupDeal == null) return;
+    if (_uid == null) return;
     final isAr = LocaleProvider.instance.locale == 'ar';
-    final joined = _groupDeal!.participantUids.contains(_uid);
     setState(() => _loading = true);
     try {
-      if (joined) {
-        await FirestoreService.instance.leaveGroupDeal(
-          offerId: widget.offer.id,
-          userUid: _uid!,
-        );
+      final docRef = FirebaseFirestore.instance
+          .collection('group_joins')
+          .doc('${widget.offer.id}_$_uid');
+
+      if (_isJoinedGroup) {
+        await docRef.delete();
+        // Decrement count in offer
+        await FirebaseFirestore.instance.collection('offers').doc(widget.offer.id).update({
+          'claimedCount': FieldValue.increment(-1),
+        });
+        if (mounted) setState(() => _isJoinedGroup = false);
         _snack(isAr ? 'لقد غادرت العرض الجماعي.' : 'You left the group deal.');
       } else {
-        await FirestoreService.instance.joinGroupDeal(
-          offerId: widget.offer.id,
-          userUid: _uid!,
-        );
+        await docRef.set({
+          'offerId': widget.offer.id,
+          'userUid': _uid,
+          'joinedAt': FieldValue.serverTimestamp(),
+        });
+        // Increment count in offer
+        await FirebaseFirestore.instance.collection('offers').doc(widget.offer.id).update({
+          'claimedCount': FieldValue.increment(1),
+        });
+        if (mounted) setState(() => _isJoinedGroup = true);
         _snack(isAr ? 'لقد انضممت إلى العرض الجماعي!' : 'You joined the group deal!');
       }
     } catch (e) {
       if (!mounted) return;
-      _snack(e.toString().replaceFirst('Exception: ', ''));
+      _snack(e.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -162,9 +172,6 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
       builder: (context, _) {
         final isAr = LocaleProvider.instance.locale == 'ar';
         final o = widget.offer;
-        final isGroup = o.type == OfferType.group;
-        final deal = _groupDeal;
-        final joined = deal != null && _uid != null && deal.participantUids.contains(_uid);
 
         return Directionality(
           textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
@@ -229,7 +236,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                             final shareText = isAr
                                 ? '🔥 تحقق من هذا العرض على ميجو!\n\n${o.titleAr}\nالسعر: $price (كان $original)\nوفر ${o.currency} ${o.savings.toStringAsFixed(0)}\n\n$url'
                                 : '🔥 Check out this deal on MIGO!\n\n${o.titleEn}\nPrice: $price (was $original)\nSave ${o.currency} ${o.savings.toStringAsFixed(0)}\n\n$url';
-                            
+
                             SharePlus.instance.share(
                               ShareParams(text: shareText, subject: isAr ? o.titleAr : o.titleEn),
                             );
@@ -272,19 +279,22 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                     decoration: BoxDecoration(
                                       color: o.type == OfferType.flash
                                           ? MigoColors.error
-                                          : o.type == OfferType.group
+                                          : _isGroupDeal
                                               ? MigoColors.primaryLight
                                               : MigoColors.accent,
                                       borderRadius: BorderRadius.circular(6),
                                     ),
-                                    child: Text(
-                                      _getOfferTypeLabel(o.type, isAr).toUpperCase(),
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        color: o.type == OfferType.flash || o.type == OfferType.group
-                                            ? Colors.white
-                                            : Colors.black,
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        _getOfferTypeLabel(o.type, isAr).toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          color: o.type == OfferType.flash || _isGroupDeal
+                                              ? Colors.white
+                                              : Colors.black,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -380,7 +390,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                         Text(isAr ? 'سعر ميجو' : 'MIGO price',
                                             style: const TextStyle(fontSize: 11, color: MigoColors.textSecondaryLight)),
                                         Text(
-                                          '${o.currency} ${o.offerPrice.toStringAsFixed(0)}',
+                                          '${o.currency} ${(_isPlanB ? o.currentPrice : o.offerPrice).toStringAsFixed(0)}',
                                           style: const TextStyle(
                                             fontSize: 26,
                                             fontWeight: FontWeight.w800,
@@ -393,56 +403,41 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                 ),
                               ),
                               const SizedBox(height: 10),
+                              const SizedBox(height: 10),
                               Row(
                                 children: [
                                   const Icon(Icons.savings_outlined, size: 18, color: MigoColors.success),
                                   const SizedBox(width: 6),
-                                  Text(
-                                    isAr
-                                        ? 'وفر ${o.currency} ${o.savings.toStringAsFixed(0)}'
-                                        : 'You save ${o.currency} ${o.savings.toStringAsFixed(0)}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      color: MigoColors.success,
+                                  Expanded(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: isAr ? Alignment.centerRight : Alignment.centerLeft,
+                                      child: Text(
+                                        isAr
+                                            ? 'وفر ${o.currency} ${(_isPlanB ? o.originalPrice - o.currentPrice : o.savings).toStringAsFixed(0)}'
+                                            : 'You save ${o.currency} ${(_isPlanB ? o.originalPrice - o.currentPrice : o.savings).toStringAsFixed(0)}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          color: MigoColors.success,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
 
-                                                            // Group Deal Progress
-                              if (isGroup) ...[
+                              // 🆕 Plan A (All-or-Nothing) UI
+                              if (_isPlanA) ...[
                                 const SizedBox(height: 20),
-                                if (deal != null)
-                                  _GroupProgressCard(
-                                    deal: deal,
-                                    currency: o.currency,
-                                    joined: joined,
-                                    isAr: isAr,
-                                  )
-                                else
-                                  Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: MigoColors.primary.withValues(alpha: 0.05),
-                                      borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(color: MigoColors.dividerLight),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.groups, color: MigoColors.primary),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: Text(
-                                            isAr ? 'جاري إعداد العرض الجماعي...' : 'Group deal is being set up...',
-                                            style: const TextStyle(fontSize: 13, color: MigoColors.textSecondaryLight),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                _buildPlanACard(isAr, o),
                               ],
 
-                              // 🆕 ഷോപ്പിന്റെ മുഴുവൻ വിവരങ്ങളും കാണാനുള്ള ബട്ടൺ
+                              // 🆕 Plan B (Progressive) UI
+                              if (_isPlanB) ...[
+                                const SizedBox(height: 20),
+                                _buildPlanBCard(isAr, o),
+                              ],
+
                               const SizedBox(height: 24),
                               SizedBox(
                                 width: double.infinity,
@@ -459,12 +454,15 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                     );
                                   },
                                   icon: const Icon(Icons.storefront, color: MigoColors.primary),
-                                  label: Text(
-                                    isAr ? 'عرض ملف المتجر' : 'View Shop Profile',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: MigoColors.primary,
+                                  label: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      isAr ? 'عرض ملف المتجر' : 'View Shop Profile',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: MigoColors.primary,
+                                      ),
                                     ),
                                   ),
                                   style: OutlinedButton.styleFrom(
@@ -473,8 +471,6 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                   ),
                                 ),
                               ),
-
-                              // Reviews Section
 
                               // Reviews Section
                               const SizedBox(height: 24),
@@ -544,8 +540,8 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                     ),
                     child: _checkingExisting
                         ? const Center(child: CircularProgressIndicator())
-                        : isGroup
-                            ? _groupAction(deal, joined, isAr)
+                        : _isGroupDeal
+                            ? _groupAction(isAr)
                             : _existingClaim != null
                                 ? _claimedBanner(isAr)
                                 : _claimButton(isAr),
@@ -556,6 +552,172 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildPlanACard(bool isAr, OfferModel o) {
+    final required = o.requiredClaims ?? 5;
+    final current = o.claimedCount;
+    final progress = (current / required).clamp(0.0, 1.0);
+    final isUnlocked = current >= required;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: MigoColors.primary.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: MigoColors.primary.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isUnlocked ? Icons.lock_open : Icons.groups,
+                color: isUnlocked ? MigoColors.success : MigoColors.primary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isUnlocked
+                      ? (isAr ? 'تم فتح العرض!' : 'Deal unlocked!')
+                      : (isAr ? 'عرض جماعي: كل شيء أو لا شيء' : 'Group Deal: All-or-Nothing'),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: isUnlocked ? MigoColors.success : MigoColors.primary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '$current',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  color: isUnlocked ? MigoColors.success : MigoColors.primary,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    isAr ? '/ $required شخص' : '/ $required people',
+                    style: const TextStyle(fontSize: 14, color: MigoColors.textSecondaryLight, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: MigoColors.primary.withValues(alpha: 0.15),
+              valueColor: AlwaysStoppedAnimation(isUnlocked ? MigoColors.success : MigoColors.primary),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            isUnlocked
+                ? (isAr ? 'يمكن للجميع في المجموعة الآن المطالبة بهذا العرض.' : 'Everyone in the group can now claim this deal.')
+                : (isAr
+                    ? 'مطلوب ${required - current} أشخاص إضافيين.'
+                    : '${required - current} more people needed.'),
+            style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlanBCard(bool isAr, OfferModel o) {
+    final currentPrice = o.currentPrice;
+    final floor = o.floorPrice ?? o.offerPrice;
+    final step = o.stepPrice ?? 0;
+    final nextPrice = (currentPrice - step) < floor ? floor : (currentPrice - step);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.purple.shade50,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.purple.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.trending_down, color: Colors.purple, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isAr ? 'عرض جماعي: تسعير تدريجي' : 'Group Deal: Progressive',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.purple,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isAr ? 'السعر الحالي' : 'Current Price',
+                    style: const TextStyle(fontSize: 11, color: MigoColors.textSecondaryLight),
+                  ),
+                  Text(
+                    '${o.currency} ${currentPrice.toStringAsFixed(0)}',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.purple),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    isAr ? 'السعر التالي' : 'Next Price',
+                    style: const TextStyle(fontSize: 11, color: MigoColors.textSecondaryLight),
+                  ),
+                  Text(
+                    '${o.currency} ${nextPrice.toStringAsFixed(0)}',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: MigoColors.textSecondaryLight),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            isAr
+                ? 'كلما زاد عدد الأشخاص، انخفض السعر!'
+                : 'The more people join, the lower the price!',
+            style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight),
+          ),
+        ],
+      ),
     );
   }
 
@@ -631,55 +793,9 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
     );
   }
 
-    Widget _groupAction(GroupDealModel? deal, bool joined, bool isAr) {
-    if (deal == null) {
-      if (!_groupDealLoaded) {
-        return const Center(child: CircularProgressIndicator());
-      }
-      return SizedBox(
-        height: 52,
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          onPressed: () {
-            _snack(isAr 
-                ? 'لم يتم إعداد هذا العرض الجماعي بعد. يرجى المحاولة لاحقاً.' 
-                : 'This group deal is not set up yet. Please try again later.');
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: MigoColors.primary,
-          ),
-          icon: const Icon(Icons.group_add, color: Colors.white),
-          label: Text(
-            isAr ? 'انضم إلى المجموعة · 0/5' : 'Join group · 0/5',
-            style: const TextStyle(color: Colors.white),
-          ),
-        ),
-      );
-    }
-
-    if (deal.status == GroupDealStatus.unlocked) {
-      return SizedBox(
-        height: 52,
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          onPressed: _existingClaim != null ? null : _claim,
-          icon: const Icon(Icons.check_circle_outline),
-          label: Text(
-            _existingClaim != null
-                ? (isAr ? 'تمت المطالبة بالفعل' : 'Already claimed')
-                : (isAr ? 'تم فتح العرض — طالب الآن' : 'Deal unlocked — Claim now'),
-          ),
-        ),
-      );
-    }
-
-    if (deal.status == GroupDealStatus.failed || deal.status == GroupDealStatus.expired) {
-      return Center(
-        child: Text(
-          isAr ? 'تم إغلاق هذا العرض الجماعي' : 'This group deal is closed',
-          style: const TextStyle(color: MigoColors.textSecondaryLight),
-        ),
-      );
+  Widget _groupAction(bool isAr) {
+    if (_existingClaim != null) {
+      return _claimedBanner(isAr);
     }
 
     return SizedBox(
@@ -688,17 +804,18 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
       child: ElevatedButton.icon(
         onPressed: _loading ? null : _toggleJoin,
         style: ElevatedButton.styleFrom(
-          backgroundColor: joined ? MigoColors.error : MigoColors.primary,
+          backgroundColor: _isJoinedGroup ? MigoColors.error : MigoColors.primary,
         ),
-        icon: Icon(joined ? Icons.exit_to_app : Icons.group_add),
+        icon: Icon(_isJoinedGroup ? Icons.exit_to_app : Icons.group_add),
         label: FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
-            joined
+            _isJoinedGroup
                 ? (isAr ? 'مغادرة المجموعة' : 'Leave group')
                 : (isAr
-                    ? 'انضم إلى المجموعة · ${deal.joinedCount}/${deal.minParticipants}'
-                    : 'Join group · ${deal.joinedCount}/${deal.minParticipants}'),
+                    ? 'انضم إلى المجموعة · ${widget.offer.claimedCount}/${widget.offer.requiredClaims ?? 5}'
+                    : 'Join group · ${widget.offer.claimedCount}/${widget.offer.requiredClaims ?? 5}'),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
       ),
@@ -713,6 +830,10 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
         return isAr ? 'عرض سريع' : 'Flash Deal';
       case OfferType.group:
         return isAr ? 'عرض جماعي' : 'Group Deal';
+      case OfferType.groupAllOrNothing:
+        return isAr ? 'عرض جماعي (الكل أو لا شيء)' : 'Group Deal (All-or-Nothing)';
+      case OfferType.groupProgressive:
+        return isAr ? 'عرض جماعي (تدريجي)' : 'Group Deal (Progressive)';
       case OfferType.hidden:
         return isAr ? 'جوهرة مخفية' : 'Hidden Gem';
       case OfferType.birthday:
@@ -720,124 +841,6 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
       default:
         return isAr ? 'عرض' : 'Deal';
     }
-  }
-}
-
-class _GroupProgressCard extends StatelessWidget {
-  const _GroupProgressCard({
-    required this.deal,
-    required this.currency,
-    required this.joined,
-    required this.isAr,
-  });
-  final GroupDealModel deal;
-  final String currency;
-  final bool joined;
-  final bool isAr;
-
-  @override
-  Widget build(BuildContext context) {
-    final progress = deal.progress.clamp(0.0, 1.0);
-    final statusColor = deal.status == GroupDealStatus.unlocked
-        ? MigoColors.success
-        : deal.status == GroupDealStatus.failed
-            ? MigoColors.error
-            : MigoColors.primary;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: statusColor.withValues(alpha: 0.25)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                deal.status == GroupDealStatus.unlocked ? Icons.lock_open : Icons.groups,
-                color: statusColor,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  deal.status == GroupDealStatus.unlocked
-                      ? (isAr ? 'تم فتح العرض!' : 'Deal unlocked!')
-                      : (isAr ? 'العرض الجماعي قيد التقدم' : 'Group deal in progress'),
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: statusColor),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  deal.status.label.toUpperCase(),
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: statusColor),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${deal.joinedCount}',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: statusColor),
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Text(
-                    isAr ? '/ ${deal.minParticipants} أشخاص' : '/ ${deal.minParticipants} people',
-                    style: const TextStyle(fontSize: 14, color: MigoColors.textSecondaryLight, fontWeight: FontWeight.w600),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-              if (deal.maxParticipants != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Text(
-                    isAr ? 'الحد الأقصى ${deal.maxParticipants}' : 'Max ${deal.maxParticipants}',
-                    style: const TextStyle(fontSize: 11, color: MigoColors.textSecondaryLight),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              backgroundColor: statusColor.withValues(alpha: 0.15),
-              valueColor: AlwaysStoppedAnimation(statusColor),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            deal.status == GroupDealStatus.unlocked
-                ? (isAr ? 'يمكن للجميع في المجموعة الآن المطالبة بهذا العرض.' : 'Everyone in the group can now claim this deal.')
-                : (isAr
-                    ? 'مطلوب ${deal.spotsLeft} أشخاص إضافيين. الموعد النهائي: ${deal.deadline.toLocal().toString().split('.').first}'
-                    : '${deal.spotsLeft} more needed. Deadline: ${deal.deadline.toLocal().toString().split('.').first}'),
-            style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight),
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -878,7 +881,7 @@ class _SaveButtonState extends State<_SaveButton> {
   Future<void> _toggle() async {
     if (widget.uid.isEmpty) return;
     final isAr = LocaleProvider.instance.locale == 'ar';
-    
+
     await FirestoreService.instance.toggleSaveOffer(
       uid: widget.uid,
       offerId: widget.offerId,
@@ -893,8 +896,8 @@ class _SaveButtonState extends State<_SaveButton> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          _saved 
-            ? (isAr ? 'تم الحفظ في عروضي' : 'Saved to My Deals') 
+          _saved
+            ? (isAr ? 'تم الحفظ في عروضي' : 'Saved to My Deals')
             : (isAr ? 'تمت الإزالة من المحفوظات' : 'Removed from saved')
         ),
       ),
