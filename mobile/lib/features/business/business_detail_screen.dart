@@ -7,7 +7,6 @@ import '../reviews/business_reviews_screen.dart';
 import '../deals/offer_detail_screen.dart';
 import '../../models/offer_model.dart';
 
-
 class BusinessDetailScreen extends StatelessWidget {
   final String businessId;
   final String businessName;
@@ -35,6 +34,8 @@ class BusinessDetailScreen extends StatelessWidget {
               title: Text(
                 businessName,
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             body: FutureBuilder<DocumentSnapshot>(
@@ -78,6 +79,7 @@ class BusinessDetailScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
                                   padding: const EdgeInsets.all(12),
@@ -88,35 +90,50 @@ class BusinessDetailScreen extends StatelessWidget {
                                   child: const Icon(Icons.storefront, size: 32, color: Color(0xFF0F2B5B)),
                                 ),
                                 const SizedBox(width: 16),
+                                // Fixed Overflow Here
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        business.name,
-                                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              business.name,
+                                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.green.withValues(alpha: 0.1),
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(Icons.circle, size: 8, color: Colors.green),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  isAr ? 'مفتوح' : 'OPEN',
+                                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
                                         business.category,
                                         style: const TextStyle(fontSize: 14, color: Colors.grey),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.circle, size: 8, color: Colors.green),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        isAr ? 'مفتوح' : 'OPEN',
-                                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ],
                                   ),
@@ -147,7 +164,10 @@ class BusinessDetailScreen extends StatelessWidget {
                                       }
                                     },
                                     icon: const Icon(Icons.call, size: 18),
-                                    label: Text(isAr ? 'اتصل' : 'Call'),
+                                    label: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(isAr ? 'اتصل' : 'Call'),
+                                    ),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFFE8F5E9),
                                       foregroundColor: Colors.green[800],
@@ -168,7 +188,10 @@ class BusinessDetailScreen extends StatelessWidget {
                                       }
                                     },
                                     icon: const Icon(Icons.map, size: 18),
-                                    label: Text(isAr ? 'الخريطة' : 'Map'),
+                                    label: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(isAr ? 'الخريطة' : 'Map'),
+                                    ),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFFE3F2FD),
                                       foregroundColor: const Color(0xFF0F2B5B),
@@ -231,7 +254,12 @@ class BusinessDetailScreen extends StatelessWidget {
                                 margin: const EdgeInsets.only(bottom: 10),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                 child: ListTile(
-                                  title: Text(offer.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  title: Text(
+                                    offer.title, 
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                   subtitle: Text('QAR ${offer.offerPrice}'),
                                   trailing: const Icon(Icons.chevron_right),
                                   onTap: () {
@@ -249,8 +277,6 @@ class BusinessDetailScreen extends StatelessWidget {
                       ),
 
                       const SizedBox(height: 24),
-
-                      
 
                       // Reviews Section
                       Container(

@@ -1,0 +1,119 @@
+# ═══════════════════════════════════════════════════════
+# MIGO — MASTER PLAN
+# Version: v5.1 (Community Demand Full Integration)
+# Date: November 03, 2026
+# Owner: solvexe.tech@gmail.com
+# ═══════════════════════════════════════════════════════
+
+## 📌 ഈ ഡോക്യുമെന്റിനെ കുറിച്ച്
+ഇത് MIGO ആപ്പിന്റെ പൂർണ്ണ റോഡ്മാപ്പ് ആണ്. പുതിയ ചാറ്റ് തുടങ്ങുമ്പോൾ ഈ ഫയൽ AI-ക്ക് paste ചെയ്താൽ എല്ലാം മനസ്സിലാകും.
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 1: പ്രോജക്ട് അവസ്ഥ (Project Status)
+═══════════════════════════════════════════════════════
+
+### 📁 ലൊക്കേഷൻ
+Root: C:\Users\DELL\Documents\migo\
+├── mobile/      → Flutter app (Customer App)
+├── migo-business/ → Flutter app (Business App)
+├── admin/       → React admin panel (LIVE)
+├── _seed/       → Node.js seed scripts
+└── backend/     → NestJS (future)
+
+### 🌐 ലൈവ് URL-കൾ
+- Firebase Project: migo-app-3030e
+- Admin Panel: https://migo-app-3030e.web.app
+- Referral Landing: https://migo-app-3030e.web.app/r/{CODE}
+- APK Releases: https://github.com/solvexetech-cloud/migo-releases
+- Firestore Region: me-central1 (Doha)
+- Cloudinary: zxl1kb8h
+- GitHub Repo: github.com/solvexetech-cloud/migo-releases
+
+### 📊 Overall Progress
+PHASE A to K: 100% ✅ (Coin Payments & UI Complete)
+PHASE L (Community Demand): 60% (Core Flow + Admin + Notifications Done)
+PHASE F: 46% (Coin Partner System pending)
+PHASE G: 0% (Monetization pending)
+PHASE I: 95% (Play Store pending)
+PHASE H: 95% (Testing pending)
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 2: PHASE L — Community Demand & Multi-Vendor Bidding
+═══════════════════════════════════════════════════════
+
+### 💡 എന്താണ് ഇത്?
+കസ്റ്റമർ ഒരു ഉൽപ്പന്നം ആവശ്യപ്പെടുന്നു (ഉദാ: iPhone 17 - 2500 QAR). മതിയായ ആളുകൾ (Threshold) ജോയിൻ ചെയ്താൽ, ലോക്കൽ വെണ്ടർമാർ ബിഡ് ചെയ്യുന്നു. Admin അപ്രൂവ് ചെയ്ത ബിഡുകളിൽ നിന്ന് കസ്റ്റമർ ഇഷ്ടമുള്ള കട തിരഞ്ഞെടുക്കുന്നു.
+
+### ✅ പൂർത്തിയായത് (60%)
+- [x] Database Models (Demand, Bid, Claim, Join)
+- [x] DemandService (Create, Join, Bid, Lock, Auto-Merge)
+- [x] Customer App: Community Demand Home (Empty State)
+- [x] Customer App: Create Demand Screen (Bilingual, MIGO Style)
+- [x] Customer App: Demands Feed Screen (Auto-Merge)
+- [x] Customer App: Bids Comparison Screen
+- [x] Customer App: Claim Details Screen (Address/PIN)
+- [x] Customer App: Claim Ticket Screen (QR + PIN)
+- [x] Customer App: My Demands Screen (Track)
+- [x] Customer App: My Demand Details Screen (Timeline)
+- [x] Business App: Community Demand Dashboard
+- [x] Business App: Available Demands & Place Bid
+- [x] Business App: My Bids Screen
+- [x] Business App: Redemption Screen (QR + PIN)
+- [x] Admin Panel: Demand Bids Approval Page
+- [x] Admin Panel: Campaign Management Page
+- [x] Admin Panel: Order Management Page
+- [x] Firestore Rules & Indexes
+- [x] In-App Notifications (Basic)
+
+### ⬜ ബാക്കിയുള്ളത് (40%)
+- [ ] Admin Panel: Complaint Management (SCREEN 28)
+- [ ] Admin Panel: Product Request Management (SCREEN 22)
+- [ ] Product Matching Engine (Advanced)
+- [ ] Trust Score System (Customer & Business)
+- [ ] Push Notifications (FCM)
+- [ ] Auto-Expiry Jobs (Cloud Functions)
+- [ ] Full End-to-End Testing (QR/PIN Redemption)
+- [ ] Edit Vendor Bid (SCREEN 20)
+- [ ] Group Management (SCREEN 25)
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 3: Database Schema (Updated)
+═══════════════════════════════════════════════════════
+
+### New Collections (Community Demand)
+- `demands/{id}` — userId, userName, title, description, targetPrice, currency, requiredCount, currentCount, status (open/threshold_reached/locked), createdAt, expiresAt, areaId
+- `demand_joins/{id}` — demandId, userId, userName, joinedAt
+- `demand_bids/{id}` — demandId, businessId, businessName, offerPrice, authenticity (Original/Master Copy), fulfillmentType (Store Pickup/Home Delivery), status (pending/approved/rejected), businessTrustScore, adminNotes, createdAt
+- `demand_claims/{id}` — demandId, bidId, userId, businessId, businessName, finalPrice, fulfillmentType, deliveryAddress, deliveryPhone, redemptionPin, qrData, status (locked/redeemed/cancelled), createdAt, expiresAt, redeemedAt
+
+### Existing Collections (Updated)
+- `notifications/{id}` — userUid, title, body, type, data, read, createdAt
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 4: Next Steps (Priority Order)
+═══════════════════════════════════════════════════════
+
+### Immediate (Next Session)
+1. **Admin Panel — Complaint Management** (SCREEN 28)
+2. **Product Matching Engine** (Advanced)
+3. **Trust Score System**
+4. **End-to-End Testing** (QR/PIN Redemption via APK)
+
+### Priority Order (Current)
+1. **PHASE L — Community Demand** (40% left) — ONGOING 🔥
+2. **PHASE F — Coin System** (46% done)
+3. **PHASE G — Monetization** (0%)
+4. **PHASE I — Business App** (Play Store)
+5. **PHASE H — MIGO Reserve** (Testing)
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 5: Important Info (Test Accounts)
+═══════════════════════════════════════════════════════
+
+- Super Admin: test1@migoapp.com / Migo@2026
+- Business: business@migoapp.com / Business@2026
+- Customer: test2@migoapp.com / Migo@2026
+
+═══════════════════════════════════════════════════════
+END OF MASTER PLAN v5.1
+═══════════════════════════════════════════════════════

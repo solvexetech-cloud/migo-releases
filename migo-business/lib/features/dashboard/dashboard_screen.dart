@@ -13,6 +13,7 @@ import '../offers/my_flyers_screen.dart';
 import '../analytics/business_analytics_screen.dart';
 import '../profile/profile_screen.dart';
 import '../bookings/claims_history_screen.dart';
+import '../demands/demand_bids_screen.dart';
 
 /// PHASE I — Business Dashboard
 /// Responsive: sidebar on PC, drawer on mobile
@@ -130,6 +131,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _sidebarItem(7, Icons.menu_book_outlined, isAr ? 'منشوراتي' : 'My Flyers'),
           _sidebarItem(2, Icons.event_note_outlined, isAr ? 'الحجوزات' : 'Bookings'),
           _sidebarItem(6, Icons.people_outline, isAr ? 'مطالبات العملاء' : 'Customer Claims'),
+          _sidebarItem(8, Icons.gavel, isAr ? 'طلبات المجتمع' : 'Community Demands'),
           _sidebarItem(3, Icons.qr_code_scanner, isAr ? 'مسح QR' : 'Scan QR'),
           _sidebarItem(4, Icons.analytics_outlined, isAr ? 'التحليلات' : 'Analytics'),
           _sidebarItem(5, Icons.settings_outlined, isAr ? 'الإعدادات' : 'Settings'),
@@ -222,6 +224,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _drawerItem(7, Icons.menu_book_outlined, isAr ? 'منشوراتي' : 'My Flyers'),
             _drawerItem(2, Icons.event_note_outlined, isAr ? 'الحجوزات' : 'Bookings'),
             _drawerItem(6, Icons.people_outline, isAr ? 'مطالبات العملاء' : 'Customer Claims'),
+            _drawerItem(8, Icons.gavel, isAr ? 'طلبات المجتمع' : 'Community Demands'),
             _drawerItem(3, Icons.qr_code_scanner, isAr ? 'مسح QR' : 'Scan QR'),
             _drawerItem(4, Icons.analytics_outlined, isAr ? 'التحليلات' : 'Analytics'),
             _drawerItem(5, Icons.settings_outlined, isAr ? 'الإعدادات' : 'Settings'),
@@ -231,14 +234,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _drawerItem(int index, IconData icon, String label) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.white70),
-      title: Text(label, style: const TextStyle(color: Colors.white)),
-      onTap: () {
-        setState(() => _selectedIndex = index);
-        Navigator.pop(context);
-      },
+    Widget _drawerItem(int index, IconData icon, String label) {
+    return Material(
+      color: Colors.transparent, // 👈 ഈ വരി നിർബന്ധമായും ചേർക്കുക
+      child: ListTile(
+        leading: Icon(icon, color: Colors.white70),
+        title: Text(label, style: const TextStyle(color: Colors.white)),
+        onTap: () {
+          setState(() => _selectedIndex = index);
+          Navigator.pop(context);
+        },
+      ),
     );
   }
 
@@ -261,6 +267,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return _buildProfileTab();
       case 6: 
         return _buildClaimsTab();
+      case 8:
+        return const DemandBidsScreen();
       case 7:
         return const MyFlyersScreen();
       default:
@@ -511,6 +519,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required Color color,
   }) {
     return Container(
+      height: 140, // 👈 ഈ വരി പുതിയതായി ചേർക്കുക
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: MigoColors.surface,
@@ -529,12 +538,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(height: 12),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              color: color,
+                    FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: color,
+              ),
             ),
           ),
           const SizedBox(height: 4),

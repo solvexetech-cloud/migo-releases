@@ -21,6 +21,9 @@ import CategoriesPage from './pages/CategoriesPage';
 import RolesPage from './pages/RolesPage';
 import CoinSettingsPage from './pages/CoinSettingsPage';
 import CoinPaymentsPage from './pages/CoinPaymentsPage';
+import DemandBidsPage from './pages/DemandBidsPage';
+import CampaignsPage from './pages/CampaignsPage';
+import OrdersPage from './pages/OrdersPage';
 import {
   RoleProvider,
   useRole,
@@ -45,6 +48,7 @@ import ReservationConfigPage from './pages/ReservationConfigPage';
 import NoShowLogPage from './pages/NoShowLogPage';
 import MarketingDashboardPage from './pages/MarketingDashboardPage';
 import FlyersPage from './pages/FlyersPage';
+
 
 // ═══════════════════════════════════════════════════
 // J4 — RoleRedirect: role അനുസരിച്ച് landing page
@@ -178,6 +182,9 @@ export default function App() {
                     <Route path="/flyers" element={<FlyersPage />} />
                     <Route path="/coin-settings" element={<CoinSettingsPage />} />
                     <Route path="/coin-payments" element={<CoinPaymentsPage />} />
+                    <Route path="/demand-bids" element={<DemandBidsPage />} />
+                    <Route path="/campaigns" element={<CampaignsPage />} />
+                    <Route path="/orders" element={<OrdersPage />} />
                   </Routes>
                 </AdminLayout>
               ) : (

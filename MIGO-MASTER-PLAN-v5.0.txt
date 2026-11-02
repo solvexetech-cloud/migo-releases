@@ -1,0 +1,263 @@
+# ═══════════════════════════════════════════════════════
+# MIGO — MASTER PLAN
+# Version: v5.1 (Community Demand Full Integration)
+# Date: November 02, 2026
+# Owner: solvexe.tech@gmail.com
+# ═══════════════════════════════════════════════════════
+
+## 📌 ഈ ഡോക്യുമെന്റിനെ കുറിച്ച്
+ഇത് MIGO ആപ്പിന്റെ പൂർണ്ണ റോഡ്മാപ്പ് ആണ്. പുതിയ ചാറ്റ് തുടങ്ങുമ്പോൾ ഈ ഫയൽ AI-ക്ക് paste ചെയ്താൽ എല്ലാം മനസ്സിലാകും.
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 1: പ്രോജക്ട് അവസ്ഥ (Project Status)
+═══════════════════════════════════════════════════════
+
+### 📁 ലൊക്കേഷൻ
+Root: C:\Users\DELL\Documents\migo\
+├── mobile/      → Flutter app (Customer App)
+├── migo-business/ → Flutter app (Business App)
+├── admin/       → React admin panel (LIVE)
+├── _seed/       → Node.js seed scripts
+└── backend/     → NestJS (future)
+
+### 🌐 ലൈവ് URL-കൾ
+- Firebase Project: migo-app-3030e
+- Admin Panel: https://migo-app-3030e.web.app
+- Firestore Region: me-central1 (Doha)
+
+### 📊 Overall Progress
+PHASE A to K: 100% ✅ (Coin Payments & UI Complete)
+PHASE L (Community Demand): 30% (Basic Flow Done)
+PHASE F: 46% (Coin Partner System pending)
+PHASE G: 0% (Monetization pending)
+PHASE I: 95% (Play Store pending)
+PHASE H: 95% (Testing pending)
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 2: PHASE L — Community Demand & Multi-Vendor Bidding
+═══════════════════════════════════════════════════════
+
+### 💡 എന്താണ് ഇത്?
+കസ്റ്റമർ ഒരു ഉൽപ്പന്നം ആവശ്യപ്പെടുന്നു (ഉദാ: iPhone 17 - 2500 QAR). മതിയായ ആളുകൾ (Threshold) ജോയിൻ ചെയ്താൽ, ലോക്കൽ വെണ്ടർമാർ ബിഡ് ചെയ്യുന്നു. Admin അപ്രൂവ് ചെയ്ത ബിഡുകളിൽ നിന്ന് കസ്റ്റമർ ഇഷ്ടമുള്ള കട തിരഞ്ഞെടുക്കുന്നു.
+
+### ✅ പൂർത്തിയായത് (30%)
+- [x] Database Models (DemandModel, DemandBidModel, DemandClaimModel, DemandJoinModel)
+- [x] DemandService (createDemand, joinDemand, placeBid, getBidsStream, lockDeal)
+- [x] Customer App: Create Demand Screen (Bilingual)
+- [x] Customer App: Demands Feed Screen (Empty State Design)
+- [x] Customer App: Bids Comparison Screen
+- [x] Customer App: Claim Details Screen (Address/PIN for Delivery)
+- [x] Customer App: Claim Ticket Screen (QR + PIN)
+- [x] Customer App: My Demands Screen
+- [x] Business App: Demand Bids Screen (Place Bid)
+- [x] Business App: Demand Redemption Screen (QR + PIN)
+- [x] Admin Panel: Demand Bids Approval Page
+- [x] Firestore Rules & Indexes
+- [x] Auto-Merge Logic (Same product = Same demand)
+
+### ⬜ ബാക്കിയുള്ളത് (70%) — Master Specification അനുസരിച്ച്
+
+#### PART 1: Development Instructions
+- [ ] Existing code base audit
+- [ ] Integration plan
+- [ ] Preserve backward compatibility
+
+#### PART 2: User Roles
+- [ ] Customer (Full access)
+- [ ] Vendor/Shop (Bidding, Orders)
+- [ ] Delivery Staff (PIN verification)
+- [ ] Area Agency (Bid verification)
+- [ ] Country Admin (Configuration)
+- [ ] Super Admin (Global control)
+
+#### PART 3: Customer App Screens
+- [x] SCREEN 1: Community Demand Home (Basic)
+- [ ] SCREEN 2: Existing Product Catalog
+- [ ] SCREEN 3: Product Details & Demand Configuration
+- [x] SCREEN 4: New Customer Product Request (Basic)
+- [ ] SCREEN 5: Product Matching Confirmation
+- [x] SCREEN 6: Join Community Demand (Done)
+- [x] SCREEN 7: My Demands (Done)
+- [ ] SCREEN 8: My Demand Details (Full)
+- [x] SCREEN 9: Approved Vendor Offers (Compare Bids)
+- [ ] SCREEN 10: Offer Details
+- [x] SCREEN 11: Vendor Selection (Lock Deal)
+- [x] SCREEN 12: Purchase Confirmation
+
+#### PART 4: Pickup & Delivery
+- [x] SCREEN 13: Store Pickup (QR)
+- [x] SCREEN 14: Home Delivery (QR + PIN)
+
+#### PART 5: Vendor/Business App Screens
+- [x] SCREEN 15: Community Demand Dashboard
+- [x] SCREEN 16: Available Community Demands
+- [x] SCREEN 17: Vendor Demand Details
+- [x] SCREEN 18: Submit Vendor Bid
+- [ ] SCREEN 19: My Bids
+- [ ] SCREEN 20: Edit Vendor Bid
+
+#### PART 6: Admin/Agency Screens
+- [ ] SCREEN 21: Community Demand Admin Dashboard
+- [ ] SCREEN 22: Product Request Management
+- [ ] SCREEN 23: Product Catalog Management
+- [ ] SCREEN 24: Campaign Management
+- [ ] SCREEN 25: Group Management
+- [x] SCREEN 26: Vendor Bid Verification (Done)
+- [ ] SCREEN 27: Order Management
+- [ ] SCREEN 28: Complaint Management
+
+#### PART 7: Date/Time/Expiry Rules
+- [ ] UTC storage
+- [ ] Timezone display
+- [ ] Auto-expiry jobs (Cloud Functions)
+
+#### PART 8: Edit/Delete/Cancel Rules
+- [ ] Soft deletion
+- [ ] Audit logging
+
+#### PART 9: Community Grouping Engine
+- [x] Auto-Merge (Same product = Same demand)
+- [ ] Group Creation (Group 01, 02, 03...)
+- [ ] Group Activation (When threshold reached)
+- [ ] Partial Groups (Extend/Close)
+- [ ] Multiple Vendor Bidding (Per group)
+- [ ] Quantity vs Member Count (Separate)
+
+#### PART 10: Product Matching Engine
+- [ ] Normalize product name
+- [ ] Extract structured specs
+- [ ] Compare mandatory/preferred attributes
+- [ ] Matching confidence calculation
+- [ ] Admin review queue
+
+#### PART 11: Database Design
+- [x] demands
+- [x] demand_joins
+- [x] demand_bids
+- [x] demand_claims
+- [ ] community_categories
+- [ ] community_campaigns
+- [ ] community_groups
+- [ ] community_memberships
+- [ ] community_orders
+- [ ] community_qr_tokens
+- [ ] community_delivery_pins
+- [ ] community_transactions
+- [ ] community_commissions
+- [ ] community_complaints
+- [ ] community_notifications
+- [ ] community_audit_logs
+
+#### PART 12: API & Backend
+- [x] Basic CRUD (Demand, Bid, Claim)
+- [ ] Full API groups (Customer, Vendor, Admin)
+- [ ] Server-side validation
+- [ ] Rate limiting
+
+#### PART 13: Notifications
+- [ ] Customer notifications
+- [ ] Vendor notifications
+- [ ] Admin notifications
+- [ ] Deduplication
+
+#### PART 14: Pricing, Commission & Financial
+- [ ] Transparent price breakdown
+- [ ] Vendor commission (Configurable)
+- [ ] Cash payment tracking
+
+#### PART 15: UI/UX Requirements
+- [x] MIGO Design System (Gradients, Glow)
+- [x] Bilingual (English + Arabic RTL)
+- [x] Loading states
+- [x] Empty states
+- [ ] Pagination / Lazy loading
+
+#### PART 16: Status Definitions
+- [x] Basic statuses (open, threshold_reached, locked, redeemed)
+- [ ] Full status system (Draft, Submitted, Review, Approved, etc.)
+
+#### PART 17: Security & Fraud Prevention
+- [x] Firestore Rules
+- [ ] PIN hashing
+- [ ] PIN attempt limits
+- [ ] Single-use redemption
+- [ ] Audit logging
+
+#### PART 18: Reports & Analytics
+- [ ] Admin reports
+- [ ] Vendor reports
+- [ ] Customer history
+
+#### PART 19: Error Handling
+- [ ] Edge cases (Duplicate join, Stock unavailable, QR expiry, etc.)
+
+#### PART 20: Testing & Acceptance
+- [ ] Customer tests
+- [ ] Vendor tests
+- [ ] Admin tests
+- [ ] Security tests
+- [ ] Concurrency tests
+
+#### PART 21: Development Execution
+- [x] Step 1-7 (Basic Flow)
+- [ ] Step 8: Notifications & Expiry Jobs
+- [ ] Step 9: Testing
+- [ ] Step 10: Final Delivery
+
+#### PART 22: Final Business Rules
+1. [x] Customer demand is the starting point.
+2. [ ] Existing Product Catalog and New Customer Request must both be supported.
+3. [ ] Admin must not be required to create every new product demand manually.
+4. [x] Similar customer requests must be automatically matched (Auto-Merge).
+5. [ ] Incompatible mandatory product requirements must not be merged.
+6. [ ] Community group size is controlled by Admin.
+7. [ ] Default group size is 10.
+8. [x] Each customer can join a campaign only once.
+9. [ ] Member count and requested quantity are separate.
+10. [x] Multiple vendors can compete for the same group.
+11. [x] Vendor bidding must not become exclusive.
+12. [x] Every customer independently selects their preferred vendor.
+13. [x] Joining a group does not force a purchase.
+14. [x] Only approved offers are shown to customers.
+15. [x] Confirmed order prices and terms are locked.
+16. [x] Store Pickup uses an expiring single-use QR Code.
+17. [x] Home Delivery uses QR Code and unique 6-digit PIN.
+18. [x] Cash payment must be supported.
+19. [x] Delivery responsibility belongs to the Vendor/Shop.
+20. [x] The platform must retain transaction records and complaint controls.
+21. [ ] Commission is calculated according to successful transaction rules.
+22. [ ] All important actions must be auditable.
+23. [x] Existing application functionality must remain intact.
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 3: Next Steps (Priority Order)
+═══════════════════════════════════════════════════════
+
+### Immediate (Next Session)
+1. **Complete PHASE L** — Follow Master Specification step by step:
+   - Step 1: My Bids Page (Vendor App)
+   - Step 2: My Demand Details (Customer App)
+   - Step 3: Admin Campaign Management
+   - Step 4: Notifications & Expiry Jobs
+   - Step 5: Testing
+2. **PHASE F6** — Coin Partner System
+3. **PHASE G** — Monetization (Revenue)
+
+### Priority Order (Current)
+1. **PHASE L — Community Demand** (70% left) — ONGOING 🔥
+2. **PHASE F — Coin System** (46% done)
+3. **PHASE G — Monetization** (0%)
+4. **PHASE I — Business App** (Play Store)
+5. **PHASE H — MIGO Reserve** (Testing)
+
+═══════════════════════════════════════════════════════
+## ഭാഗം 4: Important Info (Test Accounts)
+═══════════════════════════════════════════════════════
+
+- Super Admin: test1@migoapp.com / Migo@2026
+- Business: business@migoapp.com / Business@2026
+- Customer: test2@migoapp.com / Migo@2026
+
+═══════════════════════════════════════════════════════
+END OF MASTER PLAN v5.1
+═══════════════════════════════════════════════════════

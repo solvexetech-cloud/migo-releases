@@ -18,6 +18,8 @@ import '../creator/creator_dashboard_screen.dart';
 import '../creator/creator_signup_screen.dart';
 import '../referrals/referral_screen.dart';
 import '../magazine/magazine_screen.dart';
+import '../demands/my_demands_screen.dart';
+
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -239,6 +241,20 @@ class ProfileScreen extends StatelessWidget {
                                 );
                               },
                             ),
+                            const SizedBox(height: 8),
+                            _MenuTile(
+                              icon: Icons.gavel,
+                              label: isAr ? 'طلباتي' : 'My Demands',
+                              color: MigoColors.accent,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => MyDemandsScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+
                             _MenuTile(
                               icon: Icons.menu_book,
                               label: isAr ? 'مجلة MIGO' : 'MIGO Magazine',

@@ -5,11 +5,11 @@ import '../../core/localization/locale_provider.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../models/claim_model.dart';
 import '../../models/coin_settings_model.dart';
-import '../../models/offer_model.dart'; // 🆕 ഓഫർ മോഡൽ
+import '../../models/offer_model.dart';
 import '../../services/firestore_service.dart';
 import '../reviews/write_review_screen.dart';
 import 'qr_code_screen.dart';
-import '../wallet/pay_with_coins_screen.dart'; // 🆕 പേയ്‌മെന്റ് സ്ക്രീൻ
+import '../wallet/pay_with_coins_screen.dart';
 
 class MyClaimsScreen extends StatelessWidget {
   const MyClaimsScreen({super.key});
@@ -97,10 +97,9 @@ class MyClaimsScreen extends StatelessWidget {
                         final offerId = data['offerId'] as String? ?? '';
 
                         return FutureBuilder<OfferModel?>(
-                          future: FirestoreService.instance.getOffer(offerId), // 🆕 ഓഫർ ലോഡ് ചെയ്യുന്നു
+                          future: FirestoreService.instance.getOffer(offerId),
                           builder: (context, offerSnap) {
                             final offer = offerSnap.data;
-                            final business = offer != null ? null : null; // ഇവിടെ ബിസിനസ് ലോഡ് ചെയ്യണം, പക്ഷേ ഇപ്പോൾ വേണ്ട
 
                             return Column(
                               children: [
@@ -120,6 +119,8 @@ class MyClaimsScreen extends StatelessWidget {
                                             child: Text(
                                               title,
                                               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
                                           Container(
@@ -147,36 +148,40 @@ class MyClaimsScreen extends StatelessWidget {
                                       Text(
                                         businessName,
                                         style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 10),
+                                      // Fixed Overflow Here
                                       Row(
                                         children: [
-                                          Flexible(
-                                            child: Text(
-                                              '$currency ${originalPrice.toStringAsFixed(0)}',
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                decoration: TextDecoration.lineThrough,
-                                                color: MigoColors.textSecondaryLight,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
+                                          Expanded(
+                                            child: Wrap(
+                                              crossAxisAlignment: WrapCrossAlignment.center,
+                                              spacing: 6,
+                                              children: [
+                                                Text(
+                                                  '$currency ${originalPrice.toStringAsFixed(0)}',
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    decoration: TextDecoration.lineThrough,
+                                                    color: MigoColors.textSecondaryLight,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  '$currency ${offerPrice.toStringAsFixed(0)}',
+                                                  style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: MigoColors.primary,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
-                                          const SizedBox(width: 6),
-                                          Flexible(
-                                            child: Text(
-                                              '$currency ${offerPrice.toStringAsFixed(0)}',
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w800,
-                                                color: MigoColors.primary,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          const Spacer(),
                                           if (isRedeemed)
                                             Row(
+                                              mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 const Icon(Icons.check_circle, size: 20, color: MigoColors.success),
                                                 const SizedBox(width: 4),
@@ -192,6 +197,7 @@ class MyClaimsScreen extends StatelessWidget {
                                             )
                                           else
                                             Row(
+                                              mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 const Icon(Icons.qr_code, size: 20, color: MigoColors.primary),
                                                 const SizedBox(width: 4),
@@ -211,7 +217,7 @@ class MyClaimsScreen extends StatelessWidget {
                                   ),
                                 ),
 
-                                                                // 🆕 Pay with Coins Toggle (ചെറിയ സ്വിച്ച്)
+                                // Pay with Coins Toggle
                                 if (!isRedeemed && offer != null) ...[
                                   const SizedBox(height: 6),
                                   SwitchListTile(
@@ -244,7 +250,7 @@ class MyClaimsScreen extends StatelessWidget {
                                   ),
                                 ],
 
-                                // Show QR Code ബട്ടൺ
+                                // Show QR Code Button
                                 if (!isRedeemed) ...[
                                   const SizedBox(height: 6),
                                   SizedBox(
@@ -273,7 +279,7 @@ class MyClaimsScreen extends StatelessWidget {
                                   ),
                                 ],
 
-                                // Write Review ബട്ടൺ
+                                // Write Review Button
                                 if (isRedeemed) ...[
                                   const SizedBox(height: 6),
                                   SizedBox(
@@ -303,10 +309,13 @@ class MyClaimsScreen extends StatelessWidget {
                                         );
                                       },
                                       icon: const Icon(Icons.rate_review_outlined, size: 16),
-                                      label: Text(
-                                        isAr
-                                            ? 'اكتب مراجعة · +$reviewReward عملات'
-                                            : 'Write a review · +$reviewReward coins',
+                                      label: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          isAr
+                                              ? 'اكتب مراجعة · +$reviewReward عملات'
+                                              : 'Write a review · +$reviewReward coins',
+                                        ),
                                       ),
                                     ),
                                   ),

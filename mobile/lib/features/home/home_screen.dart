@@ -22,6 +22,7 @@ import '../deals/offer_detail_screen.dart';
 import '../discover/discover_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../magazine/magazine_screen.dart';
+import '../demands/demands_feed_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -258,6 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   onPressed: _showLanguagePicker,
                                 ),
 
+                                
                                 const Spacer(),
                                 IconButton(
                                   onPressed: () {

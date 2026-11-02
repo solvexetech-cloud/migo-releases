@@ -12,6 +12,7 @@ import '../../services/location_service.dart';
 import '../../widgets/location_picker_modal.dart';
 import '../../widgets/migo_empty_state.dart';
 import '../deals/offer_detail_screen.dart';
+import '../demands/demands_feed_screen.dart';
 
 enum SortMode { newest, bestSavings, expiringSoon }
 
@@ -363,68 +364,131 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 final all = snap.data ?? [];
                 final filtered = _applyFilters(all);
 
-                if (filtered.isEmpty) {
-                  final hasFilters = _query.isNotEmpty ||
-                      _category != null ||
-                      _areaId != null;
-                  return MigoEmptyState(
-                    icon: hasFilters ? Icons.search_off : Icons.explore_outlined,
-                    title: hasFilters
-                        ? (isAr ? 'لا توجد عروض تطابق تصفيتك' : 'No offers match your filters')
-                        : (isAr ? 'لا توجد عروض بعد' : 'No offers yet'),
-                    body: hasFilters
-                        ? (isAr ? 'جرب بحثًا أو فئة أو منطقة مختلفة.' : 'Try a different search, category, or area.')
-                        : (isAr ? 'تحقق مرة أخرى قريبًا للحصول على عروض جديدة.' : 'Check back soon for new deals.'),
-                  );
-                }
-
+                // Community Demands Card is now always visible at the top
                 return Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                      child: Row(
-                        children: [
-                          Text(
-                            '${filtered.length} ${isAr ? 'عرض' : (filtered.length == 1 ? "offer" : "offers")}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: MigoColors.textSecondaryLight,
-                            ),
+                    // ✅ Community Demands Card
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const DemandsFeedScreen()),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [MigoColors.accent, MigoColors.accentDark],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          const Spacer(),
-                          Text(
-                            isAr ? 'ترتيب: ${_sort.label(isAr)}' : 'Sort: ${_sort.label(isAr)}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: MigoColors.textSecondaryLight,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: MigoColors.accent.withValues(alpha: 0.4),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.25),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.gavel, color: Colors.white, size: 24),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    isAr ? 'طلبات المجتمع' : 'Community Demands',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    isAr
+                                        ? 'اطلب منتجك ودع المتاجر تتنافس على أفضل سعر.'
+                                        : 'Request a product & let shops bid for your business.',
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+                          ],
+                        ),
                       ),
                     ),
-                    Expanded(
-                      child: GridView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
-                          childAspectRatio: 0.62,
+
+                    // Offers List
+                    if (filtered.isEmpty)
+                      Expanded(
+                        child: MigoEmptyState(
+                          icon: _query.isNotEmpty || _category != null || _areaId != null
+                              ? Icons.search_off
+                              : Icons.explore_outlined,
+                          title: _query.isNotEmpty || _category != null || _areaId != null
+                              ? (isAr ? 'لا توجد عروض تطابق تصفيتك' : 'No offers match your filters')
+                              : (isAr ? 'لا توجد عروض بعد' : 'No offers yet'),
+                          body: _query.isNotEmpty || _category != null || _areaId != null
+                              ? (isAr ? 'جرب بحثًا أو فئة أو منطقة مختلفة.' : 'Try a different search, category, or area.')
+                              : (isAr ? 'تحقق مرة أخرى قريبًا للحصول على عروض جديدة.' : 'Check back soon for new deals.'),
                         ),
-                        itemCount: filtered.length,
-                        itemBuilder: (context, i) {
-                          final o = filtered[i];
-                          return TapScale(
-                            onTap: () {
-                              Navigator.of(context).push(
-                                FadeSlideRoute(
-                                  child: OfferDetailScreen(offer: o),
-                                ),
-                              );
-                            },
-                            child: _OfferTile(
-                              offer: o,
-                              isAr: isAr,
+                      )
+                    else ...[
+                      // Offer Count & Sort Row
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                        child: Row(
+                          children: [
+                            Text(
+                              '${filtered.length} ${isAr ? 'عرض' : (filtered.length == 1 ? "offer" : "offers")}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: MigoColors.textSecondaryLight,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              isAr ? 'ترتيب: ${_sort.label(isAr)}' : 'Sort: ${_sort.label(isAr)}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: MigoColors.textSecondaryLight,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      // Grid
+                      Expanded(
+                        child: GridView.builder(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                            childAspectRatio: 0.62,
+                          ),
+                          itemCount: filtered.length,
+                          itemBuilder: (context, i) {
+                            final o = filtered[i];
+                            return TapScale(
                               onTap: () {
                                 Navigator.of(context).push(
                                   FadeSlideRoute(
@@ -432,11 +496,22 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                   ),
                                 );
                               },
-                            ),
-                          );
-                        },
+                              child: _OfferTile(
+                                offer: o,
+                                isAr: isAr,
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    FadeSlideRoute(
+                                      child: OfferDetailScreen(offer: o),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 );
               },

@@ -12,7 +12,7 @@ service cloud.firestore {
     }
 
     function getUserRole() {
-      return isSignedIn()
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
         : 'guest';
     }
@@ -58,15 +58,18 @@ service cloud.firestore {
       
       allow update: if isSignedIn() && (
         (request.auth.uid == uid &&
-         !request.resource.data.diff(resource.data)
-           .affectedKeys().hasAny(['role'])) ||
+         (
+           // 🆕 സ്വന്തം ഡാറ്റ അപ്ഡേറ്റ് ചെയ്യാം (റോൾ ഒഴികെ)
+           !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']) ||
+           // 🆕 അല്ലെങ്കിൽ, റോൾ 'customer' ആക്കാൻ മാത്രം അനുവദിക്കുന്നു (സൈൻ അപ്പിന് വേണ്ടി)
+           (request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']) && request.resource.data.role == 'customer')
+         )
+        ) ||
         isAdmin() ||
+        // 🆕 ബിസിനസ് ഉടമയ്ക്കോ അഡ്മിനോ കസ്റ്റമറുടെ കോയിൻസ് കൂട്ടാൻ അനുവദിക്കുന്നു
         (request.resource.data.diff(resource.data)
-           .affectedKeys().hasOnly(['coins', 'updatedAt']) && 
-         isBusinessOwner(resource.data.businessId)) ||
-        (request.resource.data.diff(resource.data)
-           .affectedKeys().hasOnly(['coins', 'updatedAt']) &&
-         request.resource.data.coins >= resource.data.coins)
+           .affectedKeys().hasOnly(['coins', 'coinsExpireAt', 'updatedAt']) && 
+         (getUserRole() == 'business' || isAdmin() || isModerator()))
       );
       
       allow delete: if isSuperAdmin();
@@ -82,7 +85,6 @@ service cloud.firestore {
           isBusinessOwner(resource.data.businessId) || 
           isAdmin() || 
           isModerator() ||
-          // Customer can update viewedBy/fullyViewedBy
           (request.resource.data.diff(resource.data).affectedKeys()
             .hasOnly(['viewedBy', 'fullyViewedBy', 'updatedAt']))
         );
@@ -205,7 +207,7 @@ service cloud.firestore {
     match /notifications/{notifId} {
       allow read: if isSignedIn() &&
         resource.data.userUid == request.auth.uid;
-      allow create: if isSignedIn() || request.auth == null;
+      allow create: if isSignedIn(); 
       allow update: if isSignedIn() &&
         resource.data.userUid == request.auth.uid;
       allow delete: if isAdmin();
@@ -346,9 +348,7 @@ service cloud.firestore {
       allow delete: if isSuperAdmin();
     }
 
-    // ═══════════════════════════════════════════════════════
-    // PHASE H — MIGO RESERVE
-    // ═══════════════════════════════════════════════════════
+    // ---------- PHASE H — MIGO RESERVE ----------
     match /reservations/{resId} {
       allow create: if isSignedIn() &&
         request.resource.data.status == 'reserved';
@@ -403,6 +403,50 @@ service cloud.firestore {
         request.resource.data.userUid == request.auth.uid;
       allow update: if false;
       allow delete: if isAdmin();
+    }
+
+    // ---------- COIN PAYMENTS ----------
+    match /coin_payments/{paymentId} {
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isBusinessOwner(resource.data.businessId) ||
+        isModerator()
+      );
+      
+      allow update: if isSignedIn() && (
+        isBusinessOwner(resource.data.businessId) ||
+        isModerator()
+      );
+    }
+
+    // ---------- PHASE L — COMMUNITY DEMAND RULES ----------
+    match /demands/{demandId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn(); 
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /demand_joins/{joinId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn(); 
+    }
+
+    match /demand_bids/{bidId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn(); 
+      allow delete: if isSignedIn() && resource.data.businessId == request.auth.uid;
+    }
+
+    match /demand_claims/{claimId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn(); 
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 
     // ---------- DEFAULT: DENY ----------
