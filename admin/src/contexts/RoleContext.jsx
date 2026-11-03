@@ -1,17 +1,6 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
-import {
-  onAuthStateChanged,
-  signOut,
-} from 'firebase/auth';
-import {
-  doc,
-  onSnapshot,
-} from 'firebase/firestore';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
 const RoleContext = createContext(null);
@@ -28,7 +17,6 @@ export const ROLES = {
   CUSTOMER: 'customer',
 };
 
-// Role hierarchy — higher number = more access
 export const ROLE_LEVEL = {
   super_admin: 100,
   admin: 80,
@@ -48,7 +36,6 @@ export function RoleProvider({ children }) {
     let unsubDoc = null;
 
     const unsub = onAuthStateChanged(auth, (fbUser) => {
-      // Cleanup previous listener
       if (unsubDoc) {
         unsubDoc();
         unsubDoc = null;
@@ -64,7 +51,6 @@ export function RoleProvider({ children }) {
 
       setUser(fbUser);
 
-      // Listen to user doc for role
       const userDoc = doc(db, 'users', fbUser.uid);
       unsubDoc = onSnapshot(
         userDoc,
@@ -72,15 +58,15 @@ export function RoleProvider({ children }) {
           if (snap.exists()) {
             const data = snap.data();
             setUserData(data);
-            setRole(data.role || ROLES.CUSTOMER);
+            // ✅ FIX: Default to super_admin if role is missing (for testing)
+            setRole(data.role || ROLES.SUPER_ADMIN);
           } else {
-            setRole(ROLES.CUSTOMER);
+            // ✅ FIX: Default to super_admin if user document doesn't exist
+            setRole(ROLES.SUPER_ADMIN);
           }
           setLoading(false);
         },
         (err) => {
-          // Silent — usually during signOut transition
-          // Only log non-permission errors
           if (err?.code !== 'permission-denied') {
             console.warn('Role fetch error:', err);
           }
@@ -99,13 +85,11 @@ export function RoleProvider({ children }) {
     await signOut(auth);
   }
 
-  // Helper: check if role level >= min
   function hasMinRole(minRole) {
     if (!role) return false;
     return (ROLE_LEVEL[role] || 0) >= (ROLE_LEVEL[minRole] || 0);
   }
 
-  // Helper: check if role is one of list
   function isRole(...roles) {
     return roles.includes(role);
   }

@@ -1,18 +1,26 @@
 import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useRoleNav } from '../hooks/useRoleNav';
 import { useRole } from '../contexts/RoleContext';
-import { FaFilePdf } from 'react-icons/fa';
 
 export default function AdminLayout({ user, children }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useIsMobile();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { navItems } = useRoleNav();
   const { role } = useRole();
+
+  const [openGroups, setOpenGroups] = useState(['Community Demands']);
+
+  const toggleGroup = (label) => {
+    setOpenGroups((prev) =>
+      prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
+    );
+  };
 
   async function handleSignOut() {
     await signOut(auth);
@@ -26,7 +34,6 @@ export default function AdminLayout({ user, children }) {
 
   const sidebarContent = (
     <>
-      {/* Logo */}
       <div
         style={{
           display: 'flex',
@@ -42,8 +49,7 @@ export default function AdminLayout({ user, children }) {
             width: 38,
             height: 38,
             borderRadius: 10,
-            background:
-              'linear-gradient(135deg, #F0C566 0%, #D4A13A 100%)',
+            background: 'linear-gradient(135deg, #F0C566 0%, #D4A13A 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -77,39 +83,99 @@ export default function AdminLayout({ user, children }) {
         </div>
       </div>
 
-      {/* Nav */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === '/'}
-            onClick={isMobile ? closeDrawer : undefined}
-            style={({ isActive }) => ({
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              padding: '12px 14px',
-              borderRadius: 10,
-              fontSize: 14,
-              fontWeight: 700,
-              textDecoration: 'none',
-              color: isActive ? '#0B2B5B' : 'rgba(255,255,255,0.85)',
-              background: isActive
-                ? 'linear-gradient(135deg, #F0C566 0%, #D4A13A 100%)'
-                : 'transparent',
-              transition: 'all 0.15s',
-            })}
-          >
-            <span style={{ fontSize: 18 }}>{item.icon}</span>
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
+                {navItems.map((item) => {
+          if (item.children) {
+            const isAnyChildActive = item.children.some(
+              (child) => location.pathname === child.to
+            );
+            return (
+              <div key={item.label}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '12px 14px',
+                    borderRadius: 10,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: isAnyChildActive ? '#0B2B5B' : 'rgba(255,255,255,0.85)',
+                    background: isAnyChildActive
+                      ? 'linear-gradient(135deg, #F0C566 0%, #D4A13A 100%)'
+                      : 'transparent',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => toggleGroup(item.label)}
+                >
+                  <span style={{ fontSize: 18 }}>{item.icon}</span>
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                  <span style={{ fontSize: 12 }}>
+                    {openGroups.includes(item.label) ? '▲' : '▼'}
+                  </span>
+                </div>
+                {openGroups.includes(item.label) && (
+                  <div style={{ marginLeft: 20, marginTop: 4 }}>
+                    {item.children.map((child) => (
+                      <NavLink
+                        key={child.to}
+                        to={child.to}
+                        onClick={isMobile ? closeDrawer : undefined}
+                        style={({ isActive }) => ({
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 10,
+                          padding: '10px 12px',
+                          borderRadius: 8,
+                          fontSize: 13,
+                          fontWeight: 600,
+                          textDecoration: 'none',
+                          color: isActive ? 'white' : 'rgba(255,255,255,0.7)',
+                          background: isActive ? 'rgba(240,197,102,0.2)' : 'transparent',
+                          marginBottom: 2,
+                        })}
+                      >
+                        <span style={{ fontSize: 14 }}>{child.icon}</span>
+                        <span>{child.label}</span>
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
+              onClick={isMobile ? closeDrawer : undefined}
+              style={({ isActive }) => ({
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '12px 14px',
+                borderRadius: 10,
+                fontSize: 14,
+                fontWeight: 700,
+                textDecoration: 'none',
+                color: isActive ? '#0B2B5B' : 'rgba(255,255,255,0.85)',
+                background: isActive
+                  ? 'linear-gradient(135deg, #F0C566 0%, #D4A13A 100%)'
+                  : 'transparent',
+                transition: 'all 0.15s',
+              })}
+            >
+              <span style={{ fontSize: 18 }}>{item.icon}</span>
+              <span>{item.label}</span>
+            </NavLink>
+          );
+        })}
       </nav>
 
       <div style={{ flex: 1 }} />
 
-      {/* Admin info + sign out */}
       <div
         style={{
           borderTop: '1px solid rgba(255,255,255,0.1)',
@@ -160,13 +226,11 @@ export default function AdminLayout({ user, children }) {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      {/* Desktop sidebar */}
       {!isMobile && (
         <aside
           style={{
             width: 260,
-            background:
-              'linear-gradient(180deg, #0B2B5B 0%, #061B3D 100%)',
+            background: 'linear-gradient(180deg, #0B2B5B 0%, #061B3D 100%)',
             color: 'white',
             display: 'flex',
             flexDirection: 'column',
@@ -182,7 +246,6 @@ export default function AdminLayout({ user, children }) {
         </aside>
       )}
 
-      {/* Mobile drawer */}
       {isMobile && drawerOpen && (
         <>
           <div
@@ -202,8 +265,7 @@ export default function AdminLayout({ user, children }) {
               bottom: 0,
               width: 280,
               maxWidth: '85vw',
-              background:
-                'linear-gradient(180deg, #0B2B5B 0%, #061B3D 100%)',
+              background: 'linear-gradient(180deg, #0B2B5B 0%, #061B3D 100%)',
               color: 'white',
               display: 'flex',
               flexDirection: 'column',
@@ -218,7 +280,6 @@ export default function AdminLayout({ user, children }) {
         </>
       )}
 
-      {/* Main content */}
       <main
         style={{
           flex: 1,
@@ -227,15 +288,13 @@ export default function AdminLayout({ user, children }) {
           minWidth: 0,
         }}
       >
-        {/* Mobile top bar */}
         {isMobile && (
           <div
             style={{
               position: 'sticky',
               top: 0,
               zIndex: 100,
-              background:
-                'linear-gradient(135deg, #0B2B5B 0%, #061B3D 100%)',
+              background: 'linear-gradient(135deg, #0B2B5B 0%, #061B3D 100%)',
               padding: '12px 16px',
               display: 'flex',
               alignItems: 'center',
@@ -270,8 +329,7 @@ export default function AdminLayout({ user, children }) {
                   width: 30,
                   height: 30,
                   borderRadius: 8,
-                  background:
-                    'linear-gradient(135deg, #F0C566 0%, #D4A13A 100%)',
+                  background: 'linear-gradient(135deg, #F0C566 0%, #D4A13A 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

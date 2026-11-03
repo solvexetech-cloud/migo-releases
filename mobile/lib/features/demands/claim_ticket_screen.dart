@@ -4,6 +4,7 @@ import '../../core/localization/locale_provider.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../models/demand_model.dart';
 import '../../models/demand_claim_model.dart';
+import '../complaints/report_complaint_screen.dart';
 
 class ClaimTicketScreen extends StatelessWidget {
   final DemandModel demand;
@@ -76,6 +77,30 @@ class ClaimTicketScreen extends StatelessWidget {
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 16),
+                  // Report Problem Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: MigoColors.error,
+                        side: const BorderSide(color: MigoColors.error),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ReportComplaintScreen(
+                              orderId: claim.id,
+                              businessName: businessName,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.report_problem),
+                      label: Text(isAr ? 'الإبلاغ عن مشكلة' : 'Report a Problem'),
+                    ),
+                  ),
                         QrImageView(
                           data: claim.qrData,
                           version: QrVersions.auto,

@@ -1,14 +1,10 @@
 import { useRole, ROLES } from '../contexts/RoleContext';
 
-// ═══════════════════════════════════════════════════
-// NAV ITEMS BY ROLE
-// ═══════════════════════════════════════════════════
 const ALL_ITEMS = [
   { to: '/', label: 'Dashboard', icon: '📊' },
-  { to: '/businesses', label: 'Businesses', icon: '🏢' }, // 🆕 Pending ഉം ഇവിടെ തന്നെ കാണാം
+  { to: '/businesses', label: 'Businesses', icon: '🏢' },
   { to: '/map', label: 'Business Map', icon: '🗺️' },
   { to: '/analytics', label: 'Analytics', icon: '📊' },
-  // { to: '/pending-businesses', label: 'Pending', icon: '⏳' }, 🆕 ഒഴിവാക്കി
   { to: '/all-offers', label: 'All Offers', icon: '🏷️' },
   { to: '/flyers', label: 'Flyers', icon: '📄' },
   { to: '/users', label: 'Users', icon: '👥' },
@@ -17,9 +13,17 @@ const ALL_ITEMS = [
   { to: '/categories', label: 'Categories', icon: '📁' },
   { to: '/coin-settings', label: 'Coin Settings', icon: '🪙' },
   { to: '/coin-payments', label: 'Coin Payments', icon: '💰' },
-  { to: '/demand-bids', icon: '⚖️', label: 'Demand Bids' },
-  { to: '/campaigns', icon: '📢', label: 'Campaigns' },
-  { to: '/orders', icon: '📦', label: 'Orders' },
+  // 🆕 Community Demands Group
+  {
+    label: 'Community Demands',
+    icon: '⚖️',
+    children: [
+      { to: '/demand-bids', label: 'Demand Bids', icon: '📋' },
+      { to: '/campaigns', label: 'Campaigns', icon: '📢' },
+      { to: '/orders', label: 'Orders', icon: '📦' },
+      { to: '/complaints', label: 'Complaints', icon: '⚠️' },
+    ],
+  },
   { to: '/roles', label: 'Roles', icon: '🔑' },
   { to: '/agencies', label: 'Agencies', icon: '🤝' },
   { to: '/pricing', label: 'Pricing', icon: '💵' },
@@ -37,74 +41,43 @@ const ALL_ITEMS = [
   { to: '/marketing', label: 'Marketing', icon: '📈' },
 ];
 
-// ═══════════════════════════════════════════════════
-// ROLE → ALLOWED PATHS
-// ═══════════════════════════════════════════════════
 const ROLE_PATHS = {
-  // Super Admin — everything
-  [ROLES.SUPER_ADMIN]: ALL_ITEMS.map((i) => i.to),
-
-  // Admin — country/state level
+    [ROLES.SUPER_ADMIN]: ALL_ITEMS.flatMap((item) => 
+    item.children ? item.children.map((c) => c.to) : [item.to]
+  ),
   [ROLES.ADMIN]: [
-    '/',
-    '/businesses',
-    '/map',
-    '/analytics',
-    // '/pending-businesses', 🆕 ഒഴിവാക്കി
-    '/users',
-    '/creators',
-    '/reviews',
-    '/reservations',
-    '/no-show-log',
-    '/revenue',
-    '/flyers',
-    '/all-offers',
+    '/', '/businesses', '/map', '/analytics', '/users', '/creators',
+    '/reviews', '/reservations', '/no-show-log', '/revenue', '/flyers', '/all-offers',
+    '/demand-bids', '/campaigns', '/orders', '/complaints',
   ],
-
-  // Agency — own area only
   [ROLES.AGENCY]: [
-    '/',
-    '/agency-dashboard',
-    '/businesses',
-    '/map',
-    // '/pending-businesses', 🆕 ഒഴിവാക്കി
-    '/reviews',
-    '/reservations',
-    '/no-show-log',
-    '/flyers',
+    '/', '/agency-dashboard', '/businesses', '/map', '/reviews',
+    '/reservations', '/no-show-log', '/flyers',
+    '/demand-bids', '/campaigns', '/orders', '/complaints',
   ],
-
-  // Moderator (Staff) — approvals + reviews
   [ROLES.MODERATOR]: [
-    '/',
-    '/staff-dashboard',
-    '/businesses', // 🆕 Pending അപ്രൂവൽ ഇവിടെ നിന്ന് ചെയ്യാം
-    // '/pending-businesses', 🆕 ഒഴിവാക്കി
-    '/reviews',
-    '/users',
-    '/fraud-logs',
-    '/flyers',
+    '/', '/staff-dashboard', '/businesses', '/reviews', '/users',
+    '/fraud-logs', '/flyers',
+    '/demand-bids', '/campaigns', '/orders', '/complaints',
   ],
 };
 
-// ═══════════════════════════════════════════════════
-// HOOK
-// ═══════════════════════════════════════════════════
 export function useRoleNav() {
   const { role } = useRole();
-
   if (!role || !ROLE_PATHS[role]) {
     return { navItems: [], canAccess: () => false };
   }
-
   const allowedPaths = ROLE_PATHS[role];
-  const navItems = ALL_ITEMS.filter((item) =>
-    allowedPaths.includes(item.to)
-  );
-
+  const navItems = ALL_ITEMS.map((item) => {
+    if (item.children) {
+      const allowedChildren = item.children.filter((child) => allowedPaths.includes(child.to));
+      if (allowedChildren.length === 0) return null;
+      return { ...item, children: allowedChildren };
+    }
+    return allowedPaths.includes(item.to) ? item : null;
+  }).filter(Boolean);
   function canAccess(path) {
     return allowedPaths.includes(path);
   }
-
   return { navItems, canAccess };
 }

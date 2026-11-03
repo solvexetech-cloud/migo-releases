@@ -24,6 +24,7 @@ import CoinPaymentsPage from './pages/CoinPaymentsPage';
 import DemandBidsPage from './pages/DemandBidsPage';
 import CampaignsPage from './pages/CampaignsPage';
 import OrdersPage from './pages/OrdersPage';
+import ComplaintsPage from './pages/ComplaintsPage';
 import {
   RoleProvider,
   useRole,
@@ -185,6 +186,7 @@ export default function App() {
                     <Route path="/demand-bids" element={<DemandBidsPage />} />
                     <Route path="/campaigns" element={<CampaignsPage />} />
                     <Route path="/orders" element={<OrdersPage />} />
+                    <Route path="/complaints" element={<ComplaintsPage />} />
                   </Routes>
                 </AdminLayout>
               ) : (
