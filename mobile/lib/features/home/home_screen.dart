@@ -22,7 +22,6 @@ import '../deals/offer_detail_screen.dart';
 import '../discover/discover_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../magazine/magazine_screen.dart';
-import '../demands/demands_feed_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -36,6 +35,10 @@ class _HomeScreenState extends State<HomeScreen> {
   AreaModel? _currentArea;
   String _userCountry = 'QA';
   bool _loadingArea = true;
+  
+  // 🆕 സെർച്ചിന് വേണ്ടിയുള്ള വേരിയബിളുകൾ
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -43,7 +46,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _detectArea();
   }
 
-    Future<void> _detectArea() async {
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _detectArea() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
       setState(() => _loadingArea = false);
@@ -55,23 +64,10 @@ class _HomeScreenState extends State<HomeScreen> {
       final area = await LocationService.instance.getDefaultArea(user);
       if (!mounted) return;
       
-      // യൂസറുടെ രാജ്യം ശരിയായ കോഡിലേക്ക് മാറ്റുന്നു
       String rawCountry = user?.country ?? 'QA';
       String finalCountry = 'QA';
       if (rawCountry.toLowerCase().contains('qatar')) {
         finalCountry = 'QA';
-      } else if (rawCountry.toLowerCase().contains('india')) {
-        finalCountry = 'IN';
-      } else if (rawCountry.toLowerCase().contains('uae') || rawCountry.toLowerCase().contains('emirates')) {
-        finalCountry = 'AE';
-      } else if (rawCountry.toLowerCase().contains('saudi')) {
-        finalCountry = 'SA';
-      } else if (rawCountry.toLowerCase().contains('kuwait')) {
-        finalCountry = 'KW';
-      } else if (rawCountry.toLowerCase().contains('oman')) {
-        finalCountry = 'OM';
-      } else if (rawCountry.toLowerCase().contains('bahrain')) {
-        finalCountry = 'BH';
       } else if (rawCountry.length > 2) {
         finalCountry = rawCountry.substring(0, 2).toUpperCase();
       } else {
@@ -89,47 +85,14 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-    Future<void> _changeLocation() async {
+  Future<void> _changeLocation() async {
     final selected = await LocationPickerModal.show(context);
     if (selected == null) return;
-
-
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
-    // ഏരിയയുടെ രാജ്യം കണ്ടെത്തുന്നു
     String newCountryCode = 'QA';
-    if (selected.zoneSlug.isNotEmpty) {
-      if (selected.zoneSlug.contains('dubai') || 
-          selected.zoneSlug.contains('abu-dhabi') || 
-          selected.zoneSlug.contains('sharjah')) {
-        newCountryCode = 'AE';
-      } else if (selected.zoneSlug.contains('riyadh') || 
-                 selected.zoneSlug.contains('jeddah') || 
-                 selected.zoneSlug.contains('dammam')) {
-        newCountryCode = 'SA';
-      } else if (selected.zoneSlug.contains('kuwait')) {
-        newCountryCode = 'KW';
-      } else if (selected.zoneSlug.contains('muscat') || 
-                 selected.zoneSlug.contains('salalah')) {
-        newCountryCode = 'OM';
-      } else if (selected.zoneSlug.contains('manama') || 
-                 selected.zoneSlug.contains('muharraq')) {
-        newCountryCode = 'BH';
-      } else if (selected.zoneSlug.contains('kerala') || 
-                 selected.zoneSlug.contains('mumbai') || 
-                 selected.zoneSlug.contains('delhi') || 
-                 selected.zoneSlug.contains('bangalore') || 
-                 selected.zoneSlug.contains('chennai') ||
-                 selected.zoneSlug.contains('ernakulam') ||
-                 selected.zoneSlug.contains('thiruvananthapuram') ||
-                 selected.zoneSlug.contains('kozhikode') ||
-                 selected.zoneSlug.contains('thrissur')) {
-        newCountryCode = 'IN';
-      }
-    }
-
     await LocationService.instance.saveSelectedArea(
       uid: uid,
       areaId: selected.id,
@@ -157,22 +120,9 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
                 const SizedBox(height: 16),
-                Text(
-                  isAr ? 'اختر لغتك' : 'Choose your language',
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
+                Text(isAr ? 'اختر لغتك' : 'Choose your language', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 16),
                 ListTile(
                   leading: const Text('🇸🇦', style: TextStyle(fontSize: 26)),
@@ -258,57 +208,36 @@ class _HomeScreenState extends State<HomeScreen> {
                                   icon: const Icon(Icons.language, color: Colors.white),
                                   onPressed: _showLanguagePicker,
                                 ),
-
-                                
                                 const Spacer(),
                                 IconButton(
                                   onPressed: () {
                                     Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => const NotificationsScreen(),
-                                      ),
+                                      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
                                     );
                                   },
                                   icon: StreamBuilder<int>(
-                                    stream: FirestoreService.instance
-                                        .streamUnreadNotificationCount(
+                                    stream: FirestoreService.instance.streamUnreadNotificationCount(
                                       FirebaseAuth.instance.currentUser?.uid ?? '',
                                     ),
                                     builder: (context, snap) {
                                       final count = snap.data ?? 0;
                                       if (count == 0) {
-                                        return const Icon(
-                                          Icons.notifications_outlined,
-                                          color: Colors.white,
-                                        );
+                                        return const Icon(Icons.notifications_outlined, color: Colors.white);
                                       }
                                       return Stack(
                                         clipBehavior: Clip.none,
                                         children: [
-                                          const Icon(
-                                            Icons.notifications_outlined,
-                                            color: Colors.white,
-                                          ),
+                                          const Icon(Icons.notifications_outlined, color: Colors.white),
                                           Positioned(
                                             right: isAr ? null : -4,
                                             left: isAr ? -4 : null,
                                             top: -4,
                                             child: Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 5,
-                                                vertical: 2,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: MigoColors.error,
-                                                borderRadius: BorderRadius.circular(10),
-                                              ),
+                                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                              decoration: BoxDecoration(color: MigoColors.error, borderRadius: BorderRadius.circular(10)),
                                               child: Text(
                                                 count > 9 ? '9+' : '$count',
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.w800,
-                                                ),
+                                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800),
                                               ),
                                             ),
                                           ),
@@ -321,16 +250,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 20),
                             Text(
-                              isAr
-                                  ? 'ماذا يمكنك أن تكتشف\nأو توفره اليوم؟'
-                                  : 'What can you discover\nor save today?',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                                height: 1.2,
-                                letterSpacing: -0.4,
-                              ),
+                              isAr ? 'ماذا يمكنك أن تكتشف\nأو توفره اليوم؟' : 'What can you discover\nor save today?',
+                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white, height: 1.2, letterSpacing: -0.4),
                             ),
                             const SizedBox(height: 16),
                             MigoGoldButton(
@@ -339,6 +260,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               onPressed: () => PickForMeSheet.show(context),
                             ),
                             const SizedBox(height: 12),
+                            
+                            // 🆕 Home Screen-ൽ തന്നെ പ്രവർത്തിക്കുന്ന Search Bar
                             Container(
                               decoration: BoxDecoration(
                                 color: Colors.white,
@@ -346,27 +269,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                 boxShadow: MigoShadows.soft,
                               ),
                               child: TextField(
-                                readOnly: true,
-                                onTap: () {},
+                                controller: _searchController,
+                                onChanged: (val) {
+                                  setState(() => _searchQuery = val.toLowerCase());
+                                },
                                 decoration: InputDecoration(
-                                  hintText: isAr
-                                      ? 'ابحث عن الأعمال، العروض، المأكولات...'
-                                      : 'Search businesses, deals, cuisines...',
-                                  hintStyle: const TextStyle(
-                                    color: MigoColors.textSecondaryLight,
-                                    fontSize: 13,
-                                  ),
-                                  prefixIcon: const Icon(
-                                    Icons.search,
-                                    color: MigoColors.primary,
-                                  ),
+                                  hintText: isAr ? 'ابحث عن الأعمال، العروض، المأكولات...' : 'Search businesses, deals, cuisines...',
+                                  hintStyle: const TextStyle(color: MigoColors.textSecondaryLight, fontSize: 13),
+                                  prefixIcon: const Icon(Icons.search, color: MigoColors.primary),
+                                  suffixIcon: _searchQuery.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(Icons.clear, size: 18),
+                                          onPressed: () {
+                                            _searchController.clear();
+                                            setState(() => _searchQuery = '');
+                                          },
+                                        )
+                                      : null,
                                   filled: true,
                                   fillColor: Colors.white,
                                   contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: BorderSide.none,
-                                  ),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
                                 ),
                               ),
                             ),
@@ -383,17 +306,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const MagazineScreen()),
-                        );
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const MagazineScreen()));
                       },
                       child: Container(
                         height: 65,
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [MigoColors.primary, MigoColors.primaryDark],
-                          ),
+                          gradient: const LinearGradient(colors: [MigoColors.primary, MigoColors.primaryDark]),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -402,15 +320,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               padding: const EdgeInsets.all(10.0),
                               child: Container(
                                 padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: MigoColors.accent,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.local_offer,
-                                  color: Colors.black,
-                                  size: 20,
-                                ),
+                                decoration: BoxDecoration(color: MigoColors.accent, borderRadius: BorderRadius.circular(8)),
+                                child: const Icon(Icons.local_offer, color: Colors.black, size: 20),
                               ),
                             ),
                             Expanded(
@@ -418,34 +329,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    isAr ? 'منشورات المتاجر' : 'Store Flyers',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
+                                  Text(isAr ? 'منشورات المتاجر' : 'Store Flyers', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
                                   const SizedBox(height: 2),
-                                  Text(
-                                    isAr
-                                        ? 'استكشف أحدث عروض المتاجر'
-                                        : 'Explore latest store offers',
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 11,
-                                    ),
-                                  ),
+                                  Text(isAr ? 'استكشف أحدث عروض المتاجر' : 'Explore latest store offers', style: const TextStyle(color: Colors.white70, fontSize: 11)),
                                 ],
                               ),
                             ),
                             Padding(
                               padding: const EdgeInsets.only(right: 12),
-                              child: Icon(
-                                isAr ? Icons.chevron_left : Icons.chevron_right,
-                                color: Colors.white,
-                                size: 24,
-                              ),
+                              child: Icon(isAr ? Icons.chevron_left : Icons.chevron_right, color: Colors.white, size: 24),
                             ),
                           ],
                         ),
@@ -464,19 +356,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: StreamBuilder<List<CategoryModel>>(
                         stream: FirestoreService.instance.streamCategories(),
                         builder: (context, snapshot) {
-                          if (!snapshot.hasData) {
-                            return const Center(child: CircularProgressIndicator());
-                          }
+                          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                           final categories = snapshot.data!;
-                          
                           final allCategories = [
-                            CategoryModel(
-                              id: 'all',
-                              name: isAr ? 'الكل' : 'All',
-                              icon: 'apps',
-                              order: 0,
-                              active: true,
-                            ),
+                            CategoryModel(id: 'all', name: isAr ? 'الكل' : 'All', icon: 'apps', order: 0, active: true),
                             ...categories
                           ];
 
@@ -501,44 +384,46 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-                // ---------- FLASH DEALS ----------
-                const SliverToBoxAdapter(child: SizedBox(height: 8)),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: SectionHeader(
-                      title: isAr ? '⚡ عروض سريعة' : '⚡ Flash Deals',
+                // 🆕 സെർച്ച് റിസൾട്ട് അല്ലെങ്കിൽ സാധാരണ ലിസ്റ്റ് കാണിക്കാൻ
+                if (_searchQuery.isNotEmpty)
+                  _buildSearchResults(isAr)
+                else ...[
+                  // ---------- FLASH DEALS ----------
+                  const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: SectionHeader(title: isAr ? '⚡ عروض سريعة' : '⚡ Flash Deals'),
                     ),
                   ),
-                ),
-                SliverToBoxAdapter(
-                  child: _FlashDealsRow(
-  areaId: null, // ഏരിയ ഫിൽട്ടർ ഒഴിവാക്കി
-  categoryFilter: _selectedCategoryFilter,
-  countryCode: _userCountry,
-  isAr: isAr,
-),
-                ),
-
-                const SliverToBoxAdapter(child: SizedBox(height: 8)),
-
-                // ---------- NEARBY DEALS ----------
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: SectionHeader(
-                      title: isAr ? 'عروض قريبة' : 'Nearby Deals',
+                  SliverToBoxAdapter(
+                    child: _FlashDealsRow(
+                      areaId: null,
+                      categoryFilter: _selectedCategoryFilter,
+                      countryCode: _userCountry,
+                      isAr: isAr,
                     ),
                   ),
-                ),
-                SliverToBoxAdapter(
-                  child: _NearbyDealsRow(
-  areaId: null, // ഏരിയ ഫിൽട്ടർ ഒഴിവാക്കി
-  categoryFilter: _selectedCategoryFilter,
-  countryCode: _userCountry,
-  isAr: isAr,
-),
-                ),
+
+                  const SliverToBoxAdapter(child: SizedBox(height: 8)),
+
+                  // ---------- NEARBY DEALS ----------
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: SectionHeader(title: isAr ? 'عروض قريبة' : 'Nearby Deals'),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: _NearbyDealsRow(
+                      areaId: null,
+                      categoryFilter: _selectedCategoryFilter,
+                      countryCode: _userCountry,
+                      isAr: isAr,
+                      searchQuery: '', // സാധാരണ ലിസ്റ്റ്
+                    ),
+                  ),
+                ],
 
                 const SliverToBoxAdapter(child: SizedBox(height: 20)),
               ],
@@ -549,41 +434,50 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // 🆕 സെർച്ച് റിസൾട്ട് കാണിക്കാനുള്ള വിഡ്ജറ്റ്
+  Widget _buildSearchResults(bool isAr) {
+    return SliverToBoxAdapter(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: Text(
+              isAr ? 'نتائج البحث عن "$_searchQuery"' : 'Results for "$_searchQuery"',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: MigoColors.textPrimaryLight),
+            ),
+          ),
+          _NearbyDealsRow(
+            areaId: null,
+            categoryFilter: _selectedCategoryFilter,
+            countryCode: _userCountry,
+            isAr: isAr,
+            searchQuery: _searchQuery, // 🆕 സെർച്ച് ക്വറി പാസ് ചെയ്യുന്നു
+          ),
+        ],
+      ),
+    );
+  }
+
   IconData _getIconForCategory(String iconKey) {
     switch (iconKey) {
-      case 'restaurant_outlined':
-        return Icons.restaurant_outlined;
-      case 'local_cafe_outlined':
-        return Icons.local_cafe_outlined;
-      case 'family_restroom_outlined':
-        return Icons.family_restroom_outlined;
-      case 'savings_outlined':
-        return Icons.savings_outlined;
-      case 'celebration_outlined':
-        return Icons.celebration_outlined;
-      case 'shopping_bag_outlined':
-        return Icons.shopping_bag_outlined;
-      case 'spa_outlined':
-        return Icons.spa_outlined;
-      case 'build_outlined':
-        return Icons.build_outlined;
-      case 'explore_outlined':
-        return Icons.explore_outlined;
-      default:
-        return Icons.local_offer_outlined;
+      case 'restaurant_outlined': return Icons.restaurant_outlined;
+      case 'local_cafe_outlined': return Icons.local_cafe_outlined;
+      case 'family_restroom_outlined': return Icons.family_restroom_outlined;
+      case 'savings_outlined': return Icons.savings_outlined;
+      case 'celebration_outlined': return Icons.celebration_outlined;
+      case 'shopping_bag_outlined': return Icons.shopping_bag_outlined;
+      case 'spa_outlined': return Icons.spa_outlined;
+      case 'build_outlined': return Icons.build_outlined;
+      case 'explore_outlined': return Icons.explore_outlined;
+      default: return Icons.local_offer_outlined;
     }
   }
 }
 
 // ---------- LOCATION CHIP ----------
 class _LocationChip extends StatelessWidget {
-  const _LocationChip({
-    required this.loading,
-    required this.areaName,
-    required this.onTap,
-    required this.isAr,
-  });
-
+  const _LocationChip({required this.loading, required this.areaName, required this.onTap, required this.isAr});
   final bool loading;
   final String? areaName;
   final VoidCallback onTap;
@@ -594,71 +488,29 @@ class _LocationChip extends StatelessWidget {
     if (loading) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.18),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: const SizedBox(
-          width: 60,
-          height: 12,
-          child: Center(
-            child: SizedBox(
-              width: 10,
-              height: 10,
-              child: CircularProgressIndicator(
-                strokeWidth: 1.5,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
+        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(20)),
+        child: const SizedBox(width: 60, height: 12, child: Center(child: SizedBox(width: 10, height: 10, child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.white)))),
       );
     }
 
     final hasArea = areaName != null && areaName!.isNotEmpty;
-    final displayText = hasArea
-        ? areaName!
-        : (isAr ? 'تحديد الموقع' : 'Set location');
-    final bgColor = hasArea
-        ? Colors.white.withValues(alpha: 0.18)
-        : MigoColors.warning.withValues(alpha: 0.85);
+    final displayText = hasArea ? areaName! : (isAr ? 'تحديد الموقع' : 'Set location');
+    final bgColor = hasArea ? Colors.white.withValues(alpha: 0.18) : MigoColors.warning.withValues(alpha: 0.85);
 
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
+        decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(20)),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              hasArea ? Icons.place : Icons.place_outlined,
-              size: 12,
-              color: hasArea ? MigoColors.accent : Colors.white,
-            ),
+            Icon(hasArea ? Icons.place : Icons.place_outlined, size: 12, color: hasArea ? MigoColors.accent : Colors.white),
             const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                displayText,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+            Flexible(child: Text(displayText, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white))),
             const SizedBox(width: 2),
-            const Icon(
-              Icons.keyboard_arrow_down,
-              size: 14,
-              color: Colors.white70,
-            ),
+            const Icon(Icons.keyboard_arrow_down, size: 14, color: Colors.white70),
           ],
         ),
       ),
@@ -666,14 +518,8 @@ class _LocationChip extends StatelessWidget {
   }
 }
 
-// ---------- FLASH DEALS ROW ----------
 class _FlashDealsRow extends StatelessWidget {
-  const _FlashDealsRow({
-    this.areaId,
-    this.categoryFilter,
-    this.countryCode,
-    required this.isAr,
-  });
+  const _FlashDealsRow({this.areaId, this.categoryFilter, this.countryCode, required this.isAr});
   final String? areaId;
   final String? categoryFilter;
   final String? countryCode;
@@ -682,48 +528,23 @@ class _FlashDealsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final stream = areaId != null
-        ? FirestoreService.instance.streamLiveOffersByAreaAndType(
-            areaId!,
-            'flash',
-            countryCode: countryCode,
-          )
-        : FirestoreService.instance.streamLiveOffersByType(
-            'flash',
-            countryCode: countryCode,
-          );
+        ? FirestoreService.instance.streamLiveOffersByAreaAndType(areaId!, 'flash', countryCode: countryCode)
+        : FirestoreService.instance.streamLiveOffersByType('flash', countryCode: countryCode);
 
     return StreamBuilder<List<OfferModel>>(
       stream: stream,
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return SizedBox(
-            height: 230,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: 2,
-              separatorBuilder: (_, _) => const SizedBox(width: 12),
-              itemBuilder: (_, _) => const ShimmerBox(width: 200, height: 230, radius: 16),
-            ),
-          );
+          return SizedBox(height: 230, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 20), itemCount: 2, separatorBuilder: (_, _) => const SizedBox(width: 12), itemBuilder: (_, _) => const ShimmerBox(width: 200, height: 230, radius: 16)));
         }
         
         var offers = snap.data ?? [];
-        
         if (categoryFilter != null && categoryFilter != 'all') {
           offers = offers.where((o) => o.category.toLowerCase().contains(categoryFilter!.toLowerCase())).toList();
         }
 
         if (offers.isEmpty) {
-          return SizedBox(
-            height: 100,
-            child: Center(
-              child: Text(
-                isAr ? 'لا توجد عروض سريعة في منطقتك' : 'No flash deals in your area',
-                style: const TextStyle(color: MigoColors.textSecondaryLight),
-              ),
-            ),
-          );
+          return SizedBox(height: 100, child: Center(child: Text(isAr ? 'لا توجد عروض سريعة في منطقتك' : 'No flash deals in your area', style: const TextStyle(color: MigoColors.textSecondaryLight))));
         }
         return SizedBox(
           height: 230,
@@ -733,13 +554,7 @@ class _FlashDealsRow extends StatelessWidget {
             itemCount: offers.length,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, i) => TapScale(
-              onTap: () {
-                Navigator.of(context).push(
-                  FadeSlideRoute(
-                    child: OfferDetailScreen(offer: offers[i]),
-                  ),
-                );
-              },
+              onTap: () => Navigator.of(context).push(FadeSlideRoute(child: OfferDetailScreen(offer: offers[i]))),
               child: FlashDealCard(offer: offers[i]),
             ),
           ),
@@ -749,90 +564,54 @@ class _FlashDealsRow extends StatelessWidget {
   }
 }
 
-// ---------- NEARBY DEALS ROW ----------
+// 🆕 Search Query സ്വീകരിക്കുന്ന രീതിയിലേക്ക് മാറ്റി
 class _NearbyDealsRow extends StatelessWidget {
-  const _NearbyDealsRow({
-    this.areaId,
-    this.categoryFilter,
-    this.countryCode,
-    required this.isAr,
-  });
+  const _NearbyDealsRow({this.areaId, this.categoryFilter, this.countryCode, required this.isAr, this.searchQuery = ''});
   final String? areaId;
   final String? categoryFilter;
   final String? countryCode;
   final bool isAr;
+  final String searchQuery;
 
   @override
   Widget build(BuildContext context) {
     final stream = areaId != null
-        ? FirestoreService.instance.streamLiveOffersByArea(
-            areaId!,
-            countryCode: countryCode,
-          )
-        : FirestoreService.instance.streamLiveOffers(
-            limit: 50,
-            countryCode: countryCode,
-          );
+        ? FirestoreService.instance.streamLiveOffersByArea(areaId!, countryCode: countryCode)
+        : FirestoreService.instance.streamLiveOffers(limit: 50, countryCode: countryCode);
 
     return StreamBuilder<List<OfferModel>>(
       stream: stream,
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return SizedBox(
-            height: 300,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: 2,
-              separatorBuilder: (_, _) => const SizedBox(width: 12),
-              itemBuilder: (_, _) => const SizedBox(
-                width: 280,
-                child: ShimmerBox(height: 300, radius: 18),
-              ),
-            ),
-          );
+          return SizedBox(height: 300, child: ListView.separated(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 20), itemCount: 2, separatorBuilder: (_, _) => const SizedBox(width: 12), itemBuilder: (_, _) => const SizedBox(width: 280, child: ShimmerBox(height: 300, radius: 18))));
         }
         
         var offers = snap.data ?? [];
         
+        // Category ഫിൽട്ടർ
         if (categoryFilter != null && categoryFilter != 'all') {
           offers = offers.where((o) => o.category.toLowerCase().contains(categoryFilter!.toLowerCase())).toList();
+        }
+
+        // 🆕 Search Query ഫിൽട്ടർ
+        if (searchQuery.isNotEmpty) {
+          offers = offers.where((o) => 
+            o.title.toLowerCase().contains(searchQuery) || 
+            o.businessName.toLowerCase().contains(searchQuery) ||
+            o.category.toLowerCase().contains(searchQuery)
+          ).toList();
         }
 
         if (offers.isEmpty) {
           return Container(
             margin: const EdgeInsets.symmetric(horizontal: 20),
             padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: MigoColors.surfaceLight,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: MigoColors.dividerLight),
-            ),
+            decoration: BoxDecoration(color: MigoColors.surfaceLight, borderRadius: BorderRadius.circular(14), border: Border.all(color: MigoColors.dividerLight)),
             child: Column(
               children: [
-                const Icon(
-                  Icons.local_offer_outlined,
-                  size: 48,
-                  color: MigoColors.primary,
-                ),
+                const Icon(Icons.search_off, size: 48, color: MigoColors.primary),
                 const SizedBox(height: 12),
-                Text(
-                  isAr ? 'لا توجد عروض في منطقتك' : 'No offers in your area',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: MigoColors.textPrimaryLight,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  isAr ? 'تغيير الموقع أو التحقق مرة أخرى قريبا.' : 'Change location or check back soon.',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: MigoColors.textSecondaryLight,
-                  ),
-                ),
+                Text(isAr ? 'لا توجد نتائج مطابقة' : 'No matching results', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: MigoColors.textPrimaryLight)),
               ],
             ),
           );
@@ -847,13 +626,7 @@ class _NearbyDealsRow extends StatelessWidget {
             itemBuilder: (context, i) => SizedBox(
               width: 280,
               child: TapScale(
-                onTap: () {
-                  Navigator.of(context).push(
-                    FadeSlideRoute(
-                      child: OfferDetailScreen(offer: offers[i]),
-                    ),
-                  );
-                },
+                onTap: () => Navigator.of(context).push(FadeSlideRoute(child: OfferDetailScreen(offer: offers[i]))),
                 child: OfferCard(offer: offers[i]),
               ),
             ),

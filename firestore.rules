@@ -449,6 +449,36 @@ service cloud.firestore {
       allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 
+    // ---------- COMPLAINTS ----------
+    match /community_complaints/{complaintId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || 
+        isModerator() || 
+        isAdmin()
+      );
+      allow create: if isSignedIn() && 
+        request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        isModerator() || 
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // ---------- DEMAND MATCHING (Admin Review Queue) ----------
+    match /demand_matches/{matchId} {
+      allow read: if isModerator();
+      allow create, update: if isModerator();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- DEMAND COMMITS (Waitlist & Locking) ----------
+    match /demand_commits/{commitId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn();
+    }
+
     // ---------- DEFAULT: DENY ----------
   }
 }

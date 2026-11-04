@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../core/theme/migo_gradients.dart';
-import '../../core/theme/migo_shadows.dart';
 import '../../core/localization/locale_provider.dart';
 import '../../models/country_model.dart';
 import '../../models/user_model.dart';
@@ -20,7 +20,6 @@ import '../referrals/referral_screen.dart';
 import '../magazine/magazine_screen.dart';
 import '../demands/my_demands_screen.dart';
 
-
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -30,18 +29,10 @@ class ProfileScreen extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(isAr ? 'تسجيل الخروج' : 'Sign out'),
-        content: Text(isAr
-            ? 'هل أنت متأكد أنك تريد تسجيل الخروج؟'
-            : 'Are you sure you want to sign out?'),
+        content: Text(isAr ? 'هل أنت متأكد أنك تريد تسجيل الخروج؟' : 'Are you sure you want to sign out?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(isAr ? 'إلغاء' : 'Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(isAr ? 'تسجيل الخروج' : 'Sign out'),
-          ),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: Text(isAr ? 'إلغاء' : 'Cancel')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: Text(isAr ? 'تسجيل الخروج' : 'Sign out')),
         ],
       ),
     );
@@ -54,18 +45,16 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final firebaseUser = FirebaseAuth.instance.currentUser;
     if (firebaseUser == null) {
-      return const Scaffold(
-        body: Center(child: Text('Not signed in')),
-      );
+      return const Scaffold(body: Center(child: Text('Not signed in')));
     }
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       body: StreamBuilder<UserModel?>(
         stream: FirestoreService.instance.streamUser(firebaseUser.uid),
         builder: (context, snapshot) {
           final user = snapshot.data;
           
-          // ListenableBuilder ഉപയോഗിച്ച് ഭാഷ മാറുമ്പോൾ UI അപ്ഡേറ്റ് ആകാൻ
           return ListenableBuilder(
             listenable: LocaleProvider.instance,
             builder: (context, _) {
@@ -81,8 +70,8 @@ class ProfileScreen extends StatelessWidget {
                         decoration: const BoxDecoration(
                           gradient: MigoGradients.heroBlue,
                           borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(28),
-                            bottomRight: Radius.circular(28),
+                            bottomLeft: Radius.circular(32),
+                            bottomRight: Radius.circular(32),
                           ),
                         ),
                         child: SafeArea(
@@ -93,82 +82,39 @@ class ProfileScreen extends StatelessWidget {
                               children: [
                                 Text(
                                   isAr ? 'الملف الشخصي' : 'Profile',
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white,
-                                    letterSpacing: -0.4,
-                                  ),
+                                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -0.4),
                                 ),
                                 const SizedBox(height: 20),
                                 Container(
                                   padding: const EdgeInsets.all(3),
-                                  decoration: BoxDecoration(
-                                    gradient: MigoGradients.gold,
-                                    shape: BoxShape.circle,
-                                  ),
+                                  decoration: BoxDecoration(gradient: MigoGradients.gold, shape: BoxShape.circle),
                                   child: CircleAvatar(
                                     radius: 42,
                                     backgroundColor: Colors.white,
                                     child: Text(
-                                      (user?.displayName ??
-                                              firebaseUser.email ??
-                                              'M')
-                                          .substring(0, 1)
-                                          .toUpperCase(),
-                                      style: const TextStyle(
-                                        fontSize: 34,
-                                        fontWeight: FontWeight.w900,
-                                        color: MigoColors.primary,
-                                      ),
+                                      (user?.displayName ?? firebaseUser.email ?? 'M').substring(0, 1).toUpperCase(),
+                                      style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900, color: MigoColors.primary),
                                     ),
                                   ),
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
-                                  user?.displayName ??
-                                      firebaseUser.email ??
-                                      'MIGO User',
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
+                                  user?.displayName ?? firebaseUser.email ?? 'MIGO User',
+                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   firebaseUser.email ?? '',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.white70,
-                                  ),
+                                  style: const TextStyle(fontSize: 12, color: Colors.white70),
                                 ),
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 20),
                                 Row(
                                   children: [
-                                    Expanded(
-                                      child: _HeroStat(
-                                        label: isAr ? 'عملات' : 'Coins',
-                                        value: '${user?.coins ?? 0}',
-                                        icon: Icons.monetization_on,
-                                      ),
-                                    ),
+                                    Expanded(child: _HeroStat(label: isAr ? 'عملات' : 'Coins', value: '${user?.coins ?? 0}', icon: Icons.monetization_on)),
                                     const SizedBox(width: 8),
-                                    Expanded(
-                                      child: _HeroStat(
-                                        label: isAr ? 'المستوى' : 'Level',
-                                        value: user?.loyaltyLevel ?? 'Bronze',
-                                        icon: Icons.emoji_events,
-                                      ),
-                                    ),
+                                    Expanded(child: _HeroStat(label: isAr ? 'المستوى' : 'Level', value: user?.loyaltyLevel ?? 'Bronze', icon: Icons.emoji_events)),
                                     const SizedBox(width: 8),
-                                    Expanded(
-                                      child: _HeroStat(
-                                        label: isAr ? 'المدينة' : 'City',
-                                        value: user?.city ?? 'Doha',
-                                        icon: Icons.place,
-                                      ),
-                                    ),
+                                    Expanded(child: _HeroStat(label: isAr ? 'المدينة' : 'City', value: user?.city ?? 'Doha', icon: Icons.place)),
                                   ],
                                 ),
                               ],
@@ -184,21 +130,62 @@ class ProfileScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            // D6-A: Country switcher
-                            if (user != null) ...[
-                              Text(
-                                isAr ? 'الموقع والعملة' : 'LOCATION & CURRENCY',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1.5,
-                                  color: MigoColors.textSecondaryLight,
+                            
+                            // ── PRIMARY ACTIONS (Grid Style) ──
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _QuickActionCard(
+                                    icon: Icons.receipt_long_outlined,
+                                    label: isAr ? 'مطالباتي' : 'My Claims',
+                                    color: MigoColors.primary,
+                                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyClaimsScreen())),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 8),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _QuickActionCard(
+                                    icon: Icons.gavel,
+                                    label: isAr ? 'طلباتي' : 'My Demands',
+                                    color: MigoColors.accent,
+                                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyDemandsScreen())),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _QuickActionCard(
+                                    icon: Icons.event_available_outlined,
+                                    label: isAr ? 'حجوزاتي' : 'My Bookings',
+                                    color: const Color(0xFF7C3AED),
+                                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBookingsScreen())),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _QuickActionCard(
+                                    icon: Icons.card_giftcard,
+                                    label: isAr ? 'دعوة الأصدقاء' : 'Invite Friends',
+                                    color: MigoColors.success,
+                                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReferralScreen())),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 24),
+                            Text(
+                              isAr ? 'الإعدادات' : 'SETTINGS',
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.5, color: MigoColors.textSecondaryLight),
+                            ),
+                            const SizedBox(height: 8),
+
+                            if (user != null) ...[
                               _CountrySwitcher(
-                                currentCountryCode:
-                                    user.currentCountryCode ?? user.country,
+                                currentCountryCode: user.currentCountryCode ?? user.country,
                                 currentCurrency: user.currency,
                                 uid: user.uid,
                               ),
@@ -206,112 +193,92 @@ class ProfileScreen extends StatelessWidget {
                               const _LanguageSwitcher(),
                               const SizedBox(height: 20),
                             ],
+                            
                             Text(
-                              isAr ? 'النشاط' : 'ACTIVITY',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.5,
-                                color: MigoColors.textSecondaryLight,
-                              ),
+                              isAr ? 'المزيد' : 'MORE',
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.5, color: MigoColors.textSecondaryLight),
                             ),
                             const SizedBox(height: 8),
-                            _MenuTile(
-                              icon: Icons.receipt_long_outlined,
-                              label: isAr ? 'مطالباتي' : 'My Claims',
-                              color: MigoColors.primary,
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const MyClaimsScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 8),
-                            _MenuTile(
-                              icon: Icons.event_available_outlined,
-                              label: isAr ? 'حجوزاتي' : 'My Bookings',
-                              color: const Color(0xFF7C3AED),
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const MyBookingsScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 8),
-                            _MenuTile(
-                              icon: Icons.gavel,
-                              label: isAr ? 'طلباتي' : 'My Demands',
-                              color: MigoColors.accent,
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => MyDemandsScreen(),
-                                  ),
-                                );
-                              },
-                            ),
 
                             _MenuTile(
                               icon: Icons.menu_book,
                               label: isAr ? 'مجلة MIGO' : 'MIGO Magazine',
-                              color: MigoColors.primary,
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const MagazineScreen(),
-                                  ),
-                                );
-                              },
+                              color: Colors.blue,
+                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MagazineScreen())),
                             ),
                             const SizedBox(height: 8),
                             _CreatorMenuTile(isAr: isAr),
                             const SizedBox(height: 8),
-                            _MenuTile(
-                              icon: Icons.card_giftcard,
-                              label: isAr ? 'دعوة الأصدقاء' : 'Invite Friends',
-                              color: MigoColors.accent,
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const ReferralScreen(),
+                            
+                            // 🆕 Colorful My Business Card
+                            GestureDetector(
+                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBusinessScreen())),
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF7C3AED), Color(0xFF4C1D95)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
                                   ),
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 20),
-                            Text(
-                              isAr ? 'الأعمال' : 'BUSINESS',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.5,
-                                color: MigoColors.textSecondaryLight,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(color: const Color(0xFF7C3AED).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4)),
+                                  ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
+                                      child: const Icon(Icons.storefront, color: Colors.white, size: 24),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            isAr ? 'عملي (تجاري)' : 'My Business',
+                                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            isAr ? 'إدارة متجرك وعروضك' : 'Manage your shop & offers',
+                                            style: const TextStyle(fontSize: 12, color: Colors.white70),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+                                  ],
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            
+                            const SizedBox(height: 24),
+                            
+                            // 🆕 Help & Support
                             _MenuTile(
-                              icon: Icons.storefront_outlined,
-                              label: isAr ? 'عملي' : 'My Business',
-                              color: MigoColors.success,
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const MyBusinessScreen(),
-                                  ),
-                                );
-                              },
+                              icon: Icons.support_agent,
+                              label: isAr ? 'المساعدة والدعم' : 'Help & Support',
+                              color: Colors.teal,
+                              onTap: () => _launchUrl('https://wa.me/97412345678'), // നിങ്ങളുടെ സപ്പോർട്ട് നമ്പർ ഇവിടെ കൊടുക്കാം
                             ),
+
                             const SizedBox(height: 32),
                             OutlinedButton.icon(
                               onPressed: () => _signOut(context),
                               icon: const Icon(Icons.logout),
                               label: Text(isAr ? 'تسجيل الخروج' : 'Sign out'),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                foregroundColor: Colors.red,
+                                side: BorderSide(color: Colors.red.shade200),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 32),
                           ],
                         ),
                       ),
@@ -325,15 +292,57 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> _launchUrl(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      debugPrint('Could not launch $url');
+    }
+  }
+}
+
+// 🆕 പുതിയ പ്രധാന ആക്ഷൻ കാർഡ്
+class _QuickActionCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickActionCard({required this.icon, required this.label, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
+          boxShadow: [
+            BoxShadow(color: color.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+              child: Icon(icon, color: color, size: 28),
+            ),
+            const SizedBox(height: 12),
+            Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _HeroStat extends StatelessWidget {
-  const _HeroStat({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
+  const _HeroStat({required this.label, required this.value, required this.icon});
   final String label;
   final String value;
   final IconData icon;
@@ -345,36 +354,16 @@ class _HeroStat extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.15),
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: MigoColors.accent, size: 14),
           const SizedBox(height: 3),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-            ),
-          ),
+          Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)),
           const SizedBox(height: 2),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 9,
-              color: Colors.white70,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9, color: Colors.white70, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -382,13 +371,7 @@ class _HeroStat extends StatelessWidget {
 }
 
 class _MenuTile extends StatelessWidget {
-  const _MenuTile({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.color = MigoColors.primary,
-  });
-
+  const _MenuTile({required this.icon, required this.label, required this.onTap, this.color = MigoColors.primary});
   final IconData icon;
   final String label;
   final VoidCallback onTap;
@@ -397,7 +380,7 @@ class _MenuTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: MigoColors.surfaceLight,
+      color: Colors.white,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -406,33 +389,19 @@ class _MenuTile extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            boxShadow: MigoShadows.soft,
+            border: Border.all(color: Colors.grey.shade200),
           ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
                 child: Icon(icon, color: color, size: 20),
               ),
               const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: MigoColors.textPrimaryLight,
-                  ),
-                ),
-              ),
+              Expanded(child: Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: MigoColors.textPrimaryLight))),
               Icon(
-                LocaleProvider.instance.locale == 'ar'
-                    ? Icons.chevron_left // RTL ആണെങ്കിൽ ഇടത്തോട്ട് അമ്പടയാളം
-                    : Icons.chevron_right,
+                LocaleProvider.instance.locale == 'ar' ? Icons.chevron_left : Icons.chevron_right,
                 color: MigoColors.textSecondaryLight,
               ),
             ],
@@ -443,9 +412,6 @@ class _MenuTile extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// Creator Menu Tile
-// ═══════════════════════════════════════════════════════════
 class _CreatorMenuTile extends StatelessWidget {
   final bool isAr;
   const _CreatorMenuTile({this.isAr = false});
@@ -462,20 +428,12 @@ class _CreatorMenuTile extends StatelessWidget {
         final isCreator = creator != null && creator.isApproved;
 
         return _MenuTile(
-          icon: isCreator
-              ? Icons.dashboard_outlined
-              : Icons.movie_creation_outlined,
-          label: isCreator
-              ? (isAr ? 'لوحة المبدع' : 'Creator Dashboard')
-              : (isAr ? 'كن مبدعاً' : 'Become a Creator'),
+          icon: isCreator ? Icons.dashboard_outlined : Icons.movie_creation_outlined,
+          label: isCreator ? (isAr ? 'لوحة المبدع' : 'Creator Dashboard') : (isAr ? 'كن مبدعاً' : 'Become a Creator'),
           color: const Color(0xFFD97706),
           onTap: () {
             Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => isCreator
-                    ? const CreatorDashboardScreen()
-                    : const CreatorSignupScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => isCreator ? const CreatorDashboardScreen() : const CreatorSignupScreen()),
             );
           },
         );
@@ -488,12 +446,7 @@ class _CreatorMenuTile extends StatelessWidget {
 // D6-A: Country Switcher Widget
 // ═══════════════════════════════════════════════════════════
 class _CountrySwitcher extends StatelessWidget {
-  const _CountrySwitcher({
-    required this.currentCountryCode,
-    required this.currentCurrency,
-    required this.uid,
-  });
-
+  const _CountrySwitcher({required this.currentCountryCode, required this.currentCurrency, required this.uid});
   final String currentCountryCode;
   final String currentCurrency;
   final String uid;
@@ -502,13 +455,8 @@ class _CountrySwitcher extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => _CountryPickerSheet(
-        currentCode: currentCountryCode,
-        uid: uid,
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => _CountryPickerSheet(currentCode: currentCountryCode, uid: uid),
     );
   }
 
@@ -523,55 +471,26 @@ class _CountrySwitcher extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         child: Container(
           padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: MigoColors.primary.withValues(alpha: 0.12),
-            ),
-          ),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.grey.shade200)),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: MigoColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.public,
-                  color: MigoColors.primary,
-                  size: 18,
-                ),
+                decoration: BoxDecoration(color: MigoColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+                child: const Icon(Icons.public, color: MigoColors.primary, size: 18),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      isAr ? 'الدولة' : 'Country',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: MigoColors.textSecondaryLight,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    Text(isAr ? 'الدولة' : 'Country', style: const TextStyle(fontSize: 11, color: MigoColors.textSecondaryLight, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 2),
-                    Text(
-                      '$currentCountryCode · $currentCurrency',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: MigoColors.textPrimaryLight,
-                      ),
-                    ),
+                    Text('$currentCountryCode · $currentCurrency', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: MigoColors.textPrimaryLight)),
                   ],
                 ),
               ),
-              Icon(
-                isAr ? Icons.keyboard_arrow_left : Icons.keyboard_arrow_right,
-                color: MigoColors.textSecondaryLight,
-              ),
+              Icon(isAr ? Icons.keyboard_arrow_left : Icons.keyboard_arrow_right, color: MigoColors.textSecondaryLight),
             ],
           ),
         ),
@@ -581,11 +500,7 @@ class _CountrySwitcher extends StatelessWidget {
 }
 
 class _CountryPickerSheet extends StatefulWidget {
-  const _CountryPickerSheet({
-    required this.currentCode,
-    required this.uid,
-  });
-
+  const _CountryPickerSheet({required this.currentCode, required this.uid});
   final String currentCode;
   final String uid;
 
@@ -608,10 +523,7 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
     try {
       final list = await FirestoreService.instance.getCountries();
       if (!mounted) return;
-      setState(() {
-        _countries = list;
-        _loading = false;
-      });
+      setState(() { _countries = list; _loading = false; });
     } catch (_) {
       if (!mounted) return;
       setState(() => _loading = false);
@@ -633,20 +545,10 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
       });
       if (!mounted) return;
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Country updated to ${c.name} · ${c.currency}'),
-          backgroundColor: MigoColors.success,
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Country updated to ${c.name} · ${c.currency}'), backgroundColor: MigoColors.success));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed: $e'),
-          backgroundColor: MigoColors.error,
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: MigoColors.error));
       setState(() => _saving = false);
     }
   }
@@ -654,7 +556,6 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
   @override
   Widget build(BuildContext context) {
     final isAr = LocaleProvider.instance.locale == 'ar';
-    
     return Directionality(
       textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
       child: SafeArea(
@@ -663,72 +564,29 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: MigoColors.dividerLight,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: MigoColors.dividerLight, borderRadius: BorderRadius.circular(2))),
               const SizedBox(height: 16),
-              Text(
-                isAr ? 'اختر دولتك' : 'Choose your country',
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w900,
-                  color: MigoColors.textPrimaryLight,
-                ),
-              ),
+              Text(isAr ? 'اختر دولتك' : 'Choose your country', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: MigoColors.textPrimaryLight)),
               const SizedBox(height: 4),
-              Text(
-                isAr ? 'تتغير العملة تلقائيًا' : 'Currency changes automatically',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: MigoColors.textSecondaryLight,
-                ),
-              ),
+              Text(isAr ? 'تتغير العملة تلقائيًا' : 'Currency changes automatically', style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight)),
               const SizedBox(height: 16),
               if (_loading)
-                const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator(),
-                )
+                const Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())
               else
                 Flexible(
                   child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: _countries.length,
-                    separatorBuilder: (_, _) => Divider(
-                      height: 1,
-                      color: MigoColors.dividerLight,
-                    ),
+                    separatorBuilder: (_, _) => Divider(height: 1, color: MigoColors.dividerLight),
                     itemBuilder: (context, i) {
                       final c = _countries[i];
                       final selected = c.code == widget.currentCode;
                       return ListTile(
                         onTap: _saving ? null : () => _select(c),
-                        leading: Text(
-                          c.flag.isNotEmpty ? c.flag : '🌐',
-                          style: const TextStyle(fontSize: 26),
-                        ),
-                        title: Text(
-                          c.name,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        subtitle: Text(
-                          '${c.currency} · ${c.dialCode}',
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                        trailing: selected
-                            ? const Icon(
-                                Icons.check_circle,
-                                color: MigoColors.success,
-                              )
-                            : null,
+                        leading: Text(c.flag.isNotEmpty ? c.flag : '🌐', style: const TextStyle(fontSize: 26)),
+                        title: Text(c.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                        subtitle: Text('${c.currency} · ${c.dialCode}', style: const TextStyle(fontSize: 11)),
+                        trailing: selected ? const Icon(Icons.check_circle, color: MigoColors.success) : null,
                       );
                     },
                   ),
@@ -754,9 +612,7 @@ class _LanguageSwitcher extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) {
         final isAr = LocaleProvider.instance.locale == 'ar';
         return Directionality(
@@ -767,31 +623,11 @@ class _LanguageSwitcher extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: MigoColors.dividerLight,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
+                  Container(width: 40, height: 4, decoration: BoxDecoration(color: MigoColors.dividerLight, borderRadius: BorderRadius.circular(2))),
                   const SizedBox(height: 16),
-                  Text(
-                    isAr ? 'اختر لغتك' : 'Choose your language',
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w900,
-                      color: MigoColors.textPrimaryLight,
-                    ),
-                  ),
+                  Text(isAr ? 'اختر لغتك' : 'Choose your language', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: MigoColors.textPrimaryLight)),
                   const SizedBox(height: 4),
-                  Text(
-                    isAr ? 'يتم تحديث نص التطبيق على الفور' : 'App text updates instantly',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: MigoColors.textSecondaryLight,
-                    ),
-                  ),
+                  Text(isAr ? 'يتم تحديث نص التطبيق على الفور' : 'App text updates instantly', style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight)),
                   const SizedBox(height: 16),
                   ...languages.map((lang) {
                     final selected = lang.code == current;
@@ -800,27 +636,10 @@ class _LanguageSwitcher extends StatelessWidget {
                         Navigator.of(ctx).pop();
                         await LocaleProvider.instance.setLocale(lang.code);
                       },
-                      leading: Text(
-                        lang.code == 'ar' ? '🇸🇦' : '🇬🇧',
-                        style: const TextStyle(fontSize: 26),
-                      ),
-                      title: Text(
-                        lang.nameNative,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      subtitle: Text(
-                        lang.name,
-                        style: const TextStyle(fontSize: 11),
-                      ),
-                      trailing: selected
-                          ? const Icon(
-                              Icons.check_circle,
-                              color: MigoColors.success,
-                            )
-                          : null,
+                      leading: Text(lang.code == 'ar' ? '🇸🇦' : '🇬🇧', style: const TextStyle(fontSize: 26)),
+                      title: Text(lang.nameNative, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                      subtitle: Text(lang.name, style: const TextStyle(fontSize: 11)),
+                      trailing: selected ? const Icon(Icons.check_circle, color: MigoColors.success) : null,
                     );
                   }),
                 ],
@@ -849,55 +668,26 @@ class _LanguageSwitcher extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
             child: Container(
               padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: MigoColors.primary.withValues(alpha: 0.12),
-                ),
-              ),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.grey.shade200)),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: MigoColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.translate,
-                      color: MigoColors.primary,
-                      size: 18,
-                    ),
+                    decoration: BoxDecoration(color: MigoColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+                    child: const Icon(Icons.translate, color: MigoColors.primary, size: 18),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          isAr ? 'اللغة' : 'Language',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: MigoColors.textSecondaryLight,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        Text(isAr ? 'اللغة' : 'Language', style: const TextStyle(fontSize: 11, color: MigoColors.textSecondaryLight, fontWeight: FontWeight.w600)),
                         const SizedBox(height: 2),
-                        Text(
-                          label,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: MigoColors.textPrimaryLight,
-                          ),
-                        ),
+                        Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: MigoColors.textPrimaryLight)),
                       ],
                     ),
                   ),
-                  Icon(
-                    isAr ? Icons.keyboard_arrow_left : Icons.keyboard_arrow_right,
-                    color: MigoColors.textSecondaryLight,
-                  ),
+                  Icon(isAr ? Icons.keyboard_arrow_left : Icons.keyboard_arrow_right, color: MigoColors.textSecondaryLight),
                 ],
               ),
             ),

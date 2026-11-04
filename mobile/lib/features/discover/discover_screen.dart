@@ -53,7 +53,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   SortMode _sort = SortMode.newest;
 
   List<String> _categories = [];
-  List<AreaModel> _areas = [];
   bool _autoDetecting = true;
 
   @override
@@ -62,14 +61,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     _category = widget.initialCategory;
     _areaId = widget.initialArea;
     _loadCategories();
-    _loadAreas();
     _autoDetectArea();
   }
 
   Future<void> _autoDetectArea() async {
     if (widget.initialArea != null) {
       setState(() => _autoDetecting = false);
-      _resolveAreaName(widget.initialArea!);
       return;
     }
 
@@ -96,32 +93,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     }
   }
 
-  void _resolveAreaName(String areaId) {
-    final found = _areas.where((a) => a.id == areaId).toList();
-    if (found.isNotEmpty && mounted) {
-      setState(() => _areaName = found.first.name);
-    }
-  }
-
   Future<void> _loadCategories() async {
     try {
       final cats = await FirestoreService.instance.getCategories();
       if (!mounted) return;
       setState(() {
         _categories = cats.map((c) => c.name).toList();
-      });
-    } catch (_) {}
-  }
-
-  Future<void> _loadAreas() async {
-    try {
-      final areas = await FirestoreService.instance.getAllAreas();
-      if (!mounted) return;
-      setState(() {
-        _areas = areas;
-        if (_areaId != null && _areaName == null) {
-          _resolveAreaName(_areaId!);
-        }
       });
     } catch (_) {}
   }
@@ -144,30 +121,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       _areaId = selected.id;
       _areaName = selected.name;
     });
-  }
-
-  Future<void> _selectAreaPill(AreaModel area) async {
-    if (_areaId == area.id) {
-      setState(() {
-        _areaId = null;
-        _areaName = null;
-      });
-      return;
-    }
-
-    setState(() {
-      _areaId = area.id;
-      _areaName = area.name;
-    });
-
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid != null) {
-      await LocationService.instance.saveSelectedArea(
-        uid: uid,
-        areaId: area.id,
-        countryCode: 'QA',
-      );
-    }
   }
 
   @override
@@ -220,8 +173,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         return Directionality(
           textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
           child: Scaffold(
+            backgroundColor: const Color(0xFFF8F9FA),
             appBar: AppBar(
-              title: Text(isAr ? 'اكتشف' : 'Discover'),
+              title: Text(isAr ? 'اكتشف' : 'Discover', style: const TextStyle(fontWeight: FontWeight.w800)),
+              backgroundColor: Colors.white,
+              elevation: 0,
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 12),
@@ -234,8 +190,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 ),
               ],
               bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(170),
-                child: Padding(
+                preferredSize: const Size.fromHeight(120),
+                child: Container(
+                  color: Colors.white,
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                   child: Column(
                     children: [
@@ -255,11 +212,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         },
                         decoration: InputDecoration(
                           hintText: isAr
-                              ? 'ابحث عن العروض، الشركات، المأكولات...'
-                              : 'Search deals, businesses, cuisines...',
-                          prefixIcon: const Icon(Icons.search),
+                              ? 'ابحث عن العروض، الشركات...'
+                              : 'Search deals, businesses...',
+                          prefixIcon: const Icon(Icons.search, size: 20),
                           filled: true,
-                          fillColor: MigoColors.surfaceLight,
+                          fillColor: Colors.grey.shade100,
                           contentPadding: const EdgeInsets.symmetric(vertical: 12),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -267,12 +224,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                       Row(
                         children: [
                           Expanded(
                             child: SizedBox(
-                              height: 40,
+                              height: 38,
                               child: ListView(
                                 scrollDirection: Axis.horizontal,
                                 children: [
@@ -281,9 +238,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                     selected: _category == null,
                                     onTap: () => setState(() => _category = null),
                                   ),
-                                  const SizedBox(width: 6),
+                                  const SizedBox(width: 8),
                                   ..._categories.map((c) => Padding(
-                                        padding: const EdgeInsets.only(right: 6),
+                                        padding: const EdgeInsets.only(right: 8),
                                         child: _CategoryPill(
                                           label: c,
                                           selected: _category == c,
@@ -299,7 +256,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           const SizedBox(width: 8),
                           PopupMenuButton<SortMode>(
                             initialValue: _sort,
-                            icon: const Icon(Icons.sort),
+                            icon: const Icon(Icons.sort, size: 20),
                             onSelected: (v) => setState(() => _sort = v),
                             itemBuilder: (_) => SortMode.values
                                 .map((s) => PopupMenuItem(
@@ -307,44 +264,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                       child: Text(s.label(isAr)),
                                     ))
                                 .toList(),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.place_outlined,
-                            size: 16,
-                            color: MigoColors.textSecondaryLight,
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: SizedBox(
-                              height: 36,
-                              child: ListView(
-                                scrollDirection: Axis.horizontal,
-                                children: [
-                                  _AreaPill(
-                                    label: isAr ? 'كل المناطق' : 'All Areas',
-                                    selected: _areaId == null,
-                                    onTap: () => setState(() {
-                                      _areaId = null;
-                                      _areaName = null;
-                                    }),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  ..._areas.map((a) => Padding(
-                                        padding: const EdgeInsets.only(right: 6),
-                                        child: _AreaPill(
-                                          label: a.name,
-                                          selected: _areaId == a.id,
-                                          onTap: () => _selectAreaPill(a),
-                                        ),
-                                      )),
-                                ],
-                              ),
-                            ),
                           ),
                         ],
                       ),
@@ -358,147 +277,125 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   ? FirestoreService.instance.streamLiveOffersByArea(_areaId!)
                   : FirestoreService.instance.streamLiveOffers(limit: 50),
               builder: (context, snap) {
-                if (snap.connectionState == ConnectionState.waiting) {
+                                  if (snap.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 final all = snap.data ?? [];
                 final filtered = _applyFilters(all);
 
-                // Community Demands Card is now always visible at the top
-                return Column(
-                  children: [
-                    // ✅ Community Demands Card
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const DemandsFeedScreen()),
-                        );
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [MigoColors.accent, MigoColors.accentDark],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+                return CustomScrollView(
+                  slivers: [
+                    // Community Demands Card
+                    SliverToBoxAdapter(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const DemandsFeedScreen()),
+                          );
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF1E3A8A), Color(0xFF0F172A)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF1E3A8A).withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
                           ),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: MigoColors.accent.withValues(alpha: 0.4),
-                              blurRadius: 12,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.25),
-                                shape: BoxShape.circle,
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.gavel_rounded, color: Colors.white, size: 24),
                               ),
-                              child: const Icon(Icons.gavel, color: Colors.white, size: 24),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    isAr ? 'طلبات المجتمع' : 'Community Demands',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800,
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isAr ? 'طلبات المجتمع' : 'Community Demands',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w800,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    isAr
-                                        ? 'اطلب منتجك ودع المتاجر تتنافس على أفضل سعر.'
-                                        : 'Request a product & let shops bid for your business.',
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 12,
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      isAr
+                                          ? 'اطلب منتجك ودع المتاجر تتنافس على أفضل سعر.'
+                                          : 'Request a product & let shops bid.',
+                                      style: const TextStyle(color: Colors.white70, fontSize: 12),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
-                          ],
+                              const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+                            ],
+                          ),
                         ),
                       ),
                     ),
 
-                    // Offers List
-                    if (filtered.isEmpty)
-                      Expanded(
-                        child: MigoEmptyState(
-                          icon: _query.isNotEmpty || _category != null || _areaId != null
-                              ? Icons.search_off
-                              : Icons.explore_outlined,
-                          title: _query.isNotEmpty || _category != null || _areaId != null
-                              ? (isAr ? 'لا توجد عروض تطابق تصفيتك' : 'No offers match your filters')
-                              : (isAr ? 'لا توجد عروض بعد' : 'No offers yet'),
-                          body: _query.isNotEmpty || _category != null || _areaId != null
-                              ? (isAr ? 'جرب بحثًا أو فئة أو منطقة مختلفة.' : 'Try a different search, category, or area.')
-                              : (isAr ? 'تحقق مرة أخرى قريبًا للحصول على عروض جديدة.' : 'Check back soon for new deals.'),
-                        ),
-                      )
-                    else ...[
-                      // Offer Count & Sort Row
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                        child: Row(
-                          children: [
-                            Text(
-                              '${filtered.length} ${isAr ? 'عرض' : (filtered.length == 1 ? "offer" : "offers")}',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: MigoColors.textSecondaryLight,
+                    // Offer Count
+                    if (filtered.isNotEmpty)
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        sliver: SliverToBoxAdapter(
+                          child: Row(
+                            children: [
+                              Text(
+                                '${filtered.length} ${isAr ? 'عرض' : (filtered.length == 1 ? "offer" : "offers")}',
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey),
                               ),
-                            ),
-                            const Spacer(),
-                            Text(
-                              isAr ? 'ترتيب: ${_sort.label(isAr)}' : 'Sort: ${_sort.label(isAr)}',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: MigoColors.textSecondaryLight,
+                              const Spacer(),
+                              Text(
+                                isAr ? 'ترتيب: ${_sort.label(isAr)}' : 'Sort: ${_sort.label(isAr)}',
+                                style: const TextStyle(fontSize: 12, color: Colors.grey),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                      
-                      // Grid
-                      Expanded(
-                        child: GridView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+
+                    // Offers Grid or Empty State
+                    if (filtered.isEmpty)
+                      SliverFillRemaining(
+                        child: MigoEmptyState(
+                          icon: Icons.search_off,
+                          title: isAr ? 'لا توجد عروض' : 'No offers found',
+                          body: isAr ? 'جرب بحثًا آخر.' : 'Try a different search.',
+                        ),
+                      )
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                        sliver: SliverGrid(
                           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             mainAxisSpacing: 12,
                             crossAxisSpacing: 12,
-                            childAspectRatio: 0.62,
+                            childAspectRatio: 0.68, // 🆕 ഉയരം കുറച്ചു
                           ),
-                          itemCount: filtered.length,
-                          itemBuilder: (context, i) {
-                            final o = filtered[i];
-                            return TapScale(
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  FadeSlideRoute(
-                                    child: OfferDetailScreen(offer: o),
-                                  ),
-                                );
-                              },
-                              child: _OfferTile(
-                                offer: o,
-                                isAr: isAr,
+                          delegate: SliverChildBuilderDelegate(
+                            (context, i) {
+                              final o = filtered[i];
+                              return TapScale(
                                 onTap: () {
                                   Navigator.of(context).push(
                                     FadeSlideRoute(
@@ -506,12 +403,23 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                     ),
                                   );
                                 },
-                              ),
-                            );
-                          },
+                                child: _OfferTile(
+                                  offer: o,
+                                  isAr: isAr,
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      FadeSlideRoute(
+                                        child: OfferDetailScreen(offer: o),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                            childCount: filtered.length,
+                          ),
                         ),
                       ),
-                    ],
                   ],
                 );
               },
@@ -543,7 +451,7 @@ class _LocationChip extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: MigoColors.surfaceLight,
+          color: Colors.grey.shade100,
           borderRadius: BorderRadius.circular(20),
         ),
         child: const SizedBox(
@@ -567,20 +475,19 @@ class _LocationChip extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: hasArea
-              ? MigoColors.primary.withValues(alpha: 0.1)
-              : MigoColors.warning.withValues(alpha: 0.15),
+          color: hasArea ? MigoColors.primary.withValues(alpha: 0.1) : Colors.orange.shade50,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: hasArea ? MigoColors.primary.withValues(alpha: 0.3) : Colors.orange.shade300),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.place,
-              size: 12,
-              color: hasArea ? MigoColors.primary : MigoColors.warning,
+              size: 14,
+              color: hasArea ? MigoColors.primary : Colors.orange.shade800,
             ),
             const SizedBox(width: 4),
             ConstrainedBox(
@@ -590,17 +497,17 @@ class _LocationChip extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: hasArea ? MigoColors.primary : MigoColors.warning,
+                  color: hasArea ? MigoColors.primary : Colors.orange.shade800,
                 ),
               ),
             ),
             const SizedBox(width: 2),
             Icon(
               Icons.keyboard_arrow_down,
-              size: 12,
-              color: hasArea ? MigoColors.primary : MigoColors.warning,
+              size: 14,
+              color: hasArea ? MigoColors.primary : Colors.orange.shade800,
             ),
           ],
         ),
@@ -627,59 +534,21 @@ class _CategoryPill extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? MigoColors.primary : MigoColors.surfaceLight,
+          color: selected ? MigoColors.primary : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? MigoColors.primary : MigoColors.dividerLight,
+            color: selected ? MigoColors.primary : Colors.grey.shade300,
+            width: 1.5,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: selected ? Colors.white : MigoColors.textPrimaryLight,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AreaPill extends StatelessWidget {
-  const _AreaPill({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: selected ? MigoColors.success : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: selected ? MigoColors.success : MigoColors.dividerLight,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: selected ? Colors.white : MigoColors.textSecondaryLight,
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: selected ? Colors.white : Colors.grey.shade700,
           ),
         ),
       ),
@@ -702,115 +571,156 @@ class _OfferTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         decoration: BoxDecoration(
-          color: MigoColors.surfaceLight,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: MigoColors.dividerLight),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(14),
-                topRight: Radius.circular(14),
-              ),
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Container(
-                  color: MigoColors.primary.withValues(alpha: 0.08),
-                  child: offer.imageUrl == null
-                      ? const Center(
-                          child: Icon(
-                            Icons.image_outlined,
-                            size: 32,
-                            color: MigoColors.primary,
-                          ),
-                        )
-                      : Image.network(offer.imageUrl!, fit: BoxFit.cover),
+            // Image Section
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 10,
+                    child: Container(
+                      color: Colors.grey.shade100,
+                      child: offer.imageUrl == null
+                          ? const Center(child: Icon(Icons.image_outlined, size: 32, color: Colors.grey))
+                          : Image.network(offer.imageUrl!, fit: BoxFit.cover),
+                    ),
+                  ),
                 ),
-              ),
+                // Category Tag
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      offer.category,
+                      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.black87),
+                    ),
+                  ),
+                ),
+              ],
             ),
+            
+            // Details Section
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       offer.businessName.toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 9,
-                        letterSpacing: 1,
-                        fontWeight: FontWeight.w700,
-                        color: MigoColors.textSecondaryLight,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade600,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
                     Expanded(
                       child: Text(
                         offer.title,
                         style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: MigoColors.textPrimaryLight,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF0F172A),
                           height: 1.2,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
+                    
+                    // Price Row
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
                           '${offer.currency} ${offer.offerPrice.toStringAsFixed(0)}',
                           style: const TextStyle(
-                            fontSize: 15,
+                            fontSize: 16,
                             fontWeight: FontWeight.w900,
                             color: MigoColors.primary,
                             height: 1,
                           ),
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             '${offer.currency} ${offer.originalPrice.toStringAsFixed(0)}',
                             style: const TextStyle(
-                              fontSize: 10,
+                              fontSize: 11,
                               decoration: TextDecoration.lineThrough,
-                              color: MigoColors.textSecondaryLight,
+                              color: Colors.grey,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: MigoColors.success.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        isAr
-                            ? 'وفر ${offer.currency} ${offer.savings.toStringAsFixed(0)}'
-                            : 'SAVE ${offer.currency} ${offer.savings.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          color: MigoColors.success,
+                    
+                    const SizedBox(height: 6),
+                    
+                    // Save Badge & Rating Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            isAr
+                                ? 'وفر ${offer.currency} ${offer.savings.toStringAsFixed(0)}'
+                                : 'SAVE ${offer.currency} ${offer.savings.toStringAsFixed(0)}',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green.shade800,
+                            ),
+                          ),
                         ),
-                      ),
+                        // 🆕 Rating Star (Dummy for now)
+                        Row(
+                          children: [
+                            const Icon(Icons.star, size: 12, color: Colors.amber),
+                            const SizedBox(width: 2),
+                            Text(
+                              '5.0',
+                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade700),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ),

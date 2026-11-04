@@ -16,28 +16,99 @@ class _CreateDemandScreenState extends State<CreateDemandScreen> {
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
   final _priceController = TextEditingController();
-  final _requiredCountController = TextEditingController();
+  final _quantityController = TextEditingController(text: '1');
+  
   bool _isLoading = false;
+  bool _isPrivate = false; // 🆕 പ്രൈവറ്റ് ഓർഡർ ആണോ?
+  String _selectedCategory = 'Electronics'; // 🆕 ഡിഫോൾട്ട് കാറ്റഗറി
+  DateTime? _selectedDeliveryDate; // 🆕 ഡെലിവറി തീയതി
+
+  final List<String> _categories = ['Electronics', 'Food', 'Fashion', 'Home', 'Others'];
 
   @override
   void dispose() {
     _titleController.dispose();
     _descController.dispose();
     _priceController.dispose();
-    _requiredCountController.dispose();
+    _quantityController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickDeliveryDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: now.add(const Duration(days: 1)),
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 30)),
+    );
+    if (picked != null) {
+      setState(() => _selectedDeliveryDate = picked);
+    }
   }
 
   Future<void> _submitDemand(bool isAr) async {
     if (!_formKey.currentState!.validate()) return;
+    if (_isPrivate && _selectedDeliveryDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a delivery date for private order.'), backgroundColor: MigoColors.error),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
-    // Since we only have one input, we save it to both 'en' and 'ar' 
-    // to support the existing model. Later, if needed, we can add separate fields.
-    final title = {
-      'en': _titleController.text.trim(),
-      'ar': _titleController.text.trim(),
-    };
+    final titleText = _titleController.text.trim();
+    final targetPrice = double.tryParse(_priceController.text.trim()) ?? 0.0;
+    final quantity = int.tryParse(_quantityController.text.trim()) ?? 1;
+
+    String? joinExistingId;
+
+    // 🔍 പബ്ലിക് ഡിമാൻഡ് ആണെങ്കിൽ മാത്രം മാച്ചിംഗ് ചെക്ക് ചെയ്യുക
+    if (!_isPrivate) {
+      final similarDemand = await DemandService().findSimilarDemand(
+        title: titleText,
+        targetPrice: targetPrice,
+        areaId: 'doha_center',
+        category: _selectedCategory, // 🆕 കാറ്റഗറി കൂടി ചേർത്തു
+      );
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (similarDemand != null) {
+        final shouldJoin = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(isAr ? 'طلب مشابه موجود!' : 'Similar Demand Found!'),
+            content: Text(
+              isAr
+                  ? 'يوجد طلب مطابق تقريباً: "${similarDemand['title']}" بسعر ${similarDemand['targetPrice']} QAR. هل ترغب في الانضمام إليه بدلاً من إنشاء طلب جديد؟'
+                  : 'There is an existing demand: "${similarDemand['title']}" for ${similarDemand['targetPrice']} QAR. Would you like to join it instead of creating a new one?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(isAr ? 'إنشاء طلب جديد' : 'Create New'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(backgroundColor: MigoColors.primary),
+                child: Text(isAr ? 'انضمام' : 'Join'),
+              ),
+            ],
+          ),
+        );
+
+        if (shouldJoin == true) {
+          joinExistingId = similarDemand['id'];
+        }
+      }
+    }
+
+    setState(() => _isLoading = true);
+
+    final title = {'en': titleText, 'ar': titleText};
     final description = {
       'en': _descController.text.trim(),
       'ar': _descController.text.trim(),
@@ -46,10 +117,14 @@ class _CreateDemandScreenState extends State<CreateDemandScreen> {
     final demandId = await DemandService().createDemand(
       title: title,
       description: description,
-      targetPrice: double.tryParse(_priceController.text.trim()) ?? 0.0,
-      requiredCount: int.tryParse(_requiredCountController.text.trim()) ?? 1,
+      targetPrice: targetPrice,
       currency: 'QAR',
-      areaId: 'doha_center', // Hardcoded for now
+      areaId: 'doha_center',
+      category: _selectedCategory, // 🆕
+      isPrivate: _isPrivate,       // 🆕
+      quantity: quantity,          // 🆕
+      deliveryDate: _selectedDeliveryDate, // 🆕
+      joinExistingDemandId: joinExistingId,
     );
 
     if (!mounted) return;
@@ -58,12 +133,16 @@ class _CreateDemandScreenState extends State<CreateDemandScreen> {
     if (demandId != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isAr ? 'تم إنشاء الطلب بنجاح!' : 'Demand created successfully!'),
+          content: Text(
+            joinExistingId != null
+                ? (isAr ? 'تم الانضمام بنجاح!' : 'Joined successfully!')
+                : (isAr ? 'تم إنشاء الطلب بنجاح!' : 'Demand created successfully!'),
+          ),
           backgroundColor: MigoColors.success,
           behavior: SnackBarBehavior.floating,
         ),
       );
-      Navigator.pop(context); 
+      Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -99,7 +178,7 @@ class _CreateDemandScreenState extends State<CreateDemandScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Gradient Header Card
+                    // Header Card
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -122,13 +201,73 @@ class _CreateDemandScreenState extends State<CreateDemandScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isAr ? 'اطلب ما تحتاجه' : 'Request What You Need',
+                            _isPrivate
+                                ? (isAr ? 'طلب بالجملة خاص' : 'Private Bulk Order')
+                                : (isAr ? 'اطلب ما تحتاجه' : 'Request What You Need'),
                             style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            isAr ? 'سيقوم التجار بالتقدم بعروضهم لأجلك.' : 'Local vendors will bid for your request.',
+                            _isPrivate
+                                ? (isAr ? 'اطلب كميات كبيرة مباشرة من التجار.' : 'Order large quantities directly from vendors.')
+                                : (isAr ? 'سيقوم التجار بالتقدم بعروضهم لأجلك.' : 'Local vendors will bid for your request.'),
                             style: const TextStyle(color: Colors.white70, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // 🆕 Toggle between Group and Private
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _isPrivate = false),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: !_isPrivate ? MigoColors.primary.withValues(alpha: 0.1) : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    isAr ? 'مجموعة' : 'Community',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: !_isPrivate ? MigoColors.primaryDark : Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _isPrivate = true),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: _isPrivate ? MigoColors.primary.withValues(alpha: 0.1) : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    isAr ? 'طلب خاص' : 'Private Bulk',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: _isPrivate ? MigoColors.primaryDark : Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -139,7 +278,6 @@ class _CreateDemandScreenState extends State<CreateDemandScreen> {
                     _buildSectionTitle(isAr ? 'معلومات المنتج' : 'Product Information', isAr),
                     const SizedBox(height: 12),
                     
-                    // Single Title Field
                     _buildTextField(
                       controller: _titleController,
                       label: isAr ? 'اسم المنتج' : 'Product Name',
@@ -148,8 +286,25 @@ class _CreateDemandScreenState extends State<CreateDemandScreen> {
                       validator: (val) => val == null || val.isEmpty ? 'Required' : null,
                     ),
                     const SizedBox(height: 12),
+
+                    // 🆕 Category Dropdown
+                    DropdownButtonFormField<String>(
+                      value: _selectedCategory,
+                      decoration: InputDecoration(
+                        labelText: isAr ? 'الفئة' : 'Category',
+                        prefixIcon: const Icon(Icons.category_outlined, size: 20, color: MigoColors.primary),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: MigoColors.primary, width: 2)),
+                      ),
+                      items: _categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
+                      onChanged: (val) => setState(() => _selectedCategory = val!),
+                    ),
                     
-                    // Single Description Field
+                    const SizedBox(height: 12),
+                    
                     _buildTextField(
                       controller: _descController,
                       label: isAr ? 'الوصف (اختياري)' : 'Description (Optional)',
@@ -181,15 +336,14 @@ class _CreateDemandScreenState extends State<CreateDemandScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: _buildTextField(
-                            controller: _requiredCountController,
-                            label: isAr ? 'العدد' : 'People',
-                            hint: '50',
-                            icon: Icons.people_outline,
+                            controller: _quantityController,
+                            label: isAr ? 'الكمية' : 'Quantity',
+                            hint: '1',
+                            icon: Icons.numbers,
                             keyboardType: TextInputType.number,
                             validator: (val) {
                               if (val == null || val.isEmpty) return 'Required';
-                              final count = int.tryParse(val);
-                              if (count == null || count < 2) return 'Min 2';
+                              if (int.tryParse(val) == null) return 'Invalid';
                               return null;
                             },
                           ),
@@ -197,13 +351,69 @@ class _CreateDemandScreenState extends State<CreateDemandScreen> {
                       ],
                     ),
 
+                    // 🆕 Delivery Date (Only for Private)
+                    if (_isPrivate) ...[
+                      const SizedBox(height: 12),
+                      GestureDetector(
+                        onTap: _pickDeliveryDate,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.calendar_today, size: 20, color: MigoColors.primary),
+                              const SizedBox(width: 12),
+                              Text(
+                                _selectedDeliveryDate == null
+                                    ? (isAr ? 'تاريخ التسليم المطلوب' : 'Required Delivery Date')
+                                    : '${_selectedDeliveryDate!.day}/${_selectedDeliveryDate!.month}/${_selectedDeliveryDate!.year}',
+                                style: TextStyle(
+                                  color: _selectedDeliveryDate == null ? Colors.grey : MigoColors.primaryDark,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 12),
+                    // Info Box
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: MigoColors.primary.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: MigoColors.primary.withValues(alpha: 0.2)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(_isPrivate ? Icons.storefront : Icons.groups, color: MigoColors.primary, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _isPrivate
+                                  ? (isAr ? 'سيتم إرسال طلبك للتجار المختصين فقط.' : 'Your bulk order will be sent only to relevant vendors.')
+                                  : (isAr ? 'سيتم تجميعك تلقائياً مع عملاء آخرين بنفس الطلب.' : 'You will be automatically grouped with other customers.'),
+                              style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight, height: 1.4),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
                     const SizedBox(height: 32),
 
-                    // Glowing Gradient Button
+                    // Submit Button
                     Container(
                       width: double.infinity,
                       height: 55,
-                        decoration: BoxDecoration(
+                      decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -254,19 +464,9 @@ class _CreateDemandScreenState extends State<CreateDemandScreen> {
   Widget _buildSectionTitle(String title, bool isAr) {
     return Row(
       children: [
-        Container(
-          width: 4,
-          height: 18,
-          decoration: BoxDecoration(
-            color: MigoColors.primary,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
+        Container(width: 4, height: 18, decoration: BoxDecoration(color: MigoColors.primary, borderRadius: BorderRadius.circular(2))),
         const SizedBox(width: 8),
-        Text(
-          title,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: MigoColors.primaryDark),
-        ),
+        Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: MigoColors.primaryDark)),
       ],
     );
   }
@@ -291,18 +491,9 @@ class _CreateDemandScreenState extends State<CreateDemandScreen> {
         prefixIcon: Icon(icon, size: 20, color: MigoColors.primary),
         filled: true,
         fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: MigoColors.primary, width: 2),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: MigoColors.primary, width: 2)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         labelStyle: const TextStyle(color: MigoColors.textSecondaryLight, fontSize: 13),
       ),

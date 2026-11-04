@@ -108,6 +108,10 @@ class _MyDemandCard extends StatelessWidget {
         ? Colors.orange 
         : (demand.status == 'threshold_reached' ? Colors.green : MigoColors.primary);
 
+    // 🆕 തീയതി ഫോർമാറ്റ് ചെയ്യാൻ
+    final createdDate = demand.createdAt;
+    final formattedDate = '${createdDate.day}/${createdDate.month}/${createdDate.year}';
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -126,6 +130,7 @@ class _MyDemandCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // 🆕 Header: Title, Status, Date
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -152,12 +157,26 @@ class _MyDemandCard extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 4),
+              // 🆕 Created Date
+              Row(
+                children: [
+                  const Icon(Icons.access_time, size: 12, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${isAr ? 'تاريخ الإنشاء' : 'Created'}: $formattedDate',
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
               Text(
                 '${demand.currency} ${demand.targetPrice.toStringAsFixed(0)}',
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: MigoColors.primary),
               ),
               const SizedBox(height: 12),
+              
+              // Progress Bar
               Row(
                 children: [
                   Expanded(
@@ -178,6 +197,40 @@ class _MyDemandCard extends StatelessWidget {
                   ),
                 ],
               ),
+
+              const SizedBox(height: 12),
+              // 🆕 Group Buy Avatars (Sample UI)
+              Row(
+                children: [
+                  // Sample avatars to show people joined
+                  for (int i = 0; i < (demand.currentCount > 3 ? 3 : demand.currentCount); i++)
+                    Align(
+                      widthFactor: 0.7,
+                      child: CircleAvatar(
+                        radius: 14,
+                        backgroundColor: Colors.blue.shade100,
+                        child: Icon(Icons.person, size: 16, color: Colors.blue.shade700),
+                      ),
+                    ),
+                  if (demand.currentCount > 3)
+                    Align(
+                      widthFactor: 0.7,
+                      child: CircleAvatar(
+                        radius: 14,
+                        backgroundColor: Colors.grey.shade200,
+                        child: Text(
+                          '+${demand.currentCount - 3}',
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                  if (demand.currentCount < demand.requiredCount)
+                    Text(
+                      isAr ? '  انضم للمجموعة!' : '  Join the group!',
+                      style: TextStyle(fontSize: 11, color: MigoColors.primary, fontWeight: FontWeight.bold),
+                    ),
+                ],
+              )
             ],
           ),
         ),

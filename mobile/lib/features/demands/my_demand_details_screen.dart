@@ -230,7 +230,7 @@ class MyDemandDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Action Buttons
-                  if (demand.status == 'threshold_reached')
+                  if (demand.currentCount > 0 || demand.status == 'threshold_reached')
                     SizedBox(
                       width: double.infinity,
                       height: 50,
@@ -251,7 +251,7 @@ class MyDemandDetailsScreen extends StatelessWidget {
                         },
                         icon: const Icon(Icons.gavel),
                         label: Text(
-                          isAr ? 'عرض العروض' : 'View Bids',
+                          isAr ? 'عرض العروض' : 'View Offers',
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -270,7 +270,6 @@ class MyDemandDetailsScreen extends StatelessWidget {
                           ),
                         ),
                         onPressed: () async {
-                          // Fetch the claim for this demand
                           final uid = FirebaseAuth.instance.currentUser?.uid;
                           if (uid == null) return;
                           

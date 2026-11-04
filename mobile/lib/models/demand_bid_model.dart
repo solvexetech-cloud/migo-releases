@@ -12,6 +12,8 @@ class DemandBidModel {
   final double businessTrustScore;
   final Map<String, String> adminNotes;
   final DateTime createdAt;
+  final int minCommitments; // 🆕 എത്ര പേർ വാങ്ങണം
+  final int commitCount; // 🆕 ഇപ്പോൾ എത്ര പേർ തയ്യാറായി
 
   DemandBidModel({
     required this.id,
@@ -25,6 +27,8 @@ class DemandBidModel {
     required this.businessTrustScore,
     required this.adminNotes,
     required this.createdAt,
+    required this.minCommitments, // 🆕
+    this.commitCount = 0, // 🆕
   });
 
   Map<String, dynamic> toMap() {
@@ -39,6 +43,8 @@ class DemandBidModel {
       'businessTrustScore': businessTrustScore,
       'adminNotes': adminNotes,
       'createdAt': Timestamp.fromDate(createdAt),
+      'minCommitments': minCommitments, // 🆕
+      'commitCount': commitCount, // 🆕
     };
   }
 
@@ -55,6 +61,8 @@ class DemandBidModel {
       businessTrustScore: (map['businessTrustScore'] as num?)?.toDouble() ?? 50.0,
       adminNotes: Map<String, String>.from(map['adminNotes'] ?? {'en': '', 'ar': ''}),
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      minCommitments: (map['minCommitments'] as num?)?.toInt() ?? 20, // 🆕
+      commitCount: (map['commitCount'] as num?)?.toInt() ?? 0, // 🆕
     );
   }
 }

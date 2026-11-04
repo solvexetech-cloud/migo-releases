@@ -19,7 +19,6 @@ class BidsComparisonScreen extends StatelessWidget {
       builder: (context, _) {
         final isAr = LocaleProvider.instance.locale == 'ar';
         
-        // Get demand title based on language
         final title = demand.title[isAr ? 'ar' : 'en'] ?? demand.title['en'] ?? '';
 
         return Directionality(
@@ -182,6 +181,22 @@ class _BidCard extends StatelessWidget {
               ],
             ),
 
+            const SizedBox(height: 12),
+
+            // 🆕 Minimum Buyers Required
+            Row(
+              children: [
+                const Icon(Icons.people_alt_outlined, size: 16, color: Colors.purple),
+                const SizedBox(width: 6),
+                Text(
+                  isAr 
+                    ? 'الحد الأدنى: ${bid.minCommitments} مشترين' 
+                    : 'Min Buyers Required: ${bid.minCommitments}',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.purple),
+                ),
+              ],
+            ),
+
             const SizedBox(height: 16),
 
             // 3. Action Button
@@ -194,15 +209,15 @@ class _BidCard extends StatelessWidget {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
                 onPressed: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => ClaimDetailsScreen(demand: demand, bid: bid),
-    ),
-  );
-},
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ClaimDetailsScreen(demand: demand, bid: bid),
+                    ),
+                  );
+                },
                 child: Text(
-                  isAr ? 'اختر هذا العرض' : 'Select This Offer',
+                  isAr ? 'أنا مهتم (احجز)' : 'I am Interested (Commit)',
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
               ),

@@ -49,6 +49,7 @@ import ReservationConfigPage from './pages/ReservationConfigPage';
 import NoShowLogPage from './pages/NoShowLogPage';
 import MarketingDashboardPage from './pages/MarketingDashboardPage';
 import FlyersPage from './pages/FlyersPage';
+import DemandMatchingPage from './pages/DemandMatchingPage'; // 🆕
 
 
 // ═══════════════════════════════════════════════════
@@ -159,6 +160,7 @@ export default function App() {
                     <Route path="/pending-businesses" element={<PendingBusinesses />} />
                     <Route path="/pending-offers" element={<PendingOffers />} />
                     <Route path="/all-offers" element={<AllOffersPage />} />
+                    <Route path="/demand-matching" element={<DemandMatchingPage />} /> {/* 🆕 */}
                     <Route path="/share-rewards" element={<ShareRewardsPage />} />
                     <Route path="/users" element={<UsersPage />} />
                     <Route path="/creators" element={<CreatorsPage />} />

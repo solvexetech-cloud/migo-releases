@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart'; // 🆕 Map, Call, WhatsApp എന്നിവയ്ക്ക് വേണ്ടി
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/localization/locale_provider.dart';
 import '../../core/theme/migo_colors.dart';
@@ -17,7 +17,7 @@ import '../business/business_detail_screen.dart';
 import '../main/main_shell.dart';
 import 'my_claims_screen.dart';
 import 'offer_detail_screen.dart';
-import 'qr_code_screen.dart'; // 🆕 QR കോഡിന് വേണ്ടി
+import 'qr_code_screen.dart';
 
 class DealsScreen extends StatelessWidget {
   const DealsScreen({super.key});
@@ -37,6 +37,7 @@ class DealsScreen extends StatelessWidget {
         return Directionality(
           textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
           child: Scaffold(
+            backgroundColor: const Color(0xFFF8F9FA),
             body: CustomScrollView(
               slivers: [
                 // ── Hero Header ──
@@ -98,7 +99,7 @@ class DealsScreen extends StatelessWidget {
 
                 const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-                // ── 🆕 ACTIVE CLAIMS (ക്ലെയിം ചെയ്ത കടകൾ) ──
+                // ── ACTIVE CLAIMS ──
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -148,7 +149,7 @@ class DealsScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: MigoGradients.softBlue,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: MigoColors.primary.withValues(alpha: 0.1)),
+                        border: Border.all(color: MigoColors.primary.withValues(alpha: 0.2)),
                       ),
                       child: Column(
                         children: [
@@ -181,6 +182,8 @@ class DealsScreen extends StatelessWidget {
                               style: ElevatedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 14),
                                 textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                                backgroundColor: MigoColors.primary,
+                                foregroundColor: Colors.white,
                               ),
                               child: Text(isAr ? 'استكشف العروض' : 'Explore Deals'),
                             ),
@@ -210,8 +213,8 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(
-        fontSize: 11,
-        letterSpacing: 1.5,
+        fontSize: 12,
+        letterSpacing: 1.2,
         fontWeight: FontWeight.w800,
         color: MigoColors.textSecondaryLight,
       ),
@@ -295,7 +298,7 @@ class _HeroAction extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────
-// 🆕 ACTIVE CLAIMS ROW (ക്ലെയിം ചെയ്ത കടകൾ വിവരങ്ങളോടെ)
+// ACTIVE CLAIMS ROW (പോളിഷ് ചെയ്തത്)
 // ─────────────────────────────────────────────────────
 class _ActiveClaimsRow extends StatelessWidget {
   const _ActiveClaimsRow({required this.uid, required this.isAr});
@@ -312,10 +315,7 @@ class _ActiveClaimsRow extends StatelessWidget {
           .snapshots(),
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return const SizedBox(
-            height: 200,
-            child: Center(child: CircularProgressIndicator()),
-          );
+          return const SizedBox(height: 180, child: Center(child: CircularProgressIndicator()));
         }
 
         final activeClaims = snap.data?.docs ?? [];
@@ -326,9 +326,9 @@ class _ActiveClaimsRow extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: MigoColors.surfaceLight,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: MigoColors.dividerLight),
+                border: Border.all(color: MigoColors.primary.withValues(alpha: 0.15), width: 1.5),
               ),
               child: Column(
                 children: [
@@ -351,7 +351,7 @@ class _ActiveClaimsRow extends StatelessWidget {
         }
 
         return SizedBox(
-          height: 240, // Height for the horizontal list
+          height: 180, // 🆕 ഉയരം കുറച്ചു (Compact)
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -370,94 +370,93 @@ class _ActiveClaimsRow extends StatelessWidget {
                   final businessName = business?.name ?? 'Business';
 
                   return Container(
-                    width: 280,
+                    width: 270,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: MigoColors.surfaceLight,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      boxShadow: MigoShadows.soft,
-                      border: Border.all(color: MigoColors.primary.withValues(alpha: 0.1)),
+                      // 🆕 ചെറിയ നീല ബോർഡർ
+                      border: Border.all(color: MigoColors.primary.withValues(alpha: 0.2), width: 1.5),
+                      boxShadow: [
+                        BoxShadow(color: MigoColors.primary.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Business Name & Title
-                        Text(
-                          businessName.toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 10,
-                            letterSpacing: 1.2,
-                            fontWeight: FontWeight.w800,
-                            color: MigoColors.textSecondaryLight,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                businessName.toUpperCase(),
+                                style: TextStyle(fontSize: 10, letterSpacing: 1, fontWeight: FontWeight.w800, color: Colors.grey.shade600),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            // 🆕 Active Green Badge
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.green.shade50,
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: Colors.green.shade200),
+                              ),
+                              child: Text(
+                                isAr ? 'نشط' : 'ACTIVE',
+                                style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.green.shade700),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Text(
                           offerTitle,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: MigoColors.textPrimaryLight,
-                          ),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         
                         const Spacer(),
                         
-                        // 🆕 Map, Call, WhatsApp Buttons
+                        // Map, Call, WhatsApp, Show QR in a row
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             if (business?.mapUrl != null && business!.mapUrl!.isNotEmpty)
-                              _IconActionBtn(
-                                icon: Icons.location_on,
-                                color: Colors.blue,
-                                onTap: () => _launchUrl(business.mapUrl!),
-                              ),
+                              _IconActionBtn(icon: Icons.location_on, color: Colors.blue, onTap: () => _launchUrl(business.mapUrl!)),
                             if (business?.phone != null && business!.phone!.isNotEmpty)
-                              _IconActionBtn(
-                                icon: Icons.phone,
-                                color: Colors.green,
-                                onTap: () => _launchUrl('tel:${business.phone}'),
-                              ),
-                            if (business?.whatsapp != null && business!.whatsapp!.isNotEmpty)
-                              _IconActionBtn(
-                                icon: Icons.chat,
-                                color: const Color(0xFF25D366),
-                                onTap: () => _launchUrl('https://wa.me/${business.whatsapp}'),
-                              ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 12),
-                        
-                        // Show QR Button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 40,
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => QrCodeScreen(
-                                    claimId: claimDoc.id,
-                                    offerTitle: offerTitle,
-                                    businessName: businessName,
-                                  ),
+                              _IconActionBtn(icon: Icons.phone, color: Colors.orange, onTap: () => _launchUrl('tel:${business.phone}')),
+                            
+                            const Spacer(),
+
+                            // Show QR Button (Compact)
+                            SizedBox(
+                              height: 38,
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => QrCodeScreen(
+                                        claimId: claimDoc.id,
+                                        offerTitle: offerTitle,
+                                        businessName: businessName,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.qr_code, size: 16),
+                                label: Text(isAr ? 'عرض QR' : 'Show QR'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: MigoColors.primary,
+                                  foregroundColor: Colors.white,
+                                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
                                 ),
-                              );
-                            },
-                            icon: const Icon(Icons.qr_code, size: 16),
-                            label: Text(isAr ? 'عرض رمز QR' : 'Show QR'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: MigoColors.primary,
-                              foregroundColor: Colors.white,
-                              textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                       ],
                     ),
@@ -472,30 +471,26 @@ class _ActiveClaimsRow extends StatelessWidget {
   }
 }
 
-// 🆕 ചെറിയ ഐക്കൺ ബട്ടൺ
 class _IconActionBtn extends StatelessWidget {
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
 
-  const _IconActionBtn({
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
+  const _IconActionBtn({required this.icon, required this.color, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.all(10),
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: color, size: 20),
+        child: Icon(icon, color: color, size: 18),
       ),
     );
   }
@@ -508,9 +503,8 @@ Future<void> _launchUrl(String url) async {
   }
 }
 
-
 // ─────────────────────────────────────────────────────
-// Saved Offers Row (ഒഴിഞ്ഞാൽ ട്രെൻഡിംഗ് ഓഫറുകൾ കാണിക്കും)
+// SAVED OFFERS ROW (Compact & Polished)
 // ─────────────────────────────────────────────────────
 class _SavedOffersRow extends StatelessWidget {
   const _SavedOffersRow({required this.uid, required this.isAr});
@@ -523,10 +517,7 @@ class _SavedOffersRow extends StatelessWidget {
       stream: FirestoreService.instance.streamMySavedOffers(uid),
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return const SizedBox(
-            height: 300,
-            child: Center(child: CircularProgressIndicator()),
-          );
+          return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
         }
         final savedOffers = snap.data ?? [];
 
@@ -536,9 +527,7 @@ class _SavedOffersRow extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 child: Text(
-                  isAr
-                      ? 'لم تقم بحفظ أي عروض بعد. اكتشف العروض الرائجة!'
-                      : 'You haven\'t saved any offers yet. Discover trending deals!',
+                  isAr ? 'لم تقم بحفظ أي عروض بعد. اكتشف العروض الرائجة!' : 'You haven\'t saved any offers yet. Discover trending deals!',
                   style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight),
                 ),
               ),
@@ -548,20 +537,18 @@ class _SavedOffersRow extends StatelessWidget {
                   if (!liveSnap.hasData) return const SizedBox.shrink();
                   final trending = liveSnap.data!;
                   return SizedBox(
-                    height: 300,
+                    height: 200, // 🆕 ഉയരം കുറച്ചു
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       itemCount: trending.length,
                       separatorBuilder: (_, _) => const SizedBox(width: 12),
                       itemBuilder: (context, i) => SizedBox(
-                        width: 280,
+                        width: 160, 
                         child: TapScale(
                           onTap: () {
                             Navigator.of(context).push(
-                              FadeSlideRoute(
-                                child: OfferDetailScreen(offer: trending[i]),
-                              ),
+                              FadeSlideRoute(child: OfferDetailScreen(offer: trending[i])),
                             );
                           },
                           child: OfferCard(offer: trending[i]),
@@ -576,14 +563,14 @@ class _SavedOffersRow extends StatelessWidget {
         }
 
         return SizedBox(
-          height: 220,
+          height: 200, // 🆕 ഉയരം കുറച്ചു
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: savedOffers.length,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, i) => SizedBox(
-              width: 240,
+              width: 160, 
               child: TapScale(
                 onTap: () {
                   Navigator.of(context).push(
@@ -614,9 +601,13 @@ class _SavedOfferCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: MigoColors.surfaceLight,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: MigoShadows.soft,
+        // 🆕 ചെറിയ നീല ബോർഡർ
+        border: Border.all(color: MigoColors.primary.withValues(alpha: 0.15), width: 1.5),
+        boxShadow: [
+          BoxShadow(color: MigoColors.primary.withValues(alpha: 0.03), blurRadius: 8, offset: const Offset(0, 4)),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -626,83 +617,57 @@ class _SavedOfferCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(6), // 🆕 ചെറുതാക്കി
                   decoration: BoxDecoration(
-                    color: MigoColors.primary.withValues(alpha: 0.08),
+                    color: Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(
-                    Icons.local_offer,
-                    size: 18,
-                    color: MigoColors.primary,
-                  ),
+                  child: Icon(Icons.local_offer, size: 16, color: Colors.blue.shade800),
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: MigoColors.success.withValues(alpha: 0.12),
+                    color: Colors.green.shade50,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    '${offer.percentOff}% ${isAr ? 'خصم' : 'OFF'}',
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      color: MigoColors.success,
-                    ),
+                    '${offer.percentOff}%',
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.green.shade800),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Text(
               offer.businessName.toUpperCase(),
-              style: const TextStyle(
-                fontSize: 9,
-                letterSpacing: 1.1,
-                fontWeight: FontWeight.w800,
-                color: MigoColors.textSecondaryLight,
-              ),
+              style: const TextStyle(fontSize: 9, letterSpacing: 1, fontWeight: FontWeight.w800, color: Colors.grey),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 4),
-            Text(
-              offer.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: MigoColors.textPrimaryLight,
-                height: 1.2,
+            Expanded(
+              child: Text(
+                offer.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF0F172A), height: 1.2),
               ),
             ),
-            const Spacer(),
+            const SizedBox(height: 8),
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
                   '${offer.currency} ${offer.offerPrice.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: MigoColors.primary,
-                    height: 1,
-                  ),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: MigoColors.primary, height: 1),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 4),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
+                  padding: const EdgeInsets.only(bottom: 2),
                   child: Text(
                     '${offer.currency} ${offer.originalPrice.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      decoration: TextDecoration.lineThrough,
-                      color: MigoColors.textSecondaryLight,
-                    ),
+                    style: const TextStyle(fontSize: 10, decoration: TextDecoration.lineThrough, color: Colors.grey),
                   ),
                 ),
               ],
@@ -715,7 +680,7 @@ class _SavedOfferCard extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────
-// Saved Businesses Row (ഒഴിഞ്ഞാൽ ടോപ്പ് ബിസിനസുകൾ കാണിക്കും)
+// SAVED BUSINESSES ROW
 // ─────────────────────────────────────────────────────
 class _SavedBusinessesRow extends StatelessWidget {
   const _SavedBusinessesRow({required this.uid, required this.isAr});
@@ -751,9 +716,7 @@ class _SavedBusinessesRow extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     child: Text(
-                      isAr
-                          ? 'لم تقم بحفظ أي شركات بعد. اكتشف الأعلى تقييماً:'
-                          : 'You haven\'t saved any businesses yet. Discover top-rated:',
+                      isAr ? 'لم تقم بحفظ أي شركات بعد. اكتشف الأعلى تقييماً:' : 'You haven\'t saved any businesses yet. Discover top-rated:',
                       style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight),
                     ),
                   ),
@@ -788,7 +751,7 @@ class _BusinessTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: MigoColors.surfaceLight,
+      color: Colors.white,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
@@ -807,7 +770,8 @@ class _BusinessTile extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            boxShadow: MigoShadows.soft,
+            // 🆕 ചെറിയ നീല ബോർഡർ
+            border: Border.all(color: MigoColors.primary.withValues(alpha: 0.15), width: 1.5),
           ),
           child: Row(
             children: [

@@ -37,7 +37,6 @@ class _DemandRedemptionScreenState extends State<DemandRedemptionScreen> {
     });
 
     try {
-      // Find the claim with this PIN and business ID
       final snapshot = await FirebaseFirestore.instance
           .collection('demand_claims')
           .where('redemptionPin', isEqualTo: _pinController.text.trim())
@@ -50,7 +49,6 @@ class _DemandRedemptionScreenState extends State<DemandRedemptionScreen> {
         return;
       }
 
-      // Mark as redeemed
       await snapshot.docs.first.reference.update({
         'status': 'redeemed',
         'redeemedAt': FieldValue.serverTimestamp(),
@@ -67,11 +65,13 @@ class _DemandRedemptionScreenState extends State<DemandRedemptionScreen> {
 
   // --- 2. REDEEM VIA QR (For Store Pickup) ---
   Future<void> _handleQrScan(String qrData, bool isAr) async {
-    setState(() => _isLoading = true);
+    // 🆕 ആദ്യം സ്കാനിംഗ് നിർത്തുക (തുടർച്ചയായി സ്കാൻ ചെയ്യുന്നത് ഒഴിവാക്കാൻ)
+    setState(() {
+      _isScanning = false;
+      _isLoading = true;
+    });
 
     try {
-      // The QR data is formatted as: MIGO_DEMAND_{demandId}_{userId}_{pin}
-      // We can just search for the qrData exact string
       final snapshot = await FirebaseFirestore.instance
           .collection('demand_claims')
           .where('qrData', isEqualTo: qrData)
@@ -82,7 +82,6 @@ class _DemandRedemptionScreenState extends State<DemandRedemptionScreen> {
       if (snapshot.docs.isEmpty) {
         setState(() {
           _errorMessage = isAr ? 'رمز QR غير صالح أو تم استخدامه' : 'Invalid or already used QR code';
-          _isScanning = false;
         });
         return;
       }
@@ -93,12 +92,10 @@ class _DemandRedemptionScreenState extends State<DemandRedemptionScreen> {
       });
 
       if (!mounted) return;
-      setState(() => _isScanning = false);
       _showSuccessDialog(isAr, 'QR');
     } catch (e) {
       setState(() {
         _errorMessage = isAr ? 'حدث خطأ أثناء مسح الرمز' : 'Error scanning QR';
-        _isScanning = false;
       });
     } finally {
       if (mounted) setState(() => _isLoading = false);

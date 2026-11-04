@@ -14,6 +14,7 @@ import '../analytics/business_analytics_screen.dart';
 import '../profile/profile_screen.dart';
 import '../bookings/claims_history_screen.dart';
 import '../demands/demand_bids_screen.dart';
+import '../demands/business_demands_feed_screen.dart';
 
 /// PHASE I — Business Dashboard
 /// Responsive: sidebar on PC, drawer on mobile
@@ -268,7 +269,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 6: 
         return _buildClaimsTab();
       case 8:
-        return const DemandBidsScreen();
+        return const BusinessDemandsFeedScreen();
       case 7:
         return const MyFlyersScreen();
       default:

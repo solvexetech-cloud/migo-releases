@@ -22,6 +22,7 @@ const ALL_ITEMS = [
       { to: '/campaigns', label: 'Campaigns', icon: '📢' },
       { to: '/orders', label: 'Orders', icon: '📦' },
       { to: '/complaints', label: 'Complaints', icon: '⚠️' },
+      { to: '/demand-matching', label: 'Demand Matching', icon: '🔄' },
     ],
   },
   { to: '/roles', label: 'Roles', icon: '🔑' },
@@ -45,9 +46,10 @@ const ROLE_PATHS = {
     [ROLES.SUPER_ADMIN]: ALL_ITEMS.flatMap((item) => 
     item.children ? item.children.map((c) => c.to) : [item.to]
   ),
-  [ROLES.ADMIN]: [
+    [ROLES.ADMIN]: [
     '/', '/businesses', '/map', '/analytics', '/users', '/creators',
     '/reviews', '/reservations', '/no-show-log', '/revenue', '/flyers', '/all-offers',
+    '/demand-matching', // 🆕 ഇത് ഇവിടെ ചേർക്കുക
     '/demand-bids', '/campaigns', '/orders', '/complaints',
   ],
   [ROLES.AGENCY]: [
