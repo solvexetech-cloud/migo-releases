@@ -1,53 +1,49 @@
-﻿# Dependencies
-node_modules/
-.pub-cache/
+# ===== MIGO Project .gitignore =====
 
-# Build outputs
-build/
-dist/
-*.apk
-*.ipa
+# Old master plan backups
+MIGO-MASTER-PLAN-v*.txt
+MIGO-MASTER-PLAN.txt
+MIGO-NEW-CHAT-CONTEXT-*.txt
+MIGO-NEW-CHAT-STARTER-*.txt
+MIGO_MASTER_BLUEPRINT.txt
+current-rules.txt
 
-# Environment
-.env
-.env.local
-.env.production
+# Firebase secrets
+**/google-services.json
+**/GoogleService-Info.plist
+**/serviceAccountKey.json
+**/.env
+**/.env.*
 
-# IDE
+# Flutter
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/pubspec.lock
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/android/key.properties
+
+# Node.js
+**/node_modules/
+**/dist/
+**/.vite/
+_seed/
+fcm-test/
+
+# OS & IDE
+.DS_Store
+Thumbs.db
 .vscode/
 .idea/
 *.iml
 
-# OS
-.DS_Store
-Thumbs.db
-
 # Logs
 *.log
 npm-debug.log*
-
-# Flutter
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-# FCM test folder (contains service account reference)
-fcm-test/
-
-# Firebase service account keys (never commit!)
-*-firebase-adminsdk-*.json
-
-# Seed scripts (contain service account)
-_seed/serviceAccount.json
-_seed/node_modules/
-_seed/package-lock.json
-_seed/package.json
-
-# Firebase Admin SDK — NEVER commit
-_seed/serviceAccountKey.json
-*firebase-adminsdk*.json
-serviceAccountKey.json
-
-# Service account keys - NEVER commit
-_seed/serviceAccountKey*.json
-_seed/serviceAccountKey*.bak
-*.json.bak
+yarn-debug.log*
+yarn-error.log*
+# Exception: keep current master plan tracked
+!MIGO-MASTER-PLAN-v5.1.txt

@@ -1,0 +1,30 @@
+# MIGO - NEW CHAT CONTEXT (2026-11-03)
+
+## വേഗത്തിൽ തുടങ്ങാൻ
+- Root: C:\Users\DELL\Documents\migo\
+- **Latest master plan: MIGO-MASTER-PLAN-v5.1.txt**
+- Git: master branch, origin = https://github.com/solvexetech-cloud/migo-releases.git
+- Firebase: migo-app-3030e | Firestore: me-central1 (Doha)
+- Admin: https://migo-app-3030e.web.app (LIVE)
+- Cloudinary: zxl1kb8h
+
+## Project Progress (v5.1)
+- PHASE A-K: 100% ✅ (Coin Payments & UI Complete)
+- PHASE L (Community Demand): 60% 🔥 ONGOING
+- PHASE F (Coin Partner System): 46%
+- PHASE G (Monetization): 0% ⚠️
+- PHASE I (Play Store): 95%
+- PHASE H (Testing): 95%
+
+## Immediate Next Steps (v5.1)
+1. Admin Panel — Complaint Management (SCREEN 28)
+2. Product Matching Engine (Advanced)
+3. Trust Score System
+4. End-to-End Testing (QR/PIN Redemption via APK)
+
+## AI Handoff Rules
+- മലയാളത്തിൽ സംസാരിക്കുക
+- PowerShell മാത്രം ഉപയോഗിക്കുക
+- Save: [System.IO.File]::WriteAllText("$pwd\$file", $content, [System.Text.UTF8Encoding]::new($false))
+- വായിക്കാൻ: Get-Content "file.txt" -Encoding UTF8
+- Rules deploy: firebase deploy --only firestore:rules
