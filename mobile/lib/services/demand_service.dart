@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/demand_model.dart';
 import '../models/demand_bid_model.dart';
@@ -9,7 +9,7 @@ class DemandService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // 🔍 1. Find a similar existing demand using fuzzy matching
+  // ðŸ” 1. Find a similar existing demand using fuzzy matching
   Future<Map<String, dynamic>?> findSimilarDemand({
     required String title,
     required double targetPrice,
@@ -205,7 +205,7 @@ class DemandService {
         offerPrice: offerPrice,
         authenticity: authenticity,
         fulfillmentType: fulfillmentType,
-        status: 'approved', // ടെസ്റ്റിംഗിനായി നേരിട്ട് അപ്രൂവ് ചെയ്യുന്നു
+        status: 'approved', // à´Ÿàµ†à´¸àµà´±àµà´±à´¿à´‚à´—à´¿à´¨à´¾à´¯à´¿ à´¨àµ‡à´°à´¿à´Ÿàµà´Ÿàµ à´…à´ªàµà´°àµ‚à´µàµ à´šàµ†à´¯àµà´¯àµà´¨àµà´¨àµ
         businessTrustScore: businessTrustScore,
         adminNotes: {'en': '', 'ar': ''},
         createdAt: DateTime.now(),
@@ -241,11 +241,11 @@ class DemandService {
     String? deliveryAddress,
     String? deliveryPhone,
   }) async {
-    try {
+    try {   // âœ… à´‡à´µà´¿à´Ÿàµ† à´¨àµ‡à´°à´¿à´Ÿàµà´Ÿàµ try à´¤àµà´Ÿà´™àµà´™àµà´•
       final user = _auth.currentUser;
       if (user == null) return 'error';
 
-      // 1. ഈ യൂസർ ഇതിനകം കമ്മിറ്റ് ചെയ്തിട്ടുണ്ടോ എന്ന് ചെക്ക് ചെയ്യുക
+      // 1. à´ˆ à´¯àµ‚à´¸àµ¼ à´‡à´¤à´¿à´¨à´•à´‚ à´•à´®àµà´®à´¿à´±àµà´±àµ à´šàµ†à´¯àµà´¤à´¿à´Ÿàµà´Ÿàµà´£àµà´Ÿàµ‹ à´Žà´¨àµà´¨àµ à´šàµ†à´•àµà´•àµ à´šàµ†à´¯àµà´¯àµà´•
       final existingCommitQuery = await _db.collection('demand_commits')
           .where('bidId', isEqualTo: bidId)
           .where('userId', isEqualTo: user.uid)
@@ -259,7 +259,7 @@ class DemandService {
         return 'already_committed'; 
       }
 
-      // 2. പുതിയ കമ്മിറ്റ് ഉണ്ടാക്കുക
+      // 2. à´ªàµà´¤à´¿à´¯ à´•à´®àµà´®à´¿à´±àµà´±àµ à´‰à´£àµà´Ÿà´¾à´•àµà´•àµà´•
       final batch = _db.batch();
       
       final commitRef = _db.collection('demand_commits').doc();
@@ -284,14 +284,14 @@ class DemandService {
 
       await batch.commit();
 
-      // 3. കമ്മിറ്റ് ചെയ്തവരുടെ എണ്ണം ചെക്ക് ചെയ്യുക
+      // 3. à´•à´®àµà´®à´¿à´±àµà´±àµ à´šàµ†à´¯àµà´¤à´µà´°àµà´Ÿàµ† à´Žà´£àµà´£à´‚ à´šàµ†à´•àµà´•àµ à´šàµ†à´¯àµà´¯àµà´•
       final bidSnap = await bidRef.get();
       final currentCommits = (bidSnap.data()?['commitCount'] as num?)?.toInt() ?? 0;
 
       if (currentCommits >= minCommitments) {
-        // 🆕 4. മിനിമം എണ്ണം തികഞ്ഞു! ഇനി വെയിറ്റ്ലിസ്റ്റിൽ ഉള്ള എല്ലാവർക്കും QR ഉണ്ടാക്കണം.
+        // ðŸ†• 4. à´®à´¿à´¨à´¿à´®à´‚ à´Žà´£àµà´£à´‚ à´¤à´¿à´•à´žàµà´žàµ! à´‡à´¨à´¿ à´µàµ†à´¯à´¿à´±àµà´±àµà´²à´¿à´¸àµà´±àµà´±à´¿àµ½ à´‰à´³àµà´³ à´Žà´²àµà´²à´¾à´µàµ¼à´•àµà´•àµà´‚ QR à´‰à´£àµà´Ÿà´¾à´•àµà´•à´£à´‚.
         
-        // വെയിറ്റ്ലിസ്റ്റിൽ ഉള്ളവരെ കണ്ടെത്തുക (ഇപ്പോൾ commit ചെയ്ത ആളെ ഒഴിവാക്കി)
+        // à´µàµ†à´¯à´¿à´±àµà´±àµà´²à´¿à´¸àµà´±àµà´±à´¿àµ½ à´‰à´³àµà´³à´µà´°àµ† à´•à´£àµà´Ÿàµ†à´¤àµà´¤àµà´• (à´‡à´ªàµà´ªàµ‹àµ¾ commit à´šàµ†à´¯àµà´¤ à´†à´³àµ† à´’à´´à´¿à´µà´¾à´•àµà´•à´¿)
         final allCommitsQuery = await _db.collection('demand_commits')
             .where('bidId', isEqualTo: bidId)
             .where('status', isEqualTo: 'committed')
@@ -343,7 +343,7 @@ class DemandService {
   }
 
   // =========================================================================
-  // 🧠 HELPER FUNCTIONS FOR FUZZY MATCHING
+  // ðŸ§  HELPER FUNCTIONS FOR FUZZY MATCHING
   // =========================================================================
 
   String _normalizeText(String s) {

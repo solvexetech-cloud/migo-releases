@@ -1,179 +1,105 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/area_model.dart';
 import '../models/user_model.dart';
-import 'firestore_service.dart';
 
-/// MIGO Location Service
-///
-/// Provides customer location defaults based on user profile.
-/// - Detects user's default area from `city` field
-/// - Falls back to country's first area
 class LocationService {
-  LocationService._();
   static final LocationService instance = LocationService._();
+  LocationService._();
 
-  /// Map of city name → default area slug.
-  /// Update this map as new cities are onboarded.
-  static const Map<String, String> _cityToArea = {
-    // Qatar
-    'doha': 'the-pearl',
-    'the pearl': 'the-pearl',
-    'west bay': 'west-bay',
-    'lusail': 'lusail',
-    'al wakrah': 'wakrah-city',
-    'al khor': 'al-khor',
-    'al rayyan': 'education-city',
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-    // Kerala
-    'kochi': 'kakkanad',
-    'cochin': 'kakkanad',
-    'ernakulam': 'kakkanad',
-    'kakkanad': 'kakkanad',
-    'edappally': 'edappally',
-    'thrissur': 'thrissur-city',
-    'guruvayur': 'guruvayur',
-    'kozhikode': 'kozhikode-city',
-    'calicut': 'kozhikode-city',
-    'thiruvananthapuram': 'technopark',
-    'trivandrum': 'technopark',
-  };
+  // 1. ലൊക്കേഷൻ എടുത്ത് ഫയർസ്റ്റോറിൽ സേവ് ചെയ്യാൻ
+  Future<void> updateUserLocation() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
-  /// Map of country code → default city name.
-    /// Map of country code → default city name.
-  static const Map<String, String> _countryDefaultCity = {
-    'QA': 'Doha',
-    'AE': 'Dubai',
-    'SA': 'Riyadh',
-    'KW': 'Kuwait City',
-    'BH': 'Manama',
-    'OM': 'Muscat',
-    'IN': 'Kochi',
-  };
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
 
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) return;
+      }
+      if (permission == LocationPermission.deniedForever) return;
 
-  /// Get default area for user (without Firestore write).
-  ///
-  /// Priority:
-  /// 1. User's persisted `currentAreaId`
-  /// 2. Map user's `city` → area slug
-  /// 3. First active area of user's country
-  /// 4. null (no default)
-  Future<AreaModel?> getDefaultArea(UserModel? user) async {
-    if (user == null) return null;
-
-    // 1. Persisted selection
-    if (user.currentAreaId != null && user.currentAreaId!.isNotEmpty) {
-      final area = await FirestoreService.instance.getArea(
-        user.currentAreaId!,
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
       );
-      if (area != null && area.active) return area;
+
+      await _db.collection('users').doc(user.uid).update({
+        'location': GeoPoint(position.latitude, position.longitude),
+        'lastLocationUpdate': FieldValue.serverTimestamp(),
+      });
+
+      debugPrint('Location updated: ${position.latitude}, ${position.longitude}');
+    } catch (e) {
+      debugPrint('Error updating location: $e');
     }
-
-    // 2. City → area mapping
-    final city = (user.city).toLowerCase().trim();
-    final areaSlug = _cityToArea[city];
-    if (areaSlug != null) {
-      final area = await FirestoreService.instance.getArea(areaSlug);
-      if (area != null && area.active) return area;
-    }
-
-    // 3. First active area in user's country
-    final countryCode = user.currentCountryCode ?? user.country;
-    final countries = await FirestoreService.instance.getCountries();
-    final country = countries.firstWhere(
-      (c) => c.code == countryCode,
-      orElse: () => countries.isNotEmpty ? countries.first : throw StateError('No countries'),
-    );
-
-    final zones =
-        await FirestoreService.instance.getZonesByCountry(country.code);
-    for (final zone in zones) {
-      final areas =
-          await FirestoreService.instance.getAreasByZone(zone.id);
-      if (areas.isNotEmpty) return areas.first;
-    }
-
-    return null;
   }
 
-  /// Persist user's selected area to their profile.
+  // 2. യൂസറുടെ ഏരിയ (Area) കണ്ടെത്താൻ -> AreaModel റിട്ടേൺ ചെയ്യുന്നു
+  Future<AreaModel?> getDefaultArea(UserModel? user) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedAreaId = prefs.getString('selected_area_id');
+      
+      // ലോക്കൽ സ്റ്റോറേജിൽ ഉണ്ടെങ്കിൽ അത് എടുക്കാം
+      if (savedAreaId != null && savedAreaId.isNotEmpty) {
+         final doc = await _db.collection('areas').doc(savedAreaId).get();
+         if (doc.exists) return AreaModel.fromMap(doc.id, doc.data()!);
+      }
+
+      // യൂസർ പ്രൊഫൈലിൽ ഉണ്ടെങ്കിൽ അത് എടുക്കാം (നേരിട്ട് ഫയർസ്റ്റോറിൽ നിന്ന്)
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        final userDoc = await _db.collection('users').doc(currentUser.uid).get();
+        if (userDoc.exists) {
+          final data = userDoc.data();
+          if (data != null && data['areaId'] != null) {
+            final String areaId = data['areaId'];
+            if (areaId.isNotEmpty) {
+              final doc = await _db.collection('areas').doc(areaId).get();
+              if (doc.exists) return AreaModel.fromMap(doc.id, doc.data()!);
+            }
+          }
+        }
+      }
+      
+      // ഒന്നും കണ്ടെത്തിയില്ലെങ്കിൽ ആദ്യത്തെ ഏരിയ എടുക്കാം
+      final query = await _db.collection('areas').limit(1).get();
+      if (query.docs.isNotEmpty) {
+         return AreaModel.fromMap(query.docs.first.id, query.docs.first.data());
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting default area: $e');
+      return null;
+    }
+  }
+
+  // 3. യൂസർ ഏരിയ സെലക്ട് ചെയ്യുമ്പോൾ സേവ് ചെയ്യാൻ
   Future<void> saveSelectedArea({
     required String uid,
     required String areaId,
     required String countryCode,
   }) async {
-    await FirestoreService.instance.updateUser(uid, {
-      'currentAreaId': areaId,
-      'currentCountryCode': countryCode,
-    });
-  }
-
-  /// Get city name for a country.
-  String defaultCityForCountry(String countryCode) {
-    return _countryDefaultCity[countryCode] ?? 'Doha';
-  }
-  /// Get currency for a country code.
-  /// Fallback to QAR if country not found.
-  Future<String> currencyForCountry(String countryCode) async {
     try {
-      final countries = await FirestoreService.instance.getCountries();
-      final country = countries.firstWhere(
-        (c) => c.code == countryCode,
-        orElse: () => countries.isNotEmpty
-            ? countries.first
-            : throw StateError('No countries'),
-      );
-      return country.currency;
-    } catch (_) {
-      return 'QAR';
-    }
-  }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('selected_area_id', areaId);
 
-  /// Get default locale for a country code.
-  /// Fallback to 'en' if country not found.
-  Future<String> localeForCountry(String countryCode) async {
-    try {
-      final countries = await FirestoreService.instance.getCountries();
-      final country = countries.firstWhere(
-        (c) => c.code == countryCode,
-        orElse: () => countries.isNotEmpty
-            ? countries.first
-            : throw StateError('No countries'),
-      );
-      return country.locale;
-    } catch (_) {
-      return 'en';
-    }
-  }
-
-  /// Check if a country uses RTL layout.
-  Future<bool> isRtlCountry(String countryCode) async {
-    try {
-      final countries = await FirestoreService.instance.getCountries();
-      final country = countries.firstWhere(
-        (c) => c.code == countryCode,
-        orElse: () => countries.isNotEmpty
-            ? countries.first
-            : throw StateError('No countries'),
-      );
-      return country.rtl;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  /// Get dial code for a country (e.g. "+974").
-  Future<String> dialCodeForCountry(String countryCode) async {
-    try {
-      final countries = await FirestoreService.instance.getCountries();
-      final country = countries.firstWhere(
-        (c) => c.code == countryCode,
-        orElse: () => countries.isNotEmpty
-            ? countries.first
-            : throw StateError('No countries'),
-      );
-      return country.dialCode;
-    } catch (_) {
-      return '';
+      await _db.collection('users').doc(uid).update({
+        'areaId': areaId,
+        'country': countryCode,
+      });
+    } catch (e) {
+      debugPrint('Error saving area: $e');
     }
   }
 }

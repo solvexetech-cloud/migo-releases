@@ -13,7 +13,6 @@ const ALL_ITEMS = [
   { to: '/categories', label: 'Categories', icon: '📁' },
   { to: '/coin-settings', label: 'Coin Settings', icon: '🪙' },
   { to: '/coin-payments', label: 'Coin Payments', icon: '💰' },
-  // 🆕 Community Demands Group
   {
     label: 'Community Demands',
     icon: '⚖️',
@@ -23,6 +22,7 @@ const ALL_ITEMS = [
       { to: '/orders', label: 'Orders', icon: '📦' },
       { to: '/complaints', label: 'Complaints', icon: '⚠️' },
       { to: '/demand-matching', label: 'Demand Matching', icon: '🔄' },
+      { to: '/community-demands', label: 'Demand Overview', icon: '📊' },
     ],
   },
   { to: '/roles', label: 'Roles', icon: '🔑' },
@@ -43,24 +43,23 @@ const ALL_ITEMS = [
 ];
 
 const ROLE_PATHS = {
-    [ROLES.SUPER_ADMIN]: ALL_ITEMS.flatMap((item) => 
+  [ROLES.SUPER_ADMIN]: ALL_ITEMS.flatMap((item) => 
     item.children ? item.children.map((c) => c.to) : [item.to]
   ),
-    [ROLES.ADMIN]: [
+  [ROLES.ADMIN]: [
     '/', '/businesses', '/map', '/analytics', '/users', '/creators',
     '/reviews', '/reservations', '/no-show-log', '/revenue', '/flyers', '/all-offers',
-    '/demand-matching', // 🆕 ഇത് ഇവിടെ ചേർക്കുക
-    '/demand-bids', '/campaigns', '/orders', '/complaints',
+    '/demand-matching', '/demand-bids', '/campaigns', '/orders', '/complaints', '/community-demands'
   ],
   [ROLES.AGENCY]: [
     '/', '/agency-dashboard', '/businesses', '/map', '/reviews',
     '/reservations', '/no-show-log', '/flyers',
-    '/demand-bids', '/campaigns', '/orders', '/complaints',
+    '/demand-bids', '/campaigns', '/orders', '/complaints', '/community-demands'
   ],
   [ROLES.MODERATOR]: [
     '/', '/staff-dashboard', '/businesses', '/reviews', '/users',
     '/fraud-logs', '/flyers',
-    '/demand-bids', '/campaigns', '/orders', '/complaints',
+    '/demand-bids', '/campaigns', '/orders', '/complaints', '/community-demands'
   ],
 };
 

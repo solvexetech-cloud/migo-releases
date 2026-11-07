@@ -2,12 +2,12 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
-    <application
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />`n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />`n`n    <application
         android:label="MIGO"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
-        <!-- D4 — AdMob App ID (Test) -->
+        <!-- D4 â€” AdMob App ID (Test) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-3940256099942544~3347511713"/>

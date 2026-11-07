@@ -79,7 +79,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
   Future<void> _claim() async {
     final isAr = LocaleProvider.instance.locale == 'ar';
     if (_uid == null) {
-      _snack(isAr ? 'يرجى تسجيل الدخول أولاً.' : 'Please sign in first.');
+      _snack(isAr ? 'ÙŠØ±Ø¬Ù‰ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø£ÙˆÙ„Ø§Ù‹.' : 'Please sign in first.');
       return;
     }
 
@@ -139,7 +139,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
           'claimedCount': FieldValue.increment(-1),
         });
         if (mounted) setState(() => _isJoinedGroup = false);
-        _snack(isAr ? 'لقد غادرت العرض الجماعي.' : 'You left the group deal.');
+        _snack(isAr ? 'Ù„Ù‚Ø¯ ØºØ§Ø¯Ø±Øª Ø§Ù„Ø¹Ø±Ø¶ Ø§Ù„Ø¬Ù…Ø§Ø¹ÙŠ.' : 'You left the group deal.');
       } else {
         await docRef.set({
           'offerId': widget.offer.id,
@@ -151,7 +151,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
           'claimedCount': FieldValue.increment(1),
         });
         if (mounted) setState(() => _isJoinedGroup = true);
-        _snack(isAr ? 'لقد انضممت إلى العرض الجماعي!' : 'You joined the group deal!');
+        _snack(isAr ? 'Ù„Ù‚Ø¯ Ø§Ù†Ø¶Ù…Ù…Øª Ø¥Ù„Ù‰ Ø§Ù„Ø¹Ø±Ø¶ Ø§Ù„Ø¬Ù…Ø§Ø¹ÙŠ!' : 'You joined the group deal!');
       }
     } catch (e) {
       if (!mounted) return;
@@ -222,11 +222,11 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                             final url = 'https://migo-app-3030e.web.app/o/${o.id}?ref=$_uid';
                             await Clipboard.setData(ClipboardData(text: url));
                             if (context.mounted) {
-                              _snack(isAr ? 'تم نسخ الرابط!' : 'Link copied! Share it with your friends.');
+                              _snack(isAr ? 'ØªÙ… Ù†Ø³Ø® Ø§Ù„Ø±Ø§Ø¨Ø·!' : 'Link copied! Share it with your friends.');
                             }
                           },
                           icon: const Icon(Icons.copy),
-                          tooltip: isAr ? 'نسخ الرابط' : 'Copy link',
+                          tooltip: isAr ? 'Ù†Ø³Ø® Ø§Ù„Ø±Ø§Ø¨Ø·' : 'Copy link',
                         ),
                         IconButton(
                           onPressed: () async {
@@ -234,15 +234,15 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                             final price = '${o.currency} ${o.offerPrice.toStringAsFixed(0)}';
                             final original = '${o.currency} ${o.originalPrice.toStringAsFixed(0)}';
                             final shareText = isAr
-                                ? '🔥 تحقق من هذا العرض على ميجو!\n\n${o.titleAr}\nالسعر: $price (كان $original)\nوفر ${o.currency} ${o.savings.toStringAsFixed(0)}\n\n$url'
-                                : '🔥 Check out this deal on MIGO!\n\n${o.titleEn}\nPrice: $price (was $original)\nSave ${o.currency} ${o.savings.toStringAsFixed(0)}\n\n$url';
+                                ? 'ðŸ”¥ ØªØ­Ù‚Ù‚ Ù…Ù† Ù‡Ø°Ø§ Ø§Ù„Ø¹Ø±Ø¶ Ø¹Ù„Ù‰ Ù…ÙŠØ¬Ùˆ!\n\n${o.titleAr}\nØ§Ù„Ø³Ø¹Ø±: $price (ÙƒØ§Ù† $original)\nÙˆÙØ± ${o.currency} ${o.savings.toStringAsFixed(0)}\n\n$url'
+                                : 'ðŸ”¥ Check out this deal on MIGO!\n\n${o.titleEn}\nPrice: $price (was $original)\nSave ${o.currency} ${o.savings.toStringAsFixed(0)}\n\n$url';
 
                             SharePlus.instance.share(
                               ShareParams(text: shareText, subject: isAr ? o.titleAr : o.titleEn),
                             );
                           },
                           icon: const Icon(Icons.share_outlined),
-                          tooltip: isAr ? 'مشاركة العرض' : 'Share offer',
+                          tooltip: isAr ? 'Ù…Ø´Ø§Ø±ÙƒØ© Ø§Ù„Ø¹Ø±Ø¶' : 'Share offer',
                         ),
                         _SaveButton(
                           uid: _uid ?? '',
@@ -306,7 +306,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
-                                      '${o.percentOff}% ${isAr ? 'خصم' : 'OFF'}',
+                                      '${o.percentOff}% ${isAr ? 'Ø®ØµÙ…' : 'OFF'}',
                                       style: const TextStyle(
                                         fontSize: 10,
                                         fontWeight: FontWeight.w800,
@@ -328,7 +328,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                           const Icon(Icons.star, size: 12, color: Colors.black),
                                           const SizedBox(width: 3),
                                           Text(
-                                            isAr ? 'مميز' : 'FEATURED',
+                                            isAr ? 'Ù…Ù…ÙŠØ²' : 'FEATURED',
                                             style: const TextStyle(
                                               fontSize: 9,
                                               fontWeight: FontWeight.w900,
@@ -371,7 +371,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(isAr ? 'السعر الأصلي' : 'Original',
+                                        Text(isAr ? 'Ø§Ù„Ø³Ø¹Ø± Ø§Ù„Ø£ØµÙ„ÙŠ' : 'Original',
                                             style: const TextStyle(fontSize: 11, color: MigoColors.textSecondaryLight)),
                                         Text(
                                           '${o.currency} ${o.originalPrice.toStringAsFixed(0)}',
@@ -387,7 +387,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.end,
                                       children: [
-                                        Text(isAr ? 'سعر ميجو' : 'MIGO price',
+                                        Text(isAr ? 'Ø³Ø¹Ø± Ù…ÙŠØ¬Ùˆ' : 'MIGO price',
                                             style: const TextStyle(fontSize: 11, color: MigoColors.textSecondaryLight)),
                                         Text(
                                           '${o.currency} ${(_isPlanB ? o.currentPrice : o.offerPrice).toStringAsFixed(0)}',
@@ -414,7 +414,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                       alignment: isAr ? Alignment.centerRight : Alignment.centerLeft,
                                       child: Text(
                                         isAr
-                                            ? 'وفر ${o.currency} ${(_isPlanB ? o.originalPrice - o.currentPrice : o.savings).toStringAsFixed(0)}'
+                                            ? 'ÙˆÙØ± ${o.currency} ${(_isPlanB ? o.originalPrice - o.currentPrice : o.savings).toStringAsFixed(0)}'
                                             : 'You save ${o.currency} ${(_isPlanB ? o.originalPrice - o.currentPrice : o.savings).toStringAsFixed(0)}',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w700,
@@ -426,13 +426,13 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                 ],
                               ),
 
-                              // 🆕 Plan A (All-or-Nothing) UI
+                              // ðŸ†• Plan A (All-or-Nothing) UI
                               if (_isPlanA) ...[
                                 const SizedBox(height: 20),
                                 _buildPlanACard(isAr, o),
                               ],
 
-                              // 🆕 Plan B (Progressive) UI
+                              // ðŸ†• Plan B (Progressive) UI
                               if (_isPlanB) ...[
                                 const SizedBox(height: 20),
                                 _buildPlanBCard(isAr, o),
@@ -457,7 +457,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                   label: FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Text(
-                                      isAr ? 'عرض ملف المتجر' : 'View Shop Profile',
+                                      isAr ? 'Ø¹Ø±Ø¶ Ù…Ù„Ù Ø§Ù„Ù…ØªØ¬Ø±' : 'View Shop Profile',
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -477,7 +477,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                               Row(
                                 children: [
                                   Text(
-                                    isAr ? 'التقييمات' : 'Reviews',
+                                    isAr ? 'Ø§Ù„ØªÙ‚ÙŠÙŠÙ…Ø§Øª' : 'Reviews',
                                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(width: 6),
@@ -490,7 +490,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                 builder: (context, snapshot) {
                                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
                                     return Text(
-                                      isAr ? 'لا توجد تقييمات بعد.' : 'No reviews yet.',
+                                      isAr ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ ØªÙ‚ÙŠÙŠÙ…Ø§Øª Ø¨Ø¹Ø¯.' : 'No reviews yet.',
                                       style: const TextStyle(color: Colors.grey),
                                     );
                                   }
@@ -520,7 +520,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
 
                               if (o.terms != null && o.terms!.isNotEmpty) ...[
                                 const SizedBox(height: 20),
-                                Text(isAr ? 'الشروط' : 'Terms',
+                                Text(isAr ? 'Ø§Ù„Ø´Ø±ÙˆØ·' : 'Terms',
                                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                                 const SizedBox(height: 6),
                                 Text(o.terms!,
@@ -582,8 +582,8 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
               Expanded(
                 child: Text(
                   isUnlocked
-                      ? (isAr ? 'تم فتح العرض!' : 'Deal unlocked!')
-                      : (isAr ? 'عرض جماعي: كل شيء أو لا شيء' : 'Group Deal: All-or-Nothing'),
+                      ? (isAr ? 'ØªÙ… ÙØªØ­ Ø§Ù„Ø¹Ø±Ø¶!' : 'Deal unlocked!')
+                      : (isAr ? 'Ø¹Ø±Ø¶ Ø¬Ù…Ø§Ø¹ÙŠ: ÙƒÙ„ Ø´ÙŠØ¡ Ø£Ùˆ Ù„Ø§ Ø´ÙŠØ¡' : 'Group Deal: All-or-Nothing'),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -612,7 +612,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Text(
-                    isAr ? '/ $required شخص' : '/ $required people',
+                    isAr ? '/ $required Ø´Ø®Øµ' : '/ $required people',
                     style: const TextStyle(fontSize: 14, color: MigoColors.textSecondaryLight, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -632,9 +632,9 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
           const SizedBox(height: 10),
           Text(
             isUnlocked
-                ? (isAr ? 'يمكن للجميع في المجموعة الآن المطالبة بهذا العرض.' : 'Everyone in the group can now claim this deal.')
+                ? (isAr ? 'ÙŠÙ…ÙƒÙ† Ù„Ù„Ø¬Ù…ÙŠØ¹ ÙÙŠ Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù„Ø¢Ù† Ø§Ù„Ù…Ø·Ø§Ù„Ø¨Ø© Ø¨Ù‡Ø°Ø§ Ø§Ù„Ø¹Ø±Ø¶.' : 'Everyone in the group can now claim this deal.')
                 : (isAr
-                    ? 'مطلوب ${required - current} أشخاص إضافيين.'
+                    ? 'Ù…Ø·Ù„ÙˆØ¨ ${required - current} Ø£Ø´Ø®Ø§Øµ Ø¥Ø¶Ø§ÙÙŠÙŠÙ†.'
                     : '${required - current} more people needed.'),
             style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight),
           ),
@@ -665,7 +665,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  isAr ? 'عرض جماعي: تسعير تدريجي' : 'Group Deal: Progressive',
+                  isAr ? 'Ø¹Ø±Ø¶ Ø¬Ù…Ø§Ø¹ÙŠ: ØªØ³Ø¹ÙŠØ± ØªØ¯Ø±ÙŠØ¬ÙŠ' : 'Group Deal: Progressive',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -685,7 +685,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isAr ? 'السعر الحالي' : 'Current Price',
+                    isAr ? 'Ø§Ù„Ø³Ø¹Ø± Ø§Ù„Ø­Ø§Ù„ÙŠ' : 'Current Price',
                     style: const TextStyle(fontSize: 11, color: MigoColors.textSecondaryLight),
                   ),
                   Text(
@@ -698,7 +698,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    isAr ? 'السعر التالي' : 'Next Price',
+                    isAr ? 'Ø§Ù„Ø³Ø¹Ø± Ø§Ù„ØªØ§Ù„ÙŠ' : 'Next Price',
                     style: const TextStyle(fontSize: 11, color: MigoColors.textSecondaryLight),
                   ),
                   Text(
@@ -712,7 +712,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
           const SizedBox(height: 10),
           Text(
             isAr
-                ? 'كلما زاد عدد الأشخاص، انخفض السعر!'
+                ? 'ÙƒÙ„Ù…Ø§ Ø²Ø§Ø¯ Ø¹Ø¯Ø¯ Ø§Ù„Ø£Ø´Ø®Ø§ØµØŒ Ø§Ù†Ø®ÙØ¶ Ø§Ù„Ø³Ø¹Ø±!'
                 : 'The more people join, the lower the price!',
             style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight),
           ),
@@ -738,7 +738,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
               },
               icon: const Icon(Icons.event_available, size: 20),
               label: Text(
-                isAr ? 'احجز الآن' : 'Reserve Now',
+                isAr ? 'Ø§Ø­Ø¬Ø² Ø§Ù„Ø¢Ù†' : 'Reserve Now',
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
               style: ElevatedButton.styleFrom(
@@ -760,7 +760,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                     )
-                  : Text(isAr ? 'احصل على رمز QR' : 'Get QR Code'),
+                  : Text(isAr ? 'Ø§Ø­ØµÙ„ Ø¹Ù„Ù‰ Ø±Ù…Ø² QR' : 'Get QR Code'),
             ),
           ),
         ],
@@ -778,7 +778,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                isAr ? 'العرض جاهز! اعرض هذا في المتجر.' : 'Offer is ready! Show this at the store.',
+                isAr ? 'Ø§Ù„Ø¹Ø±Ø¶ Ø¬Ø§Ù‡Ø²! Ø§Ø¹Ø±Ø¶ Ù‡Ø°Ø§ ÙÙŠ Ø§Ù„Ù…ØªØ¬Ø±.' : 'Offer is ready! Show this at the store.',
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
             ),
@@ -787,7 +787,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
         const SizedBox(height: 10),
         OutlinedButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text(isAr ? 'إغلاق' : 'Close'),
+          child: Text(isAr ? 'Ø¥ØºÙ„Ø§Ù‚' : 'Close'),
         ),
       ],
     );
@@ -811,10 +811,10 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
           fit: BoxFit.scaleDown,
           child: Text(
             _isJoinedGroup
-                ? (isAr ? 'مغادرة المجموعة' : 'Leave group')
+                ? (isAr ? 'Ù…ØºØ§Ø¯Ø±Ø© Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø©' : 'Leave group')
                 : (isAr
-                    ? 'انضم إلى المجموعة · ${widget.offer.claimedCount}/${widget.offer.requiredClaims ?? 5}'
-                    : 'Join group · ${widget.offer.claimedCount}/${widget.offer.requiredClaims ?? 5}'),
+                    ? 'Ø§Ù†Ø¶Ù… Ø¥Ù„Ù‰ Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø© Â· ${widget.offer.claimedCount}/${widget.offer.requiredClaims ?? 5}'
+                    : 'Join group Â· ${widget.offer.claimedCount}/${widget.offer.requiredClaims ?? 5}'),
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
@@ -825,21 +825,21 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
   String _getOfferTypeLabel(OfferType type, bool isAr) {
     switch (type) {
       case OfferType.standard:
-        return isAr ? 'عرض قياسي' : 'Standard Deal';
+        return isAr ? 'Ø¹Ø±Ø¶ Ù‚ÙŠØ§Ø³ÙŠ' : 'Standard Deal';
       case OfferType.flash:
-        return isAr ? 'عرض سريع' : 'Flash Deal';
+        return isAr ? 'Ø¹Ø±Ø¶ Ø³Ø±ÙŠØ¹' : 'Flash Deal';
       case OfferType.group:
-        return isAr ? 'عرض جماعي' : 'Group Deal';
+        return isAr ? 'Ø¹Ø±Ø¶ Ø¬Ù…Ø§Ø¹ÙŠ' : 'Group Deal';
       case OfferType.groupAllOrNothing:
-        return isAr ? 'عرض جماعي (الكل أو لا شيء)' : 'Group Deal (All-or-Nothing)';
+        return isAr ? 'Ø¹Ø±Ø¶ Ø¬Ù…Ø§Ø¹ÙŠ (Ø§Ù„ÙƒÙ„ Ø£Ùˆ Ù„Ø§ Ø´ÙŠØ¡)' : 'Group Deal (All-or-Nothing)';
       case OfferType.groupProgressive:
-        return isAr ? 'عرض جماعي (تدريجي)' : 'Group Deal (Progressive)';
+        return isAr ? 'Ø¹Ø±Ø¶ Ø¬Ù…Ø§Ø¹ÙŠ (ØªØ¯Ø±ÙŠØ¬ÙŠ)' : 'Group Deal (Progressive)';
       case OfferType.hidden:
-        return isAr ? 'جوهرة مخفية' : 'Hidden Gem';
+        return isAr ? 'Ø¬ÙˆÙ‡Ø±Ø© Ù…Ø®ÙÙŠØ©' : 'Hidden Gem';
       case OfferType.birthday:
-        return isAr ? 'عرض عيد ميلاد' : 'Birthday Deal';
+        return isAr ? 'Ø¹Ø±Ø¶ Ø¹ÙŠØ¯ Ù…ÙŠÙ„Ø§Ø¯' : 'Birthday Deal';
       default:
-        return isAr ? 'عرض' : 'Deal';
+        return isAr ? 'Ø¹Ø±Ø¶' : 'Deal';
     }
   }
 }
@@ -897,8 +897,8 @@ class _SaveButtonState extends State<_SaveButton> {
       SnackBar(
         content: Text(
           _saved
-            ? (isAr ? 'تم الحفظ في عروضي' : 'Saved to My Deals')
-            : (isAr ? 'تمت الإزالة من المحفوظات' : 'Removed from saved')
+            ? (isAr ? 'ØªÙ… Ø§Ù„Ø­ÙØ¸ ÙÙŠ Ø¹Ø±ÙˆØ¶ÙŠ' : 'Saved to My Deals')
+            : (isAr ? 'ØªÙ…Øª Ø§Ù„Ø¥Ø²Ø§Ù„Ø© Ù…Ù† Ø§Ù„Ù…Ø­ÙÙˆØ¸Ø§Øª' : 'Removed from saved')
         ),
       ),
     );

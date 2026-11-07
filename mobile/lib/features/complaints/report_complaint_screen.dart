@@ -65,7 +65,7 @@ class _ReportComplaintScreenState extends State<ReportComplaintScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isAr ? 'تم إرسال الشكوى بنجاح!' : 'Complaint submitted successfully!'),
+          content: Text(isAr ? 'ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø´ÙƒÙˆÙ‰ Ø¨Ù†Ø¬Ø§Ø­!' : 'Complaint submitted successfully!'),
           backgroundColor: MigoColors.success,
         ),
       );
@@ -92,7 +92,7 @@ class _ReportComplaintScreenState extends State<ReportComplaintScreen> {
           child: Scaffold(
             backgroundColor: MigoColors.backgroundLight,
             appBar: AppBar(
-              title: Text(isAr ? 'تقديم شكوى' : 'Report a Problem'),
+              title: Text(isAr ? 'ØªÙ‚Ø¯ÙŠÙ… Ø´ÙƒÙˆÙ‰' : 'Having Issues?'),
               backgroundColor: Colors.transparent,
               elevation: 0,
               foregroundColor: MigoColors.primaryDark,
@@ -105,12 +105,12 @@ class _ReportComplaintScreenState extends State<ReportComplaintScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isAr ? 'أخبرنا بما حدث' : 'Tell us what happened',
+                      isAr ? 'Ø£Ø®Ø¨Ø±Ù†Ø§ Ø¨Ù…Ø§ Ø­Ø¯Ø«' : 'Tell us what happened',
                       style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      isAr ? 'نحن هنا لمساعدتك.' : 'We are here to help.',
+                      isAr ? 'Ù†Ø­Ù† Ù‡Ù†Ø§ Ù„Ù…Ø³Ø§Ø¹Ø¯ØªÙƒ.' : 'We are here to help.',
                       style: const TextStyle(fontSize: 13, color: Colors.grey),
                     ),
                     const SizedBox(height: 24),
@@ -118,7 +118,7 @@ class _ReportComplaintScreenState extends State<ReportComplaintScreen> {
                     DropdownButtonFormField<String>(
                       initialValue: _selectedCategory,
                       decoration: InputDecoration(
-                        labelText: isAr ? 'نوع المشكلة' : 'Issue Category',
+                        labelText: isAr ? 'Ù†ÙˆØ¹ Ø§Ù„Ù…Ø´ÙƒÙ„Ø©' : 'Issue Category',
                         border: const OutlineInputBorder(),
                         filled: true,
                         fillColor: Colors.white,
@@ -136,8 +136,8 @@ class _ReportComplaintScreenState extends State<ReportComplaintScreen> {
                       controller: _descriptionController,
                       maxLines: 5,
                       decoration: InputDecoration(
-                        labelText: isAr ? 'تفاصيل المشكلة' : 'Description',
-                        hintText: isAr ? 'اشرح المشكلة بالتفصيل...' : 'Describe the issue in detail...',
+                        labelText: isAr ? 'ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù…Ø´ÙƒÙ„Ø©' : 'Description',
+                        hintText: isAr ? 'Ø§Ø´Ø±Ø­ Ø§Ù„Ù…Ø´ÙƒÙ„Ø© Ø¨Ø§Ù„ØªÙØµÙŠÙ„...' : 'Describe the issue in detail...',
                         border: const OutlineInputBorder(),
                         filled: true,
                         fillColor: Colors.white,
@@ -158,7 +158,7 @@ class _ReportComplaintScreenState extends State<ReportComplaintScreen> {
                         onPressed: _isLoading ? null : () => _submitComplaint(isAr),
                         child: _isLoading
                             ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                            : Text(isAr ? 'إرسال الشكوى' : 'Submit Complaint', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            : Text(isAr ? 'Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø´ÙƒÙˆÙ‰' : 'Submit Complaint', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],

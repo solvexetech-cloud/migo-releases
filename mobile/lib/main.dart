@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'services/location_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -14,46 +15,40 @@ import 'firebase_options.dart';
 import 'services/notification_service.dart';
 import 'services/ads_service.dart';
 import 'services/referral_tracker.dart';
+import 'features/onboarding/how_to_use_dialog.dart'; // നമ്മുടെ പുതിയ പോപ്പ്അപ്പ്
 
-
-// ═══════════════════════════════════════════════════════
-// MAIN
-// ═══════════════════════════════════════════════════════
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Load languages + strings (D6-B)
+  // Load languages + strings
   await LocaleProvider.instance.init();
 
   // Initialize push notifications (FCM)
   NotificationService.instance.init();
 
-  // D4 — Ads init (skip on web — AdMob not supported)
+  // Ads init (skip on web)
   if (!kIsWeb) {
     await AdsService.instance.initialize();
   }
 
-    // PHASE E — E1: Auto-referral tracker
+  // Auto-referral tracker
   await ReferralTracker.instance.init();
-// ഷെയർ ചെയ്ത ലിങ്കിൽ നിന്ന് ref എടുക്കുക
-final uri = Uri.base;
-final ref = uri.queryParameters['ref'];
-if (ref != null && ref.isNotEmpty) {
-  await ReferralTracker.instance.saveSharedBy(ref);
-}
+  
+  final uri = Uri.base;
+  final ref = uri.queryParameters['ref'];
+  if (ref != null && ref.isNotEmpty) {
+    await ReferralTracker.instance.saveSharedBy(ref);
+  }
 
-  // PHASE E — E3: Deep link handler
+  // Deep link handler
   initDeepLinks();
 
   runApp(const MigoApp());
 }
 
-// ═══════════════════════════════════════════════════════
-// PHASE E — E3: Deep Link Handler
-// ═══════════════════════════════════════════════════════
 void initDeepLinks() {
   try {
     final appLinks = AppLinks();
@@ -76,14 +71,12 @@ void initDeepLinks() {
 Future<void> handleDeepLink(Uri uri) async {
   String? code;
 
-  // migo://ref/ABC123
   if (uri.scheme == 'migo' && uri.host == 'ref') {
     if (uri.pathSegments.isNotEmpty) {
       code = uri.pathSegments.first;
     }
   }
 
-  // https://migo-app-3030e.web.app/r/ABC123
   if (uri.scheme == 'https' &&
       uri.host == 'migo-app-3030e.web.app' &&
       uri.pathSegments.length >= 2 &&
@@ -91,7 +84,6 @@ Future<void> handleDeepLink(Uri uri) async {
     code = uri.pathSegments[1];
   }
 
-  // ?ref=ABC123 (query param)
   if (code == null && uri.queryParameters.containsKey('ref')) {
     code = uri.queryParameters['ref'];
   }
@@ -122,8 +114,7 @@ class MigoApp extends StatelessWidget {
           locale: Locale(locale),
           builder: (context, child) {
             return Directionality(
-              textDirection:
-                  isRtl ? TextDirection.rtl : TextDirection.ltr,
+              textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
               child: child ?? const SizedBox.shrink(),
             );
           },
@@ -145,13 +136,36 @@ class _AuthGateState extends State<_AuthGate> {
   @override
   void initState() {
     super.initState();
+    
+    // ആപ്പ് തുറക്കുമ്പോൾ "How to Use" പോപ്പ്അപ്പ് കാണിക്കാൻ
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkShowHowToUse();
+    });
+
     FirebaseAuth.instance.authStateChanges().listen((user) {
       if (user != null) {
+        LocationService.instance.updateUserLocation();
         NotificationService.instance.init();
       } else {
         NotificationService.instance.clearToken();
       }
     });
+  }
+
+  Future<void> _checkShowHowToUse() async {
+    final prefs = await SharedPreferences.getInstance();
+    final neverShow = prefs.getBool('never_show_how_to_use') ?? false;
+    
+    if (!neverShow) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => HowToUseDialog(
+          onClose: () => Navigator.pop(ctx),
+        ),
+      );
+    }
   }
 
   @override

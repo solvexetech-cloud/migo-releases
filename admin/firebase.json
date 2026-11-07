@@ -6,19 +6,7 @@
       "**/.*",
       "**/node_modules/**"
     ],
-        "rewrites": [
-      {
-        "source": "/r/**",
-        "destination": "/r/index.html"
-      },
-      {
-        "source": "/o/**",
-        "destination": "/o/index.html"
-      },
-      {
-        "source": "/creator/**",
-        "destination": "/creator/index.html"
-      },
+    "rewrites": [
       {
         "source": "**",
         "destination": "/index.html"

@@ -11,6 +11,7 @@ import { auth, db } from './firebase';
 import AdminLayout from './components/AdminLayout';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import CommunityDemandsPage from './pages/CommunityDemandsPage';
 import PendingBusinesses from './pages/PendingBusinesses';
 import BusinessesPage from './pages/BusinessesPage';
 import PendingOffers from './pages/PendingOffers';
@@ -49,12 +50,8 @@ import ReservationConfigPage from './pages/ReservationConfigPage';
 import NoShowLogPage from './pages/NoShowLogPage';
 import MarketingDashboardPage from './pages/MarketingDashboardPage';
 import FlyersPage from './pages/FlyersPage';
-import DemandMatchingPage from './pages/DemandMatchingPage'; // 🆕
+import DemandMatchingPage from './pages/DemandMatchingPage';
 
-
-// ═══════════════════════════════════════════════════
-// J4 — RoleRedirect: role അനുസരിച്ച് landing page
-// ═══════════════════════════════════════════════════
 function RoleRedirect() {
   const { role, loading } = useRole();
 
@@ -73,17 +70,14 @@ function RoleRedirect() {
     );
   }
 
-  // Agency → Agency Dashboard
   if (role === 'agency') {
     return <Navigate to="/agency-dashboard" replace />;
   }
 
-  // Moderator (Staff) → Staff Dashboard
   if (role === 'moderator') {
     return <Navigate to="/staff-dashboard" replace />;
   }
 
-  // super_admin / admin → Admin Dashboard
   return <AdminDashboard />;
 }
 
@@ -123,7 +117,7 @@ export default function App() {
           fontSize: 14,
         }}
       >
-        Loading admin panel…
+        Loading admin panel...
       </div>
     );
   }
@@ -148,19 +142,15 @@ export default function App() {
               user ? (
                 <AdminLayout user={user}>
                   <Routes>
-                    {/* ─── J4: Role-based landing ─── */}
                     <Route path="/" element={<RoleRedirect />} />
-
-                    {/* ─── Role-specific dashboards ─── */}
                     <Route path="/agency-dashboard" element={<AgencyDashboard />} />
                     <Route path="/staff-dashboard" element={<StaffDashboard />} />
-
-                    {/* ─── Regular pages ─── */}
                     <Route path="/businesses" element={<BusinessesPage />} />
                     <Route path="/pending-businesses" element={<PendingBusinesses />} />
                     <Route path="/pending-offers" element={<PendingOffers />} />
                     <Route path="/all-offers" element={<AllOffersPage />} />
-                    <Route path="/demand-matching" element={<DemandMatchingPage />} /> {/* 🆕 */}
+                    <Route path="/demand-matching" element={<DemandMatchingPage />} />
+                    <Route path="/community-demands" element={<CommunityDemandsPage />} />
                     <Route path="/share-rewards" element={<ShareRewardsPage />} />
                     <Route path="/users" element={<UsersPage />} />
                     <Route path="/creators" element={<CreatorsPage />} />

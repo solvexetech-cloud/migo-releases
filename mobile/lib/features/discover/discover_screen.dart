@@ -20,11 +20,11 @@ extension SortModeX on SortMode {
   String label(bool isAr) {
     switch (this) {
       case SortMode.newest:
-        return isAr ? 'الأحدث' : 'Newest';
+        return isAr ? 'ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â£ÃƒËœÃ‚Â­ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â«' : 'Newest';
       case SortMode.bestSavings:
-        return isAr ? 'أفضل التوفير' : 'Best savings';
+        return isAr ? 'ÃƒËœÃ‚Â£Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â¶Ãƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚ÂªÃƒâ„¢Ã‹â€ Ãƒâ„¢Ã‚ÂÃƒâ„¢Ã…Â ÃƒËœÃ‚Â±' : 'Best savings';
       case SortMode.expiringSoon:
-        return isAr ? 'تنتهي قريبًا' : 'Expiring soon';
+        return isAr ? 'ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Â¡Ãƒâ„¢Ã…Â  Ãƒâ„¢Ã¢â‚¬Å¡ÃƒËœÃ‚Â±Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¨Ãƒâ„¢Ã¢â‚¬Â¹ÃƒËœÃ‚Â§' : 'Expiring soon';
     }
   }
 }
@@ -175,7 +175,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           child: Scaffold(
             backgroundColor: const Color(0xFFF8F9FA),
             appBar: AppBar(
-              title: Text(isAr ? 'اكتشف' : 'Discover', style: const TextStyle(fontWeight: FontWeight.w800)),
+              title: Text(isAr ? 'ÃƒËœÃ‚Â§Ãƒâ„¢Ã†â€™ÃƒËœÃ‚ÂªÃƒËœÃ‚Â´Ãƒâ„¢Ã‚Â' : 'Discover', style: const TextStyle(fontWeight: FontWeight.w800)),
               backgroundColor: Colors.white,
               elevation: 0,
               actions: [
@@ -212,7 +212,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         },
                         decoration: InputDecoration(
                           hintText: isAr
-                              ? 'ابحث عن العروض، الشركات...'
+                              ? 'ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â­ÃƒËœÃ‚Â« ÃƒËœÃ‚Â¹Ãƒâ„¢Ã¢â‚¬Â  ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¶ÃƒËœÃ…â€™ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â´ÃƒËœÃ‚Â±Ãƒâ„¢Ã†â€™ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª...'
                               : 'Search deals, businesses...',
                           prefixIcon: const Icon(Icons.search, size: 20),
                           filled: true,
@@ -234,7 +234,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                 scrollDirection: Axis.horizontal,
                                 children: [
                                   _CategoryPill(
-                                    label: isAr ? 'الكل' : 'All',
+                                    label: isAr ? 'ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã†â€™Ãƒâ„¢Ã¢â‚¬Å¾' : 'All',
                                     selected: _category == null,
                                     onTap: () => setState(() => _category = null),
                                   ),
@@ -328,7 +328,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      isAr ? 'طلبات المجتمع' : 'Community Demands',
+                                      isAr ? 'ÃƒËœÃ‚Â·Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â¬ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â¹' : 'Community Demands',
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 16,
@@ -338,7 +338,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                     const SizedBox(height: 4),
                                     Text(
                                       isAr
-                                          ? 'اطلب منتجك ودع المتاجر تتنافس على أفضل سعر.'
+                                          ? 'ÃƒËœÃ‚Â§ÃƒËœÃ‚Â·Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¨ Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚ÂªÃƒËœÃ‚Â¬Ãƒâ„¢Ã†â€™ Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â¹ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚ÂªÃƒËœÃ‚Â§ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â± ÃƒËœÃ‚ÂªÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â§Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â³ ÃƒËœÃ‚Â¹Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â° ÃƒËœÃ‚Â£Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â¶Ãƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â³ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±.'
                                           : 'Request a product & let shops bid.',
                                       style: const TextStyle(color: Colors.white70, fontSize: 12),
                                     ),
@@ -360,12 +360,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           child: Row(
                             children: [
                               Text(
-                                '${filtered.length} ${isAr ? 'عرض' : (filtered.length == 1 ? "offer" : "offers")}',
+                                '${filtered.length} ${isAr ? 'ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶' : (filtered.length == 1 ? "offer" : "offers")}',
                                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey),
                               ),
                               const Spacer(),
                               Text(
-                                isAr ? 'ترتيب: ${_sort.label(isAr)}' : 'Sort: ${_sort.label(isAr)}',
+                                isAr ? 'ÃƒËœÃ‚ÂªÃƒËœÃ‚Â±ÃƒËœÃ‚ÂªÃƒâ„¢Ã…Â ÃƒËœÃ‚Â¨: ${_sort.label(isAr)}' : 'Sort: ${_sort.label(isAr)}',
                                 style: const TextStyle(fontSize: 12, color: Colors.grey),
                               ),
                             ],
@@ -378,8 +378,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       SliverFillRemaining(
                         child: MigoEmptyState(
                           icon: Icons.search_off,
-                          title: isAr ? 'لا توجد عروض' : 'No offers found',
-                          body: isAr ? 'جرب بحثًا آخر.' : 'Try a different search.',
+                          title: isAr ? 'Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â§ ÃƒËœÃ‚ÂªÃƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â¯ ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¶' : 'No offers found',
+                          body: isAr ? 'ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¨ ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â­ÃƒËœÃ‚Â«Ãƒâ„¢Ã¢â‚¬Â¹ÃƒËœÃ‚Â§ ÃƒËœÃ‚Â¢ÃƒËœÃ‚Â®ÃƒËœÃ‚Â±.' : 'Try a different search.',
                         ),
                       )
                     else
@@ -390,7 +390,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                             crossAxisCount: 2,
                             mainAxisSpacing: 12,
                             crossAxisSpacing: 12,
-                            childAspectRatio: 0.68, // 🆕 ഉയരം കുറച്ചു
+                            childAspectRatio: 0.68, // ÃƒÂ°Ã…Â¸Ã¢â‚¬Â Ã¢â‚¬Â¢ ÃƒÂ Ã‚Â´Ã¢â‚¬Â°ÃƒÂ Ã‚Â´Ã‚Â¯ÃƒÂ Ã‚Â´Ã‚Â°ÃƒÂ Ã‚Â´Ã¢â‚¬Å¡ ÃƒÂ Ã‚Â´Ã¢â‚¬Â¢ÃƒÂ Ã‚ÂµÃ‚ÂÃƒÂ Ã‚Â´Ã‚Â±ÃƒÂ Ã‚Â´Ã…Â¡ÃƒÂ Ã‚ÂµÃ‚ÂÃƒÂ Ã‚Â´Ã…Â¡ÃƒÂ Ã‚ÂµÃ‚Â
                           ),
                           delegate: SliverChildBuilderDelegate(
                             (context, i) {
@@ -469,7 +469,7 @@ class _LocationChip extends StatelessWidget {
     }
 
     final hasArea = areaName != null && areaName!.isNotEmpty;
-    final displayText = hasArea ? areaName! : (isAr ? 'تحديد الموقع' : 'Set location');
+    final displayText = hasArea ? areaName! : (isAr ? 'ÃƒËœÃ‚ÂªÃƒËœÃ‚Â­ÃƒËœÃ‚Â¯Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¯ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã‹â€ Ãƒâ„¢Ã¢â‚¬Å¡ÃƒËœÃ‚Â¹' : 'Set location');
 
     return InkWell(
       onTap: onTap,
@@ -700,7 +700,7 @@ class _OfferTile extends StatelessWidget {
                           ),
                           child: Text(
                             isAr
-                                ? 'وفر ${offer.currency} ${offer.savings.toStringAsFixed(0)}'
+                                ? 'Ãƒâ„¢Ã‹â€ Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â± ${offer.currency} ${offer.savings.toStringAsFixed(0)}'
                                 : 'SAVE ${offer.currency} ${offer.savings.toStringAsFixed(0)}',
                             style: TextStyle(
                               fontSize: 9,
@@ -709,7 +709,7 @@ class _OfferTile extends StatelessWidget {
                             ),
                           ),
                         ),
-                        // 🆕 Rating Star (Dummy for now)
+                        // ÃƒÂ°Ã…Â¸Ã¢â‚¬Â Ã¢â‚¬Â¢ Rating Star (Dummy for now)
                         Row(
                           children: [
                             const Icon(Icons.star, size: 12, color: Colors.amber),

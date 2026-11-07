@@ -1,0 +1,489 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- HELPER FUNCTIONS ----------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function getUserRole() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+        : 'guest';
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() && getUserRole() == 'super_admin';
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        (getUserRole() == 'admin' || getUserRole() == 'super_admin');
+    }
+
+    function isModerator() {
+      return isSignedIn() &&
+        (getUserRole() == 'moderator' ||
+         getUserRole() == 'admin' ||
+         getUserRole() == 'super_admin');
+    }
+
+    function isAgency() {
+      return isSignedIn() && getUserRole() == 'agency';
+    }
+
+    function isBusinessOwner(businessId) {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerUid == request.auth.uid;
+    }
+
+    function isAgencyOwner(businessId) {
+      return isSignedIn() &&
+        isAgency() &&
+        get(/databases/$(database)/documents/businesses/$(businessId)).data.agencyUid == request.auth.uid;
+    }
+
+    // ---------- USERS ----------
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow list: if isSignedIn();
+      
+      allow create: if isSignedIn() &&
+        request.auth.uid == uid;
+      
+      allow update: if isSignedIn() && (
+        (request.auth.uid == uid &&
+         (
+           !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']) ||
+           (request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']) && request.resource.data.role == 'customer')
+         )
+        ) ||
+        isAdmin() ||
+        (request.resource.data.diff(resource.data)
+           .affectedKeys().hasOnly(['coins', 'coinsExpireAt', 'updatedAt']) && 
+         (getUserRole() == 'business' || isAdmin() || isModerator()))
+      );
+      
+      allow delete: if isSuperAdmin();
+    }
+
+    // ---------- FLYERS ----------
+    match /flyers/{flyerId} {
+      allow read: if true; 
+      allow create: if isSignedIn() && 
+        isBusinessOwner(request.resource.data.businessId);
+      allow update: if isSignedIn() && 
+        (
+          isBusinessOwner(resource.data.businessId) || 
+          isAdmin() || 
+          isModerator() ||
+          (request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['viewedBy', 'fullyViewedBy', 'updatedAt']))
+        );
+      allow delete: if isSignedIn() && 
+        (isBusinessOwner(resource.data.businessId) || isAdmin() || isModerator());
+    }
+
+    // ---------- BUSINESSES ----------
+    match /businesses/{businessId} {
+      allow read: if true;
+      
+      allow create: if isSignedIn() &&
+        (
+          request.resource.data.ownerUid == request.auth.uid ||
+          isAdmin() ||
+          isModerator()
+        );
+      
+      allow update: if isSignedIn() &&
+        (resource.data.ownerUid == request.auth.uid ||
+         isAdmin() ||
+         isModerator() ||
+         isAgencyOwner(businessId));
+      
+      allow delete: if isAdmin();
+    }
+
+    // ---------- OFFERS ----------
+    match /offers/{offerId} {
+      allow read: if true;
+      allow create: if isSignedIn() &&
+        isBusinessOwner(request.resource.data.businessId);
+      allow update: if isSignedIn() &&
+        (
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bookedSlots', 'updatedAt'])) ||
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['claimedCount', 'updatedAt']) &&
+            request.resource.data.claimedCount == resource.data.claimedCount + 1) ||
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reserve', 'updatedAt'])) ||
+          isBusinessOwner(resource.data.businessId) ||
+          isAdmin() ||
+          isModerator()
+        );
+      allow delete: if isAdmin();
+    }
+
+    // ---------- CLAIMS ----------
+    match /claims/{claimId} {
+      allow read: if isSignedIn() && (
+        resource.data.userUid == request.auth.uid ||
+        isBusinessOwner(resource.data.businessId) ||
+        isModerator() ||
+        isAgency()
+      );
+      allow list: if isSignedIn();
+      
+      allow create: if isSignedIn() &&
+        request.resource.data.userUid == request.auth.uid;
+      
+      allow update: if isSignedIn() && (
+        resource.data.userUid == request.auth.uid ||
+        isBusinessOwner(resource.data.businessId) || 
+        isModerator() ||
+        isAdmin()
+      );
+      
+      allow delete: if isAdmin();
+    }
+
+    // ---------- GROUP DEALS ----------
+    match /group_deals/{offerId} {
+      allow read: if true;
+      allow create: if isSignedIn() &&
+        isBusinessOwner(request.resource.data.businessId);
+      allow update: if isSignedIn() &&
+        (request.auth.uid in resource.data.participantUids ||
+         request.auth.uid in request.resource.data.participantUids ||
+         isBusinessOwner(resource.data.businessId) ||
+         isAdmin() ||
+         isModerator());
+      allow delete: if isAdmin();
+    }
+
+    // ---------- REVIEWS ----------
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isSignedIn() &&
+        request.resource.data.userUid == request.auth.uid;
+      allow update: if isSignedIn() &&
+        (resource.data.userUid == request.auth.uid || isModerator());
+      allow delete: if isSignedIn() &&
+        (resource.data.userUid == request.auth.uid || isAdmin());
+    }
+
+    // ---------- REFERRALS ----------
+    match /referrals/{referralId} {
+      allow read: if isSignedIn() &&
+        (resource.data.referrerUid == request.auth.uid ||
+         resource.data.referredUid == request.auth.uid ||
+         isModerator());
+      allow create: if true;
+      allow update: if true;
+      allow delete: if isAdmin();
+    }
+
+    // ---------- CREATORS ----------
+    match /creators/{creatorId} {
+      allow read: if true;
+      allow create: if isSignedIn() &&
+        request.resource.data.status == 'pending';
+      allow update: if isSignedIn() &&
+        (
+          request.auth.uid == creatorId ||
+          isAdmin() ||
+          isModerator()
+        );
+      allow delete: if isAdmin();
+    }
+
+    // ---------- NOTIFICATIONS ----------
+    match /notifications/{notifId} {
+      allow read: if isSignedIn() &&
+        resource.data.userUid == request.auth.uid;
+      allow create: if isSignedIn(); 
+      allow update: if isSignedIn() &&
+        resource.data.userUid == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    // ---------- COIN TRANSACTIONS ----------
+    match /coin_transactions/{txId} {
+      allow read: if isSignedIn() &&
+        (resource.data.uid == request.auth.uid || isModerator());
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- FRAUD LOGS ----------
+    match /fraud_logs/{logId} {
+      allow create: if isSignedIn();
+      allow read: if isModerator();
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- SAVED OFFERS ----------
+    match /saved_offers/{docId} {
+      allow read: if isSignedIn() &&
+        ((resource != null && resource.data.userUid == request.auth.uid) || (resource == null));
+      allow create: if isSignedIn() &&
+        request.resource.data.userUid == request.auth.uid;
+      allow update, delete: if isSignedIn() &&
+        resource.data.userUid == request.auth.uid;
+    }
+
+    // ---------- SAVED BUSINESSES ----------
+    match /saved_businesses/{docId} {
+      allow read: if isSignedIn() &&
+        ((resource != null && resource.data.userUid == request.auth.uid) || (resource == null));
+      allow create: if isSignedIn() &&
+        request.resource.data.userUid == request.auth.uid;
+      allow update, delete: if isSignedIn() &&
+        resource.data.userUid == request.auth.uid;
+    }
+
+    // ---------- CATEGORIES ----------
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow create, update: if isModerator();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- GEOGRAPHY ----------
+    match /countries/{countryCode} {
+      allow read: if true;
+      allow create, update: if isAdmin() || isModerator();
+      allow delete: if isAdmin();
+    }
+
+    match /zones/{zoneId} {
+      allow read: if true;
+      allow create, update: if isAdmin() || isModerator();
+      allow delete: if isAdmin();
+    }
+
+    match /areas/{areaId} {
+      allow read: if true;
+      allow create, update: if isAdmin() || isModerator();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- AGENCIES ----------
+    match /agencies/{agencyId} {
+      allow read: if true;
+      allow create: if isAdmin() ||
+        (isSignedIn() && request.resource.data.ownerUid == request.auth.uid);
+      allow update: if isAdmin() ||
+        (isSignedIn() && resource.data.ownerUid == request.auth.uid);
+      allow delete: if isSuperAdmin();
+    }
+
+    // ---------- LANGUAGES ----------
+    match /languages/{langCode} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ---------- APP STRINGS ----------
+    match /app_strings/{stringId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ---------- CUSTOMER BEHAVIOR ----------
+    match /customer_behavior/{eventId} {
+      allow read: if isModerator();
+      allow create: if isSignedIn() &&
+        request.resource.data.userUid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- CONFIG ----------
+    match /config/{configId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // ---------- PLANS ----------
+    match /plans/{planId} {
+      allow read: if true;
+      allow create, update: if isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // ---------- SUBSCRIPTIONS ----------
+    match /subscriptions/{subId} {
+      allow read: if isSignedIn() &&
+        (isAdmin() || isModerator() ||
+         resource.data.businessId == request.auth.uid ||
+         resource.data.ownerUid == request.auth.uid);
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------- PAYMENTS ----------
+    match /payments/{paymentId} {
+      allow read: if isAdmin() || isModerator();
+      allow create, update: if isAdmin() || isModerator();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- REVENUE TRANSACTIONS ----------
+    match /revenue_transactions/{txId} {
+      allow read: if isAdmin() || isModerator();
+      allow create, update: if isAdmin() || isModerator();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- AGENCY PAYOUTS ----------
+    match /agency_payouts/{payoutId} {
+      allow read: if isAdmin() ||
+        (isAgency() && resource.data.agencyUid == request.auth.uid);
+      allow create, update: if isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // ---------- PHASE H — MIGO RESERVE ----------
+    match /reservations/{resId} {
+      allow create: if isSignedIn() &&
+        request.resource.data.status == 'reserved';
+      allow read: if isSignedIn();
+      allow list: if isSignedIn();
+      allow update: if isSignedIn() && (
+        (resource.data.userUid == request.auth.uid &&
+         request.resource.data.diff(resource.data).affectedKeys()
+           .hasOnly(['status', 'cancelledAt', 'cancelledBy', 'updatedAt'])) ||
+        (resource != null && isBusinessOwner(resource.data.businessId)) ||
+        isModerator()
+      );
+      allow delete: if isSuperAdmin();
+    }
+
+    match /reservation_rules/{ruleId} {
+      allow read: if true;
+      allow create, update: if isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    match /no_show_log/{logId} {
+      allow read: if isModerator() ||
+        (isSignedIn() && resource.data.userUid == request.auth.uid);
+      allow create: if isSignedIn() && (
+        isAdmin() ||
+        isModerator() ||
+        (request.resource.data.businessId is string &&
+         isBusinessOwner(request.resource.data.businessId))
+      );
+      allow update, delete: if isAdmin();
+    }
+
+    match /reservation_config/{configId} {
+      allow read: if isSignedIn();
+      allow create, update: if isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    match /reservation_bans/{userUid} {
+      allow read: if isSignedIn() && (
+        request.auth.uid == userUid ||
+        isModerator()
+      );
+      allow create, update: if isModerator();
+      allow delete: if isAdmin();
+    }
+
+    match /reservation_rules_acceptance/{acceptId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() &&
+        request.resource.data.userUid == request.auth.uid;
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // ---------- COIN PAYMENTS ----------
+    match /coin_payments/{paymentId} {
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isBusinessOwner(resource.data.businessId) ||
+        isModerator()
+      );
+      
+      allow update: if isSignedIn() && (
+        isBusinessOwner(resource.data.businessId) ||
+        isModerator()
+      );
+    }
+
+    // ---------- PHASE L — COMMUNITY DEMAND RULES ----------
+    match /demands/{demandId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn(); 
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /demand_joins/{joinId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn(); 
+    }
+
+    match /demand_bids/{bidId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn(); 
+      allow delete: if isSignedIn() && resource.data.businessId == request.auth.uid;
+    }
+
+    // 🆕 DEMAND COMMITS (Waitlist & Locking)
+    match /demand_commits/{commitId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn();
+    }
+
+        // 🆕 DEMAND CLAIMS (QR/PIN Redemption)
+    match /demand_claims/{claimId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      
+      // 🆕 റെഡീം ചെയ്യാൻ ബിസിനസ് ഉടമയ്ക്കോ അഡ്മിനോ അനുമതി
+      // സ്കാൻ ചെയ്യുന്ന ആളുടെ UID ആണോ എന്ന് മാത്രം ചെക്ക് ചെയ്യുന്നു (എളുപ്പത്തിന്)
+      allow update: if isSignedIn() && (
+        isModerator() || 
+        isAdmin() ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'redeemedAt', 'claimId']) && 
+         request.resource.data.status == 'redeemed')
+      );
+    }
+
+    // ---------- COMPLAINTS ----------
+    match /community_complaints/{complaintId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || 
+        isModerator() || 
+        isAdmin()
+      );
+      allow create: if isSignedIn() && 
+        request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        isModerator() || 
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // ---------- DEMAND MATCHING (Admin Review Queue) ----------
+    match /demand_matches/{matchId} {
+      allow read: if isModerator();
+      allow create, update: if isModerator();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- DEFAULT: DENY ----------
+  }
+}
