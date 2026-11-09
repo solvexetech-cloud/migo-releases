@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../requests/product_request_screen.dart';
 import '../../core/localization/locale_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../core/theme/migo_colors.dart';

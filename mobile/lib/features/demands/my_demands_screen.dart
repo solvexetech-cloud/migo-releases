@@ -177,26 +177,33 @@ class _MyDemandCard extends StatelessWidget {
               const SizedBox(height: 12),
               
               // Progress Bar
-              Row(
-                children: [
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: LinearProgressIndicator(
-                        value: demand.requiredCount > 0 ? (demand.currentCount / demand.requiredCount).clamp(0.0, 1.0) : 0.0,
-                        minHeight: 8,
-                        backgroundColor: Colors.grey[200],
-                        color: statusColor,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    '${demand.currentCount} / ${demand.requiredCount}',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: statusColor),
-                  ),
-                ],
-              ),
+              if (!demand.isPrivate)
+  Row(
+    children: [
+      Expanded(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: LinearProgressIndicator(
+            value: demand.requiredCount > 0
+                ? (demand.currentCount / demand.requiredCount).clamp(0.0, 1.0)
+                : 0.0,
+            minHeight: 10,
+            backgroundColor: Colors.grey[200],
+            color: statusColor,
+          ),
+        ),
+      ),
+      const SizedBox(width: 12),
+      Text(
+        '${demand.currentCount} / ${demand.requiredCount}',
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: statusColor,
+        ),
+      ),
+    ],
+  ),
 
               const SizedBox(height: 12),
               // 🆕 Group Buy Avatars (Sample UI)
@@ -226,7 +233,7 @@ class _MyDemandCard extends StatelessWidget {
                     ),
                   if (demand.currentCount < demand.requiredCount)
                     Text(
-                      isAr ? '  انضم للمجموعة!' : '  Join the group!',
+                      isAr ? (demand.isPrivate ? '  عرض العروض' : '  انضم للمجموعة!') : (demand.isPrivate ? '  View Bids' : '  Join the group!'),
                       style: TextStyle(fontSize: 11, color: MigoColors.primary, fontWeight: FontWeight.bold),
                     ),
                 ],

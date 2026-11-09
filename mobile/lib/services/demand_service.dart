@@ -1,4 +1,4 @@
-﻿import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/demand_model.dart';
 import '../models/demand_bid_model.dart';
@@ -102,7 +102,7 @@ class DemandService {
         currency: currency,
         minRequiredCount: 15,
         currentCount: 1,
-        status: 'open',
+        status: isPrivate ? 'threshold_reached' : 'open',
         createdAt: DateTime.now(),
         expiresAt: DateTime.now().add(const Duration(days: 14)),
         areaId: areaId,

@@ -23,6 +23,7 @@ import CategoriesPage from './pages/CategoriesPage';
 import RolesPage from './pages/RolesPage';
 import CoinSettingsPage from './pages/CoinSettingsPage';
 import ThemeSettingsPage from './pages/ThemeSettingsPage';
+import ProductRequestsPage from './pages/ProductRequestsPage';
 import CoinPaymentsPage from './pages/CoinPaymentsPage';
 import DemandBidsPage from './pages/DemandBidsPage';
 import CampaignsPage from './pages/CampaignsPage';
@@ -177,6 +178,7 @@ export default function App() {
                     <Route path="/flyers" element={<FlyersPage />} />
                     <Route path="/coin-settings" element={<CoinSettingsPage />} />
           <Route path="/theme-settings" element={<ThemeSettingsPage />} />
+          <Route path="/product-requests" element={<ProductRequestsPage />} />
                     <Route path="/coin-payments" element={<CoinPaymentsPage />} />
                     <Route path="/demand-bids" element={<DemandBidsPage />} />
                     <Route path="/campaigns" element={<CampaignsPage />} />

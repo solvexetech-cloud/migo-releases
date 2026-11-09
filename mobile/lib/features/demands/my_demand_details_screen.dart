@@ -124,6 +124,7 @@ class MyDemandDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Group Progress
+                  if (!demand.isPrivate) ...[
                   _SectionTitle(
                     title: isAr ? 'تقدم المجموعة' : 'Group Progress',
                     isAr: isAr,
@@ -182,6 +183,7 @@ class MyDemandDetailsScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+                 ],
                   const SizedBox(height: 24),
 
                   // Status Timeline
@@ -199,31 +201,44 @@ class MyDemandDetailsScreen extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        _TimelineItem(
+                                                _TimelineItem(
                           label: isAr ? 'تم إنشاء الطلب' : 'Demand Created',
                           isDone: true,
                           isLast: false,
                         ),
-                        _TimelineItem(
-                          label: isAr ? 'انضممت للمجموعة' : 'Joined Group',
-                          isDone: true,
-                          isLast: false,
-                        ),
-                        _TimelineItem(
-                          label: isAr ? 'جاري جمع الأعضاء' : 'Collecting Members',
-                          isDone: demand.currentCount >= demand.requiredCount,
-                          isLast: false,
-                        ),
-                        _TimelineItem(
-                          label: isAr ? 'بدأت المزايدة' : 'Bidding Started',
-                          isDone: demand.status == 'threshold_reached' || demand.status == 'locked',
-                          isLast: false,
-                        ),
-                        _TimelineItem(
-                          label: isAr ? 'تم تأكيد الطلب' : 'Order Confirmed',
-                          isDone: false,
-                          isLast: true,
-                        ),
+                        if (demand.isPrivate) ...[
+                          _TimelineItem(
+                            label: isAr ? 'بدأت المزايدة' : 'Bidding Started',
+                            isDone: demand.status == 'threshold_reached' || demand.status == 'locked',
+                            isLast: false,
+                          ),
+                          _TimelineItem(
+                            label: isAr ? 'تم تأكيد الطلب' : 'Order Confirmed',
+                            isDone: demand.status == 'locked',
+                            isLast: true,
+                          ),
+                        ] else ...[
+                          _TimelineItem(
+                            label: isAr ? 'انضممت للمجموعة' : 'Joined Group',
+                            isDone: true,
+                            isLast: false,
+                          ),
+                          _TimelineItem(
+                            label: isAr ? 'جاري جمع الأعضاء' : 'Collecting Members',
+                            isDone: demand.currentCount >= demand.requiredCount,
+                            isLast: false,
+                          ),
+                          _TimelineItem(
+                            label: isAr ? 'بدأت المزايدة' : 'Bidding Started',
+                            isDone: demand.status == 'threshold_reached' || demand.status == 'locked',
+                            isLast: false,
+                          ),
+                          _TimelineItem(
+                            label: isAr ? 'تم تأكيد الطلب' : 'Order Confirmed',
+                            isDone: false,
+                            isLast: true,
+                          ),
+                        ],
                       ],
                     ),
                   ),
