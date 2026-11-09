@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/demand_model.dart';
-import '../../core/localization/locale_provider.dart'; 
+import '../../core/localization/locale_provider.dart';
 import '../../services/demand_service.dart';
 import 'demand_redemption_screen.dart';
 import 'my_bids_screen.dart';
@@ -33,10 +33,10 @@ class DemandBidsScreen extends StatelessWidget {
                       .get(),
                   builder: (context, snap) {
                     if (!snap.hasData || snap.data!.docs.isEmpty) {
-                      return const SizedBox(); 
+                      return const SizedBox();
                     }
                     final businessId = snap.data!.docs.first.id;
-                    
+
                     return IconButton(
                       icon: const Icon(Icons.qr_code_scanner),
                       tooltip: isAr ? 'استرداد الطلب' : 'Redeem Order',
@@ -51,21 +51,11 @@ class DemandBidsScreen extends StatelessWidget {
                     );
                   },
                 ),
-                IconButton(
-                  icon: const Icon(Icons.receipt_long),
-                  tooltip: isAr ? 'عروضي' : 'My Bids',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const MyBidsScreen()),
-                    );
-                  },
-                ),
               ],
               backgroundColor: const Color(0xFF0F2B5B),
               foregroundColor: Colors.white,
             ),
-            body: demand != null 
+            body: demand != null
                 ? _buildSingleDemandView(context, demand!, isAr)
                 : _buildDemandsList(context, isAr),
           ),
@@ -115,8 +105,6 @@ class DemandBidsScreen extends StatelessWidget {
                 Text(desc, style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
               ],
               const SizedBox(height: 20),
-              
-              // Details Row
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -129,18 +117,9 @@ class DemandBidsScreen extends StatelessWidget {
                     _buildDetailRow(Icons.people, '${demand.currentCount} ${isAr ? 'أشخاص' : 'people'} joined'),
                     const SizedBox(height: 8),
                     _buildDetailRow(Icons.category, demand.category),
-                    if (demand.isPrivate) ...[
-                      const SizedBox(height: 8),
-                      _buildDetailRow(Icons.shopping_bag, '${isAr ? 'الكمية' : 'Quantity'}: ${demand.quantity}'),
-                      if (demand.deliveryDate != null) ...[
-                        const SizedBox(height: 8),
-                        _buildDetailRow(Icons.calendar_today, '${isAr ? 'التسليم' : 'Needed by'}: ${demand.deliveryDate!.day}/${demand.deliveryDate!.month}/${demand.deliveryDate!.year}'),
-                      ],
-                    ],
                   ],
                 ),
               ),
-
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
@@ -175,51 +154,88 @@ class DemandBidsScreen extends StatelessWidget {
   }
 
   Widget _buildDemandsList(BuildContext context, bool isAr) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: DemandService().getDemandsStream(status: 'threshold_reached'),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return Center(
-            child: Text(
-              isAr ? 'لا توجد طلبات نشطة حالياً' : 'No active demands currently',
-              style: const TextStyle(fontSize: 16, color: Colors.grey),
+    return Column(
+      children: [
+        // 🆕 പേജിന്റെ മുകളിൽ വലിയ My Bids ബട്ടൺ
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: SizedBox(
+            width: double.infinity,
+            height: 55,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFF0F2B5B),
+                side: const BorderSide(color: Color(0xFF0F2B5B), width: 2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 2,
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MyBidsScreen()),
+                );
+              },
+              icon: const Icon(Icons.receipt_long, size: 24),
+              label: Text(
+                isAr ? 'عرض عروضي (My Bids)' : 'View My Bids',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
             ),
-          );
-        }
+          ),
+        ),
+        
+        // താഴെ ഡിമാൻഡ് ലിസ്റ്റ്
+        Expanded(
+          child: StreamBuilder<QuerySnapshot>(
+            stream: DemandService().getDemandsStream(status: 'threshold_reached'),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return Center(
+                  child: Text(
+                    isAr ? 'لا توجد طلبات نشطة حالياً' : 'No active demands currently',
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                );
+              }
 
-        final demands = snapshot.data!.docs
-            .map((doc) => DemandModel.fromMap(doc.id, doc.data() as Map<String, dynamic>))
-            .toList();
+              final demands = snapshot.data!.docs
+                  .map((doc) => DemandModel.fromMap(doc.id, doc.data() as Map<String, dynamic>))
+                  .toList();
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: demands.length,
-          itemBuilder: (context, index) {
-            final d = demands[index];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 16),
-              child: ListTile(
-                title: Text(d.title['en'] ?? ''),
-                subtitle: Text('${d.currentCount} / ${d.minRequiredCount} joined'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => DemandBidsScreen(demand: d)),
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: demands.length,
+                itemBuilder: (context, index) {
+                  final d = demands[index];
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    child: ListTile(
+                      title: Text(d.title['en'] ?? ''),
+                      subtitle: Text('${d.currentCount} / ${d.minRequiredCount} joined'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => DemandBidsScreen(demand: d)),
+                        );
+                      },
+                    ),
                   );
                 },
-              ),
-            );
-          },
-        );
-      },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
   void _showBidDialog(BuildContext context, DemandModel demand, bool isAr) {
+    // ... (Bid dialog code remains same)
     final formKey = GlobalKey<FormState>();
     final priceController = TextEditingController();
     final authController = TextEditingController(text: 'Original');
@@ -287,10 +303,10 @@ class DemandBidsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
-                        controller: minCommitmentsController, 
+                        controller: minCommitmentsController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          labelText: isAr ? 'الحد الأدنى للمشترين' : 'Minimum Buyers Required',
+                          labelText: isAr ? 'الحد الأدنى للمشتري' : 'Minimum Buyers Required',
                           helperText: isAr ? 'لن يتم تنشيط العرض حتى يوافق هذا العدد.' : 'Offer activates only if this many people commit.',
                           border: const OutlineInputBorder(),
                           prefixIcon: const Icon(Icons.people),
@@ -321,8 +337,18 @@ class DemandBidsScreen extends StatelessWidget {
                           final user = FirebaseAuth.instance.currentUser;
                           final businessId = user?.uid ?? 'unknown_biz';
                           final businessName = {'en': user?.displayName ?? 'My Business', 'ar': user?.displayName ?? 'My Business'};
+
+                          // 🆕 ബിസിനസിന്റെ യഥാർത്ഥ ട്രസ്റ്റ് സ്കോർ എടുക്കുക
+                          final businessDoc = await FirebaseFirestore.instance
+                              .collection('businesses')
+                              .where('ownerUid', isEqualTo: user?.uid)
+                              .limit(1)
+                              .get();
                           
-                          const double currentTrustScore = 50.0;
+                          double currentTrustScore = 50.0;
+                          if (businessDoc.docs.isNotEmpty) {
+                            currentTrustScore = (businessDoc.docs.first.data()['trustScore'] as num?)?.toDouble() ?? 50.0;
+                          }
 
                           final success = await DemandService().placeBid(
                             demandId: demand.id,

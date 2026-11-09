@@ -11,6 +11,7 @@ import { auth, db } from './firebase';
 import AdminLayout from './components/AdminLayout';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+
 import CommunityDemandsPage from './pages/CommunityDemandsPage';
 import PendingBusinesses from './pages/PendingBusinesses';
 import BusinessesPage from './pages/BusinessesPage';
@@ -21,6 +22,7 @@ import FraudLogsPage from './pages/FraudLogsPage';
 import CategoriesPage from './pages/CategoriesPage';
 import RolesPage from './pages/RolesPage';
 import CoinSettingsPage from './pages/CoinSettingsPage';
+import ThemeSettingsPage from './pages/ThemeSettingsPage';
 import CoinPaymentsPage from './pages/CoinPaymentsPage';
 import DemandBidsPage from './pages/DemandBidsPage';
 import CampaignsPage from './pages/CampaignsPage';
@@ -174,6 +176,7 @@ export default function App() {
                     <Route path="/fraud-logs" element={<FraudLogsPage />} />
                     <Route path="/flyers" element={<FlyersPage />} />
                     <Route path="/coin-settings" element={<CoinSettingsPage />} />
+          <Route path="/theme-settings" element={<ThemeSettingsPage />} />
                     <Route path="/coin-payments" element={<CoinPaymentsPage />} />
                     <Route path="/demand-bids" element={<DemandBidsPage />} />
                     <Route path="/campaigns" element={<CampaignsPage />} />

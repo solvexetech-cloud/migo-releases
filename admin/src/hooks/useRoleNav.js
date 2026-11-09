@@ -12,6 +12,7 @@ const ALL_ITEMS = [
   { to: '/fraud-logs', label: 'Fraud Logs', icon: '🚨' },
   { to: '/categories', label: 'Categories', icon: '📁' },
   { to: '/coin-settings', label: 'Coin Settings', icon: '🪙' },
+  { to: '/theme-settings', label: 'Theme Settings', icon: '🎨' },
   { to: '/coin-payments', label: 'Coin Payments', icon: '💰' },
   {
     label: 'Community Demands',

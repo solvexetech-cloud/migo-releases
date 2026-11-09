@@ -195,7 +195,7 @@ function CountriesTab({ isMobile }) {
                   i < countries.length - 1 ? '1px solid #F1EEEA' : 'none',
               }}
             >
-              <div style={{ fontSize: 28 }}>{c.flag || '🌐'}</div>
+              <div style={{ fontSize: 28 }}>{c.flag && c.flag.startsWith('đź') ? '🌐' : (c.flag || '🌐')}</div>
               <div>
                 <div style={primaryTextStyle}>{c.name}</div>
                 {c.nameAr && (
@@ -575,7 +575,7 @@ function ZonesTab({ isMobile }) {
                     i < filtered.length - 1 ? '1px solid #F1EEEA' : 'none',
                 }}
               >
-                <div style={{ fontSize: 22 }}>{country?.flag || '📍'}</div>
+                <div style={{ fontSize: 22 }}>{country?.flag && country.flag.startsWith('đź') ? '📍' : (country?.flag || '📍')}</div>
                 <div>
                   <div style={primaryTextStyle}>{z.name}</div>
                   <div style={secondaryTextStyle}>{z.slug}</div>

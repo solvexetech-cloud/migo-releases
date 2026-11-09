@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../core/localization/locale_provider.dart';
 import '../../models/demand_bid_model.dart';
+import '../../services/demand_service.dart';
 
 class MyBidsScreen extends StatelessWidget {
   const MyBidsScreen({super.key});
@@ -16,7 +18,11 @@ class MyBidsScreen extends StatelessWidget {
         final uid = FirebaseAuth.instance.currentUser?.uid;
 
         if (uid == null) {
-          return Scaffold(body: Center(child: Text(isAr ? 'يرجى تسجيل الدخول' : 'Please sign in')));
+          return Scaffold(
+            body: Center(
+              child: Text(isAr ? 'يرجى تسجيل الدخول' : 'Please sign in'),
+            ),
+          );
         }
 
         return Directionality(
@@ -24,7 +30,10 @@ class MyBidsScreen extends StatelessWidget {
           child: Scaffold(
             backgroundColor: const Color(0xFFF6F3EE),
             appBar: AppBar(
-              title: Text(isAr ? 'عروضي' : 'My Bids', style: const TextStyle(fontWeight: FontWeight.w800)),
+              title: Text(
+                isAr ? 'عروضي' : 'My Bids',
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
               backgroundColor: const Color(0xFF0F2B5B),
               foregroundColor: Colors.white,
             ),
@@ -44,11 +53,21 @@ class MyBidsScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.gavel_outlined, size: 80, color: Colors.blue.withValues(alpha: 0.2)),
+                        Icon(
+                          Icons.gavel_outlined,
+                          size: 80,
+                          color: Colors.blue.withValues(alpha: 0.2),
+                        ),
                         const SizedBox(height: 16),
                         Text(
-                          isAr ? 'لم تقدم أي عروض بعد' : 'No bids submitted yet',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+                          isAr
+                              ? 'لم تقدم أي عروض بعد'
+                              : 'No bids submitted yet',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
                         ),
                       ],
                     ),
@@ -60,7 +79,10 @@ class MyBidsScreen extends StatelessWidget {
                   itemCount: bids.length,
                   itemBuilder: (context, i) {
                     final doc = bids[i];
-                    final bid = DemandBidModel.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+                    final bid = DemandBidModel.fromMap(
+                      doc.id,
+                      doc.data() as Map<String, dynamic>,
+                    );
                     return _BidCard(bid: bid, isAr: isAr);
                   },
                 );
@@ -101,6 +123,8 @@ class _BidCard extends StatelessWidget {
         statusText = bid.status;
     }
 
+    final canEdit = bid.status == 'pending' || bid.status == 'approved';
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -110,69 +134,283 @@ class _BidCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Price and Status Row - Fixed Overflow
             Row(
               children: [
                 Expanded(
                   child: Text(
                     'QAR ${bid.offerPrice.toStringAsFixed(0)}',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF0F2B5B)),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF0F2B5B),
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: statusColor.withValues(alpha: 0.5)),
+                    border: Border.all(
+                      color: statusColor.withValues(alpha: 0.5),
+                    ),
                   ),
                   child: Text(
                     statusText,
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: statusColor),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: statusColor,
+                    ),
                   ),
                 ),
+                if (canEdit) ...[
+                  const SizedBox(width: 4),
+                  IconButton(
+                    icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
+                    onPressed: () => _showEditBidDialog(context, bid, isAr),
+                    tooltip: isAr ? 'تعديل العرض' : 'Edit Bid',
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 12),
             const Divider(),
             const SizedBox(height: 8),
 
-            // Authenticity and Fulfillment
             Row(
               children: [
                 _InfoChip(
-                  icon: bid.authenticity == 'Original' ? Icons.verified : Icons.content_copy,
-                  label: bid.authenticity == 'Original' ? (isAr ? 'أصلي' : 'Original') : (isAr ? 'نسخة ماستر' : 'Master Copy'),
-                  color: bid.authenticity == 'Original' ? Colors.green : Colors.orange,
+                  icon: bid.authenticity == 'Original'
+                      ? Icons.verified
+                      : Icons.content_copy,
+                  label: bid.authenticity == 'Original'
+                      ? (isAr ? 'أصلي' : 'Original')
+                      : (isAr ? 'نسخة ماستر' : 'Master Copy'),
+                  color: bid.authenticity == 'Original'
+                      ? Colors.green
+                      : Colors.orange,
                 ),
                 const SizedBox(width: 8),
                 _InfoChip(
-                  icon: bid.fulfillmentType == 'Home Delivery' ? Icons.delivery_dining : Icons.storefront,
-                  label: bid.fulfillmentType == 'Home Delivery' ? (isAr ? 'توصيل' : 'Delivery') : (isAr ? 'استلام' : 'Pickup'),
+                  icon: bid.fulfillmentType == 'Home Delivery'
+                      ? Icons.delivery_dining
+                      : Icons.storefront,
+                  label: bid.fulfillmentType == 'Home Delivery'
+                      ? (isAr ? 'توصيل' : 'Delivery')
+                      : (isAr ? 'استلام' : 'Pickup'),
                   color: Colors.blue,
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
-            // Trust Score
+
             Row(
               children: [
                 const Icon(Icons.star, size: 16, color: Colors.amber),
                 const SizedBox(width: 4),
                 Text(
                   '${bid.businessTrustScore.toStringAsFixed(1)} / 100',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey,
+                  ),
                 ),
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showEditBidDialog(BuildContext context, DemandBidModel bid, bool isAr) {
+    final formKey = GlobalKey<FormState>();
+    final priceController = TextEditingController(
+      text: bid.offerPrice.toString(),
+    );
+    final authController = TextEditingController(text: bid.authenticity);
+    final fulfillmentController = TextEditingController(
+      text: bid.fulfillmentType,
+    );
+    final minCommitmentsController = TextEditingController(
+      text: bid.minCommitments.toString(),
+    );
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(isAr ? 'تعديل العرض' : 'Edit Bid'),
+              content: Form(
+                key: formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: priceController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: isAr ? 'سعرك (QAR)' : 'Your Price (QAR)',
+                          border: const OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.attach_money),
+                        ),
+                        validator: (val) {
+                          if (val == null || val.isEmpty) return 'Required';
+                          if (double.tryParse(val) == null)
+                            return 'Invalid number';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: authController.text,
+                        decoration: InputDecoration(
+                          labelText: isAr ? 'الأصالة' : 'Authenticity',
+                          border: const OutlineInputBorder(),
+                        ),
+                        items: [
+                          DropdownMenuItem(
+                            value: 'Original',
+                            child: Text(isAr ? 'أصلي' : 'Original'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Master Copy',
+                            child: Text(isAr ? 'نسخة ماستر' : 'Master Copy'),
+                          ),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) authController.text = val;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: fulfillmentController.text,
+                        decoration: InputDecoration(
+                          labelText: isAr ? 'طريقة التسليم' : 'Fulfillment',
+                          border: const OutlineInputBorder(),
+                        ),
+                        items: [
+                          DropdownMenuItem(
+                            value: 'Store Pickup',
+                            child: Text(
+                              isAr ? 'استلام من المتجر' : 'Store Pickup',
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Home Delivery',
+                            child: Text(
+                              isAr ? 'توصيل للمنزل' : 'Home Delivery',
+                            ),
+                          ),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) fulfillmentController.text = val;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: minCommitmentsController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: isAr
+                              ? 'الحد الأدنى للمشترين'
+                              : 'Minimum Buyers Required',
+                          border: const OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.people),
+                        ),
+                        validator: (val) {
+                          if (val == null || val.isEmpty) return 'Required';
+                          final num = int.tryParse(val);
+                          if (num == null || num < 1) return 'Min 1';
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.pop(dialogContext),
+                  child: Text(isAr ? 'إلغاء' : 'Cancel'),
+                ),
+                FilledButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (!formKey.currentState!.validate()) return;
+                          setState(() => isSubmitting = true);
+
+                          final success = await DemandService().updateBid(
+                            bidId: bid.id,
+                            offerPrice: double.parse(priceController.text),
+                            authenticity: authController.text,
+                            fulfillmentType: fulfillmentController.text,
+                            minCommitments: int.parse(
+                              minCommitmentsController.text,
+                            ),
+                          );
+
+                          setState(() => isSubmitting = false);
+
+                          if (!dialogContext.mounted) return;
+
+                          if (success) {
+                            Navigator.pop(dialogContext);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    isAr
+                                        ? 'تم تحديث العرض بنجاح!'
+                                        : 'Bid updated successfully!',
+                                  ),
+                                ),
+                              );
+                            }
+                          } else {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    isAr ? 'حدث خطأ.' : 'Error updating bid.',
+                                  ),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(isAr ? 'تحديث' : 'Update'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -182,7 +420,11 @@ class _InfoChip extends StatelessWidget {
   final String label;
   final Color color;
 
-  const _InfoChip({required this.icon, required this.label, required this.color});
+  const _InfoChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +441,11 @@ class _InfoChip extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ],
       ),

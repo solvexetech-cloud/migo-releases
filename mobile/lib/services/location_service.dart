@@ -13,7 +13,6 @@ class LocationService {
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // 1. ലൊക്കേഷൻ എടുത്ത് ഫയർസ്റ്റോറിൽ സേവ് ചെയ്യാൻ
   Future<void> updateUserLocation() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -44,38 +43,76 @@ class LocationService {
     }
   }
 
-  // 2. യൂസറുടെ ഏരിയ (Area) കണ്ടെത്താൻ -> AreaModel റിട്ടേൺ ചെയ്യുന്നു
   Future<AreaModel?> getDefaultArea(UserModel? user) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedAreaId = prefs.getString('selected_area_id');
-      
-      // ലോക്കൽ സ്റ്റോറേജിൽ ഉണ്ടെങ്കിൽ അത് എടുക്കാം
+
       if (savedAreaId != null && savedAreaId.isNotEmpty) {
          final doc = await _db.collection('areas').doc(savedAreaId).get();
          if (doc.exists) return AreaModel.fromMap(doc.id, doc.data()!);
+         final zoneDoc = await _db.collection('zones').doc(savedAreaId).get();
+         if (zoneDoc.exists) {
+            final data = zoneDoc.data()!;
+            return AreaModel(id: zoneDoc.id, zoneSlug: zoneDoc.id, name: data['name'] ?? 'Unknown', slug: zoneDoc.id);
+         }
       }
 
-      // യൂസർ പ്രൊഫൈലിൽ ഉണ്ടെങ്കിൽ അത് എടുക്കാം (നേരിട്ട് ഫയർസ്റ്റോറിൽ നിന്ന്)
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        final userDoc = await _db.collection('users').doc(currentUser.uid).get();
-        if (userDoc.exists) {
-          final data = userDoc.data();
-          if (data != null && data['areaId'] != null) {
-            final String areaId = data['areaId'];
-            if (areaId.isNotEmpty) {
-              final doc = await _db.collection('areas').doc(areaId).get();
-              if (doc.exists) return AreaModel.fromMap(doc.id, doc.data()!);
+      try {
+        bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (serviceEnabled) {
+          LocationPermission permission = await Geolocator.checkPermission();
+          if (permission == LocationPermission.denied) {
+            permission = await Geolocator.requestPermission();
+          }
+          if (permission == LocationPermission.whileInUse || permission == LocationPermission.always) {
+            Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
+            final lat = position.latitude;
+            final lng = position.longitude;
+            
+            String detectedCountry = 'QA';
+            if (lat > 22 && lat < 27 && lng > 50 && lng < 52) detectedCountry = 'QA';
+            else if (lat > 22 && lat < 27 && lng > 54 && lng < 57) detectedCountry = 'AE';
+            else if (lat > 23 && lat < 32 && lng > 34 && lng < 56) detectedCountry = 'SA';
+            else if (lat > 28 && lat < 31 && lng > 46 && lng < 49) detectedCountry = 'KW';
+            else if (lat > 16 && lat < 26 && lng > 51 && lng < 60) detectedCountry = 'OM';
+            else if (lat > 22 && lat < 33 && lng > 24 && lng < 36) detectedCountry = 'EG';
+            else if (lat > 8 && lat < 37 && lng > 68 && lng < 97) detectedCountry = 'IN';
+            else if (lat > 24 && lat < 27 && lng > 50 && lng < 51) detectedCountry = 'BH';
+
+            // Index ആവശ്യമില്ലാതെ, countryCode മാത്രം ഉപയോഗിച്ച് എടുക്കാം
+            final zoneQuery = await _db.collection('zones')
+                .where('countryCode', isEqualTo: detectedCountry)
+                .limit(1)
+                .get();
+            if (zoneQuery.docs.isNotEmpty) {
+              final zoneData = zoneQuery.docs.first.data();
+              return AreaModel(
+                id: zoneQuery.docs.first.id,
+                zoneSlug: zoneQuery.docs.first.id,
+                name: zoneData['name'] ?? 'Doha',
+                slug: zoneQuery.docs.first.id,
+              );
             }
           }
         }
+      } catch (e) {
+        debugPrint('Geolocation error: $e');
       }
-      
-      // ഒന്നും കണ്ടെത്തിയില്ലെങ്കിൽ ആദ്യത്തെ ഏരിയ എടുക്കാം
-      final query = await _db.collection('areas').limit(1).get();
-      if (query.docs.isNotEmpty) {
-         return AreaModel.fromMap(query.docs.first.id, query.docs.first.data());
+
+      // Index ആവശ്യമില്ലാത്ത ഡീഫോൾട്ട് ഖത്തർ (Doha)
+      final qatarQuery = await _db.collection('zones')
+          .where('countryCode', isEqualTo: 'QA')
+          .limit(1)
+          .get();
+      if (qatarQuery.docs.isNotEmpty) {
+         final qData = qatarQuery.docs.first.data();
+         return AreaModel(
+           id: qatarQuery.docs.first.id,
+           zoneSlug: qatarQuery.docs.first.id,
+           name: qData['name'] ?? 'Doha',
+           slug: qatarQuery.docs.first.id,
+         );
       }
       return null;
     } catch (e) {
@@ -84,7 +121,6 @@ class LocationService {
     }
   }
 
-  // 3. യൂസർ ഏരിയ സെലക്ട് ചെയ്യുമ്പോൾ സേവ് ചെയ്യാൻ
   Future<void> saveSelectedArea({
     required String uid,
     required String areaId,
@@ -93,7 +129,6 @@ class LocationService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('selected_area_id', areaId);
-
       await _db.collection('users').doc(uid).update({
         'areaId': areaId,
         'country': countryCode,
