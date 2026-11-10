@@ -1,0 +1,117 @@
+═══════════════════════════════════════════════════════════════════════
+MIGO APP - COMPLETE MASTER DOCUMENTATION (A to Z)
+Last Updated: November 10, 2026
+═══════════════════════════════════════════════════════════════════════
+
+## 1. PROJECT OVERVIEW (പ്രോജക്ട് അവലോകനം)
+MIGO എന്നത് ഒരു ഹൈപ്പർലോക്കൽ ഡീൽസ്, കമ്മ്യൂണിറ്റി ഡിമാൻഡ്, കോയിൻ റിവാർഡ് പ്ലാറ്റ്ഫോം ആണ്. ഇതിൽ 3 പ്രധാന ആപ്പുകൾ ഉണ്ട്:
+1. **Customer App (Flutter):** ഉപഭോക്താക്കൾക്ക് ഡീലുകൾ കാണാനും, കമ്മ്യൂണിറ്റി ഡിമാൻഡുകൾ ഉണ്ടാക്കാനും, കോയിൻസ് സമ്പാദിക്കാനും ഉള്ളത്.
+2. **Business App (Flutter):** കടകൾക്ക് ഓഫറുകൾ ഇടാനും, QR സ്കാൻ ചെയ്ത് റെഡീം ചെയ്യാനും, ഡിമാൻഡുകൾക്ക് ബിഡ് ചെയ്യാനും ഉള്ളത്.
+3. **Admin/Agency Panel (React JS):** സൂപ്പർ അഡ്മിൻ, ഏജൻസികൾ, സ്റ്റാഫ് എന്നിവർക്ക് ആപ്പ് മോണിറ്റർ ചെയ്യാനും, അനലിറ്റിക്സ് കാണാനും, ലൊക്കേഷനുകൾ, തീം എന്നിവ മാനേജ് ചെയ്യാനുമുള്ള വെബ് പാനൽ.
+
+## 2. TECH STACK (ഉപയോഗിച്ച സാങ്കേതികവിദ്യകൾ)
+- **Frontend (Mobile):** Flutter (Dart), Mobile Scanner (QR), Geolocator (Location), QR Flutter, Shared Preferences.
+- **Frontend (Web):** React.js, Vite, React Router DOM, Inline Styles, React Icons.
+- **Backend:** Firebase (Serverless Architecture).
+  - Firestore Database (NoSQL)
+  - Firebase Authentication
+  - Firebase Cloud Messaging (FCM)
+  - Firebase Hosting
+  - Cloudinary (Image Storage)
+- **State Management:** Flutter-ൽ Native setState & ListenableBuilder (Locale), React-ൽ Context API & State.
+
+## 3. FOLDER STRUCTURE & FILES (ഫോൾഡർ ഘടന)
+Root Directory: C:\Users\DELL\Documents\migo\
+
+### A. mobile/ (Customer App)
+- lib/main.dart: Firebase Init, Auth Gate, ThemeProvider, Deep Links.
+- lib/models/: demand_group_model, demand_settings_model.
+- lib/services/: demand_group_service (Auto-grouping engine).
+- lib/features/demands/: new_demand_screen, my_demands_screen, my_demand_details_screen, bids_comparison_screen, claim_details_screen, claim_ticket_screen.
+- lib/core/localization/: app_localizations (English & Arabic).
+
+### B. migo-business/ (Business App)
+- lib/features/auth/: login_screen, register_screen (with Category).
+- lib/features/dashboard/: dashboard_screen (Sidebar Navigation).
+- lib/features/demands/: business_demands_feed_screen, demand_bids_screen, my_bids_screen.
+- lib/features/scan/: scan_qr_screen (Redeem Demand Claims).
+- lib/features/claims/: business_claims_screen (Active & History tabs).
+- lib/services/: claim_service, demand_service.
+
+### C. admin/ (React Web Panel)
+- src/pages/: DemandBidsPage (Approve/Reject/Delete), DemandGroupsPage (Manage Auto-Groups), DemandSettingsPage (Configure Thresholds), AdminDashboard.
+- src/hooks/useRoleNav.js (Role-based Menu).
+- src/components/AdminLayout.jsx (Sidebar & Header).
+- seed-demand-settings.cjs (Database Seeding Script).
+
+### D. firestore.rules (Security Rules)
+Firestore ഡാറ്റാബേസിലേക്ക് ആർക്കൊക്കെ എഴുതാം/വായിക്കാം എന്ന് നിർണ്ണയിക്കുന്ന ഫയൽ. demand_groups, demand_bids, demand_claims എന്നിവയ്ക്ക് പുതിയ അനുമതികൾ നൽകിയിട്ടുണ്ട്.
+
+## 4. DATABASE SCHEMA (ഡാറ്റാബേസ് ഘടന - Firestore)
+- users: കസ്റ്റമർ വിവരങ്ങൾ (name, phone, areaId, country, coins, role, location GeoPoint).
+- businesses: കടകളുടെ വിവരങ്ങൾ (name, category, countryCode, zoneId, ownerUid, location, trustScore, status).
+- offers: കടകൾ ഇടുന്ന ഓഫറുകൾ.
+- demands: കസ്റ്റമർ ഇടുന്ന വ്യക്തിഗത ഡിമാൻഡുകൾ.
+- demand_groups: ഓട്ടോമാറ്റിക് ആയി ഗ്രൂപ്പ് ചെയ്ത ഡിമാൻഡുകൾ (title, category, zoneId, members, memberCount, threshold, totalQuantity, minTargetPrice, maxTargetPrice, status, deliveryDate, thresholdReachedAt, expiresAt).
+- demand_bids: കടകൾ ഇടുന്ന ബിഡുകൾ (offerPrice, minCommitments, businessTrustScore, status, groupTitle, deliveryDate).
+- demand_claims: റെഡംപ്ഷന് വേണ്ടിയുള്ള QR/PIN ഡാറ്റ (status, pin, qrData, totalPrice, redeemedAt).
+- app_config: ആപ്പ് തീം, ഡിമാൻഡ് സെറ്റിംഗ്സ് (defaultThreshold, demandExpiryDays, privateBulkMinQuantity).
+- product_requests, countries, zones, areas, coin_transactions, notifications.
+
+## 5. FEATURES & WORKFLOWS (ഫീച്ചറുകളും പ്രവർത്തനങ്ങളും)
+
+### ✅ പൂർത്തിയായവ:
+1. **Authentication:** Firebase Auth ഉപയോഗിച്ച് ലോഗിൻ.
+2. **Business Registration:** കാറ്റഗറി തിരഞ്ഞെടുത്ത് രജിസ്റ്റർ ചെയ്യാം. അഡ്മിൻ അപ്രൂവ് ചെയ്യുന്നത് വരെ "Account Under Review" എന്ന് കാണിക്കും.
+3. **New Demand System (Confusion-Free):**
+   - കസ്റ്റമർ ഡിമാൻഡ് ഇടുമ്പോൾ "Community" / "Private Bulk" എന്ന ടോഗിളുകൾ ഇല്ല.
+   - ഓട്ടോമാറ്റിക് ഗ്രൂപ്പിംഗ്: ഒരേ ഐറ്റം + കാറ്റഗറി + സോൺ ഉള്ളവ ഒരുമിച്ച് ചേരും.
+   - Bulk Order: ഒരു നിശ്ചിത എണ്ണത്തിൽ (ഉദാ: 10) കൂടുതൽ ആവശ്യപ്പെട്ടാൽ, ഉടൻ തന്നെ ബിസിനസുകാർക്ക് കാണാം.
+4. **Business Demands Feed:** ബിസിനസിന് അവരുടെ കാറ്റഗറിയിലുള്ള ഡിമാൻഡുകൾ മാത്രം കാണാം.
+5. **Bidding System:** ബിസിനസുകാർ ബിഡ് ഇടാം, എഡിറ്റ് ചെയ്യാം (പഴയ വില കാണിക്കും).
+6. **Admin Panel:** ബിഡുകൾ അപ്രൂവ്/റിജക്റ്റ്/ഡിലീറ്റ് ചെയ്യാം. ത്രെഷോൾഡ്, എക്സ്പയറി തുടങ്ങിയവ മാറ്റാം.
+7. **QR & PIN Redemption:** കസ്റ്റമർ ഓർഡർ കൺഫേം ചെയ്താൽ QR കോഡും 6 അക്ക PIN-ഉം ലഭിക്കും. ബിസിനസ് ആപ്പിൽ അത് സ്കാൻ ചെയ്ത് റെഡീം ചെയ്യാം.
+8. **History (Active / Completed):** കസ്റ്റമർക്കും ബിസിനസിനും റെഡീം ചെയ്ത ഓർഡറുകൾ തീയതിയും സമയവും സഹിതം കാണാം.
+9. **Language Support:** ഇംഗ്ലീഷ്, അറബിക് (RTL).
+10. **Admin Hosting:** https://migo-app-3030e.web.app
+
+### 🚧 ഇനി ചെയ്യാനുള്ളവ (Next Steps):
+1. **Group Management (SCREEN 25):** അഡ്മിൻ പാനലിൽ ഗ്രൂപ്പുകൾ കൈകാര്യം ചെയ്യാനുള്ള പേജ്. (നിലവിൽ DemandGroupsPage ഉണ്ട്).
+2. **Auto-Expiry (Cloud Functions):** ഡിമാൻഡുകൾ കാലഹരണപ്പെടുമ്പോൾ ഓട്ടോമാറ്റിക് ആയി ക്ലോസ് ചെയ്യുക (Blaze Plan ആവശ്യമാണ്).
+3. **End-to-End Testing.**
+4. **Play Store Release (Phase I).**
+
+## 6. DEPLOYMENT & HOSTING (ഹോസ്റ്റിംഗ് വിവരങ്ങൾ)
+- **Admin Panel Hosting:** Firebase Hosting
+- **Hosting URL:** https://migo-app-3030e.web.app
+- **Deploy Command (Hosting):** firebase deploy --only hosting
+- **Deploy Command (Rules):** firebase deploy --only firestore:rules
+- **APK Build Command:** flutter build apk --release
+- **Firebase Project:** migo-app-3030e
+- **Firestore Region:** me-central1 (Doha)
+- **Cloudinary:** zxl1kb8h
+
+## 7. GIT & BACKUP (ബാക്കപ്പ് വിവരങ്ങൾ)
+- **Git:** ✅ ഉണ്ട്. Repository initialized on `master` branch.
+- **GitHub Remote URL:** https://github.com/solvexetech-cloud/migo-releases.git
+- **Latest Commit:** "feat: Complete new Demand System (Auto-grouping, QR Redemption, Admin Controls)"
+- **Backup:** ലോക്കൽ (C:\Users\DELL\Documents\migo\) + GitHub റിമോട്ട്.
+- **Security:** serviceAccountKey.json .gitignore-ൽ ഉണ്ട് (അത് GitHub-ലേക്ക് പോകില്ല).
+
+## 8. IMPORTANT INFO (Test Accounts)
+- Super Admin: test1@migoapp.com / Migo@2026
+- Business: business@migoapp.com / Business@2026
+- Customer: test2@migoapp.com / Migo@2026
+
+## 9. AI HANDOFF NOTES (മറ്റൊരു AI-ക്ക് നൽകാനുള്ള നിർദ്ദേശങ്ങൾ)
+1. **മലയാളത്തിൽ സംസാരിക്കുക:** ഉപയോക്താവുമായി മലയാളത്തിൽ ആശയവിനിമയം ചെയ്യുക.
+2. **PowerShell ഉപയോഗിക്കുക:** കോഡ് മാറ്റങ്ങൾ വരുത്താൻ PowerShell കമാൻഡുകൾ ഉപയോഗിക്കുന്നതാണ് നല്ലത്.
+3. **Encoding:** PowerShell-ൽ ഫയൽ സേവ് ചെയ്യുമ്പോൾ എപ്പോഴും [System.IO.File]::WriteAllText("$pwd\$file", $content, [System.Text.UTF8Encoding]::new($false)) എന്ന് ഉപയോഗിക്കുക.
+4. **Regex ഒഴിവാക്കുക:** കോഡ് മാറ്റങ്ങൾക്ക് Regex ഉപയോഗിക്കുന്നത് ഒഴിവാക്കുക. പകരം, കൃത്യമായ കോഡ് നൽകുകയോ ഉപയോക്താവിനെ കൈകൊണ്ട് ചെയ്യാൻ അനുവദിക്കുകയോ ചെയ്യുക.
+5. **ബ്രേക്കിംഗ് ചെയ്യരുത്:** പുതിയ ഫീച്ചർ ചേർക്കുമ്പോൾ ഇപ്പോൾ ഉള്ള കോഡ് നശിപ്പിക്കാതിരിക്കാൻ ശ്രദ്ധിക്കുക.
+6. **Firestore Rules:** എപ്പോഴും firestore.rules ഫയൽ എഡിറ്റ് ചെയ്തതിന് ശേഷം firebase deploy --only firestore:rules റൺ ചെയ്യാൻ മറക്കരുത്.
+7. **Master Plan:** ഈ ഡോക്യുമെന്റ് ആണ് പ്രോജക്ടിന്റെ ഏറ്റവും പുതിയ അവസ്ഥ. ഇത് വായിച്ച ശേഷം മാത്രം മാറ്റങ്ങൾ വരുത്തുക.
+
+═══════════════════════════════════════════════════════════════════════
+END OF MASTER DOCUMENTATION
+═══════════════════════════════════════════════════════════════════════
