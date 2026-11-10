@@ -29,6 +29,11 @@ import DemandBidsPage from './pages/DemandBidsPage';
 import CampaignsPage from './pages/CampaignsPage';
 import OrdersPage from './pages/OrdersPage';
 import ComplaintsPage from './pages/ComplaintsPage';
+
+// 🆕 പുതിയ പേജുകൾ ഇംപോർട്ട് ചെയ്യുന്നു
+import DemandSettingsPage from './pages/DemandSettingsPage';
+import DemandGroupsPage from './pages/DemandGroupsPage';
+
 import {
   RoleProvider,
   useRole,
@@ -177,13 +182,17 @@ export default function App() {
                     <Route path="/fraud-logs" element={<FraudLogsPage />} />
                     <Route path="/flyers" element={<FlyersPage />} />
                     <Route path="/coin-settings" element={<CoinSettingsPage />} />
-          <Route path="/theme-settings" element={<ThemeSettingsPage />} />
-          <Route path="/product-requests" element={<ProductRequestsPage />} />
+                    <Route path="/theme-settings" element={<ThemeSettingsPage />} />
+                    <Route path="/product-requests" element={<ProductRequestsPage />} />
                     <Route path="/coin-payments" element={<CoinPaymentsPage />} />
                     <Route path="/demand-bids" element={<DemandBidsPage />} />
                     <Route path="/campaigns" element={<CampaignsPage />} />
                     <Route path="/orders" element={<OrdersPage />} />
                     <Route path="/complaints" element={<ComplaintsPage />} />
+
+                    {/* 🆕 പുതിയ രണ്ട് റൂട്ടുകൾ ഇവിടെ ചേർത്തു */}
+                    <Route path="/demand-settings" element={<DemandSettingsPage />} />
+                    <Route path="/demand-groups" element={<DemandGroupsPage />} />
                   </Routes>
                 </AdminLayout>
               ) : (

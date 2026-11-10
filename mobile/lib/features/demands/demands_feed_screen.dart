@@ -1,12 +1,15 @@
+// mobile/lib/features/demands/demands_feed_screen.dart
+// UPDATED FILE - Confusion-free Community Demands View
+// Created: Nov 09, 2026
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/localization/locale_provider.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/theme/migo_colors.dart';
-import '../../models/demand_model.dart';
-import '../../services/demand_service.dart';
-import 'create_demand_screen.dart';
-import 'bids_comparison_screen.dart';
+import 'new_demand_screen.dart'; // Ã°Å¸â€ â€¢ Ã Â´ÂªÃ ÂµÂÃ Â´Â¤Ã Â´Â¿Ã Â´Â¯ Ã Â´Â¸Ã ÂµÂÃ Â´â€¢Ã ÂµÂÃ Â´Â°Ã Âµâ‚¬Ã ÂµÂ»
 import 'my_demands_screen.dart';
+import 'bids_comparison_screen.dart';
 
 class DemandsFeedScreen extends StatefulWidget {
   const DemandsFeedScreen({super.key});
@@ -24,6 +27,7 @@ class _DemandsFeedScreenState extends State<DemandsFeedScreen> {
     return ListenableBuilder(
       listenable: LocaleProvider.instance,
       builder: (context, _) {
+        final t = AppLocalizations.of(context)!;
         final isAr = LocaleProvider.instance.locale == 'ar';
 
         return Directionality(
@@ -32,14 +36,14 @@ class _DemandsFeedScreenState extends State<DemandsFeedScreen> {
             backgroundColor: const Color(0xFFF8F9FA),
             appBar: AppBar(
               title: Text(
-                isAr ? 'طلبات المجتمع' : 'Community Demands',
+                isAr ? 'Ã˜Â·Ã™â€žÃ˜Â¨Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â¬Ã˜ÂªÃ™â€¦Ã˜Â¹' : 'Community Demands',
                 style: const TextStyle(fontWeight: FontWeight.w800),
               ),
               backgroundColor: Colors.white,
               elevation: 0,
               foregroundColor: MigoColors.primaryDark,
               actions: [
-                // 🆕 "My Demands" എന്ന ബട്ടൺ
+                // My Demands Button
                 Padding(
                   padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
                   child: ElevatedButton.icon(
@@ -49,7 +53,7 @@ class _DemandsFeedScreenState extends State<DemandsFeedScreen> {
                     ),
                     icon: const Icon(Icons.receipt_long, size: 16),
                     label: Text(
-                      isAr ? 'طلباتي' : 'My Demands',
+                      t.get('my_demands'),
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                     style: ElevatedButton.styleFrom(
@@ -66,10 +70,12 @@ class _DemandsFeedScreenState extends State<DemandsFeedScreen> {
               ],
             ),
             body: StreamBuilder<QuerySnapshot>(
-              stream: DemandService().getDemandsStream(
-                isPrivate: false,
-                category: _selectedCategory == 'All' ? null : _selectedCategory,
-              ),
+              // Ã°Å¸â€ â€¢ Fetch from 'demand_groups' (threshold reached only)
+              stream: FirebaseFirestore.instance
+                  .collection('demand_groups')
+                  .where('status', whereIn: ['threshold_reached', 'bidding'])
+                  
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -79,13 +85,15 @@ class _DemandsFeedScreenState extends State<DemandsFeedScreen> {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
 
-                final bool isEmpty = !snapshot.hasData || snapshot.data!.docs.isEmpty;
-                
-                final demands = isEmpty 
-                    ? [] 
-                    : snapshot.data!.docs
-                        .map((doc) => DemandModel.fromMap(doc.id, doc.data() as Map<String, dynamic>))
-                        .toList();
+                var groups = snapshot.data?.docs ?? [];
+
+                // Apply category filter
+                if (_selectedCategory != 'All') {
+                  groups = groups.where((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    return data['category'].toString().toLowerCase() == _selectedCategory.toLowerCase();
+                  }).toList();
+                }
 
                 return Stack(
                   children: [
@@ -128,7 +136,7 @@ class _DemandsFeedScreenState extends State<DemandsFeedScreen> {
                                     const SizedBox(width: 16),
                                     Expanded(
                                       child: Text(
-                                        isAr ? 'اطلب أي منتج' : 'Request Any Product',
+                                        isAr ? 'Ã˜Â§Ã˜Â·Ã™â€žÃ˜Â¨ Ã˜Â£Ã™Å  Ã™â€¦Ã™â€ Ã˜ÂªÃ˜Â¬' : 'Request Any Product',
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 22,
@@ -141,7 +149,7 @@ class _DemandsFeedScreenState extends State<DemandsFeedScreen> {
                                 const SizedBox(height: 16),
                                 Text(
                                   isAr 
-                                    ? 'حدد المنتج والسعر الذي تريده، ودع المتاجر المحلية تتنافس لتقديم أفضل عرض لك.'
+                                    ? 'Ã˜Â­Ã˜Â¯Ã˜Â¯ Ã˜Â§Ã™â€žÃ™â€¦Ã™â€ Ã˜ÂªÃ˜Â¬ Ã™Ë†Ã˜Â§Ã™â€žÃ˜Â³Ã˜Â¹Ã˜Â± Ã˜Â§Ã™â€žÃ˜Â°Ã™Å  Ã˜ÂªÃ˜Â±Ã™Å Ã˜Â¯Ã™â€¡Ã˜Å’ Ã™Ë†Ã˜Â¯Ã˜Â¹ Ã˜Â§Ã™â€žÃ™â€¦Ã˜ÂªÃ˜Â§Ã˜Â¬Ã˜Â± Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â­Ã™â€žÃ™Å Ã˜Â© Ã˜ÂªÃ˜ÂªÃ™â€ Ã˜Â§Ã™ÂÃ˜Â³ Ã™â€žÃ˜ÂªÃ™â€šÃ˜Â¯Ã™Å Ã™â€¦ Ã˜Â£Ã™ÂÃ˜Â¶Ã™â€ž Ã˜Â¹Ã˜Â±Ã˜Â¶ Ã™â€žÃ™Æ’.'
                                     : 'Set your desired product and price, then let local shops compete to give you the best offer.',
                                   style: TextStyle(
                                     color: Colors.white.withValues(alpha: 0.8),
@@ -191,13 +199,13 @@ class _DemandsFeedScreenState extends State<DemandsFeedScreen> {
                         const SizedBox(height: 20),
 
                         // Demands List
-                        if (isEmpty)
+                        if (groups.isEmpty)
                           _buildEmptyState(isAr)
                         else ...[
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Text(
-                              isAr ? 'الطلبات النشطة' : 'Active Demands',
+                              isAr ? 'Ã˜Â§Ã™â€žÃ˜Â·Ã™â€žÃ˜Â¨Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€žÃ™â€ Ã˜Â´Ã˜Â·Ã˜Â©' : 'Active Demands',
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
@@ -206,24 +214,33 @@ class _DemandsFeedScreenState extends State<DemandsFeedScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          ...demands.map((demand) => Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                            child: _NewDemandCard(demand: demand, isAr: isAr),
-                          )),
+                          ...groups.map((doc) {
+                            final data = doc.data() as Map<String, dynamic>;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                              child: _NewDemandCard(
+                                groupId: doc.id,
+                                data: data,
+                                isAr: isAr,
+                                t: t,
+                              ),
+                            );
+                          }),
                         ],
                       ],
                     ),
 
-                    // Floating Action Button
+                    // Floating Action Button (Navigate to NewDemandScreen)
                     Positioned(
                       bottom: 24,
                       right: isAr ? null : 24,
                       left: isAr ? 24 : null,
                       child: GestureDetector(
                         onTap: () {
+                          // Ã°Å¸â€ â€¢ Ã Â´ÂªÃ ÂµÂÃ Â´Â¤Ã Â´Â¿Ã Â´Â¯ Ã Â´Â¸Ã ÂµÂÃ Â´â€¢Ã ÂµÂÃ Â´Â°Ã Âµâ‚¬Ã Â´Â¨Ã Â´Â¿Ã Â´Â²Ã Âµâ€¡Ã Â´â€¢Ã ÂµÂÃ Â´â€¢Ã ÂµÂ Ã Â´ÂªÃ Âµâ€¹Ã Â´â€¢Ã ÂµÂÃ Â´Â¨Ã ÂµÂÃ Â´Â¨Ã ÂµÂ
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const CreateDemandScreen()),
+                            MaterialPageRoute(builder: (_) => const NewDemandScreen()),
                           );
                         },
                         child: Container(
@@ -249,7 +266,7 @@ class _DemandsFeedScreenState extends State<DemandsFeedScreen> {
                               const Icon(Icons.add, color: Colors.white, size: 22),
                               const SizedBox(width: 8),
                               Text(
-                                isAr ? 'طلب جديد' : 'New Demand',
+                                t.get('new_demand'),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
@@ -280,12 +297,12 @@ class _DemandsFeedScreenState extends State<DemandsFeedScreen> {
           Icon(Icons.storefront_outlined, size: 80, color: MigoColors.primary.withValues(alpha: 0.2)),
           const SizedBox(height: 16),
           Text(
-            isAr ? 'لا توجد طلبات حالياً' : 'No demands yet',
+            isAr ? 'Ã™â€žÃ˜Â§ Ã˜ÂªÃ™Ë†Ã˜Â¬Ã˜Â¯ Ã˜Â·Ã™â€žÃ˜Â¨Ã˜Â§Ã˜Âª Ã˜Â­Ã˜Â§Ã™â€žÃ™Å Ã˜Â§Ã™â€¹' : 'No demands yet',
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: MigoColors.textPrimaryLight),
           ),
           const SizedBox(height: 8),
           Text(
-            isAr ? 'كن أول من يطلب منتجاً وشاهد العروض تتوالى!' : 'Be the first to request a product!',
+            isAr ? 'Ã™Æ’Ã™â€  Ã˜Â£Ã™Ë†Ã™â€ž Ã™â€¦Ã™â€  Ã™Å Ã˜Â·Ã™â€žÃ˜Â¨ Ã™â€¦Ã™â€ Ã˜ÂªÃ˜Â¬Ã˜Â§Ã™â€¹ Ã™Ë†Ã˜Â´Ã˜Â§Ã™â€¡Ã˜Â¯ Ã˜Â§Ã™â€žÃ˜Â¹Ã˜Â±Ã™Ë†Ã˜Â¶ Ã˜ÂªÃ˜ÂªÃ™Ë†Ã˜Â§Ã™â€žÃ™â€°!' : 'Be the first to request a product!',
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 13, color: MigoColors.textSecondaryLight),
           ),
@@ -295,61 +312,36 @@ class _DemandsFeedScreenState extends State<DemandsFeedScreen> {
   }
 }
 
-// 🆕 പുതിയ മോഡേൺ ഡിമാൻഡ് കാർഡ് (Border & Colorful UI)
-class _NewDemandCard extends StatefulWidget {
-  final DemandModel demand;
+// Ã°Å¸â€ â€¢ Ã Â´ÂªÃ ÂµÂÃ Â´Â¤Ã Â´Â¿Ã Â´Â¯ Ã Â´Â®Ã Âµâ€¹Ã Â´Â¡Ã Âµâ€¡Ã ÂµÂº Ã Â´Â¡Ã Â´Â¿Ã Â´Â®Ã Â´Â¾Ã ÂµÂ»Ã Â´Â¡Ã ÂµÂ Ã Â´â€¢Ã Â´Â¾Ã ÂµÂ¼Ã Â´Â¡Ã ÂµÂ (Without Join / Progress)
+class _NewDemandCard extends StatelessWidget {
+  final String groupId;
+  final Map<String, dynamic> data;
   final bool isAr;
+  final AppLocalizations t;
 
-  const _NewDemandCard({required this.demand, required this.isAr});
-
-  @override
-  State<_NewDemandCard> createState() => _NewDemandCardState();
-}
-
-class _NewDemandCardState extends State<_NewDemandCard> {
-  bool _isJoining = false;
-
-  Future<void> _joinDemand() async {
-    setState(() => _isJoining = true);
-    final success = await DemandService().joinDemand(widget.demand.id);
-    
-    if (!mounted) return; 
-    setState(() => _isJoining = false);
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(widget.isAr ? 'تم الانضمام بنجاح!' : 'Joined successfully!'), backgroundColor: Colors.green),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(widget.isAr ? 'تعذر الانضمام.' : 'Could not join.'), backgroundColor: Colors.red),
-      );
-    }
-  }
+  const _NewDemandCard({
+    required this.groupId,
+    required this.data,
+    required this.isAr,
+    required this.t,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final demand = widget.demand;
-    final isAr = widget.isAr;
-    
-    final title = demand.title[isAr ? 'ar' : 'en'] ?? demand.title['en'] ?? '';
-    final description = demand.description[isAr ? 'ar' : 'en'] ?? demand.description['en'] ?? '';
+    final title = data['title'] ?? '';
+    final memberCount = data['memberCount'] ?? 0;
+    final totalQuantity = data['totalQuantity'] ?? 0;
+    final minPrice = data['minTargetPrice'] ?? 0.0;
+    final maxPrice = data['maxTargetPrice'] ?? 0.0;
+    final category = data['category'] ?? '';
 
-    final progress = demand.minRequiredCount > 0 
-        ? (demand.currentCount / demand.minRequiredCount).clamp(0.0, 1.0) 
-        : 0.0;
-
-    final isThresholdReached = demand.currentCount >= demand.minRequiredCount;
-
-    // തീയതി ഫോർമാറ്റ്
-    final createdDate = demand.createdAt;
+    final createdDate = (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
     final formattedDate = '${createdDate.day}/${createdDate.month}/${createdDate.year}';
 
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        // 🆕 ബോർഡർ ചേർത്തു
         border: Border.all(color: Colors.grey.shade200, width: 1.5),
         boxShadow: [
           BoxShadow(
@@ -364,7 +356,7 @@ class _NewDemandCardState extends State<_NewDemandCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Category Tag & Price
+            // Category & Price Range
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -375,19 +367,19 @@ class _NewDemandCardState extends State<_NewDemandCard> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    demand.category,
+                    category,
                     style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blue.shade800),
                   ),
                 ),
                 Text(
-                  '${demand.currency} ${demand.targetPrice.toStringAsFixed(0)}',
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: MigoColors.primaryDark),
+                  '$minPrice - $maxPrice QAR',
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: MigoColors.primaryDark),
                 ),
               ],
             ),
             const SizedBox(height: 12),
             
-            // Title & Description
+            // Title
             Text(
               title,
               style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
@@ -395,66 +387,40 @@ class _NewDemandCardState extends State<_NewDemandCard> {
               overflow: TextOverflow.ellipsis,
             ),
             
-            // Created Date
+            // Date
             const SizedBox(height: 4),
             Row(
               children: [
                 const Icon(Icons.access_time, size: 12, color: Colors.grey),
                 const SizedBox(width: 4),
                 Text(
-                  '${isAr ? 'تاريخ الإنشاء' : 'Created'}: $formattedDate',
+                  '${isAr ? 'Ã˜ÂªÃ˜Â§Ã˜Â±Ã™Å Ã˜Â® Ã˜Â§Ã™â€žÃ˜Â¥Ã™â€ Ã˜Â´Ã˜Â§Ã˜Â¡' : 'Created'}: $formattedDate',
                   style: const TextStyle(fontSize: 11, color: Colors.grey),
                 ),
               ],
             ),
-
-            if (description.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                description,
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
             
             const SizedBox(height: 20),
             
-            // Progress & Avatars
+            // Member Count (No Progress Bar)
             Row(
               children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 8,
-                      backgroundColor: Colors.grey.shade200,
-                      color: isThresholdReached ? Colors.green : MigoColors.primary,
-                    ),
+                Icon(Icons.people, size: 18, color: Colors.blue.shade700),
+                const SizedBox(width: 6),
+                Text(
+                  '$memberCount ${t.get('people_want_this')}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade700,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const Spacer(),
                 Text(
-                  '${demand.currentCount}/${demand.minRequiredCount}',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: isThresholdReached ? Colors.green : Colors.black87,
-                  ),
+                  '${t.get('total_quantity')}: $totalQuantity',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
               ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              isThresholdReached
-                  ? (isAr ? 'تم الوصول للعدد المطلوب!' : 'Threshold reached!')
-                  : (isAr ? 'نحتاج ${demand.minRequiredCount - demand.currentCount} أشخاص إضافيين' : 'Need ${demand.minRequiredCount - demand.currentCount} more people'),
-              style: TextStyle(
-                fontSize: 12,
-                color: isThresholdReached ? Colors.green : Colors.grey.shade600,
-                fontWeight: FontWeight.bold,
-              ),
             ),
 
             const SizedBox(height: 20),
@@ -463,38 +429,26 @@ class _NewDemandCardState extends State<_NewDemandCard> {
             SizedBox(
               width: double.infinity,
               height: 48,
-              child: isThresholdReached
-                  ? ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => BidsComparisonScreen(demand: widget.demand)),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: MigoColors.primaryDark,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      icon: const Icon(Icons.gavel, color: Colors.white, size: 18),
-                      label: Text(isAr ? 'عرض العروض' : 'View Offers', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    )
-                  : ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: MigoColors.primary.withValues(alpha: 0.1),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      onPressed: _isJoining ? null : _joinDemand,
-                      icon: _isJoining 
-                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: MigoColors.primary, strokeWidth: 2))
-                          : const Icon(Icons.group_add, color: MigoColors.primary, size: 18),
-                      label: Text(
-                        _isJoining 
-                            ? (isAr ? 'جاري الانضمام...' : 'Joining...') 
-                            : (isAr ? 'انضم للطلب' : 'Join Demand'),
-                        style: const TextStyle(color: MigoColors.primary, fontWeight: FontWeight.bold),
-                      ),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  // Navigate to Bids Comparison
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BidsComparisonScreen(groupId: groupId, groupData: data),
                     ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: MigoColors.primaryDark,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: const Icon(Icons.gavel, color: Colors.white, size: 18),
+                label: Text(
+                  isAr ? 'Ã˜Â¹Ã˜Â±Ã˜Â¶ Ã˜Â§Ã™â€žÃ˜Â¹Ã˜Â±Ã™Ë†Ã˜Â¶' : 'View Offers', 
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
             ),
           ],
         ),

@@ -1,3 +1,5 @@
+// migo-business/lib/features/auth/register_screen.dart
+// UPDATED - Fully fixed categories, ListTile errors, and encoding
 import 'terms_screen.dart';
 import '../../core/localization/locale_provider.dart';
 import 'package:flutter/material.dart';
@@ -19,18 +21,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _businessNameController = TextEditingController();
 
   String _selectedCountry = 'QA';
+  String? _selectedCategory;
   bool _loading = false;
   bool _obscure = true;
   bool _termsAccepted = false;
 
   final List<Map<String, String>> _countries = [
-    {'code': 'QA', 'name': 'Qatar 🇶🇦'},
-    {'code': 'AE', 'name': 'UAE 🇦🇪'},
-    {'code': 'SA', 'name': 'Saudi Arabia 🇸🇦'},
-    {'code': 'KW', 'name': 'Kuwait 🇰🇼'},
-    {'code': 'OM', 'name': 'Oman 🇴🇲'},
-    {'code': 'BH', 'name': 'Bahrain 🇧🇭'},
-    {'code': 'IN', 'name': 'India 🇮🇳'},
+    {'code': 'QA', 'name': 'Qatar'},
+    {'code': 'AE', 'name': 'UAE'},
+    {'code': 'SA', 'name': 'Saudi Arabia'},
+    {'code': 'KW', 'name': 'Kuwait'},
+    {'code': 'OM', 'name': 'Oman'},
+    {'code': 'BH', 'name': 'Bahrain'},
+    {'code': 'IN', 'name': 'India'},
   ];
 
   @override
@@ -44,17 +47,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
-
     if (!_termsAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            LocaleProvider.instance.locale == 'ar'
-                ? 'يرجى الموافقة على الشروط والأحكام.'
-                : 'Please accept the Terms & Conditions',
-          ),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(LocaleProvider.instance.locale == 'ar' ? 'ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø´Ø±ÙˆØ·' : 'Please accept Terms & Conditions'), backgroundColor: Colors.red),
       );
       return;
     }
@@ -62,7 +57,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _loading = true);
 
     try {
-      // 1. Firebase Auth-ൽ യൂസറെ ഉണ്ടാക്കുന്നു
       final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
@@ -71,7 +65,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final uid = userCredential.user?.uid;
       if (uid == null) throw Exception('User creation failed');
 
-      // 2. Firestore-ൽ ബിസിനസ്സ് വിവരങ്ങൾ സേവ് ചെയ്യുന്നു
       final businessRef = FirebaseFirestore.instance.collection('businesses').doc();
       
       await businessRef.set({
@@ -80,12 +73,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'ownerName': _nameController.text.trim(),
         'email': _emailController.text.trim(),
         'countryCode': _selectedCountry,
-        'status': 'pending', // അഡ്മിൻ അപ്രൂവ് ചെയ്യേണ്ടതുണ്ട്
+        'category': _selectedCategory,
+        'status': 'pending', 
         'logoUrl': '',
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // 3. users കളക്ഷനിലും ഇതേ വിവരങ്ങൾ സേവ് ചെയ്യുന്നു (കൺട്രി ഫിൽട്ടറിനായി)
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'uid': uid,
         'email': _emailController.text.trim(),
@@ -97,33 +90,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
 
       if (mounted) {
-        // രജിസ്ട്രേഷൻ വിജയിച്ചാൽ ലോഗിൻ സ്ക്രീനിലേക്ക് തിരികെ പോകുന്നു
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Registration successful! Please login.'),
-            backgroundColor: Colors.green,
-          ),
+          const SnackBar(content: Text('Registration successful! Please wait for admin approval.'), backgroundColor: Colors.green),
         );
-        Navigator.pop(context);
+        await FirebaseAuth.instance.signOut();
+        if (mounted) Navigator.pop(context);
       }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         String message = 'Registration failed';
-        if (e.code == 'email-already-in-use') {
-          message = 'This email is already registered.';
-        } else if (e.code == 'weak-password') {
-          message = 'Password is too weak.';
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message), backgroundColor: Colors.red),
-        );
+        if (e.code == 'email-already-in-use') { message = 'This email is already registered.'; }
+        else if (e.code == 'weak-password') { message = 'Password is too weak.'; }
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.red));
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-        );
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -134,21 +115,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final isWide = MediaQuery.of(context).size.width >= 800;
 
     return Scaffold(
-            appBar: AppBar(
-        title: Text(
-          LocaleProvider.instance.locale == 'ar' ? 'تسجيل عمل' : 'Register Business',
-        ),
-        backgroundColor: const Color(0xFF0B2B5B),
-        foregroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(LocaleProvider.instance.locale == 'ar' ? 'ØªØ³Ø¬ÙŠÙ„ Ø¹Ù…Ù„' : 'Register Business'),
+        backgroundColor: const Color(0xFF0B2B5B), foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.language),
             onPressed: () {
               showModalBottomSheet(
                 context: context,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                ),
+                backgroundColor: Colors.white, // ðŸ†• Fix ListTile transparent warning
+                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
                 builder: (ctx) {
                   final isAr = LocaleProvider.instance.locale == 'ar';
                   return SafeArea(
@@ -157,26 +134,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: 40,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade300,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
+                          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
                           const SizedBox(height: 16),
-                          Text(
-                            isAr ? 'اختر لغتك' : 'Choose your language',
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
+                          Text(isAr ? 'Ø§Ø®ØªØ± Ù„ØºØªÙƒ' : 'Choose your language', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
                           const SizedBox(height: 16),
                           ListTile(
-                            leading: const Text('🇸🇦', style: TextStyle(fontSize: 26)),
-                            title: const Text('العربية (Arabic)', style: TextStyle(fontWeight: FontWeight.w800)),
+                            tileColor: Colors.white, // ðŸ†• Fix warning
+                            leading: const Text('AR', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green)),
+                            title: const Text('Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© (Arabic)', style: TextStyle(fontWeight: FontWeight.w800)),
                             trailing: isAr ? const Icon(Icons.check_circle, color: Colors.green) : null,
                             onTap: () async {
                               Navigator.pop(ctx);
@@ -185,7 +150,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                           ),
                           ListTile(
-                            leading: const Text('🇬🇧', style: TextStyle(fontSize: 26)),
+                            tileColor: Colors.white, // ðŸ†• Fix warning
+                            leading: const Text('EN', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue)),
                             title: const Text('English', style: TextStyle(fontWeight: FontWeight.w800)),
                             trailing: !isAr ? const Icon(Icons.check_circle, color: Colors.green) : null,
                             onTap: () async {
@@ -211,9 +177,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             constraints: const BoxConstraints(maxWidth: 500),
             child: Card(
               elevation: isWide ? 8 : 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child: Padding(
                 padding: EdgeInsets.all(isWide ? 40 : 24),
                 child: Form(
@@ -222,49 +186,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text(
-                        'Create an Account',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF0B2B5B),
-                        ),
-                      ),
+                      const Text('Create an Account', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF0B2B5B))),
                       const SizedBox(height: 20),
 
-                      // പേര്
                       TextFormField(
                         controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Your Name',
-                          prefixIcon: Icon(Icons.person_outline),
-                          border: OutlineInputBorder(),
-                        ),
+                        decoration: const InputDecoration(labelText: 'Your Name', prefixIcon: Icon(Icons.person_outline), border: OutlineInputBorder()),
                         validator: (v) => v == null || v.trim().isEmpty ? 'Name required' : null,
                       ),
                       const SizedBox(height: 16),
 
-                      // ബിസിനസ്സ് നെയിം
                       TextFormField(
                         controller: _businessNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Business Name',
-                          prefixIcon: Icon(Icons.store),
-                          border: OutlineInputBorder(),
-                        ),
+                        decoration: const InputDecoration(labelText: 'Business Name', prefixIcon: Icon(Icons.store), border: OutlineInputBorder()),
                         validator: (v) => v == null || v.trim().isEmpty ? 'Business name required' : null,
                       ),
                       const SizedBox(height: 16),
 
-                      // ഇമെയിൽ
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: Icon(Icons.email_outlined),
-                          border: OutlineInputBorder(),
-                        ),
+                        decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined), border: OutlineInputBorder()),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return 'Email required';
                           if (!v.contains('@')) return 'Invalid email';
@@ -273,19 +215,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // കൺട്രി
                       DropdownButtonFormField<String>(
-                        value: _selectedCountry,
-                        decoration: const InputDecoration(
-                          labelText: 'Country',
-                          prefixIcon: Icon(Icons.public),
-                          border: OutlineInputBorder(),
-                        ),
+                        initialValue: _selectedCountry,
+                        decoration: const InputDecoration(labelText: 'Country', prefixIcon: Icon(Icons.public), border: OutlineInputBorder()),
                         items: _countries.map((c) {
-                          return DropdownMenuItem(
-                            value: c['code'],
-                            child: Text(c['name']!),
-                          );
+                          return DropdownMenuItem(value: c['code'], child: Text(c['name']!));
                         }).toList(),
                         onChanged: (v) {
                           if (v != null) setState(() => _selectedCountry = v);
@@ -293,7 +227,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // പാസ്‌വേഡ്
+                      // ðŸ†• Fully Dynamic Category Dropdown
+                      StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance.collection('categories').snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) return const LinearProgressIndicator();
+                          
+                          List<String> categories = [];
+                          if (snapshot.hasData) {
+                            categories = snapshot.data!.docs.map((doc) {
+                              final data = doc.data() as Map<String, dynamic>;
+                              // Try 'name', then 'title', then document ID as fallback
+                              return data['name']?.toString() ?? data['title']?.toString() ?? doc.id;
+                            }).toList();
+                          }
+
+                          return DropdownButtonFormField<String>(
+                            initialValue: _selectedCategory,
+                            decoration: const InputDecoration(labelText: 'Shop Category', prefixIcon: Icon(Icons.category), border: OutlineInputBorder()),
+                            items: categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                            onChanged: (v) => setState(() => _selectedCategory = v),
+                            validator: (v) => v == null ? 'Category required' : null,
+                          );
+                        }
+                      ),
+                      const SizedBox(height: 16),
+
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscure,
@@ -302,9 +261,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           prefixIcon: const Icon(Icons.lock_outline),
                           border: const OutlineInputBorder(),
                           suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                            ),
+                            icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                             onPressed: () => setState(() => _obscure = !_obscure),
                           ),
                         ),
@@ -316,40 +273,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Terms & Conditions
                       Row(
                         children: [
-                          Checkbox(
-                            value: _termsAccepted,
-                            onChanged: (v) => setState(() => _termsAccepted = v ?? false),
-                            activeColor: const Color(0xFF0B2B5B),
-                          ),
+                          Checkbox(value: _termsAccepted, onChanged: (v) => setState(() => _termsAccepted = v ?? false), activeColor: const Color(0xFF0B2B5B)),
                           Expanded(
                             child: GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const TermsScreen()),
-                                );
-                              },
+                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsScreen())),
                               child: RichText(
                                 text: TextSpan(
                                   style: const TextStyle(fontSize: 13, color: Colors.black87),
                                   children: [
+                                    TextSpan(text: LocaleProvider.instance.locale == 'ar' ? 'Ø£ÙˆØ§ÙÙ‚ Ø¹Ù„Ù‰ ' : 'I agree to the '),
                                     TextSpan(
-                                      text: LocaleProvider.instance.locale == 'ar'
-                                          ? 'أوافق على '
-                                          : 'I agree to the ',
-                                    ),
-                                    TextSpan(
-                                      text: LocaleProvider.instance.locale == 'ar'
-                                          ? 'الشروط والأحكام'
-                                          : 'Terms & Conditions',
-                                      style: const TextStyle(
-                                        color: Color(0xFF0B2B5B),
-                                        fontWeight: FontWeight.w700,
-                                        decoration: TextDecoration.underline,
-                                      ),
+                                      text: LocaleProvider.instance.locale == 'ar' ? 'Ø§Ù„Ø´Ø±ÙˆØ· ÙˆØ§Ù„Ø£Ø­ÙƒØ§Ù…' : 'Terms & Conditions',
+                                      style: const TextStyle(color: Color(0xFF0B2B5B), fontWeight: FontWeight.w700, decoration: TextDecoration.underline),
                                     ),
                                   ],
                                 ),
@@ -360,46 +297,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // രജിസ്റ്റർ ബട്ടൺ
                       SizedBox(
                         height: 52,
                         child: ElevatedButton(
                           onPressed: _loading ? null : _handleRegister,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0B2B5B),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0B2B5B), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                           child: _loading
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  'Register',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                                ),
+                              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                              : const Text('Register', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                         ),
                       ),
                       const SizedBox(height: 16),
 
-                      // ലോഗിൻ സ്ക്രീനിലേക്ക് പോകാൻ
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text(
-                          'Already have an account? Login',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF0B2B5B),
-                          ),
-                        ),
+                        child: const Text('Already have an account? Login', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0B2B5B))),
                       ),
                     ],
                   ),

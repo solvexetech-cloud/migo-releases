@@ -14,7 +14,7 @@ import '../../services/cloudinary_service.dart';
 import '../../services/offer_service.dart';
 import '../../services/translation_service.dart';
 
-/// PHASE I — Advanced Create/Edit Offer with Reserve & Country
+/// PHASE I â€” Advanced Create/Edit Offer with Reserve & Country
 class CreateOfferScreen extends StatefulWidget {
   const CreateOfferScreen({
     super.key,
@@ -51,7 +51,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
   // Group Deal Controllers
   final _minGroupCtrl = TextEditingController(text: '5');
   final _maxGroupCtrl = TextEditingController();
-  // 🆕 Plan A & Plan B controllers
+  // ðŸ†• Plan A & Plan B controllers
   final _requiredClaimsCtrl = TextEditingController(text: '10');
   final _maxSlotsCtrl = TextEditingController(text: '13');
   final _groupTimerCtrl = TextEditingController(text: '48');
@@ -68,7 +68,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
   int _durationDays = 7;
   bool _isReservable = false;
   String _countryCode = 'QA';
-  bool _lockOnSlotsFull = false; // 🆕 Plan B
+  bool _lockOnSlotsFull = false; // ðŸ†• Plan B
 
   bool _loading = false;
   bool _uploadingImage = false;
@@ -92,13 +92,13 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
   ];
 
   static const _countries = [
-    {'code': 'QA', 'name': 'Qatar 🇶🇦'},
-    {'code': 'AE', 'name': 'UAE 🇦🇪'},
-    {'code': 'SA', 'name': 'Saudi Arabia 🇸🇦'},
-    {'code': 'KW', 'name': 'Kuwait 🇰🇼'},
-    {'code': 'OM', 'name': 'Oman 🇴🇲'},
-    {'code': 'BH', 'name': 'Bahrain 🇧🇭'},
-    {'code': 'IN', 'name': 'India 🇮🇳'},
+    {'code': 'QA', 'name': 'Qatar ðŸ‡¶ðŸ‡¦'},
+    {'code': 'AE', 'name': 'UAE ðŸ‡¦ðŸ‡ª'},
+    {'code': 'SA', 'name': 'Saudi Arabia ðŸ‡¸ðŸ‡¦'},
+    {'code': 'KW', 'name': 'Kuwait ðŸ‡°ðŸ‡¼'},
+    {'code': 'OM', 'name': 'Oman ðŸ‡´ðŸ‡²'},
+    {'code': 'BH', 'name': 'Bahrain ðŸ‡§ðŸ‡­'},
+    {'code': 'IN', 'name': 'India ðŸ‡®ðŸ‡³'},
   ];
 
   @override
@@ -117,7 +117,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
           : null;
       _type = o.type.id;
       if (o.category.isNotEmpty) _category = o.category;
-      // 🆕 Plan A/B fields load
+      // ðŸ†• Plan A/B fields load
       if (o.requiredClaims != null) {
         _requiredClaimsCtrl.text = o.requiredClaims.toString();
       }
@@ -136,7 +136,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
 
     Future<void> _loadCategories() async {
     try {
-      // 🆕 orderBy ഒഴിവാക്കി, ലഭിച്ചതിനെ ആപ്പിൽ വെച്ച് സോർട്ട് ചെയ്യുന്നു
+      // ðŸ†• orderBy à´’à´´à´¿à´µà´¾à´•àµà´•à´¿, à´²à´­à´¿à´šàµà´šà´¤à´¿à´¨àµ† à´†à´ªàµà´ªà´¿àµ½ à´µàµ†à´šàµà´šàµ à´¸àµ‹àµ¼à´Ÿàµà´Ÿàµ à´šàµ†à´¯àµà´¯àµà´¨àµà´¨àµ
       final snap = await FirebaseFirestore.instance
           .collection('categories')
           .where('active', isEqualTo: true)
@@ -151,7 +151,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
           };
         }).toList();
 
-        // പേരിന്റെ അക്ഷരമാല ക്രമത്തിൽ സോർട്ട് ചെയ്യുന്നു (Order ഫീൽഡ് ഇല്ലെങ്കിൽ പോലും വർക്ക് ചെയ്യും)
+        // à´ªàµ‡à´°à´¿à´¨àµà´±àµ† à´…à´•àµà´·à´°à´®à´¾à´² à´•àµà´°à´®à´¤àµà´¤à´¿àµ½ à´¸àµ‹àµ¼à´Ÿàµà´Ÿàµ à´šàµ†à´¯àµà´¯àµà´¨àµà´¨àµ (Order à´«àµ€àµ½à´¡àµ à´‡à´²àµà´²àµ†à´™àµà´•à´¿àµ½ à´ªàµ‹à´²àµà´‚ à´µàµ¼à´•àµà´•àµ à´šàµ†à´¯àµà´¯àµà´‚)
         loadedCats.sort((a, b) => (a['label'] ?? '').compareTo(b['label'] ?? ''));
 
         setState(() {
@@ -164,7 +164,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
         });
       }
     } catch (e) {
-      debugPrint('Error loading categories: $e'); // 🆕 എറർ കൺസോളിൽ കാണാൻ
+      debugPrint('Error loading categories: $e'); // ðŸ†• à´Žà´±àµ¼ à´•àµºà´¸àµ‹à´³à´¿àµ½ à´•à´¾à´£à´¾àµ»
       if (mounted) setState(() => _loadingCategories = false);
     }
   }
@@ -269,7 +269,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
           if (!mounted) return;
           setState(() {
             _error = LocaleProvider.instance.locale == 'ar'
-                ? 'فشل تحميل الصورة. حاول مرة أخرى.'
+                ? 'ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„ØµÙˆØ±Ø©. Ø­Ø§ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.'
                 : 'Failed to upload image. Try again.';
             _loading = false;
           });
@@ -308,7 +308,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
           originalPrice: double.tryParse(_originalPriceCtrl.text.trim()) ?? 0,
           offerPrice: double.tryParse(_offerPriceCtrl.text.trim()) ?? 0,
           endDate: DateTime.now().add(Duration(days: _durationDays)),
-          // 🆕 Plan A/B fields
+          // ðŸ†• Plan A/B fields
           requiredClaims: _type == 'group_all_or_nothing'
               ? int.tryParse(_requiredClaimsCtrl.text)
               : null,
@@ -352,7 +352,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
           countryCode: _countryCode,
           whatsappNumber: _whatsappCtrl.text.trim(),
           orderLink: _orderLinkCtrl.text.trim(),
-          // 🆕 Plan A/B fields
+          // ðŸ†• Plan A/B fields
           requiredClaims: _type == 'group_all_or_nothing'
               ? int.tryParse(_requiredClaimsCtrl.text)
               : null,
@@ -377,9 +377,9 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
               _type == 'group_progressive' ? _lockOnSlotsFull : null,
         );
 
-        // 🆕 Plan A / Plan B ഫീൽഡുകൾ
-        // (OfferService-ൽ createOffer-ലേക്ക് നേരിട്ട് പോകുന്നു,
-        //  group_deals collection ആവശ്യമില്ല)
+        // ðŸ†• Plan A / Plan B à´«àµ€àµ½à´¡àµà´•àµ¾
+        // (OfferService-àµ½ createOffer-à´²àµ‡à´•àµà´•àµ à´¨àµ‡à´°à´¿à´Ÿàµà´Ÿàµ à´ªàµ‹à´•àµà´¨àµà´¨àµ,
+        //  group_deals collection à´†à´µà´¶àµà´¯à´®à´¿à´²àµà´²)
       }
 
       if (!mounted) return;
@@ -389,9 +389,9 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
           SnackBar(
             content: Text(
               isEdit
-                  ? (LocaleProvider.instance.locale == 'ar' ? 'تم تحديث العرض!' : 'Offer updated!')
+                  ? (LocaleProvider.instance.locale == 'ar' ? 'ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¹Ø±Ø¶!' : 'Offer updated!')
                   : (LocaleProvider.instance.locale == 'ar'
-                      ? 'تم إنشاء العرض! في انتظار موافقة المسؤول.'
+                      ? 'ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø¹Ø±Ø¶! ÙÙŠ Ø§Ù†ØªØ¸Ø§Ø± Ù…ÙˆØ§ÙÙ‚Ø© Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„.'
                       : 'Offer created! Waiting for admin approval.'),
             ),
             backgroundColor: MigoColors.success,
@@ -428,8 +428,8 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
             appBar: AppBar(
               title: Text(
                 isEdit
-                    ? (isAr ? 'تعديل العرض' : 'Edit Offer')
-                    : (isAr ? 'إنشاء عرض' : 'Create Offer'),
+                    ? (isAr ? 'ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ø¹Ø±Ø¶' : 'Edit Offer')
+                    : (isAr ? 'Ø¥Ù†Ø´Ø§Ø¡ Ø¹Ø±Ø¶' : 'Create Offer'),
               ),
             ),
             body: SafeArea(
@@ -450,12 +450,12 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                             controller: _titleCtrl,
                             onChanged: (_) => setState(() {}),
                             decoration: InputDecoration(
-                              labelText: isAr ? 'عنوان العرض' : 'Offer title',
-                              hintText: isAr ? 'مثال: عرض وجبة العائلة' : 'e.g. Family Meal Deal',
+                              labelText: isAr ? 'Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø¹Ø±Ø¶' : 'Offer title',
+                              hintText: isAr ? 'Ù…Ø«Ø§Ù„: Ø¹Ø±Ø¶ ÙˆØ¬Ø¨Ø© Ø§Ù„Ø¹Ø§Ø¦Ù„Ø©' : 'e.g. Family Meal Deal',
                               border: const OutlineInputBorder(),
                             ),
                             validator: (v) => v == null || v.trim().isEmpty
-                                ? (isAr ? 'مطلوب' : 'Required')
+                                ? (isAr ? 'Ù…Ø·Ù„ÙˆØ¨' : 'Required')
                                 : null,
                           ),
                           const SizedBox(height: 16),
@@ -464,23 +464,23 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                             controller: _descCtrl,
                             maxLines: 3,
                             decoration: InputDecoration(
-                              labelText: isAr ? 'الوصف' : 'Description',
+                              labelText: isAr ? 'Ø§Ù„ÙˆØµÙ' : 'Description',
                               border: const OutlineInputBorder(),
                             ),
                             validator: (v) => v == null || v.trim().isEmpty
-                                ? (isAr ? 'مطلوب' : 'Required')
+                                ? (isAr ? 'Ù…Ø·Ù„ÙˆØ¨' : 'Required')
                                 : null,
                           ),
                           const SizedBox(height: 16),
 
-                          // 🆕 Dynamic Category Dropdown
+                          // ðŸ†• Dynamic Category Dropdown
                           _loadingCategories
                               ? const Center(child: CircularProgressIndicator())
                               : DropdownButtonFormField<String>(
                                   initialValue: _category,
-                                  isExpanded: true, // Overflow ഫിക്സ്
+                                  isExpanded: true, // Overflow à´«à´¿à´•àµà´¸àµ
                                   decoration: InputDecoration(
-                                    labelText: isAr ? 'الفئة' : 'Category',
+                                    labelText: isAr ? 'Ø§Ù„ÙØ¦Ø©' : 'Category',
                                     border: const OutlineInputBorder(),
                                   ),
                                   items: _dynamicCategories
@@ -498,9 +498,9 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
 
                           DropdownButtonFormField<String>(
                             initialValue: _countryCode,
-                            isExpanded: true, // Overflow ഫിക്സ്
+                            isExpanded: true, // Overflow à´«à´¿à´•àµà´¸àµ
                             decoration: InputDecoration(
-                              labelText: isAr ? 'الدولة' : 'Country',
+                              labelText: isAr ? 'Ø§Ù„Ø¯ÙˆÙ„Ø©' : 'Country',
                               border: const OutlineInputBorder(),
                             ),
                             items: _countries
@@ -515,9 +515,9 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
 
                           DropdownButtonFormField<String>(
                             initialValue: _type,
-                            isExpanded: true, // Overflow ഫിക്സ്
+                            isExpanded: true, // Overflow à´«à´¿à´•àµà´¸àµ
                             decoration: InputDecoration(
-                              labelText: isAr ? 'نوع العرض' : 'Offer type',
+                              labelText: isAr ? 'Ù†ÙˆØ¹ Ø§Ù„Ø¹Ø±Ø¶' : 'Offer type',
                               border: const OutlineInputBorder(),
                             ),
                             items: _offerTypes
@@ -529,7 +529,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                             onChanged: (v) => setState(() => _type = v ?? 'standard'),
                           ),
                           
-                                                    // 🆕 PLAN A — All-or-Nothing
+                                                    // ðŸ†• PLAN A â€” All-or-Nothing
                           if (_type == 'group_all_or_nothing') ...[
                             const SizedBox(height: 16),
                             Container(
@@ -544,7 +544,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                 children: [
                                   Text(
                                     isAr
-                                        ? 'الخطة أ: كل شيء أو لا شيء'
+                                        ? 'Ø§Ù„Ø®Ø·Ø© Ø£: ÙƒÙ„ Ø´ÙŠØ¡ Ø£Ùˆ Ù„Ø§ Ø´ÙŠØ¡'
                                         : 'Plan A: All-or-Nothing Setup',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
@@ -560,7 +560,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                           keyboardType: TextInputType.number,
                                           decoration: InputDecoration(
                                             labelText: isAr
-                                                ? 'المطالبات المطلوبة (N)'
+                                                ? 'Ø§Ù„Ù…Ø·Ø§Ù„Ø¨Ø§Øª Ø§Ù„Ù…Ø·Ù„ÙˆØ¨Ø© (N)'
                                                 : 'Required Claims (N)',
                                             border:
                                                 const OutlineInputBorder(),
@@ -575,7 +575,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                           keyboardType: TextInputType.number,
                                           decoration: InputDecoration(
                                             labelText: isAr
-                                                ? 'الحد الأقصى للفتحات'
+                                                ? 'Ø§Ù„Ø­Ø¯ Ø§Ù„Ø£Ù‚ØµÙ‰ Ù„Ù„ÙØªØ­Ø§Øª'
                                                 : 'Max Slots',
                                             border:
                                                 const OutlineInputBorder(),
@@ -594,7 +594,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                           keyboardType: TextInputType.number,
                                           decoration: InputDecoration(
                                             labelText: isAr
-                                                ? 'مؤقت العرض (ساعات)'
+                                                ? 'Ù…Ø¤Ù‚Øª Ø§Ù„Ø¹Ø±Ø¶ (Ø³Ø§Ø¹Ø§Øª)'
                                                 : 'Deal Timer (hours)',
                                             border:
                                                 const OutlineInputBorder(),
@@ -609,7 +609,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                           keyboardType: TextInputType.number,
                                           decoration: InputDecoration(
                                             labelText: isAr
-                                                ? 'نافذة الاسترداد (ساعات)'
+                                                ? 'Ù†Ø§ÙØ°Ø© Ø§Ù„Ø§Ø³ØªØ±Ø¯Ø§Ø¯ (Ø³Ø§Ø¹Ø§Øª)'
                                                 : 'Redemption (hours)',
                                             border:
                                                 const OutlineInputBorder(),
@@ -624,7 +624,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                             ),
                           ],
 
-                          // 🆕 PLAN B — Progressive
+                          // ðŸ†• PLAN B â€” Progressive
                           if (_type == 'group_progressive') ...[
                             const SizedBox(height: 16),
                             Container(
@@ -640,7 +640,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                 children: [
                                   Text(
                                     isAr
-                                        ? 'الخطة ب: التسعير التدريجي'
+                                        ? 'Ø§Ù„Ø®Ø·Ø© Ø¨: Ø§Ù„ØªØ³Ø¹ÙŠØ± Ø§Ù„ØªØ¯Ø±ÙŠØ¬ÙŠ'
                                         : 'Plan B: Progressive Setup',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
@@ -657,7 +657,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                               .numberWithOptions(decimal: true),
                                           decoration: InputDecoration(
                                             labelText: isAr
-                                                ? 'السعر الأدنى'
+                                                ? 'Ø§Ù„Ø³Ø¹Ø± Ø§Ù„Ø£Ø¯Ù†Ù‰'
                                                 : 'Floor Price',
                                             border:
                                                 const OutlineInputBorder(),
@@ -673,7 +673,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                               .numberWithOptions(decimal: true),
                                           decoration: InputDecoration(
                                             labelText: isAr
-                                                ? 'خطوة انخفاض السعر'
+                                                ? 'Ø®Ø·ÙˆØ© Ø§Ù†Ø®ÙØ§Ø¶ Ø§Ù„Ø³Ø¹Ø±'
                                                 : 'Price Drop Step',
                                             border:
                                                 const OutlineInputBorder(),
@@ -692,7 +692,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                           keyboardType: TextInputType.number,
                                           decoration: InputDecoration(
                                             labelText: isAr
-                                                ? 'مؤقت المجموعة (ساعات)'
+                                                ? 'Ù…Ø¤Ù‚Øª Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø© (Ø³Ø§Ø¹Ø§Øª)'
                                                 : 'Group Timer (hours)',
                                             border:
                                                 const OutlineInputBorder(),
@@ -707,7 +707,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                           keyboardType: TextInputType.number,
                                           decoration: InputDecoration(
                                             labelText: isAr
-                                                ? 'نافذة الاسترداد (ساعات)'
+                                                ? 'Ù†Ø§ÙØ°Ø© Ø§Ù„Ø§Ø³ØªØ±Ø¯Ø§Ø¯ (Ø³Ø§Ø¹Ø§Øª)'
                                                 : 'Redemption (hours)',
                                             border:
                                                 const OutlineInputBorder(),
@@ -723,7 +723,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                       Expanded(
                                         child: Text(
                                           isAr
-                                              ? 'قفل عند امتلاء الفتحات؟'
+                                              ? 'Ù‚ÙÙ„ Ø¹Ù†Ø¯ Ø§Ù…ØªÙ„Ø§Ø¡ Ø§Ù„ÙØªØ­Ø§ØªØŸ'
                                               : 'Lock when slots full?',
                                         ),
                                       ),
@@ -731,7 +731,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                         value: _lockOnSlotsFull,
                                         onChanged: (v) => setState(
                                             () => _lockOnSlotsFull = v),
-                                        activeColor: MigoColors.primary,
+                                        activeThumbColor: MigoColors.primary,
                                       ),
                                     ],
                                   ),
@@ -749,12 +749,12 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                   onChanged: (_) => setState(() {}),
                                   decoration: InputDecoration(
-                                    labelText: isAr ? 'السعر الأصلي' : 'Original price',
+                                    labelText: isAr ? 'Ø§Ù„Ø³Ø¹Ø± Ø§Ù„Ø£ØµÙ„ÙŠ' : 'Original price',
                                     border: const OutlineInputBorder(),
                                   ),
                                   validator: (v) {
-                                    if (v == null || v.isEmpty) return isAr ? 'مطلوب' : 'Required';
-                                    if (double.tryParse(v) == null) return isAr ? 'غير صالح' : 'Invalid';
+                                    if (v == null || v.isEmpty) return isAr ? 'Ù…Ø·Ù„ÙˆØ¨' : 'Required';
+                                    if (double.tryParse(v) == null) return isAr ? 'ØºÙŠØ± ØµØ§Ù„Ø­' : 'Invalid';
                                     return null;
                                   },
                                 ),
@@ -766,16 +766,16 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                   onChanged: (_) => setState(() {}),
                                   decoration: InputDecoration(
-                                    labelText: isAr ? 'سعر ميجو' : 'MIGO price',
+                                    labelText: isAr ? 'Ø³Ø¹Ø± Ù…ÙŠØ¬Ùˆ' : 'MIGO price',
                                     border: const OutlineInputBorder(),
                                   ),
                                   validator: (v) {
-                                    if (v == null || v.isEmpty) return isAr ? 'مطلوب' : 'Required';
+                                    if (v == null || v.isEmpty) return isAr ? 'Ù…Ø·Ù„ÙˆØ¨' : 'Required';
                                     final n = double.tryParse(v);
-                                    if (n == null) return isAr ? 'غير صالح' : 'Invalid';
+                                    if (n == null) return isAr ? 'ØºÙŠØ± ØµØ§Ù„Ø­' : 'Invalid';
                                     final orig = double.tryParse(_originalPriceCtrl.text);
                                     if (orig != null && n >= orig) {
-                                      return isAr ? 'يجب أن يكون أقل من الأصلي' : 'Must be < original';
+                                      return isAr ? 'ÙŠØ¬Ø¨ Ø£Ù† ÙŠÙƒÙˆÙ† Ø£Ù‚Ù„ Ù…Ù† Ø§Ù„Ø£ØµÙ„ÙŠ' : 'Must be < original';
                                     }
                                     return null;
                                   },
@@ -799,7 +799,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                   Expanded(
                                     child: Text(
                                       isAr
-                                          ? 'وفر العميل QAR ${previewSavings.toStringAsFixed(0)}'
+                                          ? 'ÙˆÙØ± Ø§Ù„Ø¹Ù…ÙŠÙ„ QAR ${previewSavings.toStringAsFixed(0)}'
                                           : 'Customer saves QAR ${previewSavings.toStringAsFixed(0)}',
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w700,
@@ -820,15 +820,15 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                             initialValue: _durationDays,
                             isExpanded: true,
                             decoration: InputDecoration(
-                              labelText: isAr ? 'المدة' : 'Duration',
+                              labelText: isAr ? 'Ø§Ù„Ù…Ø¯Ø©' : 'Duration',
                               border: const OutlineInputBorder(),
                             ),
                             items: [
-                              DropdownMenuItem(value: 1, child: Text(isAr ? 'يوم واحد' : '1 day')),
-                              DropdownMenuItem(value: 3, child: Text(isAr ? '3 أيام' : '3 days')),
-                              DropdownMenuItem(value: 7, child: Text(isAr ? '7 أيام' : '7 days')),
-                              DropdownMenuItem(value: 14, child: Text(isAr ? '14 يومًا' : '14 days')),
-                              DropdownMenuItem(value: 30, child: Text(isAr ? '30 يومًا' : '30 days')),
+                              DropdownMenuItem(value: 1, child: Text(isAr ? 'ÙŠÙˆÙ… ÙˆØ§Ø­Ø¯' : '1 day')),
+                              DropdownMenuItem(value: 3, child: Text(isAr ? '3 Ø£ÙŠØ§Ù…' : '3 days')),
+                              DropdownMenuItem(value: 7, child: Text(isAr ? '7 Ø£ÙŠØ§Ù…' : '7 days')),
+                              DropdownMenuItem(value: 14, child: Text(isAr ? '14 ÙŠÙˆÙ…Ù‹Ø§' : '14 days')),
+                              DropdownMenuItem(value: 30, child: Text(isAr ? '30 ÙŠÙˆÙ…Ù‹Ø§' : '30 days')),
                             ],
                             onChanged: (v) => setState(() => _durationDays = v ?? 7),
                           ),
@@ -838,7 +838,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                             controller: _dailyLimitCtrl,
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
-                              labelText: isAr ? 'الحد اليومي (اختياري)' : 'Daily limit (optional)',
+                              labelText: isAr ? 'Ø§Ù„Ø­Ø¯ Ø§Ù„ÙŠÙˆÙ…ÙŠ (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)' : 'Daily limit (optional)',
                               border: const OutlineInputBorder(),
                             ),
                           ),
@@ -848,7 +848,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                             controller: _termsCtrl,
                             maxLines: 2,
                             decoration: InputDecoration(
-                              labelText: isAr ? 'الشروط (اختياري)' : 'Terms (optional)',
+                              labelText: isAr ? 'Ø§Ù„Ø´Ø±ÙˆØ· (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)' : 'Terms (optional)',
                               border: const OutlineInputBorder(),
                             ),
                           ),
@@ -858,7 +858,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                             controller: _whatsappCtrl,
                             keyboardType: TextInputType.phone,
                             decoration: InputDecoration(
-                              labelText: isAr ? 'رقم الواتساب (اختياري)' : 'WhatsApp Number (Optional)',
+                              labelText: isAr ? 'Ø±Ù‚Ù… Ø§Ù„ÙˆØ§ØªØ³Ø§Ø¨ (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)' : 'WhatsApp Number (Optional)',
                               hintText: '+974 XXXX XXXX',
                               border: const OutlineInputBorder(),
                               prefixIcon: const Icon(Icons.chat, color: Colors.green),
@@ -869,7 +869,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                             controller: _orderLinkCtrl,
                             keyboardType: TextInputType.url,
                             decoration: InputDecoration(
-                              labelText: isAr ? 'رابط الطلب عبر الإنترنت (اختياري)' : 'Online Order Link (Optional)',
+                              labelText: isAr ? 'Ø±Ø§Ø¨Ø· Ø§Ù„Ø·Ù„Ø¨ Ø¹Ø¨Ø± Ø§Ù„Ø¥Ù†ØªØ±Ù†Øª (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)' : 'Online Order Link (Optional)',
                               hintText: 'https://yourwebsite.com',
                               border: const OutlineInputBorder(),
                               prefixIcon: const Icon(Icons.shopping_cart, color: Colors.orange),
@@ -891,19 +891,19 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      isAr ? 'السماح بالحجوزات؟' : 'Allow Reservations?',
+                                      isAr ? 'Ø§Ù„Ø³Ù…Ø§Ø­ Ø¨Ø§Ù„Ø­Ø¬ÙˆØ²Ø§ØªØŸ' : 'Allow Reservations?',
                                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                                     ),
                                     Switch(
                                       value: _isReservable,
                                       onChanged: (v) => setState(() => _isReservable = v),
-                                      activeColor: MigoColors.primary,
+                                      activeThumbColor: MigoColors.primary,
                                     ),
                                   ],
                                 ),
                                 Text(
                                   isAr
-                                      ? 'يمكن للعملاء حجز هذا العرض مسبقًا.'
+                                      ? 'ÙŠÙ…ÙƒÙ† Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡ Ø­Ø¬Ø² Ù‡Ø°Ø§ Ø§Ù„Ø¹Ø±Ø¶ Ù…Ø³Ø¨Ù‚Ù‹Ø§.'
                                       : 'Customers can book this offer in advance.',
                                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                                 ),
@@ -916,7 +916,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                           controller: _totalSlotsCtrl,
                                           keyboardType: TextInputType.number,
                                           decoration: InputDecoration(
-                                            labelText: isAr ? 'إجمالي الفتحات' : 'Total Slots',
+                                            labelText: isAr ? 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„ÙØªØ­Ø§Øª' : 'Total Slots',
                                             border: const OutlineInputBorder(),
                                             isDense: true,
                                           ),
@@ -928,7 +928,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                           controller: _maxPerCustomerCtrl,
                                           keyboardType: TextInputType.number,
                                           decoration: InputDecoration(
-                                            labelText: isAr ? 'الحد الأقصى للعميل' : 'Max per Customer',
+                                            labelText: isAr ? 'Ø§Ù„Ø­Ø¯ Ø§Ù„Ø£Ù‚ØµÙ‰ Ù„Ù„Ø¹Ù…ÙŠÙ„' : 'Max per Customer',
                                             border: const OutlineInputBorder(),
                                             isDense: true,
                                           ),
@@ -979,7 +979,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                         if (_uploadingImage) ...[
                                           const SizedBox(width: 12),
                                           Text(
-                                            isAr ? 'جارٍ تحميل الصورة…' : 'Uploading image…',
+                                            isAr ? 'Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø§Ù„ØµÙˆØ±Ø©â€¦' : 'Uploading imageâ€¦',
                                             style: const TextStyle(
                                               color: Colors.white,
                                               fontWeight: FontWeight.w700,
@@ -990,8 +990,8 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                                     )
                                   : Text(
                                       isEdit
-                                          ? (isAr ? 'تحديث العرض' : 'Update Offer')
-                                          : (isAr ? 'إنشاء عرض' : 'Create Offer'),
+                                          ? (isAr ? 'ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¹Ø±Ø¶' : 'Update Offer')
+                                          : (isAr ? 'Ø¥Ù†Ø´Ø§Ø¡ Ø¹Ø±Ø¶' : 'Create Offer'),
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,
@@ -1002,7 +1002,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                           const SizedBox(height: 8),
                           Text(
                             isAr
-                                ? 'تبدأ العروض الجديدة قيد الانتظار وتصبح نشطة بعد موافقة ميجو.'
+                                ? 'ØªØ¨Ø¯Ø£ Ø§Ù„Ø¹Ø±ÙˆØ¶ Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø© Ù‚ÙŠØ¯ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø± ÙˆØªØµØ¨Ø­ Ù†Ø´Ø·Ø© Ø¨Ø¹Ø¯ Ù…ÙˆØ§ÙÙ‚Ø© Ù…ÙŠØ¬Ùˆ.'
                                 : 'New offers start as pending and go live once approved by MIGO.',
                             textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 12, color: MigoColors.textSecondary),
@@ -1079,7 +1079,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      isAr ? 'أضف صورة لعرضك' : 'Add a photo to your offer',
+                      isAr ? 'Ø£Ø¶Ù ØµÙˆØ±Ø© Ù„Ø¹Ø±Ø¶Ùƒ' : 'Add a photo to your offer',
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -1089,8 +1089,8 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                     const SizedBox(height: 4),
                     Text(
                       isAr
-                          ? 'الشركات التي لديها صور تحصل على مطالبات أكثر بـ 3 مرات'
-                          : 'Businesses with photos get 3× more claims',
+                          ? 'Ø§Ù„Ø´Ø±ÙƒØ§Øª Ø§Ù„ØªÙŠ Ù„Ø¯ÙŠÙ‡Ø§ ØµÙˆØ± ØªØ­ØµÙ„ Ø¹Ù„Ù‰ Ù…Ø·Ø§Ù„Ø¨Ø§Øª Ø£ÙƒØ«Ø± Ø¨Ù€ 3 Ù…Ø±Ø§Øª'
+                          : 'Businesses with photos get 3Ã— more claims',
                       style: const TextStyle(
                         fontSize: 11,
                         color: MigoColors.textSecondary,
@@ -1110,8 +1110,8 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                     icon: const Icon(Icons.photo_library_outlined, size: 16),
                     label: Text(
                       hasImage
-                          ? (isAr ? 'تغيير' : 'Change')
-                          : (isAr ? 'المعرض' : 'Gallery'),
+                          ? (isAr ? 'ØªØºÙŠÙŠØ±' : 'Change')
+                          : (isAr ? 'Ø§Ù„Ù…Ø¹Ø±Ø¶' : 'Gallery'),
                       style: const TextStyle(fontSize: 13),
                     ),
                     style: OutlinedButton.styleFrom(
@@ -1125,7 +1125,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                     onPressed: () => _pickImage(ImageSource.camera),
                     icon: const Icon(Icons.camera_alt_outlined, size: 16),
                     label: Text(
-                      isAr ? 'الكاميرا' : 'Camera',
+                      isAr ? 'Ø§Ù„ÙƒØ§Ù…ÙŠØ±Ø§' : 'Camera',
                       style: const TextStyle(fontSize: 13),
                     ),
                     style: OutlinedButton.styleFrom(
@@ -1141,7 +1141,7 @@ class _CreateOfferScreenState extends State<CreateOfferScreen> {
                       Icons.delete_outline,
                       color: MigoColors.error,
                     ),
-                    tooltip: isAr ? 'إزالة الصورة' : 'Remove image',
+                    tooltip: isAr ? 'Ø¥Ø²Ø§Ù„Ø© Ø§Ù„ØµÙˆØ±Ø©' : 'Remove image',
                   ),
                 ],
               ],

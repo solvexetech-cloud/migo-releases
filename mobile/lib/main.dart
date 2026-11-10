@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/config/app_config.dart';
 import 'core/localization/locale_provider.dart';
+import 'core/localization/app_localizations.dart'; // പുതിയത് ചേർത്തു
 import 'core/theme/migo_theme.dart';
 import 'features/auth/welcome_screen.dart';
 import 'features/main/main_shell.dart';
@@ -112,6 +113,12 @@ class MigoApp extends StatelessWidget {
           darkTheme: MigoTheme.dark,
           themeMode: ThemeMode.system,
           locale: Locale(locale),
+          localizationsDelegates: const [
+            AppLocalizations.delegate, // പുതിയത് ചേർത്തു
+            DefaultMaterialLocalizations.delegate,
+            DefaultWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales, // പുതിയത് ചേർത്തു
           builder: (context, child) {
             return Directionality(
               textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,

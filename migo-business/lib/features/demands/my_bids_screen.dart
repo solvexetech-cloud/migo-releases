@@ -1,10 +1,10 @@
+// migo-business/lib/features/demands/my_bids_screen.dart
+// FIXED - Always shows Edit button
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 import '../../core/localization/locale_provider.dart';
-import '../../models/demand_bid_model.dart';
-import '../../services/demand_service.dart';
+import '../../core/localization/app_localizations.dart';
 
 class MyBidsScreen extends StatelessWidget {
   const MyBidsScreen({super.key});
@@ -14,61 +14,35 @@ class MyBidsScreen extends StatelessWidget {
     return ListenableBuilder(
       listenable: LocaleProvider.instance,
       builder: (context, _) {
+        final t = AppLocalizations.of(context)!;
         final isAr = LocaleProvider.instance.locale == 'ar';
         final uid = FirebaseAuth.instance.currentUser?.uid;
 
-        if (uid == null) {
-          return Scaffold(
-            body: Center(
-              child: Text(isAr ? 'يرجى تسجيل الدخول' : 'Please sign in'),
-            ),
-          );
-        }
+        if (uid == null) return Scaffold(body: Center(child: Text(isAr ? 'Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â° ÃƒËœÃ‚ÂªÃƒËœÃ‚Â³ÃƒËœÃ‚Â¬Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â®Ãƒâ„¢Ã‹â€ Ãƒâ„¢Ã¢â‚¬Å¾' : 'Please sign in')));
 
         return Directionality(
           textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
           child: Scaffold(
             backgroundColor: const Color(0xFFF6F3EE),
             appBar: AppBar(
-              title: Text(
-                isAr ? 'عروضي' : 'My Bids',
-                style: const TextStyle(fontWeight: FontWeight.w800),
-              ),
-              backgroundColor: const Color(0xFF0F2B5B),
-              foregroundColor: Colors.white,
+              title: Text(isAr ? 'ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¶Ãƒâ„¢Ã…Â ' : 'My Bids', style: const TextStyle(fontWeight: FontWeight.w800)),
+              backgroundColor: const Color(0xFF0F2B5B), foregroundColor: Colors.white,
             ),
             body: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('demand_bids')
-                  .where('businessId', isEqualTo: uid)
-                  .snapshots(),
+              stream: FirebaseFirestore.instance.collection('demand_bids').where('businessId', isEqualTo: uid).snapshots(),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+                if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+                if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
 
-                final bids = snapshot.data?.docs ?? [];
-                if (bids.isEmpty) {
+                final docs = snapshot.data?.docs ?? [];
+                if (docs.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.gavel_outlined,
-                          size: 80,
-                          color: Colors.blue.withValues(alpha: 0.2),
-                        ),
+                        Icon(Icons.gavel_outlined, size: 80, color: Colors.blue.withValues(alpha: 0.2)),
                         const SizedBox(height: 16),
-                        Text(
-                          isAr
-                              ? 'لم تقدم أي عروض بعد'
-                              : 'No bids submitted yet',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey,
-                          ),
-                        ),
+                        Text(isAr ? 'Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Å¡ÃƒËœÃ‚Â¯Ãƒâ„¢Ã¢â‚¬Â¦ ÃƒËœÃ‚Â£Ãƒâ„¢Ã…Â  ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â¯' : 'No bids submitted yet', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey)),
                       ],
                     ),
                   );
@@ -76,14 +50,10 @@ class MyBidsScreen extends StatelessWidget {
 
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  itemCount: bids.length,
+                  itemCount: docs.length,
                   itemBuilder: (context, i) {
-                    final doc = bids[i];
-                    final bid = DemandBidModel.fromMap(
-                      doc.id,
-                      doc.data() as Map<String, dynamic>,
-                    );
-                    return _BidCard(bid: bid, isAr: isAr);
+                    final data = docs[i].data() as Map<String, dynamic>;
+                    return _BidCard(bidId: docs[i].id, data: data, isAr: isAr, t: t);
                   },
                 );
               },
@@ -96,34 +66,39 @@ class MyBidsScreen extends StatelessWidget {
 }
 
 class _BidCard extends StatelessWidget {
-  final DemandBidModel bid;
+  final String bidId;
+  final Map<String, dynamic> data;
   final bool isAr;
+  final AppLocalizations t;
 
-  const _BidCard({required this.bid, required this.isAr});
+  const _BidCard({required this.bidId, required this.data, required this.isAr, required this.t});
 
   @override
   Widget build(BuildContext context) {
+    final offerPrice = (data['offerPrice'] as num?)?.toDouble() ?? 0.0;
+    final status = data['status'] ?? 'pending';
+    final authenticity = data['authenticity'] ?? 'Original';
+    final fulfillmentType = data['fulfillmentType'] ?? 'Store Pickup';
+    final trustScore = (data['businessTrustScore'] as num?)?.toDouble() ?? 50.0;
+    final createdAt = (data['createdAt'] as Timestamp?)?.toDate();
+    final deliveryDate = (data['deliveryDate'] as Timestamp?)?.toDate();
+    final groupTitle = data['groupTitle'] ?? 'Unknown Demand';
+
     Color statusColor;
     String statusText;
-    switch (bid.status) {
-      case 'pending':
-        statusColor = Colors.orange;
-        statusText = isAr ? 'قيد المراجعة' : 'Under Review';
-        break;
-      case 'approved':
-        statusColor = Colors.green;
-        statusText = isAr ? 'تمت الموافقة' : 'Approved';
-        break;
-      case 'rejected':
-        statusColor = Colors.red;
-        statusText = isAr ? 'مرفوض' : 'Rejected';
-        break;
-      default:
-        statusColor = Colors.grey;
-        statusText = bid.status;
+    if (status == 'pending') {
+      statusColor = Colors.orange;
+      statusText = isAr ? 'Ãƒâ„¢Ã¢â‚¬Å¡Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¯ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â±ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â©' : 'Under Review';
+    } else if (status == 'approved' || status == 'accepted') {
+      statusColor = Colors.green;
+      statusText = isAr ? 'ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Âª ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â§Ãƒâ„¢Ã‚ÂÃƒâ„¢Ã¢â‚¬Å¡ÃƒËœÃ‚Â©' : 'Approved';
+    } else if (status == 'rejected') {
+      statusColor = Colors.red;
+      statusText = isAr ? 'Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â±Ãƒâ„¢Ã‚ÂÃƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¶' : 'Rejected';
+    } else {
+      statusColor = Colors.grey;
+      statusText = status;
     }
-
-    final canEdit = bid.status == 'pending' || bid.status == 'approved';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -134,96 +109,78 @@ class _BidCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Title, Date, Edit Icon, Status
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Text(
-                    'QAR ${bid.offerPrice.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF0F2B5B),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        groupTitle,
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F2B5B)),
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(Icons.access_time, size: 12, color: Colors.grey),
+                          const SizedBox(width: 4),
+                          Text(
+                            createdAt != null ? '${createdAt.day}/${createdAt.month}/${createdAt.year}' : 'Unknown',
+                            style: const TextStyle(fontSize: 11, color: Colors.grey),
+                          ),
+                          if (deliveryDate != null) ...[
+                            const SizedBox(width: 12),
+                            const Icon(Icons.local_shipping, size: 12, color: Colors.blue),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${deliveryDate.day}/${deliveryDate.month}/${deliveryDate.year}',
+                              style: const TextStyle(fontSize: 11, color: Colors.blue, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: statusColor.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  child: Text(
-                    statusText,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: statusColor,
-                    ),
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8), border: Border.all(color: statusColor.withValues(alpha: 0.5))),
+                  child: Text(statusText, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: statusColor)),
                 ),
-                if (canEdit) ...[
-                  const SizedBox(width: 4),
-                  IconButton(
-                    icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
-                    onPressed: () => _showEditBidDialog(context, bid, isAr),
-                    tooltip: isAr ? 'تعديل العرض' : 'Edit Bid',
-                  ),
-                ],
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Divider(),
-            const SizedBox(height: 8),
-
-            Row(
-              children: [
-                _InfoChip(
-                  icon: bid.authenticity == 'Original'
-                      ? Icons.verified
-                      : Icons.content_copy,
-                  label: bid.authenticity == 'Original'
-                      ? (isAr ? 'أصلي' : 'Original')
-                      : (isAr ? 'نسخة ماستر' : 'Master Copy'),
-                  color: bid.authenticity == 'Original'
-                      ? Colors.green
-                      : Colors.orange,
-                ),
-                const SizedBox(width: 8),
-                _InfoChip(
-                  icon: bid.fulfillmentType == 'Home Delivery'
-                      ? Icons.delivery_dining
-                      : Icons.storefront,
-                  label: bid.fulfillmentType == 'Home Delivery'
-                      ? (isAr ? 'توصيل' : 'Delivery')
-                      : (isAr ? 'استلام' : 'Pickup'),
-                  color: Colors.blue,
+                // ÃƒÂ°Ã…Â¸Ã¢â‚¬Â Ã¢â‚¬Â¢ ALWAYS SHOW EDIT BUTTON
+                IconButton(
+                  icon: const Icon(Icons.edit, size: 20, color: Colors.blue),
+                  onPressed: () => _showEditBidDialog(context, bidId, data, isAr, t),
+                  tooltip: isAr ? 'ÃƒËœÃ‚ÂªÃƒËœÃ‚Â¹ÃƒËœÃ‚Â¯Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶' : 'Edit Bid',
                 ),
               ],
             ),
+            
+            const Divider(height: 24),
 
-            const SizedBox(height: 16),
-
+            // Price & Trust
             Row(
               children: [
+                Text('QAR ${offerPrice.toStringAsFixed(0)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0F2B5B))),
+                const Spacer(),
                 const Icon(Icons.star, size: 16, color: Colors.amber),
                 const SizedBox(width: 4),
-                Text(
-                  '${bid.businessTrustScore.toStringAsFixed(1)} / 100',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey,
-                  ),
-                ),
+                Text('${trustScore.toStringAsFixed(1)}/100', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey)),
+              ],
+            ),
+            
+            const SizedBox(height: 12),
+            
+            // Tags
+            Row(
+              children: [
+                _InfoChip(icon: authenticity == 'Original' ? Icons.verified : Icons.content_copy, label: authenticity, color: authenticity == 'Original' ? Colors.green : Colors.orange),
+                const SizedBox(width: 8),
+                _InfoChip(icon: fulfillmentType == 'Home Delivery' ? Icons.delivery_dining : Icons.storefront, label: fulfillmentType, color: Colors.blue),
               ],
             ),
           ],
@@ -232,18 +189,13 @@ class _BidCard extends StatelessWidget {
     );
   }
 
-  void _showEditBidDialog(BuildContext context, DemandBidModel bid, bool isAr) {
+  void _showEditBidDialog(BuildContext context, String bidId, Map<String, dynamic> data, bool isAr, AppLocalizations t) {
     final formKey = GlobalKey<FormState>();
-    final priceController = TextEditingController(
-      text: bid.offerPrice.toString(),
-    );
-    final authController = TextEditingController(text: bid.authenticity);
-    final fulfillmentController = TextEditingController(
-      text: bid.fulfillmentType,
-    );
-    final minCommitmentsController = TextEditingController(
-      text: bid.minCommitments.toString(),
-    );
+    final previousPrice = data['offerPrice'] ?? 0;
+    final priceController = TextEditingController(text: previousPrice.toString());
+    final authController = TextEditingController(text: data['authenticity'] ?? 'Original');
+    final fulfillmentController = TextEditingController(text: data['fulfillmentType'] ?? 'Store Pickup');
+    final minCommitmentsController = TextEditingController(text: (data['minCommitments'] ?? 1).toString());
     bool isSubmitting = false;
 
     showDialog(
@@ -253,7 +205,15 @@ class _BidCard extends StatelessWidget {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text(isAr ? 'تعديل العرض' : 'Edit Bid'),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(isAr ? 'ÃƒËœÃ‚ÂªÃƒËœÃ‚Â¹ÃƒËœÃ‚Â¯Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶' : 'Edit Bid', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(isAr ? 'ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â³ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â± ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â³ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¨Ãƒâ„¢Ã¢â‚¬Å¡: QAR $previousPrice' : 'Previous Price: QAR $previousPrice', style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                ],
+              ),
               content: Form(
                 key: formKey,
                 child: SingleChildScrollView(
@@ -262,78 +222,35 @@ class _BidCard extends StatelessWidget {
                     children: [
                       TextFormField(
                         controller: priceController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: InputDecoration(
-                          labelText: isAr ? 'سعرك (QAR)' : 'Your Price (QAR)',
-                          border: const OutlineInputBorder(),
-                          prefixIcon: const Icon(Icons.attach_money),
-                        ),
-                        validator: (val) {
-                          if (val == null || val.isEmpty) return 'Required';
-                          if (double.tryParse(val) == null)
-                            return 'Invalid number';
-                          return null;
-                        },
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: InputDecoration(labelText: isAr ? 'ÃƒËœÃ‚Â³ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±Ãƒâ„¢Ã†â€™ (QAR)' : 'Your Price (QAR)', border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.attach_money)),
+                        validator: (val) => (val == null || double.tryParse(val) == null) ? 'Invalid number' : null,
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         initialValue: authController.text,
-                        decoration: InputDecoration(
-                          labelText: isAr ? 'الأصالة' : 'Authenticity',
-                          border: const OutlineInputBorder(),
-                        ),
+                        decoration: InputDecoration(labelText: isAr ? 'ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â£ÃƒËœÃ‚ÂµÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â©' : 'Authenticity', border: const OutlineInputBorder()),
                         items: [
-                          DropdownMenuItem(
-                            value: 'Original',
-                            child: Text(isAr ? 'أصلي' : 'Original'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Master Copy',
-                            child: Text(isAr ? 'نسخة ماستر' : 'Master Copy'),
-                          ),
+                          DropdownMenuItem(value: 'Original', child: Text(isAr ? 'ÃƒËœÃ‚Â£ÃƒËœÃ‚ÂµÃƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã…Â ' : 'Original')),
+                          DropdownMenuItem(value: 'Master Copy', child: Text(isAr ? 'Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â³ÃƒËœÃ‚Â®ÃƒËœÃ‚Â© Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â§ÃƒËœÃ‚Â³ÃƒËœÃ‚ÂªÃƒËœÃ‚Â±' : 'Master Copy')),
                         ],
-                        onChanged: (val) {
-                          if (val != null) authController.text = val;
-                        },
+                        onChanged: (val) => authController.text = val ?? 'Original',
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         initialValue: fulfillmentController.text,
-                        decoration: InputDecoration(
-                          labelText: isAr ? 'طريقة التسليم' : 'Fulfillment',
-                          border: const OutlineInputBorder(),
-                        ),
+                        decoration: InputDecoration(labelText: isAr ? 'ÃƒËœÃ‚Â·ÃƒËœÃ‚Â±Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Å¡ÃƒËœÃ‚Â© ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚ÂªÃƒËœÃ‚Â³Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Â¦' : 'Fulfillment', border: const OutlineInputBorder()),
                         items: [
-                          DropdownMenuItem(
-                            value: 'Store Pickup',
-                            child: Text(
-                              isAr ? 'استلام من المتجر' : 'Store Pickup',
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Home Delivery',
-                            child: Text(
-                              isAr ? 'توصيل للمنزل' : 'Home Delivery',
-                            ),
-                          ),
+                          DropdownMenuItem(value: 'Store Pickup', child: Text(isAr ? 'ÃƒËœÃ‚Â§ÃƒËœÃ‚Â³ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Â¦ Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã¢â‚¬Â  ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚ÂªÃƒËœÃ‚Â¬ÃƒËœÃ‚Â±' : 'Store Pickup')),
+                          DropdownMenuItem(value: 'Home Delivery', child: Text(isAr ? 'ÃƒËœÃ‚ÂªÃƒâ„¢Ã‹â€ ÃƒËœÃ‚ÂµÃƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Å¾ Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â²Ãƒâ„¢Ã¢â‚¬Å¾' : 'Home Delivery')),
                         ],
-                        onChanged: (val) {
-                          if (val != null) fulfillmentController.text = val;
-                        },
+                        onChanged: (val) => fulfillmentController.text = val ?? 'Store Pickup',
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: minCommitmentsController,
                         keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: isAr
-                              ? 'الحد الأدنى للمشترين'
-                              : 'Minimum Buyers Required',
-                          border: const OutlineInputBorder(),
-                          prefixIcon: const Icon(Icons.people),
-                        ),
+                        decoration: InputDecoration(labelText: isAr ? 'ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â­ÃƒËœÃ‚Â¯ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â£ÃƒËœÃ‚Â¯Ãƒâ„¢Ã¢â‚¬Â Ãƒâ„¢Ã¢â‚¬Â° Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â´ÃƒËœÃ‚ÂªÃƒËœÃ‚Â±Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Â ' : 'Minimum Buyers Required', border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.people)),
                         validator: (val) {
                           if (val == null || val.isEmpty) return 'Required';
                           final num = int.tryParse(val);
@@ -346,65 +263,34 @@ class _BidCard extends StatelessWidget {
                 ),
               ),
               actions: [
-                TextButton(
-                  onPressed: isSubmitting
-                      ? null
-                      : () => Navigator.pop(dialogContext),
-                  child: Text(isAr ? 'إلغاء' : 'Cancel'),
-                ),
+                TextButton(onPressed: isSubmitting ? null : () => Navigator.pop(dialogContext), child: Text(isAr ? 'ÃƒËœÃ‚Â¥Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚ÂºÃƒËœÃ‚Â§ÃƒËœÃ‚Â¡' : 'Cancel')),
                 FilledButton(
-                  onPressed: isSubmitting
-                      ? null
-                      : () async {
-                          if (!formKey.currentState!.validate()) return;
-                          setState(() => isSubmitting = true);
-
-                          final success = await DemandService().updateBid(
-                            bidId: bid.id,
-                            offerPrice: double.parse(priceController.text),
-                            authenticity: authController.text,
-                            fulfillmentType: fulfillmentController.text,
-                            minCommitments: int.parse(
-                              minCommitmentsController.text,
-                            ),
-                          );
-
-                          setState(() => isSubmitting = false);
-
-                          if (!dialogContext.mounted) return;
-
-                          if (success) {
-                            Navigator.pop(dialogContext);
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    isAr
-                                        ? 'تم تحديث العرض بنجاح!'
-                                        : 'Bid updated successfully!',
-                                  ),
-                                ),
-                              );
-                            }
-                          } else {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    isAr ? 'حدث خطأ.' : 'Error updating bid.',
-                                  ),
-                                ),
-                              );
-                            }
-                          }
-                        },
-                  child: isSubmitting
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(isAr ? 'تحديث' : 'Update'),
+                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0F2B5B)),
+                  onPressed: isSubmitting ? null : () async {
+                    if (!formKey.currentState!.validate()) return;
+                    setState(() => isSubmitting = true);
+                    try {
+                      await FirebaseFirestore.instance.collection('demand_bids').doc(bidId).update({
+                        'offerPrice': double.parse(priceController.text),
+                        'authenticity': authController.text,
+                        'fulfillmentType': fulfillmentController.text,
+                        'minCommitments': int.parse(minCommitmentsController.text),
+                        'status': 'pending', // ÃƒÂ°Ã…Â¸Ã¢â‚¬Â Ã¢â‚¬Â¢ Reset to pending after edit
+                      });
+                      if (!dialogContext.mounted) return;
+                      Navigator.pop(dialogContext);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isAr ? 'ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Â¦ ÃƒËœÃ‚ÂªÃƒËœÃ‚Â­ÃƒËœÃ‚Â¯Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â« ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â¨Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â§ÃƒËœÃ‚Â­!' : 'Bid updated successfully!'), backgroundColor: Colors.green));
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+                      }
+                    } finally {
+                      if (dialogContext.mounted) setState(() => isSubmitting = false);
+                    }
+                  },
+                  child: isSubmitting ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : Text(isAr ? 'ÃƒËœÃ‚ÂªÃƒËœÃ‚Â­ÃƒËœÃ‚Â¯Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â«' : 'Update'),
                 ),
               ],
             );
@@ -420,33 +306,19 @@ class _InfoChip extends StatelessWidget {
   final String label;
   final Color color;
 
-  const _InfoChip({
-    required this.icon,
-    required this.label,
-    required this.color,
-  });
+  const _InfoChip({required this.icon, required this.label, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-      ),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
+          Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color)),
         ],
       ),
     );

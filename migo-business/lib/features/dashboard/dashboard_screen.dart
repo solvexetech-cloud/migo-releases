@@ -1,9 +1,10 @@
+// migo-business/lib/features/dashboard/dashboard_screen.dart
+// FIXED - Correct Arabic text and clean UI
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../core/localization/locale_provider.dart'; // 🆕 അറബിക് ഭാഷയ്ക്ക് വേണ്ടി
-import '../../core/theme/migo_gradients.dart'; // 🆕 ഗ്രേഡിയന്റിന് വേണ്ടി
+import '../../core/localization/locale_provider.dart';
 import '../../core/theme/migo_theme.dart';
 import '../../services/auth_service.dart';
 import '../bookings/shop_bookings_screen.dart';
@@ -12,12 +13,9 @@ import '../scan/scan_qr_screen.dart';
 import '../offers/my_flyers_screen.dart';
 import '../analytics/business_analytics_screen.dart';
 import '../profile/profile_screen.dart';
-import '../bookings/claims_history_screen.dart';
-import '../demands/demand_bids_screen.dart';
+import '../claims/business_claims_screen.dart';
 import '../demands/business_demands_feed_screen.dart';
 
-/// PHASE I — Business Dashboard
-/// Responsive: sidebar on PC, drawer on mobile
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -127,17 +125,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const Divider(color: Colors.white12),
 
           // Nav Items
-          _sidebarItem(0, Icons.dashboard_outlined, isAr ? 'لوحة التحكم' : 'Dashboard'),
-          _sidebarItem(1, Icons.local_offer_outlined, isAr ? 'عروضي' : 'My Offers'),
-          _sidebarItem(7, Icons.menu_book_outlined, isAr ? 'منشوراتي' : 'My Flyers'),
-          _sidebarItem(2, Icons.event_note_outlined, isAr ? 'الحجوزات' : 'Bookings'),
-          _sidebarItem(6, Icons.people_outline, isAr ? 'مطالبات العملاء' : 'Customer Claims'),
-          _sidebarItem(8, Icons.gavel, isAr ? 'طلبات المجتمع' : 'Community Demands'),
-          _sidebarItem(3, Icons.qr_code_scanner, isAr ? 'مسح QR' : 'Scan QR'),
-          _sidebarItem(4, Icons.analytics_outlined, isAr ? 'التحليلات' : 'Analytics'),
-          _sidebarItem(5, Icons.settings_outlined, isAr ? 'الإعدادات' : 'Settings'),
-
-          const Spacer(),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _sidebarItem(0, Icons.dashboard_outlined, isAr ? 'لوحة التحكم' : 'Dashboard'),
+                _sidebarItem(1, Icons.local_offer_outlined, isAr ? 'عروضي' : 'My Offers'),
+                _sidebarItem(7, Icons.menu_book_outlined, isAr ? 'منشوراتي' : 'My Flyers'),
+                _sidebarItem(2, Icons.event_note_outlined, isAr ? 'الحجوزات' : 'Bookings'),
+                _sidebarItem(6, Icons.people_outline, isAr ? 'مطالبات العملاء' : 'Customer Claims'),
+                _sidebarItem(8, Icons.gavel, isAr ? 'طلبات المجتمع' : 'Community Demands'),
+                _sidebarItem(3, Icons.qr_code_scanner, isAr ? 'مسح QR' : 'Scan QR'),
+                _sidebarItem(4, Icons.analytics_outlined, isAr ? 'التحليلات' : 'Analytics'),
+                _sidebarItem(5, Icons.settings_outlined, isAr ? 'الإعدادات' : 'Settings'),
+              ],
+            ),
+          ),
 
           // Sign out
           Padding(
@@ -229,15 +232,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _drawerItem(3, Icons.qr_code_scanner, isAr ? 'مسح QR' : 'Scan QR'),
             _drawerItem(4, Icons.analytics_outlined, isAr ? 'التحليلات' : 'Analytics'),
             _drawerItem(5, Icons.settings_outlined, isAr ? 'الإعدادات' : 'Settings'),
+            const Divider(color: Colors.white24),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.white70),
+              title: Text(isAr ? 'تسجيل الخروج' : 'Sign out', style: const TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                _handleSignOut(isAr);
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-    Widget _drawerItem(int index, IconData icon, String label) {
+  Widget _drawerItem(int index, IconData icon, String label) {
     return Material(
-      color: Colors.transparent, // 👈 ഈ വരി നിർബന്ധമായും ചേർക്കുക
+      color: Colors.transparent,
       child: ListTile(
         leading: Icon(icon, color: Colors.white70),
         title: Text(label, style: const TextStyle(color: Colors.white)),
@@ -267,7 +279,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 5:
         return _buildProfileTab();
       case 6: 
-        return _buildClaimsTab();
+        return const BusinessClaimsScreen();
       case 8:
         return const BusinessDemandsFeedScreen();
       case 7:
@@ -277,12 +289,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  // ─────────────────────────────────────────────────────
-  // TABS (Bookings, Scan, Claims, Analytics, Profile)
-  // ─────────────────────────────────────────────────────
   Widget _buildBookingsTab() => _buildBusinessDependentTab((id) => ShopBookingsScreen(businessId: id));
   Widget _buildScanTab() => _buildBusinessDependentTab((id) => ScanQrScreen(businessId: id));
-  Widget _buildClaimsTab() => _buildBusinessDependentTab((id) => ClaimsHistoryScreen(businessId: id));
   Widget _buildAnalyticsTab() => _buildBusinessDependentTab((id) => BusinessAnalyticsScreen(businessId: id));
   Widget _buildProfileTab() => _buildBusinessDependentTab((id) => ProfileScreen(businessId: id));
 
@@ -308,7 +316,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ═══════════════════════════════════════════════════
-  // HOME TAB (REDESIGNED)
+  // HOME TAB
   // ═══════════════════════════════════════════════════
   Widget _buildHomeTab(bool isAr) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -365,7 +373,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 🆕 മനോഹരമായ ഗ്രേഡിയന്റ് ഹെഡർ
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -402,9 +409,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // 🆕 വലിയ Scan QR ബട്ടൺ
                   InkWell(
-                    onTap: () => setState(() => _selectedIndex = 3), // Navigate to Scan Tab
+                    onTap: () => setState(() => _selectedIndex = 3),
                     borderRadius: BorderRadius.circular(20),
                     child: Container(
                       padding: const EdgeInsets.all(20),
@@ -466,7 +472,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // 🆕 സ്റ്റാറ്റസ് കാർഡുകൾ (Grid Layout)
                   Row(
                     children: [
                       Expanded(
@@ -510,9 +515,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ═══════════════════════════════════════════════════
-  // STAT CARD — NEW DESIGN
-  // ═══════════════════════════════════════════════════
   Widget _statCard({
     required IconData icon,
     required String label,
@@ -520,7 +522,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required Color color,
   }) {
     return Container(
-      height: 140, // 👈 ഈ വരി പുതിയതായി ചേർക്കുക
+      height: 140,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: MigoColors.surface,
@@ -539,7 +541,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(height: 12),
-                    FittedBox(
+          FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Text(
@@ -565,9 +567,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ═══════════════════════════════════════════════════
-  // SIGN OUT
-  // ═══════════════════════════════════════════════════
   Future<void> _handleSignOut(bool isAr) async {
     final confirm = await showDialog<bool>(
       context: context,

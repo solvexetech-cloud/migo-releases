@@ -1,20 +1,26 @@
+// mobile/lib/features/demands/claim_details_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/localization/locale_provider.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/theme/migo_colors.dart';
-import '../../models/demand_model.dart';
-import '../../models/demand_bid_model.dart';
-import '../../models/demand_claim_model.dart';
-import '../../services/demand_service.dart';
 import 'claim_ticket_screen.dart';
 
 class ClaimDetailsScreen extends StatefulWidget {
-  final DemandModel demand;
-  final DemandBidModel bid;
+  final String groupId;
+  final Map<String, dynamic> groupData;
+  final String bidId;
+  final Map<String, dynamic> bidData;
 
-  const ClaimDetailsScreen({super.key, required this.demand, required this.bid});
+  const ClaimDetailsScreen({
+    super.key,
+    required this.groupId,
+    required this.groupData,
+    required this.bidId,
+    required this.bidData,
+  });
 
   @override
   State<ClaimDetailsScreen> createState() => _ClaimDetailsScreenState();
@@ -34,73 +40,57 @@ class _ClaimDetailsScreenState extends State<ClaimDetailsScreen> {
   }
 
   Future<void> _lockDeal(bool isAr) async {
-    if (widget.bid.fulfillmentType == 'Home Delivery') {
-      if (!_formKey.currentState!.validate()) return;
-    }
+    final fulfillmentType = widget.bidData['fulfillmentType'] ?? 'Store Pickup';
+    final isHomeDelivery = fulfillmentType == 'Home Delivery';
+
+    if (isHomeDelivery && !_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
-    final result = await DemandService().commitToOffer(
-      demandId: widget.demand.id,
-      bidId: widget.bid.id,
-      businessId: widget.bid.businessId,
-      businessName: widget.bid.businessName,
-      finalPrice: widget.bid.offerPrice,
-      fulfillmentType: widget.bid.fulfillmentType,
-      minCommitments: widget.bid.minCommitments,
-      deliveryAddress: widget.bid.fulfillmentType == 'Home Delivery' ? _addressController.text.trim() : null,
-      deliveryPhone: widget.bid.fulfillmentType == 'Home Delivery' ? _phoneController.text.trim() : null,
-    );
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception('Not logged in');
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+      final String pin = (100000 + (DateTime.now().millisecondsSinceEpoch % 900000)).toString();
+      final String claimId = FirebaseFirestore.instance.collection('demand_claims').doc().id;
 
-    if (result == 'locked') {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('demand_claims')
-          .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
-          .orderBy('createdAt', descending: true)
-          .limit(1)
-          .get();
+      await FirebaseFirestore.instance.collection('demand_claims').doc(claimId).set({
+        'groupId': widget.groupId,
+        'bidId': widget.bidId,
+        'userId': user.uid,
+        'businessId': widget.bidData['businessId'],
+        'businessName': widget.bidData['businessName'],
+        'status': 'locked', 
+        'deliveryAddress': isHomeDelivery ? _addressController.text.trim() : null,
+        'deliveryPhone': isHomeDelivery ? _phoneController.text.trim() : null,
+        'pin': pin,
+        'qrData': 'MIGO-CLAIM-$claimId-$pin',
+        'createdAt': FieldValue.serverTimestamp(),
+        'groupTitle': widget.groupData['title'],
+        'totalPrice': (widget.bidData['offerPrice'] as num) * (widget.groupData['totalQuantity'] as num),
+      });
 
-      if (snapshot.docs.isNotEmpty && mounted) {
-        final claimData = DemandClaimModel.fromMap(
-          snapshot.docs.first.id,
-          snapshot.docs.first.data() as Map<String, dynamic>,
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ClaimTicketScreen(demand: widget.demand, claim: claimData),
-          ),
-        );
-      }
-    } else if (result == 'waiting') {
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isAr ? 'تمت إضافتك إلى قائمة الانتظار. نحتاج المزيد من المشترين!' : 'Added to waitlist. Need more buyers to unlock the offer!'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-    } else if (result == 'already_committed') {
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isAr ? 'أنت بالفعل في قائمة الانتظار لهذا العرض.' : 'You are already in the waitlist for this offer.'),
-            backgroundColor: Colors.blue,
-          ),
-        );
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(isAr ? 'حدث خطأ. حاول مرة أخرى.' : 'Error. Try again.')),
-        );
-      }
+      await FirebaseFirestore.instance.collection('demand_groups').doc(widget.groupId).update({
+        'status': 'fulfilled',
+        'acceptedBidId': widget.bidId,
+      });
+
+      if (!mounted) return;
+      
+      // 🆕 Navigate to QR Ticket
+      Navigator.pushReplacement(context, MaterialPageRoute(
+        builder: (_) => ClaimTicketScreen(
+          groupId: widget.groupId,
+          groupData: widget.groupData,
+          bidData: widget.bidData,
+          claimId: claimId,
+          claimCode: pin,
+        ),
+      ));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -110,15 +100,20 @@ class _ClaimDetailsScreenState extends State<ClaimDetailsScreen> {
       listenable: LocaleProvider.instance,
       builder: (context, _) {
         final isAr = LocaleProvider.instance.locale == 'ar';
-        final isHomeDelivery = widget.bid.fulfillmentType == 'Home Delivery';
-        final businessName = widget.bid.businessName[isAr ? 'ar' : 'en'] ?? widget.bid.businessName['en'] ?? 'Shop';
+        final fulfillmentType = widget.bidData['fulfillmentType'] ?? 'Store Pickup';
+        final isHomeDelivery = fulfillmentType == 'Home Delivery';
+        
+        final rawName = widget.bidData['businessName'];
+        final String businessName = rawName is Map 
+            ? (rawName[isAr ? 'ar' : 'en'] ?? rawName['en'] ?? 'Shop')
+            : (rawName?.toString() ?? 'Shop');
+
+        final offerPrice = (widget.bidData['offerPrice'] as num?)?.toDouble() ?? 0.0;
 
         return Directionality(
           textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
           child: Scaffold(
-            appBar: AppBar(
-              title: Text(isAr ? 'تأكيد الطلب' : 'Confirm Order'),
-            ),
+            appBar: AppBar(title: Text(isAr ? 'تأكيد الطلب' : 'Confirm Order')),
             body: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Form(
@@ -126,143 +121,34 @@ class _ClaimDetailsScreenState extends State<ClaimDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Order Summary Card
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade300)),
                       child: Column(
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded( // 🆕 Overflow പരിഹരിക്കാൻ
-                                child: Text(
-                                  isAr ? 'المتجر' : 'Shop',
-                                  style: const TextStyle(color: Colors.grey),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Text(
-                                  businessName,
-                                  textAlign: TextAlign.end,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ],
-                          ),
+                          _buildRow(isAr ? 'المتجر' : 'Shop', businessName),
                           const Divider(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  isAr ? 'طريقة التسليم' : 'Fulfillment',
-                                  style: const TextStyle(color: Colors.grey),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Text(
-                                  isHomeDelivery 
-                                      ? (isAr ? 'توصيل للمنزل' : 'Home Delivery') 
-                                      : (isAr ? 'استلام من المتجر' : 'Store Pickup'),
-                                  textAlign: TextAlign.end,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ],
-                          ),
+                          _buildRow(isAr ? 'طريقة التسليم' : 'Fulfillment', isHomeDelivery ? (isAr ? 'توصيل' : 'Home Delivery') : (isAr ? 'استلام' : 'Store Pickup')),
                           const Divider(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  isAr ? 'السعر النهائي' : 'Final Price',
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Text(
-                                  '${widget.demand.currency} ${widget.bid.offerPrice.toStringAsFixed(0)}',
-                                  textAlign: TextAlign.end,
-                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: MigoColors.primary),
-                                ),
-                              ),
-                            ],
-                          ),
+                          _buildRow(isAr ? 'السعر النهائي' : 'Final Price', '${offerPrice.toStringAsFixed(0)} QAR', isBold: true),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-
-                    // Delivery Details (Only if Home Delivery)
                     if (isHomeDelivery) ...[
-                      Text(
-                        isAr ? 'معلومات التوصيل' : 'Delivery Information',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _addressController,
-                        decoration: InputDecoration(
-                          labelText: isAr ? 'العنوان الكامل' : 'Full Address',
-                          border: const OutlineInputBorder(),
-                          prefixIcon: const Icon(Icons.location_on),
-                        ),
-                        maxLines: 2,
-                        validator: (val) => val == null || val.isEmpty ? (isAr ? 'مطلوب' : 'Required') : null,
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                        decoration: InputDecoration(
-                          labelText: isAr ? 'رقم الهاتف' : 'Phone Number',
-                          border: const OutlineInputBorder(),
-                          prefixIcon: const Icon(Icons.phone),
-                        ),
-                        validator: (val) {
-                          if (val == null || val.isEmpty) return isAr ? 'مطلوب' : 'Required';
-                          if (val.length < 8) return isAr ? 'رقم غير صالح' : 'Invalid number';
-                          return null;
-                        },
-                      ),
                       const SizedBox(height: 24),
+                      Text(isAr ? 'معلومات التوصيل' : 'Delivery Information', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 12),
+                      TextFormField(controller: _addressController, decoration: InputDecoration(labelText: isAr ? 'العنوان' : 'Address', border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.location_on)), validator: (v) => v == null || v.isEmpty ? 'Required' : null),
+                      const SizedBox(height: 12),
+                      TextFormField(controller: _phoneController, keyboardType: TextInputType.phone, inputFormatters: [FilteringTextInputFormatter.digitsOnly], decoration: InputDecoration(labelText: isAr ? 'رقم الهاتف' : 'Phone', border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.phone)), validator: (v) => v == null || v.length < 8 ? 'Invalid' : null),
                     ],
-
-                    // Terms Note
-                    Text(
-                      isAr 
-                        ? 'ملاحظة: الدفع نقداً عند الاستلام. أنت مسؤول عن استلام المنتج.'
-                        : 'Note: Cash on delivery/pickup. You are responsible for receiving the product.',
-                      style: const TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic),
-                    ),
                     const SizedBox(height: 24),
-
-                    // Confirm Button
                     SizedBox(
-                      width: double.infinity,
-                      height: 50,
+                      width: double.infinity, height: 50,
                       child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: MigoColors.primary,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
+                        style: FilledButton.styleFrom(backgroundColor: MigoColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                         onPressed: _isLoading ? null : () => _lockDeal(isAr),
-                        child: _isLoading
-                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                            : Text(
-                                isAr ? 'تأكيد وحجز' : 'Confirm & Lock Deal',
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
+                        child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : Text(isAr ? 'تأكيد وحجز' : 'Confirm & Lock Deal', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],
@@ -272,6 +158,16 @@ class _ClaimDetailsScreenState extends State<ClaimDetailsScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildRow(String label, String value, {bool isBold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(color: Colors.grey.shade600)),
+        Text(value, style: TextStyle(fontWeight: isBold ? FontWeight.w900 : FontWeight.bold, fontSize: isBold ? 18 : 14, color: isBold ? MigoColors.primary : Colors.black87)),
+      ],
     );
   }
 }

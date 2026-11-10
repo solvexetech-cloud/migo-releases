@@ -20,11 +20,9 @@ const ALL_ITEMS = [
     icon: '⚖️',
     children: [
       { to: '/demand-bids', label: 'Demand Bids', icon: '📋' },
-      { to: '/campaigns', label: 'Campaigns', icon: '📢' },
-      { to: '/orders', label: 'Orders', icon: '📦' },
       { to: '/complaints', label: 'Complaints', icon: '⚠️' },
-      { to: '/demand-matching', label: 'Demand Matching', icon: '🔄' },
-      { to: '/community-demands', label: 'Demand Overview', icon: '📊' },
+      { to: '/demand-groups', label: 'Demand Groups', icon: '👥' },
+      { to: '/demand-settings', label: 'Demand Settings', icon: '⚙️' },
     ],
   },
   { to: '/roles', label: 'Roles', icon: '🔑' },
@@ -51,17 +49,17 @@ const ROLE_PATHS = {
   [ROLES.ADMIN]: [
     '/', '/businesses', '/map', '/analytics', '/users', '/creators',
     '/reviews', '/reservations', '/no-show-log', '/revenue', '/flyers', '/all-offers',
-    '/demand-matching', '/demand-bids', '/campaigns', '/orders', '/complaints', '/community-demands'
+    '/demand-bids', '/complaints', '/demand-groups', '/demand-settings'
   ],
   [ROLES.AGENCY]: [
     '/', '/agency-dashboard', '/businesses', '/map', '/reviews',
     '/reservations', '/no-show-log', '/flyers',
-    '/demand-bids', '/campaigns', '/orders', '/complaints', '/community-demands'
+    '/demand-bids', '/complaints'
   ],
   [ROLES.MODERATOR]: [
     '/', '/staff-dashboard', '/businesses', '/reviews', '/users',
     '/fraud-logs', '/flyers',
-    '/demand-bids', '/campaigns', '/orders', '/complaints', '/community-demands'
+    '/demand-bids', '/complaints'
   ],
 };
 

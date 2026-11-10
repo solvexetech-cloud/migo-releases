@@ -1,10 +1,9 @@
+// migo-business/lib/features/auth/login_screen.dart
+// DIRECT LOGIN - Bypasses AuthService to fix the issue
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'register_screen.dart';
 
-import '../../services/auth_service.dart';
-import 'register_screen.dart'; // പുതിയ രജിസ്ട്രേഷൻ പേജ്
-
-/// PHASE I — Business Login Screen
-/// Responsive: PC (wide) + Mobile
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -36,21 +35,35 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
 
-    final result = await AuthService.instance.signIn(
-      email: _emailController.text,
-      password: _passwordController.text,
-    );
-
-    if (!mounted) return;
-
-    if (result['success'] == true) {
-      // AuthGate will auto-navigate to Dashboard
-      // No manual navigation needed
-    } else {
+    try {
+      // 🆕 Direct Firebase Login (Bypassing AuthService)
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+      
+      // AuthGate in main.dart will automatically detect the login and navigate
+      
+    } on FirebaseAuthException catch (e) {
       setState(() {
-        _error = result['error'] as String? ?? 'Login failed';
-        _loading = false;
+        if (e.code == 'user-not-found') {
+          _error = 'No user found with this email.';
+        } else if (e.code == 'wrong-password') {
+          _error = 'Incorrect password.';
+        } else if (e.code == 'invalid-email') {
+          _error = 'Invalid email format.';
+        } else if (e.code == 'invalid-credential') {
+          _error = 'Invalid email or password.';
+        } else {
+          _error = e.message ?? 'Login failed.';
+        }
       });
+    } catch (e) {
+      setState(() {
+        _error = 'Error: ${e.toString()}';
+      });
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -66,9 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
             constraints: const BoxConstraints(maxWidth: 440),
             child: Card(
               elevation: isWide ? 8 : 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child: Padding(
                 padding: EdgeInsets.all(isWide ? 40 : 24),
                 child: _buildForm(isWide),
@@ -87,7 +98,6 @@ class _LoginScreenState extends State<LoginScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Logo
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -95,69 +105,36 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: isWide ? 60 : 50,
                 height: isWide ? 60 : 50,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFF0C566), Color(0xFFD4A13A)],
-                  ),
+                  gradient: const LinearGradient(colors: [Color(0xFFF0C566), Color(0xFFD4A13A)]),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 alignment: Alignment.center,
-                child: Text(
-                  '🎁',
-                  style: TextStyle(fontSize: isWide ? 32 : 26),
-                ),
+                child: Text('🎁', style: TextStyle(fontSize: isWide ? 32 : 26)),
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'MIGO',
-                    style: TextStyle(
-                      fontSize: isWide ? 28 : 24,
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFF0B2B5B),
-                      letterSpacing: 3,
-                    ),
-                  ),
-                  Text(
-                    'BUSINESS',
-                    style: TextStyle(
-                      fontSize: isWide ? 12 : 10,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF6B7280),
-                      letterSpacing: 2,
-                    ),
-                  ),
-                ],
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('MIGO', style: TextStyle(fontSize: isWide ? 28 : 24, fontWeight: FontWeight.w900, color: const Color(0xFF0B2B5B), letterSpacing: 3)),
+                    Text('BUSINESS', style: TextStyle(fontSize: isWide ? 12 : 10, fontWeight: FontWeight.w700, color: const Color(0xFF6B7280), letterSpacing: 2)),
+                  ],
+                ),
               ),
             ],
           ),
           const SizedBox(height: 32),
 
-          Text(
-            'Welcome back',
-            style: TextStyle(
-              fontSize: isWide ? 24 : 22,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
+          Text('Welcome back', style: TextStyle(fontSize: isWide ? 24 : 22, fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
-          const Text(
-            'Sign in to manage your business',
-            style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
-          ),
+          const Text('Sign in to manage your business', style: TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
           const SizedBox(height: 28),
 
-          // Email
           TextFormField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             enabled: !_loading,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-              prefixIcon: Icon(Icons.email_outlined),
-              border: OutlineInputBorder(),
-            ),
+            decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined), border: OutlineInputBorder()),
             validator: (v) {
               if (v == null || v.trim().isEmpty) return 'Email required';
               if (!v.contains('@')) return 'Invalid email';
@@ -166,7 +143,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Password
           TextFormField(
             controller: _passwordController,
             obscureText: _obscure,
@@ -176,11 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
               prefixIcon: const Icon(Icons.lock_outline),
               border: const OutlineInputBorder(),
               suffixIcon: IconButton(
-                icon: Icon(
-                  _obscure
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                ),
+                icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                 onPressed: () => setState(() => _obscure = !_obscure),
               ),
             ),
@@ -191,30 +163,16 @@ class _LoginScreenState extends State<LoginScreen> {
             },
           ),
 
-          // Error
           if (_error != null) ...[
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.red.shade200),
-              ),
+              decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.red.shade200)),
               child: Row(
                 children: [
-                  const Icon(Icons.error_outline,
-                      color: Colors.red, size: 20),
+                  const Icon(Icons.error_outline, color: Colors.red, size: 20),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _error!,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.red,
-                      ),
-                    ),
-                  ),
+                  Expanded(child: Text(_error!, style: const TextStyle(fontSize: 13, color: Colors.red))),
                 ],
               ),
             ),
@@ -222,57 +180,24 @@ class _LoginScreenState extends State<LoginScreen> {
 
           const SizedBox(height: 24),
 
-          // Sign in button
           SizedBox(
             height: 52,
             child: ElevatedButton(
               onPressed: _loading ? null : _handleLogin,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0B2B5B),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0B2B5B), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               child: _loading
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text(
-                      'Sign In',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                  ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                  : const Text('Sign In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
             ),
           ),
 
           const SizedBox(height: 20),
 
-          // New Registration Button
           TextButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const RegisterScreen(),
-                ),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen()));
             },
-            child: const Text(
-              "Don't have an account? Register your Business",
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF0B2B5B),
-              ),
-            ),
+            child: const Text("Don't have an account? Register your Business", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0B2B5B))),
           ),
         ],
       ),

@@ -1,19 +1,29 @@
+// mobile/lib/features/demands/my_demands_screen.dart
+// UPDATED - Added Active and History Tabs
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/localization/locale_provider.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/theme/migo_colors.dart';
-import '../../models/demand_model.dart';
 import 'my_demand_details_screen.dart';
 
-class MyDemandsScreen extends StatelessWidget {
+class MyDemandsScreen extends StatefulWidget {
   const MyDemandsScreen({super.key});
+
+  @override
+  State<MyDemandsScreen> createState() => _MyDemandsScreenState();
+}
+
+class _MyDemandsScreenState extends State<MyDemandsScreen> {
+  bool _showHistory = false;
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: LocaleProvider.instance,
       builder: (context, _) {
+        final t = AppLocalizations.of(context)!;
         final isAr = LocaleProvider.instance.locale == 'ar';
         final uid = FirebaseAuth.instance.currentUser?.uid;
 
@@ -26,67 +36,102 @@ class MyDemandsScreen extends StatelessWidget {
           child: Scaffold(
             backgroundColor: MigoColors.backgroundLight,
             appBar: AppBar(
-              title: Text(isAr ? 'طلباتي' : 'My Demands', style: const TextStyle(fontWeight: FontWeight.w800)),
+              title: Text(t.get('my_demands'), style: const TextStyle(fontWeight: FontWeight.w800)),
               backgroundColor: Colors.transparent,
               elevation: 0,
               foregroundColor: MigoColors.primaryDark,
             ),
-            body: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('demand_joins')
-                  .where('userId', isEqualTo: uid)
-                  .snapshots(),
-              builder: (context, joinSnap) {
-                if (joinSnap.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final joinedDocs = joinSnap.data?.docs ?? [];
-                if (joinedDocs.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.inbox_outlined, size: 80, color: MigoColors.primary.withValues(alpha: 0.2)),
-                        const SizedBox(height: 16),
-                        Text(
-                          isAr ? 'لم تنضم إلى أي طلبات بعد' : 'No demands joined yet',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+            body: Column(
+              children: [
+                // 🆕 Tabs for Active & History
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => setState(() => _showHistory = false),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: !_showHistory ? MigoColors.primaryDark : Colors.grey.shade300,
+                            foregroundColor: !_showHistory ? Colors.white : Colors.black87,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            elevation: 0,
+                          ),
+                          child: Text(isAr ? 'نشط' : 'Active'),
                         ),
-                      ],
-                    ),
-                  );
-                }
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => setState(() => _showHistory = true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _showHistory ? MigoColors.primaryDark : Colors.grey.shade300,
+                            foregroundColor: _showHistory ? Colors.white : Colors.black87,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            elevation: 0,
+                          ),
+                          child: Text(isAr ? 'السجل' : 'History'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                Expanded(
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('demand_groups')
+                        .where('members', arrayContains: uid)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                final demandIds = joinedDocs.map((doc) => doc['demandId'] as String).toList();
+                      if (snapshot.hasError) {
+                         return Center(child: Text('Error: ${snapshot.error}'));
+                      }
 
-                return StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('demands')
-                      .where(FieldPath.documentId, whereIn: demandIds)
-                      .snapshots(),
-                  builder: (context, demandSnap) {
-                    if (demandSnap.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+                      final allDocs = snapshot.data?.docs ?? [];
+                      
+                      // 🆕 Filter based on tab
+                      final docs = allDocs.where((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        final status = data['status'] ?? 'collecting';
+                        return _showHistory ? status == 'fulfilled' : status != 'fulfilled';
+                      }).toList();
 
-                    final demands = demandSnap.data?.docs ?? [];
-                    if (demands.isEmpty) {
-                      return Center(child: Text(isAr ? 'لا توجد بيانات' : 'No data found'));
-                    }
+                      if (docs.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.inbox_outlined, size: 80, color: MigoColors.primary.withValues(alpha: 0.2)),
+                              const SizedBox(height: 16),
+                              Text(
+                                _showHistory 
+                                  ? (isAr ? 'لا يوجد سجل' : 'No history yet') 
+                                  : (isAr ? 'لا توجد طلبات نشطة' : 'No active demands'), 
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
 
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: demands.length,
-                      itemBuilder: (context, i) {
-                        final doc = demands[i];
-                        final demand = DemandModel.fromMap(doc.id, doc.data() as Map<String, dynamic>);
-                        return _MyDemandCard(demand: demand, isAr: isAr);
-                      },
-                    );
-                  },
-                );
-              },
+                      return ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: docs.length,
+                        itemBuilder: (context, i) {
+                          final doc = docs[i];
+                          final data = doc.data() as Map<String, dynamic>;
+                          return _MyDemandCard(groupId: doc.id, data: data, isAr: isAr, t: t);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -96,30 +141,47 @@ class MyDemandsScreen extends StatelessWidget {
 }
 
 class _MyDemandCard extends StatelessWidget {
-  final DemandModel demand;
+  final String groupId;
+  final Map<String, dynamic> data;
   final bool isAr;
+  final AppLocalizations t;
 
-  const _MyDemandCard({required this.demand, required this.isAr});
+  const _MyDemandCard({required this.groupId, required this.data, required this.isAr, required this.t});
 
   @override
   Widget build(BuildContext context) {
-    final title = demand.title[isAr ? 'ar' : 'en'] ?? demand.title['en'] ?? '';
-    final statusColor = demand.status == 'open' 
-        ? Colors.orange 
-        : (demand.status == 'threshold_reached' ? Colors.green : MigoColors.primary);
+    final title = data['title'] ?? '';
+    final status = data['status'] ?? 'collecting';
+    final memberCount = data['memberCount'] ?? 1;
+    final totalQuantity = data['totalQuantity'] ?? 0;
+    final threshold = data['threshold'] ?? 3;
+    final isBulk = threshold == 1; 
 
-    // 🆕 തീയതി ഫോർമാറ്റ് ചെയ്യാൻ
-    final createdDate = demand.createdAt;
-    final formattedDate = '${createdDate.day}/${createdDate.month}/${createdDate.year}';
+    String statusText;
+    Color statusColor;
+
+    if (status == 'collecting') {
+      statusText = t.get('waiting_for_people');
+      statusColor = Colors.orange;
+    } else if (status == 'threshold_reached') {
+      statusText = isBulk ? (isAr ? 'طلب خاص' : 'Personal Order') : (isAr ? 'بدأت المجموعة' : 'Group started');
+      statusColor = isBulk ? Colors.purple : Colors.green;
+    } else if (status == 'bidding') {
+      statusText = t.get('receiving_offers');
+      statusColor = Colors.blue;
+    } else if (status == 'fulfilled') {
+      statusText = isAr ? 'مكتمل' : 'Completed';
+      statusColor = Colors.green.shade700;
+    } else {
+      statusText = status;
+      statusColor = Colors.grey;
+    }
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => MyDemandDetailsScreen(demand: demand),
-          ),
-        );
+        Navigator.push(context, MaterialPageRoute(
+          builder: (_) => MyDemandDetailsScreen(demandId: groupId, data: data),
+        ));
       },
       child: Card(
         margin: const EdgeInsets.only(bottom: 16),
@@ -130,114 +192,62 @@ class _MyDemandCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🆕 Header: Title, Status, Date
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
+                  Expanded(child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis)),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      demand.status == 'open' 
-                          ? (isAr ? 'جمع الأعضاء' : 'Collecting')
-                          : (demand.status == 'threshold_reached' ? (isAr ? 'جاري المزايدة' : 'Bidding') : (isAr ? 'مغلق' : 'Closed')),
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: statusColor),
-                    ),
+                    decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                    child: Text(statusText, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: statusColor)),
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
-              // 🆕 Created Date
+              const SizedBox(height: 12),
               Row(
                 children: [
-                  const Icon(Icons.access_time, size: 12, color: Colors.grey),
+                  Icon(Icons.people, size: 16, color: isBulk ? Colors.purple : Colors.blue.shade700),
                   const SizedBox(width: 4),
                   Text(
-                    '${isAr ? 'تاريخ الإنشاء' : 'Created'}: $formattedDate',
-                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    isBulk ? (isAr ? 'طلبك الخاص' : 'Your Personal Order') : (memberCount > 1 ? '$memberCount ${t.get('people_want_this')}' : (isAr ? 'طلبك' : 'Your Demand')), 
+                    style: TextStyle(fontSize: 12, color: isBulk ? Colors.purple : Colors.blue.shade700, fontWeight: FontWeight.bold)
                   ),
+                  const Spacer(),
+                  Text('${t.get('total_quantity')}: $totalQuantity', style: TextStyle(fontSize: 12, color: Colors.grey)),
                 ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                '${demand.currency} ${demand.targetPrice.toStringAsFixed(0)}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: MigoColors.primary),
-              ),
-              const SizedBox(height: 12),
-              
-              // Progress Bar
-              if (!demand.isPrivate)
-  Row(
-    children: [
-      Expanded(
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(
-            value: demand.requiredCount > 0
-                ? (demand.currentCount / demand.requiredCount).clamp(0.0, 1.0)
-                : 0.0,
-            minHeight: 10,
-            backgroundColor: Colors.grey[200],
-            color: statusColor,
-          ),
-        ),
-      ),
-      const SizedBox(width: 12),
-      Text(
-        '${demand.currentCount} / ${demand.requiredCount}',
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: statusColor,
-        ),
-      ),
-    ],
-  ),
-
-              const SizedBox(height: 12),
-              // 🆕 Group Buy Avatars (Sample UI)
-              Row(
-                children: [
-                  // Sample avatars to show people joined
-                  for (int i = 0; i < (demand.currentCount > 3 ? 3 : demand.currentCount); i++)
-                    Align(
-                      widthFactor: 0.7,
-                      child: CircleAvatar(
-                        radius: 14,
-                        backgroundColor: Colors.blue.shade100,
-                        child: Icon(Icons.person, size: 16, color: Colors.blue.shade700),
-                      ),
-                    ),
-                  if (demand.currentCount > 3)
-                    Align(
-                      widthFactor: 0.7,
-                      child: CircleAvatar(
-                        radius: 14,
-                        backgroundColor: Colors.grey.shade200,
-                        child: Text(
-                          '+${demand.currentCount - 3}',
-                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey),
-                        ),
-                      ),
-                    ),
-                  if (demand.currentCount < demand.requiredCount)
-                    Text(
-                      isAr ? (demand.isPrivate ? '  عرض العروض' : '  انضم للمجموعة!') : (demand.isPrivate ? '  View Bids' : '  Join the group!'),
-                      style: TextStyle(fontSize: 11, color: MigoColors.primary, fontWeight: FontWeight.bold),
-                    ),
-                ],
-              )
+              // 🆕 Fetch and show Redeemed Date from claims collection
+              if (status == 'fulfilled')
+                FutureBuilder<QuerySnapshot>(
+                  future: FirebaseFirestore.instance
+                      .collection('demand_claims')
+                      .where('groupId', isEqualTo: groupId)
+                      .where('status', isEqualTo: 'redeemed')
+                      .limit(1)
+                      .get(),
+                  builder: (context, claimSnap) {
+                    if (claimSnap.hasData && claimSnap.data!.docs.isNotEmpty) {
+                      final claimData = claimSnap.data!.docs.first.data() as Map<String, dynamic>;
+                      final redeemedAt = (claimData['redeemedAt'] as Timestamp?)?.toDate();
+                      if (redeemedAt != null) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.check_circle, size: 14, color: Colors.green),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${isAr ? 'تم الاسترداد' : 'Redeemed'}: ${redeemedAt.day}/${redeemedAt.month}/${redeemedAt.year} - ${redeemedAt.hour}:${redeemedAt.minute.toString().padLeft(2, '0')}',
+                                style: const TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
             ],
           ),
         ),
