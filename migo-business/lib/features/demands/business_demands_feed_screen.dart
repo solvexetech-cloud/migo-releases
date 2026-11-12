@@ -62,7 +62,11 @@ class _BusinessDemandsFeedScreenState extends State<BusinessDemandsFeedScreen> {
           textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
           child: Scaffold(
             appBar: AppBar(
-              title: Text(t.get('business_demands'), style: const TextStyle(fontWeight: FontWeight.bold)),
+              title: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(t.get('business_demands'), style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
               backgroundColor: const Color(0xFF0F2B5B),
               foregroundColor: Colors.white,
             ),
@@ -82,7 +86,7 @@ class _BusinessDemandsFeedScreenState extends State<BusinessDemandsFeedScreen> {
                       ),
                       onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBidsScreen())),
                       icon: const Icon(Icons.receipt_long, size: 24),
-                      label: Text(isAr ? 'Ã˜Â¹Ã˜Â±Ã˜Â¶ Ã˜Â¹Ã˜Â±Ã™Ë†Ã˜Â¶Ã™Å  (My Bids)' : 'View My Bids', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      label: Text(isAr ? 'ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¶Ãƒâ„¢Ã…Â  (My Bids)' : 'View My Bids', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     ),
                   ),
                 ),
@@ -96,7 +100,7 @@ class _BusinessDemandsFeedScreenState extends State<BusinessDemandsFeedScreen> {
                         const Icon(Icons.category, color: Color(0xFF0F2B5B)),
                         const SizedBox(width: 8),
                         Text(
-                          '${isAr ? "Ã™ÂÃ˜Â¦Ã˜Â© Ã™â€¦Ã˜ÂªÃ˜Â¬Ã˜Â±Ã™Æ’" : "Your Shop Category"}: $_businessCategory',
+                          '${isAr ? "Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â¦ÃƒËœÃ‚Â© Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚ÂªÃƒËœÃ‚Â¬ÃƒËœÃ‚Â±Ãƒâ„¢Ã†â€™" : "Your Shop Category"}: $_businessCategory',
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0F2B5B)),
                         ),
                       ],
@@ -114,12 +118,12 @@ class _BusinessDemandsFeedScreenState extends State<BusinessDemandsFeedScreen> {
                           return const Center(child: CircularProgressIndicator());
                         }
                         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                          return Center(child: Text(isAr ? 'Ã™â€žÃ˜Â§ Ã˜ÂªÃ™Ë†Ã˜Â¬Ã˜Â¯ Ã˜Â·Ã™â€žÃ˜Â¨Ã˜Â§Ã˜Âª Ã™â€ Ã˜Â´Ã˜Â·Ã˜Â© Ã˜Â­Ã˜Â§Ã™â€žÃ™Å Ã˜Â§Ã™â€¹' : 'No active demands currently', style: const TextStyle(fontSize: 16, color: Colors.grey)));
+                          return Center(child: Text(isAr ? 'Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â§ ÃƒËœÃ‚ÂªÃƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â¯ ÃƒËœÃ‚Â·Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â´ÃƒËœÃ‚Â·ÃƒËœÃ‚Â© ÃƒËœÃ‚Â­ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Â¹' : 'No active demands currently', style: const TextStyle(fontSize: 16, color: Colors.grey)));
                         }
 
                         var demands = snapshot.data!.docs;
 
-                        // Ã°Å¸â€ â€¢ STRICT CATEGORY FILTER
+                        // ÃƒÂ°Ã…Â¸Ã¢â‚¬Â Ã¢â‚¬Â¢ STRICT CATEGORY FILTER
                         if (_businessCategory != null && _businessCategory!.isNotEmpty) {
                           demands = demands.where((doc) {
                             final data = doc.data() as Map<String, dynamic>;
@@ -129,7 +133,7 @@ class _BusinessDemandsFeedScreenState extends State<BusinessDemandsFeedScreen> {
                         }
 
                         if (demands.isEmpty) {
-                          return Center(child: Text(isAr ? 'Ã™â€žÃ˜Â§ Ã˜ÂªÃ™Ë†Ã˜Â¬Ã˜Â¯ Ã˜Â·Ã™â€žÃ˜Â¨Ã˜Â§Ã˜Âª Ã™ÂÃ™Å  Ã™ÂÃ˜Â¦Ã˜ÂªÃ™Æ’' : 'No demands in your category', style: const TextStyle(fontSize: 16, color: Colors.grey)));
+                          return Center(child: Text(isAr ? 'Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â§ ÃƒËœÃ‚ÂªÃƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â¯ ÃƒËœÃ‚Â·Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª Ãƒâ„¢Ã‚ÂÃƒâ„¢Ã…Â  Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â¦ÃƒËœÃ‚ÂªÃƒâ„¢Ã†â€™' : 'No demands in your category', style: const TextStyle(fontSize: 16, color: Colors.grey)));
                         }
 
                         return ListView.builder(

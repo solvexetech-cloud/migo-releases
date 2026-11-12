@@ -403,28 +403,42 @@ class _OfferCardState extends State<OfferCard> {
                                                                 const Spacer(),
                                 // 🆕 Reviews Star ചേർത്തു
                                 FutureBuilder<({double average, int count})>(
-                                  future: FirestoreService.instance.getBusinessRating(offer.businessId),
-                                  builder: (context, snapshot) {
-                                    if (!snapshot.hasData || snapshot.data!.count == 0) {
-                                      return const SizedBox.shrink();
-                                    }
-                                    final rating = snapshot.data!.average;
-                                    return Row(
-                                      children: [
-                                        const Icon(Icons.star, size: 12, color: Colors.amber),
-                                        const SizedBox(width: 2),
-                                        Text(
-                                          rating.toStringAsFixed(1),
-                                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.black87),
-                                        ),
-                                        Text(
-                                          ' (${snapshot.data!.count})',
-                                          style: TextStyle(fontSize: 9, color: textSecondary),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
+  future: FirestoreService.instance.getBusinessRating(offer.businessId),
+  builder: (context, snapshot) {
+    if (!snapshot.hasData) {
+      return const SizedBox.shrink();
+    }
+    final rating = snapshot.data!.average;
+    final count = snapshot.data!.count;
+    if (count == 0) {
+      // 🆕 New badge (no reviews yet)
+      return Row(
+        children: [
+          Icon(Icons.star_border, size: 12, color: textSecondary),
+          const SizedBox(width: 2),
+          Text(
+            isAr ? 'جديد' : 'New',
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: textSecondary),
+          ),
+        ],
+      );
+    }
+    return Row(
+      children: [
+        const Icon(Icons.star, size: 12, color: Colors.amber),
+        const SizedBox(width: 2),
+        Text(
+          rating.toStringAsFixed(1),
+          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.black87),
+        ),
+        Text(
+          ' ($count)',
+          style: TextStyle(fontSize: 9, color: textSecondary),
+        ),
+      ],
+    );
+  },
+),
                               ],
                             ),
                           ],

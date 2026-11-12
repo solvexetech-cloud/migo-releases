@@ -1,5 +1,5 @@
 // migo-business/lib/features/claims/business_claims_screen.dart
-// UPDATED - Includes Date & Time
+// UPDATED - Shows Unit Price, Quantity, Total Price clearly
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -119,9 +119,40 @@ class _BusinessClaimsScreenState extends State<BusinessClaimsScreen> {
                                       const Icon(Icons.pin, size: 16, color: Colors.blue),
                                       const SizedBox(width: 4),
                                       Text('PIN: ${data['pin']}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
-                                      const Spacer(),
-                                      Text('QAR ${data['totalPrice']}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                                     ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // 🆕 Price Details
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(8)),
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(isAr ? 'سعر الوحدة:' : 'Unit Price:', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                            Text('QAR ${data['offerPrice'] ?? 0}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(isAr ? 'الكمية:' : 'Quantity:', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                            Text('${data['totalQuantity'] ?? 0}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                          ],
+                                        ),
+                                        const Divider(),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(isAr ? 'السعر الإجمالي:' : 'Total Price:', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue)),
+                                            Text('QAR ${data['totalPrice'] ?? 0}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.blue)),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                   const SizedBox(height: 12),
                                   if (_showHistory && redeemedAt != null)

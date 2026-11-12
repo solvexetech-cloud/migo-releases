@@ -1,5 +1,5 @@
 // admin/src/pages/DemandGroupsPage.jsx
-// FIXED - Correctly shows Personal Order for Bulk
+// FIXED - Corrected Encoding (â€¢ replaced with |)
 import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, orderBy, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -95,7 +95,7 @@ const DemandGroupsPage = () => {
         <div style={{ display: 'grid', gap: '16px' }}>
           {filteredGroups.map((group) => {
             const badge = getStatusBadge(group.status);
-            const isBulk = group.threshold === 1; // ðŸ†• Detect Bulk
+            const isBulk = group.threshold === 1;
 
             return (
               <div
@@ -113,11 +113,12 @@ const DemandGroupsPage = () => {
                     <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 'bold' }}>
                       {group.title}
                     </h3>
+                    {/* 🆕 FIXED: Replaced â€¢ with | */}
                     <div style={{ display: 'flex', gap: '8px', fontSize: '12px', color: '#666', marginBottom: '12px' }}>
                       <span>Category: <strong>{group.category}</strong></span>
-                      <span>â€¢</span>
+                      <span>|</span>
                       <span>Zone: <strong>{group.zoneId}</strong></span>
-                      <span>â€¢</span>
+                      <span>|</span>
                       <span>ID: <strong>{group.id.substring(0, 8)}...</strong></span>
                     </div>
                   </div>
@@ -147,7 +148,7 @@ const DemandGroupsPage = () => {
                   <div>
                     <div style={{ fontSize: '12px', color: '#666' }}>Price Range</div>
                     <div style={{ fontSize: '16px', fontWeight: 'bold' }}>
-                      {group.minTargetPrice} - {group.maxTargetPrice} QAR
+                      {group.minPrice || group.minTargetPrice} - {group.maxPrice || group.maxTargetPrice} QAR
                     </div>
                   </div>
                 </div>

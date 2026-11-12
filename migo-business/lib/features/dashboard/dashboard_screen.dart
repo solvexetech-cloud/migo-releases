@@ -1,5 +1,5 @@
 // migo-business/lib/features/dashboard/dashboard_screen.dart
-// FIXED - Correct Arabic text and clean UI
+// UPDATED - Professional Design for New Demands Alert
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -63,9 +63,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ═══════════════════════════════════════════════════
-  // SIDEBAR (PC)
-  // ═══════════════════════════════════════════════════
+  // SIDEBAR
   Widget _buildSidebar(bool isAr) {
     return Container(
       width: 260,
@@ -78,7 +76,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       child: Column(
         children: [
-          // Logo
           Padding(
             padding: const EdgeInsets.all(20),
             child: Row(
@@ -123,8 +120,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           const Divider(color: Colors.white12),
-
-          // Nav Items
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
@@ -141,8 +136,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
-
-          // Sign out
           Padding(
             padding: const EdgeInsets.all(16),
             child: OutlinedButton.icon(
@@ -194,9 +187,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ═══════════════════════════════════════════════════
-  // DRAWER (Mobile)
-  // ═══════════════════════════════════════════════════
   Widget _buildDrawer(bool isAr) {
     return Drawer(
       child: Container(
@@ -237,7 +227,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               leading: const Icon(Icons.logout, color: Colors.white70),
               title: Text(isAr ? 'تسجيل الخروج' : 'Sign out', style: const TextStyle(color: Colors.white)),
               onTap: () {
-                Navigator.pop(context); // Close drawer
+                Navigator.pop(context);
                 _handleSignOut(isAr);
               },
             ),
@@ -261,31 +251,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ═══════════════════════════════════════════════════
-  // CONTENT ROUTER
-  // ═══════════════════════════════════════════════════
   Widget _buildContent(bool isAr) {
     switch (_selectedIndex) {
-      case 0:
-        return _buildHomeTab(isAr);
-      case 1:
-        return const MyOffersScreen();
-      case 2:
-        return _buildBookingsTab();
-      case 3:
-        return _buildScanTab();
-      case 4:
-        return _buildAnalyticsTab();
-      case 5:
-        return _buildProfileTab();
-      case 6: 
-        return const BusinessClaimsScreen();
-      case 8:
-        return const BusinessDemandsFeedScreen();
-      case 7:
-        return const MyFlyersScreen();
-      default:
-        return const SizedBox();
+      case 0: return _buildHomeTab(isAr);
+      case 1: return const MyOffersScreen();
+      case 2: return _buildBookingsTab();
+      case 3: return _buildScanTab();
+      case 4: return _buildAnalyticsTab();
+      case 5: return _buildProfileTab();
+      case 6: return const BusinessClaimsScreen();
+      case 8: return const BusinessDemandsFeedScreen();
+      case 7: return const MyFlyersScreen();
+      default: return const SizedBox();
     }
   }
 
@@ -315,9 +292,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ═══════════════════════════════════════════════════
-  // HOME TAB
-  // ═══════════════════════════════════════════════════
+  // 🆕 PROFESSIONAL HOME TAB
   Widget _buildHomeTab(bool isAr) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return const Center(child: Text('Not signed in'));
@@ -341,15 +316,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         return FutureBuilder<List<dynamic>>(
           future: Future.wait([
-            FirebaseFirestore.instance
-                .collection('offers')
-                .where('businessId', isEqualTo: businessId)
-                .get(),
-            FirebaseFirestore.instance
-                .collection('claims')
-                .where('businessId', isEqualTo: businessId)
-                .where('status', isEqualTo: 'redeemed')
-                .get(),
+            FirebaseFirestore.instance.collection('offers').where('businessId', isEqualTo: businessId).get(),
+            FirebaseFirestore.instance.collection('claims').where('businessId', isEqualTo: businessId).where('status', isEqualTo: 'redeemed').get(),
           ]),
           builder: (context, snap) {
             if (snap.connectionState == ConnectionState.waiting) {
@@ -373,6 +341,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Welcome Card
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -409,6 +378,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 24),
 
+                  // 🆕 PROFESSIONAL NEW DEMANDS ALERT
+                  FutureBuilder<QuerySnapshot>(
+                    future: FirebaseFirestore.instance
+                        .collection('demand_groups')
+                        .where('status', whereIn: ['threshold_reached', 'bidding'])
+                        .get(),
+                    builder: (context, snapshot) {
+                      final count = snapshot.data?.docs.length ?? 0;
+                      if (count == 0) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        child: InkWell(
+                          onTap: () => setState(() => _selectedIndex = 8),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: MigoColors.primary, width: 1.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: MigoColors.primary.withValues(alpha: 0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: MigoColors.primary.withValues(alpha: 0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.notifications_active, color: MigoColors.primary, size: 28),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        isAr ? '$count طلبات جديدة!' : '$count New Demand${count > 1 ? 's' : ''}!',
+                                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: MigoColors.primaryDark),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        isAr ? 'في انتظار العروض الخاصة بك' : 'Waiting for your bids',
+                                        style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(Icons.arrow_forward_ios, size: 16, color: MigoColors.primary),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  // Scan & Redeem Card
                   InkWell(
                     onTap: () => setState(() => _selectedIndex = 3),
                     borderRadius: BorderRadius.circular(20),

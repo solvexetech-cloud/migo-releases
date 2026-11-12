@@ -1,5 +1,5 @@
 // migo-business/lib/features/scan/scan_qr_screen.dart
-// FIXED - Exact Claim ID matching to prevent wrong redemptions
+// FIXED - Handles PIN for both demand_claims and old claims
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -25,7 +25,10 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
   @override
   void initState() {
     super.initState();
-    _scannerController = MobileScannerController(detectionSpeed: DetectionSpeed.noDuplicates, formats: const [BarcodeFormat.qrCode]);
+    _scannerController = MobileScannerController(
+      detectionSpeed: DetectionSpeed.noDuplicates,
+      formats: const [BarcodeFormat.qrCode],
+    );
   }
 
   @override
@@ -37,7 +40,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
 
   Future<void> _redeem(String code) async {
     final trimmed = code.trim();
-    debugPrint('ðŸ” Scanned QR: $trimmed');
+    debugPrint('🔍 Scanned QR / PIN: $trimmed');
 
     if (trimmed.isEmpty) {
       setState(() => _errorMsg = 'Please provide a code.');
@@ -51,46 +54,90 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
     });
 
     try {
-      // ðŸ†• Extract Claim ID strictly from 'MIGO-CLAIM-{claimId}-{pin}'
+      // 🆕 Extract PIN from QR format or direct PIN
+      String? pin;
       String? claimId;
+
       if (trimmed.startsWith('MIGO-CLAIM-')) {
         final parts = trimmed.split('-');
-        if (parts.length >= 3) {
-          claimId = parts[2]; 
+        if (parts.length >= 5) {
+          claimId = parts[2];
+          pin = parts[4];
         }
+      } else if (RegExp(r'^\d{6}$').hasMatch(trimmed)) {
+        pin = trimmed;
       }
 
-      if (claimId == null) {
-        throw Exception('Invalid QR format. Please scan a MIGO demand claim.');
+      if (pin == null) {
+        throw Exception('Invalid QR format. Please scan a valid claim.');
       }
 
-      // ðŸ†• Fetch the exact claim doc by ID
-      final claimDoc = await FirebaseFirestore.instance.collection('demand_claims').doc(claimId).get();
+      // 🆕 Try to find in demand_claims first (new system)
+      QuerySnapshot demandQuery = await FirebaseFirestore.instance
+          .collection('demand_claims')
+          .where('pin', isEqualTo: pin)
+          .where('businessId', isEqualTo: widget.businessId)
+          .where('status', isEqualTo: 'locked')
+          .limit(1)
+          .get();
 
-      if (!claimDoc.exists) {
-        throw Exception('Claim not found.');
+      if (demandQuery.docs.isNotEmpty) {
+        final claimDoc = demandQuery.docs.first;
+        final claimData = claimDoc.data() as Map<String, dynamic>;
+
+        // Mark as redeemed
+        await claimDoc.reference.update({
+          'status': 'redeemed',
+          'redeemedAt': FieldValue.serverTimestamp(),
+        });
+
+        // Mark demand group as fulfilled
+        final groupId = claimData['groupId'];
+        if (groupId != null) {
+          await FirebaseFirestore.instance
+              .collection('demand_groups')
+              .doc(groupId)
+              .update({
+            'status': 'fulfilled',
+            'redeemedAt': FieldValue.serverTimestamp(),
+          });
+        }
+
+        if (!mounted) return;
+        setState(() {
+          _successMsg =
+              'Demand Claim Redeemed!\nOrder: ${claimData['groupTitle']}\nPIN: ${claimData['pin']}';
+          _codeController.clear();
+          _cameraMode = false;
+        });
+        return;
       }
 
-      final claimData = claimDoc.data() as Map<String, dynamic>;
-      final status = claimData['status'];
+      // 🆕 Try old claims collection
+      QuerySnapshot oldQuery = await FirebaseFirestore.instance
+          .collection('claims')
+          .where('pickupCode', isEqualTo: pin)
+          .where('businessId', isEqualTo: widget.businessId)
+          .where('status', isEqualTo: 'active')
+          .limit(1)
+          .get();
 
-      if (status == 'redeemed') {
-         throw Exception('This claim has already been redeemed.');
+      if (oldQuery.docs.isNotEmpty) {
+        await oldQuery.docs.first.reference.update({
+          'status': 'redeemed',
+          'redeemedAt': FieldValue.serverTimestamp(),
+        });
+
+        if (!mounted) return;
+        setState(() {
+          _successMsg = 'Offer Claim Redeemed Successfully!\nCode: $pin';
+          _codeController.clear();
+          _cameraMode = false;
+        });
+        return;
       }
 
-
-      // Mark as redeemed
-      await FirebaseFirestore.instance.collection('demand_claims').doc(claimId).update({
-        'status': 'redeemed',
-        'redeemedAt': FieldValue.serverTimestamp(),
-      });
-
-      if (!mounted) return;
-      setState(() {
-        _successMsg = 'Claim redeemed successfully!\nOrder: ${claimData['groupTitle']}\nPIN: ${claimData['pin']}';
-        _codeController.clear();
-        _cameraMode = false;
-      });
+      throw Exception('Invalid or already redeemed claim.');
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -119,7 +166,10 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scan & Redeem'),
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text('Scan & Redeem'),
+        ),
         actions: [
           IconButton(
             onPressed: () {
@@ -133,7 +183,9 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
           ),
         ],
       ),
-      body: SafeArea(child: _cameraMode ? _buildScanner() : _buildManualEntry()),
+      body: SafeArea(
+        child: _cameraMode ? _buildScanner() : _buildManualEntry(),
+      ),
     );
   }
 
@@ -147,33 +199,81 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
               MobileScanner(
                 controller: _scannerController,
                 onDetect: _onDetect,
-                errorBuilder: (context, error) => Center(child: Text('Camera Error: ${error.errorCode}', style: const TextStyle(color: Colors.white))),
-              ),
-              Container(width: 240, height: 240, decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFF0C566), width: 3))),
-              Positioned(
-                bottom: 30, left: 20, right: 20,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(12)),
-                  child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon(Icons.qr_code_2, color: Colors.white, size: 18), SizedBox(width: 8),
-                    Text("Point camera at customer's QR", style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
-                  ]),
+                errorBuilder: (context, error) => Center(
+                  child: Text(
+                    'Camera Error: ${error.errorCode}',
+                    style: const TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
-              if (_loading) Container(color: Colors.black.withValues(alpha: 0.6), child: const Center(child: CircularProgressIndicator(color: Colors.white))),
+              Container(
+                width: 240,
+                height: 240,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFF0C566), width: 3),
+                ),
+              ),
+              Positioned(
+                bottom: 30,
+                left: 20,
+                right: 20,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.qr_code_2, color: Colors.white, size: 18),
+                      SizedBox(width: 8),
+                      Text(
+                        "Point camera at customer's QR",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (_loading)
+                Container(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  child: const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                ),
             ],
           ),
         ),
         if (_successMsg != null || _errorMsg != null)
           Container(
-            width: double.infinity, padding: const EdgeInsets.all(16),
-            color: _successMsg != null ? Colors.green.withValues(alpha: 0.12) : Colors.red.withValues(alpha: 0.12),
-            child: Row(children: [
-              Icon(_successMsg != null ? Icons.check_circle : Icons.error, color: _successMsg != null ? Colors.green : Colors.red),
-              const SizedBox(width: 10),
-              Expanded(child: Text(_successMsg ?? _errorMsg ?? '', style: const TextStyle(fontSize: 13))),
-            ]),
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            color: _successMsg != null
+                ? Colors.green.withValues(alpha: 0.12)
+                : Colors.red.withValues(alpha: 0.12),
+            child: Row(
+              children: [
+                Icon(
+                  _successMsg != null ? Icons.check_circle : Icons.error,
+                  color: _successMsg != null ? Colors.green : Colors.red,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    _successMsg ?? _errorMsg ?? '',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
           ),
       ],
     );
@@ -185,21 +285,41 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Enter code manually', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+          const Text(
+            'Enter code manually',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 6),
-          const Text('Type the 6-digit pickup code.', style: TextStyle(fontSize: 13, color: Colors.grey)),
+          const Text(
+            'Type the 6-digit pickup code.',
+            style: TextStyle(fontSize: 13, color: Colors.grey),
+          ),
           const SizedBox(height: 20),
           TextField(
             controller: _codeController,
             style: const TextStyle(fontFamily: 'monospace'),
-            decoration: const InputDecoration(labelText: 'Claim / Pickup code', hintText: 'e.g. 123456', border: OutlineInputBorder(), prefixIcon: Icon(Icons.qr_code_2)),
+            decoration: const InputDecoration(
+              labelText: 'Claim / Pickup code',
+              hintText: 'e.g. 123456',
+              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.qr_code_2),
+            ),
           ),
           const SizedBox(height: 16),
           SizedBox(
             height: 52,
             child: ElevatedButton.icon(
               onPressed: _loading ? null : () => _redeem(_codeController.text),
-              icon: _loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.check_circle_outline),
+              icon: _loading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.check_circle_outline),
               label: const Text('Redeem'),
             ),
           ),
@@ -212,8 +332,14 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
               label: const Text('Scan QR with camera'),
             ),
           ),
-          if (_successMsg != null) ...[const SizedBox(height: 20), _ResultBanner(success: true, message: _successMsg!)],
-          if (_errorMsg != null) ...[const SizedBox(height: 20), _ResultBanner(success: false, message: _errorMsg!)],
+          if (_successMsg != null) ...[
+            const SizedBox(height: 20),
+            _ResultBanner(success: true, message: _successMsg!),
+          ],
+          if (_errorMsg != null) ...[
+            const SizedBox(height: 20),
+            _ResultBanner(success: false, message: _errorMsg!),
+          ],
         ],
       ),
     );
@@ -230,12 +356,18 @@ class _ResultBanner extends StatelessWidget {
     final color = success ? Colors.green : Colors.red;
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withValues(alpha: 0.3))),
-      child: Row(children: [
-        Icon(success ? Icons.check_circle : Icons.error, color: color),
-        const SizedBox(width: 10),
-        Expanded(child: Text(message, style: const TextStyle(fontSize: 13))),
-      ]),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(success ? Icons.check_circle : Icons.error, color: color),
+          const SizedBox(width: 10),
+          Expanded(child: Text(message, style: const TextStyle(fontSize: 13))),
+        ],
+      ),
     );
   }
 }

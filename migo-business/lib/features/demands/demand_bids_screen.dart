@@ -1,5 +1,5 @@
 // migo-business/lib/features/demands/demand_bids_screen.dart
-// FULLY FIXED - Saves groupTitle & deliveryDate correctly
+// UPDATED - Responsive Bid Dialog (Stacked on mobile, two columns on PC)
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -69,11 +69,14 @@ class DemandBidsScreen extends StatelessWidget {
         final title = data['title'] ?? '';
         final memberCount = data['memberCount'] ?? 0;
         final totalQuantity = data['totalQuantity'] ?? 0;
-        final minPrice = data['minTargetPrice'] ?? 0.0;
-        final maxPrice = data['maxTargetPrice'] ?? 0.0;
+        final minPrice = data['minPrice'] ?? data['minTargetPrice'] ?? 0.0;
+        final maxPrice = data['maxPrice'] ?? data['maxTargetPrice'] ?? 0.0;
         final category = data['category'] ?? '';
         final threshold = data['threshold'] ?? 3;
         final isBulk = threshold == 1;
+        final brand = data['brand'] ?? '';
+        final urgency = data['urgency'] ?? 'Flexible';
+        final budgetType = data['budgetType'] ?? 'Flexible';
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -108,7 +111,12 @@ class DemandBidsScreen extends StatelessWidget {
                         const SizedBox(height: 8),
                         _buildDetailRow(Icons.inventory, '${t.get('total_quantity')}: $totalQuantity'),
                         const SizedBox(height: 8),
-                        // 🆕 Show Delivery Date here
+                        if (brand.isNotEmpty) _buildDetailRow(Icons.branding_watermark, '${isAr ? 'العلامة التجارية' : 'Brand'}: $brand'),
+                        const SizedBox(height: 8),
+                        _buildDetailRow(Icons.timer, '${isAr ? 'الاستعجال' : 'Urgency'}: $urgency'),
+                        const SizedBox(height: 8),
+                        _buildDetailRow(Icons.account_balance_wallet, '${isAr ? 'نوع الميزانية' : 'Budget'}: $budgetType'),
+                        const SizedBox(height: 8),
                         if (data['deliveryDate'] != null)
                           _buildDetailRow(
                             Icons.calendar_today, 
@@ -129,7 +137,7 @@ class DemandBidsScreen extends StatelessWidget {
                       ),
                       onPressed: hasBid 
                           ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBidsScreen())) 
-                          : () => _showBidDialog(context, groupId!, data, isAr, isBulk),
+                          : () => _showBidDialog(context, groupId!, data, isAr, isBulk, category),
                       icon: Icon(hasBid ? Icons.check_circle : Icons.gavel, color: Colors.white),
                       label: Text(
                         hasBid ? (isAr ? 'لقد قدمت عرضاً بالفعل (تعديل)' : 'Bid Already Placed (Edit)') : t.get('place_bid'), 
@@ -160,7 +168,7 @@ class DemandBidsScreen extends StatelessWidget {
     return Center(child: Text(isAr ? 'لم يتم تحديد طلب' : 'No demand selected', style: const TextStyle(fontSize: 16, color: Colors.grey)));
   }
 
-  void _showBidDialog(BuildContext context, String groupId, Map<String, dynamic> groupData, bool isAr, bool isBulk) {
+  void _showBidDialog(BuildContext context, String groupId, Map<String, dynamic> groupData, bool isAr, bool isBulk, String category) {
     final t = AppLocalizations.of(context)!;
     final formKey = GlobalKey<FormState>();
     final priceController = TextEditingController();
@@ -169,62 +177,57 @@ class DemandBidsScreen extends StatelessWidget {
     final minCommitmentsController = TextEditingController(text: isBulk ? '1' : '${groupData['totalQuantity'] ?? 1}');
     bool isSubmitting = false;
 
+    String? _categorySpecificValue;
+    List<String> categoryOptions = [];
+    
+    if (category.toLowerCase() == 'electronics') {
+      categoryOptions = ['Original', 'Master Copy', 'Refurbished'];
+    } else if (category.toLowerCase() == 'fashion') {
+      categoryOptions = ['Branded', 'Local', 'Custom'];
+    } else if (category.toLowerCase() == 'food') {
+      categoryOptions = ['Freshly Prepared', 'Ready to Eat'];
+    } else if (category.toLowerCase() == 'home') {
+      categoryOptions = ['New', 'Used'];
+    } else {
+      categoryOptions = ['Standard'];
+    }
+    _categorySpecificValue = categoryOptions.first;
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setState) {
+            final double unitPrice = double.tryParse(priceController.text) ?? 0.0;
+            final int qty = groupData['totalQuantity'] ?? 0;
+            final double totalPrice = unitPrice * qty;
+            final isWide = MediaQuery.of(context).size.width >= 700;
+
             return AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               title: Text(t.get('place_bid'), style: const TextStyle(fontWeight: FontWeight.bold)),
-              content: Form(
-                key: formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextFormField(
-                        controller: priceController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: InputDecoration(labelText: isAr ? 'سعرك (QAR)' : 'Your Price (QAR)', border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.attach_money)),
-                        validator: (val) => (val == null || double.tryParse(val) == null) ? 'Invalid number' : null,
-                      ),
-                      const SizedBox(height: 12),
-                      DropdownButtonFormField<String>(
-                        initialValue: authController.text,
-                        decoration: InputDecoration(labelText: isAr ? 'الأصالة' : 'Authenticity', border: const OutlineInputBorder()),
-                        items: [
-                          DropdownMenuItem(value: 'Original', child: Text(isAr ? 'أصلي' : 'Original')),
-                          DropdownMenuItem(value: 'Master Copy', child: Text(isAr ? 'نسخة ماستر' : 'Master Copy')),
-                        ],
-                        onChanged: (val) => authController.text = val ?? 'Original',
-                      ),
-                      const SizedBox(height: 12),
-                      DropdownButtonFormField<String>(
-                        initialValue: fulfillmentController.text,
-                        decoration: InputDecoration(labelText: isAr ? 'طريقة التسليم' : 'Fulfillment', border: const OutlineInputBorder()),
-                        items: [
-                          DropdownMenuItem(value: 'Store Pickup', child: Text(isAr ? 'استلام من المتجر' : 'Store Pickup')),
-                          DropdownMenuItem(value: 'Home Delivery', child: Text(isAr ? 'توصيل للمنزل' : 'Home Delivery')),
-                        ],
-                        onChanged: (val) => fulfillmentController.text = val ?? 'Store Pickup',
-                      ),
-                      if (!isBulk) ...[
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: minCommitmentsController,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(labelText: isAr ? 'الحد الأدنى للمشتري' : 'Minimum Buyers Required', border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.people)),
-                          validator: (val) {
-                            if (val == null || val.isEmpty) return 'Required';
-                            final num = int.tryParse(val);
-                            if (num == null || num < 1) return 'Min 1';
-                            return null;
-                          },
+              content: SizedBox(
+                width: isWide ? 600 : double.maxFinite,
+                child: Form(
+                  key: formKey,
+                  child: SingleChildScrollView(
+                    child: isWide 
+                      ? Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(flex: 1, child: _buildCustomerInfo(groupData, isAr)),
+                            const VerticalDivider(width: 24),
+                            Expanded(flex: 1, child: _buildShopBidInputs(priceController, authController, fulfillmentController, minCommitmentsController, categoryOptions, _categorySpecificValue!, isAr, isBulk, setState, unitPrice, qty, totalPrice, category)),
+                          ],
+                        )
+                      : Column(
+                          children: [
+                            _buildCustomerInfo(groupData, isAr),
+                            const Divider(height: 32),
+                            _buildShopBidInputs(priceController, authController, fulfillmentController, minCommitmentsController, categoryOptions, _categorySpecificValue!, isAr, isBulk, setState, unitPrice, qty, totalPrice, category),
+                          ],
                         ),
-                      ],
-                    ],
                   ),
                 ),
               ),
@@ -246,11 +249,13 @@ class DemandBidsScreen extends StatelessWidget {
                       await FirebaseFirestore.instance.collection('demand_bids').add({
                         'groupId': groupId,
                         'groupTitle': groupData['title'] ?? 'Unknown', 
-                        'deliveryDate': groupData['deliveryDate'], // 🆕 Saving Delivery Date Here
+                        'deliveryDate': groupData['deliveryDate'], 
                         'businessId': businessId,
                         'businessName': businessName,
                         'offerPrice': double.parse(priceController.text),
-                        'authenticity': authController.text,
+                        'totalPrice': totalPrice,
+                        'quantity': qty,
+                        'categorySpecific': _categorySpecificValue,
                         'fulfillmentType': fulfillmentController.text,
                         'businessTrustScore': currentTrustScore,
                         'minCommitments': isBulk ? 1 : int.parse(minCommitmentsController.text),
@@ -275,6 +280,138 @@ class DemandBidsScreen extends StatelessWidget {
           },
         );
       },
+    );
+  }
+
+  // 🆕 Customer Info (Left side)
+  Widget _buildCustomerInfo(Map<String, dynamic> groupData, bool isAr) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Customer Request', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blue)),
+        const SizedBox(height: 8),
+        _buildInfoRow('Product', groupData['title'] ?? ''),
+        _buildInfoRow('Quantity', '${groupData['totalQuantity']}'),
+        _buildInfoRow('Price Range', 'QAR ${groupData['minPrice']} - ${groupData['maxPrice']}'),
+        _buildInfoRow('Brand', groupData['brand'] ?? 'Any'),
+        _buildInfoRow('Urgency', groupData['urgency'] ?? 'Flexible'),
+        _buildInfoRow('Budget', groupData['budgetType'] ?? 'Flexible'),
+        _buildInfoRow('Delivery', groupData['deliveryDate'] != null 
+            ? '${(groupData['deliveryDate'] as Timestamp).toDate().day}/${(groupData['deliveryDate'] as Timestamp).toDate().month}/${(groupData['deliveryDate'] as Timestamp).toDate().year}' 
+            : 'Flexible'),
+      ],
+    );
+  }
+
+  // 🆕 Shop Inputs (Right side)
+  Widget _buildShopBidInputs(
+    TextEditingController priceController,
+    TextEditingController authController,
+    TextEditingController fulfillmentController,
+    TextEditingController minCommitmentsController,
+    List<String> categoryOptions,
+    String selectedCategoryOption,
+    bool isAr,
+    bool isBulk,
+    StateSetter setState,
+    double unitPrice,
+    int qty,
+    double totalPrice,
+    String category,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Your Bid', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blue)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: priceController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          onChanged: (_) => setState(() {}),
+          decoration: InputDecoration(
+            labelText: isAr ? 'سعر الوحدة (QAR)' : 'Unit Price (QAR)', 
+            border: const OutlineInputBorder(), 
+            prefixIcon: const Icon(Icons.attach_money)
+          ),
+          validator: (val) => (val == null || double.tryParse(val) == null) ? 'Invalid number' : null,
+        ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          initialValue: selectedCategoryOption,
+          decoration: InputDecoration(labelText: isAr ? 'التفاصيل' : 'Details', border: const OutlineInputBorder()),
+          items: categoryOptions.map((opt) => DropdownMenuItem(value: opt, child: Text(opt))).toList(),
+          onChanged: (val) {},
+        ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          initialValue: fulfillmentController.text,
+          decoration: InputDecoration(labelText: isAr ? 'طريقة التسليم' : 'Fulfillment', border: const OutlineInputBorder()),
+          items: [
+            DropdownMenuItem(value: 'Store Pickup', child: Text(isAr ? 'استلام من المتجر' : 'Store Pickup')),
+            DropdownMenuItem(value: 'Home Delivery', child: Text(isAr ? 'توصيل للمنزل' : 'Home Delivery')),
+          ],
+          onChanged: (val) => fulfillmentController.text = val ?? 'Store Pickup',
+        ),
+        if (!isBulk) ...[
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: minCommitmentsController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: isAr ? 'الحد الأدنى للمشتري' : 'Min Buyers', border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.people)),
+            validator: (val) {
+              if (val == null || val.isEmpty) return 'Required';
+              final num = int.tryParse(val);
+              if (num == null || num < 1) return 'Min 1';
+              return null;
+            },
+          ),
+        ],
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(8)),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(isAr ? 'سعر الوحدة:' : 'Unit Price:', style: const TextStyle(fontWeight: FontWeight.w600)),
+                  Text('QAR ${unitPrice.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(isAr ? 'الكمية:' : 'Quantity:', style: const TextStyle(fontWeight: FontWeight.w600)),
+                  Text('$qty', style: const TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const Divider(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(isAr ? 'الإجمالي:' : 'Total:', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blue)),
+                  Text('QAR ${totalPrice.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.blue)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600)),
+          Expanded(child: Text(value, textAlign: TextAlign.end, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold))),
+        ],
+      ),
     );
   }
 }

@@ -1,7 +1,8 @@
+// mobile/lib/features/discover/discover_screen.dart
+// FINAL VERSION - Cleaned up & Working
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../requests/product_request_screen.dart';
 import '../../core/localization/locale_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../core/theme/migo_colors.dart';
@@ -21,11 +22,11 @@ extension SortModeX on SortMode {
   String label(bool isAr) {
     switch (this) {
       case SortMode.newest:
-        return isAr ? 'ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â£ÃƒËœÃ‚Â­ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â«' : 'Newest';
+        return isAr ? 'الأحدث' : 'Newest';
       case SortMode.bestSavings:
-        return isAr ? 'ÃƒËœÃ‚Â£Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â¶Ãƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚ÂªÃƒâ„¢Ã‹â€ Ãƒâ„¢Ã‚ÂÃƒâ„¢Ã…Â ÃƒËœÃ‚Â±' : 'Best savings';
+        return isAr ? 'أفضل التوفير' : 'Best savings';
       case SortMode.expiringSoon:
-        return isAr ? 'ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Â¡Ãƒâ„¢Ã…Â  Ãƒâ„¢Ã¢â‚¬Å¡ÃƒËœÃ‚Â±Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¨Ãƒâ„¢Ã¢â‚¬Â¹ÃƒËœÃ‚Â§' : 'Expiring soon';
+        return isAr ? 'تنتهي قريبًا' : 'Expiring soon';
     }
   }
 }
@@ -134,12 +135,18 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   List<OfferModel> _applyFilters(List<OfferModel> input) {
     var list = input;
 
+    // 🆕 Strict case-insensitive category filter
     if (_category != null) {
-      list = list.where((o) => o.category == _category).toList();
+      final selectedCat = _category!.toLowerCase().trim();
+      list = list.where((o) {
+        final offerCat = o.category.toLowerCase().trim();
+        return offerCat == selectedCat;
+      }).toList();
     }
 
+    // 🆕 Search filter
     if (_query.isNotEmpty) {
-      final q = _query.toLowerCase();
+      final q = _query.toLowerCase().trim();
       list = list
           .where((o) =>
               o.title.toLowerCase().contains(q) ||
@@ -164,6 +171,24 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     return sorted;
   }
 
+  Widget _buildTag(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
@@ -174,11 +199,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         return Directionality(
           textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
           child: Scaffold(
-            backgroundColor: const Color(0xFFF8F9FA),
             appBar: AppBar(
-              title: Text(isAr ? 'ÃƒËœÃ‚Â§Ãƒâ„¢Ã†â€™ÃƒËœÃ‚ÂªÃƒËœÃ‚Â´Ãƒâ„¢Ã‚Â' : 'Discover', style: const TextStyle(fontWeight: FontWeight.w800)),
-              backgroundColor: Colors.white,
-              elevation: 0,
+              title: Text(isAr ? 'اكتشف' : 'Discover'),
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 12),
@@ -192,8 +214,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               ],
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(120),
-                child: Container(
-                  color: Colors.white,
+                child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                   child: Column(
                     children: [
@@ -213,11 +234,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         },
                         decoration: InputDecoration(
                           hintText: isAr
-                              ? 'ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â­ÃƒËœÃ‚Â« ÃƒËœÃ‚Â¹Ãƒâ„¢Ã¢â‚¬Â  ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¶ÃƒËœÃ…â€™ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â´ÃƒËœÃ‚Â±Ãƒâ„¢Ã†â€™ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª...'
-                              : 'Search deals, businesses...',
-                          prefixIcon: const Icon(Icons.search, size: 20),
+                              ? 'ابحث عن العروض، الشركات، المأكولات...'
+                              : 'Search deals, businesses, cuisines...',
+                          prefixIcon: const Icon(Icons.search),
                           filled: true,
-                          fillColor: Colors.grey.shade100,
+                          fillColor: MigoColors.surfaceLight,
                           contentPadding: const EdgeInsets.symmetric(vertical: 12),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -225,23 +246,23 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       Row(
                         children: [
                           Expanded(
                             child: SizedBox(
-                              height: 38,
+                              height: 40,
                               child: ListView(
                                 scrollDirection: Axis.horizontal,
                                 children: [
                                   _CategoryPill(
-                                    label: isAr ? 'ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã†â€™Ãƒâ„¢Ã¢â‚¬Å¾' : 'All',
+                                    label: isAr ? 'الكل' : 'All',
                                     selected: _category == null,
                                     onTap: () => setState(() => _category = null),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: 6),
                                   ..._categories.map((c) => Padding(
-                                        padding: const EdgeInsets.only(right: 8),
+                                        padding: const EdgeInsets.only(right: 6),
                                         child: _CategoryPill(
                                           label: c,
                                           selected: _category == c,
@@ -257,7 +278,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           const SizedBox(width: 8),
                           PopupMenuButton<SortMode>(
                             initialValue: _sort,
-                            icon: const Icon(Icons.sort, size: 20),
+                            icon: const Icon(Icons.sort),
                             onSelected: (v) => setState(() => _sort = v),
                             itemBuilder: (_) => SortMode.values
                                 .map((s) => PopupMenuItem(
@@ -274,139 +295,141 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               ),
             ),
             body: StreamBuilder<List<OfferModel>>(
-              stream: _areaId != null
-                  ? FirestoreService.instance.streamLiveOffersByArea(_areaId!)
-                  : FirestoreService.instance.streamLiveOffers(limit: 50),
+              stream: FirestoreService.instance.streamLiveOffers(limit: 50),
               builder: (context, snap) {
-                                  if (snap.connectionState == ConnectionState.waiting) {
+                if (snap.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 final all = snap.data ?? [];
                 final filtered = _applyFilters(all);
 
-                return CustomScrollView(
-                  slivers: [
-                    // Community Demands Card
-                    SliverToBoxAdapter(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const DemandsFeedScreen()),
-                          );
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF1E3A8A), Color(0xFF0F172A)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+                return Column(
+                  children: [
+                    // PROFESSIONAL DEMANDS CARD
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const DemandsFeedScreen()),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF1E3A8A), Color(0xFF0F172A)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF1E3A8A).withValues(alpha: 0.4),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
                             ),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF1E3A8A).withValues(alpha: 0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 6),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                shape: BoxShape.circle,
                               ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.gavel_rounded, color: Colors.white, size: 24),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      isAr ? 'ÃƒËœÃ‚Â·Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â¬ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â¹' : 'Community Demands',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w800,
-                                      ),
+                              child: const Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 26),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    isAr ? 'طلبات العملاء' : 'Customer Demands',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w900,
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      isAr
-                                          ? 'ÃƒËœÃ‚Â§ÃƒËœÃ‚Â·Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¨ Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚ÂªÃƒËœÃ‚Â¬Ãƒâ„¢Ã†â€™ Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â¹ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚ÂªÃƒËœÃ‚Â§ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â± ÃƒËœÃ‚ÂªÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â§Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â³ ÃƒËœÃ‚Â¹Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â° ÃƒËœÃ‚Â£Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â¶Ãƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â³ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±.'
-                                          : 'Request a product & let shops bid.',
-                                      style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      _buildTag(isAr ? 'مجتمعي' : 'Community', Colors.white.withValues(alpha: 0.2)),
+                                      const SizedBox(width: 6),
+                                      _buildTag(isAr ? 'شخصي' : 'Personal', Colors.white.withValues(alpha: 0.2)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    isAr
+                                        ? 'اطلب منتجك و دع المتاجر تتنافس على أفضل سعر.'
+                                        : 'Request a product & let shops compete for your business.',
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.8),
+                                      fontSize: 12,
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                              const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
-                            ],
-                          ),
+                            ),
+                            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+                          ],
                         ),
                       ),
                     ),
 
-                    // Offer Count
-                    if (filtered.isNotEmpty)
-                      SliverPadding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                        sliver: SliverToBoxAdapter(
-                          child: Row(
-                            children: [
-                              Text(
-                                '${filtered.length} ${isAr ? 'ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶' : (filtered.length == 1 ? "offer" : "offers")}',
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey),
-                              ),
-                              const Spacer(),
-                              Text(
-                                isAr ? 'ÃƒËœÃ‚ÂªÃƒËœÃ‚Â±ÃƒËœÃ‚ÂªÃƒâ„¢Ã…Â ÃƒËœÃ‚Â¨: ${_sort.label(isAr)}' : 'Sort: ${_sort.label(isAr)}',
-                                style: const TextStyle(fontSize: 12, color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                    // Offers Grid or Empty State
+                    // Offers List
                     if (filtered.isEmpty)
-                      SliverFillRemaining(
+                      Expanded(
                         child: MigoEmptyState(
-                          icon: Icons.search_off,
-                          title: isAr ? 'Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â§ ÃƒËœÃ‚ÂªÃƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â¯ ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¶' : 'No offers found',
-                          body: isAr ? 'ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¨ ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â­ÃƒËœÃ‚Â«Ãƒâ„¢Ã¢â‚¬Â¹ÃƒËœÃ‚Â§ ÃƒËœÃ‚Â¢ÃƒËœÃ‚Â®ÃƒËœÃ‚Â±.' : 'Try a different search.',
+                          icon: Icons.explore_outlined,
+                          title: isAr ? 'لا توجد عروض بعد' : 'No offers yet',
+                          body: isAr ? 'تحقق مرة أخرى قريبًا.' : 'Check back soon for new deals.',
                         ),
                       )
-                    else
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                        sliver: SliverGrid(
+                    else ...[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                        child: Row(
+                          children: [
+                            Text(
+                              '${filtered.length} ${isAr ? 'عرض' : (filtered.length == 1 ? "offer" : "offers")}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: MigoColors.textSecondaryLight,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              isAr ? 'ترتيب: ${_sort.label(isAr)}' : 'Sort: ${_sort.label(isAr)}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: MigoColors.textSecondaryLight,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: GridView.builder(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             mainAxisSpacing: 12,
                             crossAxisSpacing: 12,
-                            childAspectRatio: 0.68, // ÃƒÂ°Ã…Â¸Ã¢â‚¬Â Ã¢â‚¬Â¢ ÃƒÂ Ã‚Â´Ã¢â‚¬Â°ÃƒÂ Ã‚Â´Ã‚Â¯ÃƒÂ Ã‚Â´Ã‚Â°ÃƒÂ Ã‚Â´Ã¢â‚¬Å¡ ÃƒÂ Ã‚Â´Ã¢â‚¬Â¢ÃƒÂ Ã‚ÂµÃ‚ÂÃƒÂ Ã‚Â´Ã‚Â±ÃƒÂ Ã‚Â´Ã…Â¡ÃƒÂ Ã‚ÂµÃ‚ÂÃƒÂ Ã‚Â´Ã…Â¡ÃƒÂ Ã‚ÂµÃ‚Â
+                            childAspectRatio: 0.72, // 🆕 0.62 ൽ നിന്ന് 0.72 ആക്കി (സ്പേസ് കുറച്ചു)
                           ),
-                          delegate: SliverChildBuilderDelegate(
-                            (context, i) {
-                              final o = filtered[i];
-                              return TapScale(
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    FadeSlideRoute(
-                                      child: OfferDetailScreen(offer: o),
-                                    ),
-                                  );
-                                },
-                                child: _OfferTile(
-                                  offer: o,
-                                  isAr: isAr,
+                          itemCount: filtered.length,
+                          itemBuilder: (context, i) {
+                            final o = filtered[i];
+                            return FutureBuilder<double>(
+                              future: FirestoreService.instance.getAverageRating(o.businessId),
+                              builder: (context, ratingSnap) {
+                                final rating = ratingSnap.data ?? 0.0;
+                                return TapScale(
                                   onTap: () {
                                     Navigator.of(context).push(
                                       FadeSlideRoute(
@@ -414,13 +437,25 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                       ),
                                     );
                                   },
-                                ),
-                              );
-                            },
-                            childCount: filtered.length,
-                          ),
+                                  child: _OfferTile(
+                                    offer: o,
+                                    rating: rating,
+                                    isAr: isAr,
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        FadeSlideRoute(
+                                          child: OfferDetailScreen(offer: o),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            );
+                          },
                         ),
                       ),
+                    ],
                   ],
                 );
               },
@@ -452,7 +487,7 @@ class _LocationChip extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: MigoColors.surfaceLight,
           borderRadius: BorderRadius.circular(20),
         ),
         child: const SizedBox(
@@ -470,25 +505,26 @@ class _LocationChip extends StatelessWidget {
     }
 
     final hasArea = areaName != null && areaName!.isNotEmpty;
-    final displayText = hasArea ? areaName! : (isAr ? 'ÃƒËœÃ‚ÂªÃƒËœÃ‚Â­ÃƒËœÃ‚Â¯Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¯ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã‹â€ Ãƒâ„¢Ã¢â‚¬Å¡ÃƒËœÃ‚Â¹' : 'Set location');
+    final displayText = hasArea ? areaName! : (isAr ? 'تحديد الموقع' : 'Set location');
 
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: hasArea ? MigoColors.primary.withValues(alpha: 0.1) : Colors.orange.shade50,
+          color: hasArea
+              ? MigoColors.primary.withValues(alpha: 0.1)
+              : MigoColors.warning.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: hasArea ? MigoColors.primary.withValues(alpha: 0.3) : Colors.orange.shade300),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.place,
-              size: 14,
-              color: hasArea ? MigoColors.primary : Colors.orange.shade800,
+              size: 12,
+              color: hasArea ? MigoColors.primary : MigoColors.warning,
             ),
             const SizedBox(width: 4),
             ConstrainedBox(
@@ -498,17 +534,17 @@ class _LocationChip extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: hasArea ? MigoColors.primary : Colors.orange.shade800,
+                  color: hasArea ? MigoColors.primary : MigoColors.warning,
                 ),
               ),
             ),
             const SizedBox(width: 2),
             Icon(
               Icons.keyboard_arrow_down,
-              size: 14,
-              color: hasArea ? MigoColors.primary : Colors.orange.shade800,
+              size: 12,
+              color: hasArea ? MigoColors.primary : MigoColors.warning,
             ),
           ],
         ),
@@ -535,21 +571,20 @@ class _CategoryPill extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? MigoColors.primary : Colors.white,
+          color: selected ? MigoColors.primary : MigoColors.surfaceLight,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? MigoColors.primary : Colors.grey.shade300,
-            width: 1.5,
+            color: selected ? MigoColors.primary : MigoColors.dividerLight,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: selected ? Colors.white : Colors.grey.shade700,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: selected ? Colors.white : MigoColors.textPrimaryLight,
           ),
         ),
       ),
@@ -560,11 +595,13 @@ class _CategoryPill extends StatelessWidget {
 class _OfferTile extends StatelessWidget {
   const _OfferTile({
     required this.offer,
+    required this.rating,
     required this.onTap,
     required this.isAr,
   });
 
   final OfferModel offer;
+  final double rating;
   final VoidCallback onTap;
   final bool isAr;
 
@@ -572,152 +609,136 @@ class _OfferTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          color: MigoColors.surfaceLight,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: MigoColors.dividerLight),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Section
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 16 / 10,
-                    child: Container(
-                      color: Colors.grey.shade100,
-                      child: offer.imageUrl == null
-                          ? const Center(child: Icon(Icons.image_outlined, size: 32, color: Colors.grey))
-                          : Image.network(offer.imageUrl!, fit: BoxFit.cover),
-                    ),
-                  ),
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(14),
+                topRight: Radius.circular(14),
+              ),
+              child: AspectRatio(
+                aspectRatio: 16 / 10, // 🆕 ചിത്രം അൽപ്പം വലുതാക്കി
+                child: Container(
+                  color: MigoColors.primary.withValues(alpha: 0.08),
+                  child: offer.imageUrl == null
+                      ? const Center(
+                          child: Icon(
+                            Icons.image_outlined,
+                            size: 32,
+                            color: MigoColors.primary,
+                          ),
+                        )
+                      : Image.network(offer.imageUrl!, fit: BoxFit.cover),
                 ),
-                // Category Tag
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      offer.category,
-                      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.black87),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-            
-            // Details Section
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8), // 🆕 പാഡിംഗ് കുറച്ചു
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       offer.businessName.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade600,
+                      style: const TextStyle(
+                        fontSize: 9,
+                        letterSpacing: 0.8,
+                        fontWeight: FontWeight.w700,
+                        color: MigoColors.textSecondaryLight,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Expanded(
                       child: Text(
                         offer.title,
                         style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF0F172A),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: MigoColors.textPrimaryLight,
                           height: 1.2,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    
-                    // Price Row
+                    const SizedBox(height: 4),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
                           '${offer.currency} ${offer.offerPrice.toStringAsFixed(0)}',
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 15,
                             fontWeight: FontWeight.w900,
                             color: MigoColors.primary,
                             height: 1,
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             '${offer.currency} ${offer.originalPrice.toStringAsFixed(0)}',
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 10,
                               decoration: TextDecoration.lineThrough,
-                              color: Colors.grey,
+                              color: MigoColors.textSecondaryLight,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
-                    
-                    const SizedBox(height: 6),
-                    
-                    // Save Badge & Rating Row
+                    const SizedBox(height: 4),
+                    // 🆕 SAVE tag & Rating Star Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
-                            color: Colors.green.shade50,
+                            color: MigoColors.success.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             isAr
-                                ? 'Ãƒâ„¢Ã‹â€ Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â± ${offer.currency} ${offer.savings.toStringAsFixed(0)}'
+                                ? 'وفر ${offer.currency} ${offer.savings.toStringAsFixed(0)}'
                                 : 'SAVE ${offer.currency} ${offer.savings.toStringAsFixed(0)}',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green.shade800,
+                              fontWeight: FontWeight.w800,
+                              color: MigoColors.success,
                             ),
                           ),
                         ),
-                        // ÃƒÂ°Ã…Â¸Ã¢â‚¬Â Ã¢â‚¬Â¢ Rating Star (Dummy for now)
+                        // 🆕 Rating Stars
                         Row(
                           children: [
-                            const Icon(Icons.star, size: 12, color: Colors.amber),
+                            Icon(
+                              rating > 0 ? Icons.star : Icons.star_border, // 🆕 റിവ്യൂ ഇല്ലെങ്കിൽ ബോർഡർ സ്റ്റാർ
+                              size: 12,
+                              color: rating > 0 ? Colors.amber : Colors.grey.shade500,
+                            ),
                             const SizedBox(width: 2),
                             Text(
-                              '5.0',
-                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade700),
+                              rating > 0 ? rating.toStringAsFixed(1) : (isAr ? 'جديد' : 'New'),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: rating > 0 ? Colors.grey.shade800 : Colors.grey.shade600,
+                              ),
                             ),
                           ],
                         ),

@@ -4,6 +4,7 @@ import '../core/theme/migo_colors.dart';
 import '../core/theme/migo_gradients.dart';
 import '../core/theme/migo_shadows.dart';
 import '../models/offer_model.dart';
+import '../services/firestore_service.dart';
 
 class FlashDealCard extends StatelessWidget {
   const FlashDealCard({super.key, required this.offer, this.onTap});
@@ -74,7 +75,7 @@ class FlashDealCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    
+
                     // Image Section
                     if (offer.imageUrl != null && offer.imageUrl!.isNotEmpty)
                       Image.network(
@@ -107,7 +108,7 @@ class FlashDealCard extends StatelessWidget {
                                   style: TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: textSecondary),
                                 ),
                                 const SizedBox(height: 2),
-                                                                Text(
+                                Text(
                                   offer.title,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
@@ -140,13 +141,56 @@ class FlashDealCard extends StatelessWidget {
                                   ],
                                 ),
                                 const SizedBox(height: 4),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(gradient: MigoGradients.flash, borderRadius: BorderRadius.circular(4)),
-                                  child: Text(
-                                    '${offer.percentOff}% ${isAr ? 'خصم' : 'OFF'}',
-                                    style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white),
-                                  ),
+                                // 🆕 SAVE tag + Rating Star Row (ഒരുമിച്ച് താഴെ)
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(gradient: MigoGradients.flash, borderRadius: BorderRadius.circular(4)),
+                                      child: Text(
+                                        '${offer.percentOff}% ${isAr ? 'خصم' : 'OFF'}',
+                                        style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white),
+                                      ),
+                                    ),
+                                    // 🆕 Rating Star
+                                    FutureBuilder<({double average, int count})>(
+                                      future: FirestoreService.instance.getBusinessRating(offer.businessId),
+                                      builder: (context, snapshot) {
+                                        if (!snapshot.hasData) return const SizedBox.shrink();
+                                        final rating = snapshot.data!.average;
+                                        final count = snapshot.data!.count;
+                                        
+                                        if (count == 0) {
+                                          return Row(
+                                            children: [
+                                              Icon(Icons.star_border, size: 10, color: textSecondary),
+                                              const SizedBox(width: 2),
+                                              Text(
+                                                isAr ? 'جديد' : 'New',
+                                                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: textSecondary),
+                                              ),
+                                            ],
+                                          );
+                                        }
+                                        
+                                        return Row(
+                                          children: [
+                                            const Icon(Icons.star, size: 10, color: Colors.amber),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              rating.toStringAsFixed(1),
+                                              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.black87),
+                                            ),
+                                            Text(
+                                              ' ($count)',
+                                              style: TextStyle(fontSize: 8, color: textSecondary),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),

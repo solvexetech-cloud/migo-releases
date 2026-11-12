@@ -39,11 +39,11 @@ OfferType offerTypeFromString(String? s) {
       return OfferType.flash;
     case 'group':
       return OfferType.group;
-    case 'group_all_or_nothing': // 🆕 ഇതാണ് ഫയർബേസിൽ നിന്ന് വരുന്നത്
+    case 'group_all_or_nothing':
       return OfferType.groupAllOrNothing;
     case 'groupAllOrNothing':
       return OfferType.groupAllOrNothing;
-    case 'group_progressive': // 🆕 ഇതും
+    case 'group_progressive':
       return OfferType.groupProgressive;
     case 'groupProgressive':
       return OfferType.groupProgressive;
@@ -103,7 +103,8 @@ class OfferModel {
     this.redemptionWindowHours,
     this.lockOnSlotsFull = false,
     this.finalPrice,
-    this.dealState = 'DRAFT', // DRAFT, OPEN, LIVE, LOCKED, ACTIVATED, CLOSED, EXPIRED
+    this.dealState = 'DRAFT',
+    this.rating, // 🆕 UI-only rating (calculated from reviews)
   });
 
   final String id;
@@ -146,15 +147,18 @@ class OfferModel {
   final DateTime? updatedAt;
 
   // 🆕 ഗ്രൂപ്പ് ഡീൽ ഫീൽഡുകൾ
-  final int? requiredClaims; // പ്ലാൻ A-യ്ക്ക് (ഉദാ: 10)
-  final double? floorPrice;  // പ്ലാൻ B-യ്ക്ക് (ഏറ്റവും കുറഞ്ഞ വില)
-  final double? stepPrice;   // പ്ലാൻ B-യ്ക്ക് (ഓരോ ക്ലെയിമിലും കുറയുന്ന വില)
-  final int? maxSlots;       // പ്ലാൻ A-യ്ക്ക് (waitlist-ന് വേണ്ടി)
-  final int? groupTimerHours; // ഡീൽ ടൈമർ (മണിക്കൂറിൽ)
-  final int? redemptionWindowHours; // റിഡീം ചെയ്യാനുള്ള സമയം
-  final bool lockOnSlotsFull; // പ്ലാൻ B-യ്ക്ക് (സ്ലോട്ട് നിറഞ്ഞാൽ ലോക്ക് ചെയ്യുക)
-  final double? finalPrice;   // പ്ലാൻ B-യ്ക്ക് (ലോക്ക് ചെയ്ത വില)
-  final String dealState;     // DRAFT, OPEN, LIVE, LOCKED, ACTIVATED, CLOSED, EXPIRED
+  final int? requiredClaims;
+  final double? floorPrice;
+  final double? stepPrice;
+  final int? maxSlots;
+  final int? groupTimerHours;
+  final int? redemptionWindowHours;
+  final bool lockOnSlotsFull;
+  final double? finalPrice;
+  final String dealState;
+
+  // 🆕 UI-only rating
+  final double? rating;
 
   double get savings => originalPrice - offerPrice;
   int get percentOff => originalPrice > 0
@@ -183,7 +187,6 @@ class OfferModel {
       areaId != null &&
       areaId!.isNotEmpty;
 
-  // 🆕 പ്ലാൻ B-യുടെ കറന്റ് പ്രൈസ് കണക്കാക്കാൻ
   double get currentPrice {
     if (type != OfferType.groupProgressive) return offerPrice;
     
@@ -305,7 +308,6 @@ class OfferModel {
       areaId: map['areaId'] as String?,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
       updatedAt: (map['updatedAt'] as Timestamp?)?.toDate(),
-      // 🆕 ഗ്രൂപ്പ് ഡീൽ ഫീൽഡുകൾ
       requiredClaims: (map['requiredClaims'] as num?)?.toInt(),
       floorPrice: (map['floorPrice'] as num?)?.toDouble(),
       stepPrice: (map['stepPrice'] as num?)?.toDouble(),
@@ -315,6 +317,7 @@ class OfferModel {
       lockOnSlotsFull: (map['lockOnSlotsFull'] as bool?) ?? false,
       finalPrice: (map['finalPrice'] as num?)?.toDouble(),
       dealState: (map['dealState'] ?? 'DRAFT') as String,
+      rating: (map['rating'] as num?)?.toDouble(),
     );
   }
 
@@ -350,7 +353,6 @@ class OfferModel {
           ? Timestamp.fromDate(createdAt!)
           : FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
-      // 🆕 ഗ്രൂപ്പ് ഡീൽ ഫീൽഡുകൾ
       'requiredClaims': requiredClaims,
       'floorPrice': floorPrice,
       'stepPrice': stepPrice,
@@ -360,6 +362,7 @@ class OfferModel {
       'lockOnSlotsFull': lockOnSlotsFull,
       'finalPrice': finalPrice,
       'dealState': dealState,
+      // Note: rating is NOT saved to DB (UI only)
     };
   }
 
@@ -375,7 +378,6 @@ class OfferModel {
     String? countryCode,
     String? zoneId,
     String? areaId,
-    // 🆕
     int? requiredClaims,
     double? floorPrice,
     double? stepPrice,
@@ -385,6 +387,7 @@ class OfferModel {
     bool? lockOnSlotsFull,
     double? finalPrice,
     String? dealState,
+    double? rating, // 🆕
   }) {
     return OfferModel(
       id: id,
@@ -425,6 +428,7 @@ class OfferModel {
       lockOnSlotsFull: lockOnSlotsFull ?? this.lockOnSlotsFull,
       finalPrice: finalPrice ?? this.finalPrice,
       dealState: dealState ?? this.dealState,
+      rating: rating ?? this.rating,
     );
   }
 }

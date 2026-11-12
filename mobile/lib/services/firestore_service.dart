@@ -34,7 +34,6 @@ class FirestoreService {
     } catch (e) {
       debugPrint('Error fetching coin settings: $e');
     }
-    // എറർ വന്നാൽ ഡിഫോൾട്ട് മൂല്യങ്ങൾ നൽകുന്നു
     return CoinSettingsModel.fromMap({});
   }
 
@@ -66,13 +65,12 @@ class FirestoreService {
     );
   }
 
-    Future<void> addCoins({
+  Future<void> addCoins({
     required String uid,
     required int amount,
     required String reason,
     bool bypassCaps = false,
   }) async {
-    // 🆕 അഡ്മിൻ സെറ്റിംഗ്സിൽ നിന്ന് ലിമിറ്റുകൾ എടുക്കുന്നു
     if (!bypassCaps && amount > 0) {
       final settings = await getCoinSettings();
       final dailyCap = settings.dailyLimit;
@@ -113,21 +111,21 @@ class FirestoreService {
 
       final dailyRemaining = dailyCap - dailyEarned;
       final monthlyRemaining = monthlyCap - monthlyEarned;
-      final maxAllowed = dailyRemaining < monthlyRemaining ? dailyRemaining : monthlyRemaining;
-      
+      final maxAllowed =
+          dailyRemaining < monthlyRemaining ? dailyRemaining : monthlyRemaining;
+
       if (amount > maxAllowed) {
         amount = maxAllowed;
       }
     }
 
-        // 🆕 കോയിൻ എക്സ്പയറി തീയതി കണക്കാക്കുന്നു
     final settings = await getCoinSettings();
     final expiryDate = DateTime.now().add(Duration(days: settings.expiryDays));
 
     await _users.doc(uid).set(
       {
         'coins': FieldValue.increment(amount),
-        'coinsExpireAt': Timestamp.fromDate(expiryDate), // 🆕 എക്സ്പയറി തീയതി സേവ് ചെയ്യുന്നു
+        'coinsExpireAt': Timestamp.fromDate(expiryDate),
         'updatedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),
@@ -194,7 +192,6 @@ class FirestoreService {
     });
   }
 
-  /// Get all businesses (for client-side filtering).
   Future<List<BusinessModel>> getAllBusinesses() async {
     final snap = await _businesses.limit(500).get();
     return snap.docs
@@ -213,9 +210,7 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> get _categories =>
       _db.collection('categories');
 
-  Stream<List<CategoryModel>> streamCategories({
-    bool onlyActive = true,
-  }) {
+  Stream<List<CategoryModel>> streamCategories({bool onlyActive = true}) {
     return _categories.snapshots().map((snap) {
       final list = snap.docs
           .map((d) => CategoryModel.fromMap(d.id, d.data()))
@@ -226,9 +221,7 @@ class FirestoreService {
     });
   }
 
-  Future<List<CategoryModel>> getCategories({
-    bool onlyActive = true,
-  }) async {
+  Future<List<CategoryModel>> getCategories({bool onlyActive = true}) async {
     final snap = await _categories.limit(50).get();
     final list = snap.docs
         .map((d) => CategoryModel.fromMap(d.id, d.data()))
@@ -254,10 +247,7 @@ class FirestoreService {
     });
   }
 
-  Future<void> updateCategory(
-    String id,
-    Map<String, dynamic> data,
-  ) async {
+  Future<void> updateCategory(String id, Map<String, dynamic> data) async {
     await _categories.doc(id).set(
       {...data, 'updatedAt': FieldValue.serverTimestamp()},
       SetOptions(merge: true),
@@ -271,14 +261,11 @@ class FirestoreService {
   // ---------- GEOGRAPHY (B3) ----------
   CollectionReference<Map<String, dynamic>> get _countries =>
       _db.collection('countries');
-
   CollectionReference<Map<String, dynamic>> get _zones =>
       _db.collection('zones');
-
   CollectionReference<Map<String, dynamic>> get _areas =>
       _db.collection('areas');
 
-  /// Get active countries sorted by order.
   Future<List<CountryModel>> getCountries() async {
     final snap = await _countries.limit(100).get();
     final list = snap.docs
@@ -289,7 +276,6 @@ class FirestoreService {
     return list;
   }
 
-  /// Stream active countries.
   Stream<List<CountryModel>> streamCountries() {
     return _countries.snapshots().map((snap) {
       final list = snap.docs
@@ -301,10 +287,8 @@ class FirestoreService {
     });
   }
 
-  /// Get active zones for a country sorted by order.
   Future<List<ZoneModel>> getZonesByCountry(String countryCode) async {
-    final snap =
-        await _zones.where('countryCode', isEqualTo: countryCode).get();
+    final snap = await _zones.where('countryCode', isEqualTo: countryCode).get();
     final list = snap.docs
         .map((d) => ZoneModel.fromMap(d.id, d.data()))
         .where((z) => z.active)
@@ -313,7 +297,6 @@ class FirestoreService {
     return list;
   }
 
-  /// Get active areas for a zone sorted by order.
   Future<List<AreaModel>> getAreasByZone(String zoneSlug) async {
     final snap = await _areas.where('zoneSlug', isEqualTo: zoneSlug).get();
     final list = snap.docs
@@ -324,7 +307,6 @@ class FirestoreService {
     return list;
   }
 
-  /// Get all active areas.
   Future<List<AreaModel>> getAllAreas() async {
     final snap = await _areas.limit(200).get();
     final list = snap.docs
@@ -335,7 +317,6 @@ class FirestoreService {
     return list;
   }
 
-  /// Get a single area by slug.
   Future<AreaModel?> getArea(String slug) async {
     final snap = await _areas.doc(slug).get();
     if (!snap.exists || snap.data() == null) return null;
@@ -361,94 +342,80 @@ class FirestoreService {
     return _offers
         .where('businessId', isEqualTo: businessId)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => OfferModel.fromMap(d.id, d.data()))
-            .toList());
+        .map((snap) =>
+            snap.docs.map((d) => OfferModel.fromMap(d.id, d.data())).toList());
   }
 
-  Stream<List<OfferModel>> streamLiveOffers({int limit = 20, String? countryCode}) {
-  var query = _offers.where('status', isEqualTo: 'live');
+  String _normalizeCountryCode(String countryCode) {
+    final c = countryCode.toLowerCase();
+    if (c.contains('qatar')) return 'QA';
+    if (c.contains('india')) return 'IN';
+    if (c.contains('uae') || c.contains('emirates')) return 'AE';
+    if (c.contains('saudi')) return 'SA';
+    if (c.contains('kuwait')) return 'KW';
+    if (c.contains('oman')) return 'OM';
+    if (c.contains('bahrain')) return 'BH';
+    return c.toUpperCase();
+  }
 
-  if (countryCode != null && countryCode.isNotEmpty) {
-  String normalizedCode = countryCode.toLowerCase();
-  if (normalizedCode.contains('qatar')) normalizedCode = 'QA';
-  else if (normalizedCode.contains('india')) normalizedCode = 'IN';
-  else if (normalizedCode.contains('uae') || normalizedCode.contains('emirates')) normalizedCode = 'AE';
-  else if (normalizedCode.contains('saudi')) normalizedCode = 'SA';
-  else if (normalizedCode.contains('kuwait')) normalizedCode = 'KW';
-  else if (normalizedCode.contains('oman')) normalizedCode = 'OM';
-  else if (normalizedCode.contains('bahrain')) normalizedCode = 'BH';
-  else normalizedCode = normalizedCode.toUpperCase();
-
-  query = query.where('countryCode', isEqualTo: normalizedCode);
-}
-
-  return query
-      .limit(limit)
-      .snapshots()
-      .map((snap) {
-    final now = DateTime.now();
-    final list = snap.docs
-        .map((d) => OfferModel.fromMap(d.id, d.data()))
-        .where((o) => o.endAt.isAfter(now))
-        .toList();
+  Stream<List<OfferModel>> streamLiveOffers({
+    int limit = 20,
+    String? countryCode,
+  }) {
+    var query = _offers.where('status', isEqualTo: 'live');
+    if (countryCode != null && countryCode.isNotEmpty) {
+      query = query.where('countryCode',
+          isEqualTo: _normalizeCountryCode(countryCode));
+    }
+    return query.limit(limit).snapshots().map((snap) {
+      final now = DateTime.now();
+      final list = snap.docs
+          .map((d) => OfferModel.fromMap(d.id, d.data()))
+          .where((o) => o.endAt.isAfter(now))
+          .toList();
       list.sort((a, b) {
-        // 🆕 പ്രൊമോഷൻ സമയം കഴിഞ്ഞിട്ടുണ്ടോ എന്ന് ചെക്ക് ചെയ്യുന്നു
-        final aPromoted = a.isPromoted && (a.promotedUntil == null || a.promotedUntil!.isAfter(now));
-        final bPromoted = b.isPromoted && (b.promotedUntil == null || b.promotedUntil!.isAfter(now));
-
+        final aPromoted =
+            a.isPromoted && (a.promotedUntil == null || a.promotedUntil!.isAfter(now));
+        final bPromoted =
+            b.isPromoted && (b.promotedUntil == null || b.promotedUntil!.isAfter(now));
         if (aPromoted && !bPromoted) return -1;
         if (!aPromoted && bPromoted) return 1;
         return b.startAt.compareTo(a.startAt);
       });
-    return list;
-  });
-}
+      return list;
+    });
+  }
 
   Stream<List<OfferModel>> streamLiveOffersByType(
-  String type, {
-  int limit = 10,
-  String? countryCode,
-}) {
-  var query = _offers
-      .where('status', isEqualTo: 'live')
-      .where('type', isEqualTo: type);
-
-  if (countryCode != null && countryCode.isNotEmpty) {
-  String normalizedCode = countryCode.toLowerCase();
-  if (normalizedCode.contains('qatar')) normalizedCode = 'QA';
-  else if (normalizedCode.contains('india')) normalizedCode = 'IN';
-  else if (normalizedCode.contains('uae') || normalizedCode.contains('emirates')) normalizedCode = 'AE';
-  else if (normalizedCode.contains('saudi')) normalizedCode = 'SA';
-  else if (normalizedCode.contains('kuwait')) normalizedCode = 'KW';
-  else if (normalizedCode.contains('oman')) normalizedCode = 'OM';
-  else if (normalizedCode.contains('bahrain')) normalizedCode = 'BH';
-  else normalizedCode = normalizedCode.toUpperCase();
-
-  query = query.where('countryCode', isEqualTo: normalizedCode);
-}
-
-  return query
-      .limit(limit)
-      .snapshots()
-      .map((snap) {
-    final now = DateTime.now();
-    final list = snap.docs
-        .map((d) => OfferModel.fromMap(d.id, d.data()))
-        .where((o) => o.endAt.isAfter(now))
-        .toList();
+    String type, {
+    int limit = 10,
+    String? countryCode,
+  }) {
+    var query = _offers
+        .where('status', isEqualTo: 'live')
+        .where('type', isEqualTo: type);
+    if (countryCode != null && countryCode.isNotEmpty) {
+      query = query.where('countryCode',
+          isEqualTo: _normalizeCountryCode(countryCode));
+    }
+    return query.limit(limit).snapshots().map((snap) {
+      final now = DateTime.now();
+      final list = snap.docs
+          .map((d) => OfferModel.fromMap(d.id, d.data()))
+          .where((o) => o.endAt.isAfter(now))
+          .toList();
       list.sort((a, b) {
-        // 🆕 പ്രൊമോഷൻ സമയം കഴിഞ്ഞിട്ടുണ്ടോ എന്ന് ചെക്ക് ചെയ്യുന്നു
-        final aPromoted = a.isPromoted && (a.promotedUntil == null || a.promotedUntil!.isAfter(now));
-        final bPromoted = b.isPromoted && (b.promotedUntil == null || b.promotedUntil!.isAfter(now));
-
+        final aPromoted =
+            a.isPromoted && (a.promotedUntil == null || a.promotedUntil!.isAfter(now));
+        final bPromoted =
+            b.isPromoted && (b.promotedUntil == null || b.promotedUntil!.isAfter(now));
         if (aPromoted && !bPromoted) return -1;
         if (!aPromoted && bPromoted) return 1;
         return b.startAt.compareTo(a.startAt);
       });
-    return list;
-  });
-}
+      return list;
+    });
+  }
 
   Future<void> updateOffer(String id, Map<String, dynamic> data) async {
     await _offers.doc(id).set(
@@ -457,99 +424,69 @@ class FirestoreService {
     );
   }
 
-  /// Stream live offers filtered by area.
   Stream<List<OfferModel>> streamLiveOffersByArea(
-  String areaId, {
-  int limit = 50,
-  String? countryCode,
-}) {
-  var query = _offers
-      .where('status', isEqualTo: 'live')
-      .where('areaId', isEqualTo: areaId);
-
-  if (countryCode != null && countryCode.isNotEmpty) {
-  String normalizedCode = countryCode.toLowerCase();
-  if (normalizedCode.contains('qatar')) normalizedCode = 'QA';
-  else if (normalizedCode.contains('india')) normalizedCode = 'IN';
-  else if (normalizedCode.contains('uae') || normalizedCode.contains('emirates')) normalizedCode = 'AE';
-  else if (normalizedCode.contains('saudi')) normalizedCode = 'SA';
-  else if (normalizedCode.contains('kuwait')) normalizedCode = 'KW';
-  else if (normalizedCode.contains('oman')) normalizedCode = 'OM';
-  else if (normalizedCode.contains('bahrain')) normalizedCode = 'BH';
-  else normalizedCode = normalizedCode.toUpperCase();
-
-  query = query.where('countryCode', isEqualTo: normalizedCode);
-}
-
-  return query
-      .limit(limit)
-      .snapshots()
-      .map((snap) {
-    final now = DateTime.now();
-    final list = snap.docs
-        .map((d) => OfferModel.fromMap(d.id, d.data()))
-        .where((o) => o.endAt.isAfter(now))
-        .toList();
+    String areaId, {
+    int limit = 50,
+    String? countryCode,
+  }) {
+    var query = _offers
+        .where('status', isEqualTo: 'live')
+        .where('areaId', isEqualTo: areaId);
+    if (countryCode != null && countryCode.isNotEmpty) {
+      query = query.where('countryCode',
+          isEqualTo: _normalizeCountryCode(countryCode));
+    }
+    return query.limit(limit).snapshots().map((snap) {
+      final now = DateTime.now();
+      final list = snap.docs
+          .map((d) => OfferModel.fromMap(d.id, d.data()))
+          .where((o) => o.endAt.isAfter(now))
+          .toList();
       list.sort((a, b) {
-        // 🆕 പ്രൊമോഷൻ സമയം കഴിഞ്ഞിട്ടുണ്ടോ എന്ന് ചെക്ക് ചെയ്യുന്നു
-        final aPromoted = a.isPromoted && (a.promotedUntil == null || a.promotedUntil!.isAfter(now));
-        final bPromoted = b.isPromoted && (b.promotedUntil == null || b.promotedUntil!.isAfter(now));
-
+        final aPromoted =
+            a.isPromoted && (a.promotedUntil == null || a.promotedUntil!.isAfter(now));
+        final bPromoted =
+            b.isPromoted && (b.promotedUntil == null || b.promotedUntil!.isAfter(now));
         if (aPromoted && !bPromoted) return -1;
         if (!aPromoted && bPromoted) return 1;
         return b.startAt.compareTo(a.startAt);
       });
-    return list;
-  });
-}
+      return list;
+    });
+  }
 
-  /// Stream live offers filtered by area AND type (e.g. flash).
   Stream<List<OfferModel>> streamLiveOffersByAreaAndType(
-  String areaId,
-  String type, {
-  int limit = 10,
-  String? countryCode,
-}) {
-  var query = _offers
-      .where('status', isEqualTo: 'live')
-      .where('areaId', isEqualTo: areaId)
-      .where('type', isEqualTo: type);
-
-  if (countryCode != null && countryCode.isNotEmpty) {
-  String normalizedCode = countryCode.toLowerCase();
-  if (normalizedCode.contains('qatar')) normalizedCode = 'QA';
-  else if (normalizedCode.contains('india')) normalizedCode = 'IN';
-  else if (normalizedCode.contains('uae') || normalizedCode.contains('emirates')) normalizedCode = 'AE';
-  else if (normalizedCode.contains('saudi')) normalizedCode = 'SA';
-  else if (normalizedCode.contains('kuwait')) normalizedCode = 'KW';
-  else if (normalizedCode.contains('oman')) normalizedCode = 'OM';
-  else if (normalizedCode.contains('bahrain')) normalizedCode = 'BH';
-  else normalizedCode = normalizedCode.toUpperCase();
-
-  query = query.where('countryCode', isEqualTo: normalizedCode);
-}
-
-  return query
-      .limit(limit)
-      .snapshots()
-      .map((snap) {
-    final now = DateTime.now();
-    final list = snap.docs
-        .map((d) => OfferModel.fromMap(d.id, d.data()))
-        .where((o) => o.endAt.isAfter(now))
-        .toList();
+    String areaId,
+    String type, {
+    int limit = 10,
+    String? countryCode,
+  }) {
+    var query = _offers
+        .where('status', isEqualTo: 'live')
+        .where('areaId', isEqualTo: areaId)
+        .where('type', isEqualTo: type);
+    if (countryCode != null && countryCode.isNotEmpty) {
+      query = query.where('countryCode',
+          isEqualTo: _normalizeCountryCode(countryCode));
+    }
+    return query.limit(limit).snapshots().map((snap) {
+      final now = DateTime.now();
+      final list = snap.docs
+          .map((d) => OfferModel.fromMap(d.id, d.data()))
+          .where((o) => o.endAt.isAfter(now))
+          .toList();
       list.sort((a, b) {
-        // 🆕 പ്രൊമോഷൻ സമയം കഴിഞ്ഞിട്ടുണ്ടോ എന്ന് ചെക്ക് ചെയ്യുന്നു
-        final aPromoted = a.isPromoted && (a.promotedUntil == null || a.promotedUntil!.isAfter(now));
-        final bPromoted = b.isPromoted && (b.promotedUntil == null || b.promotedUntil!.isAfter(now));
-
+        final aPromoted =
+            a.isPromoted && (a.promotedUntil == null || a.promotedUntil!.isAfter(now));
+        final bPromoted =
+            b.isPromoted && (b.promotedUntil == null || b.promotedUntil!.isAfter(now));
         if (aPromoted && !bPromoted) return -1;
         if (!aPromoted && bPromoted) return 1;
         return b.startAt.compareTo(a.startAt);
       });
-    return list;
-  });
-}
+      return list;
+    });
+  }
 
   // ---------- GROUP DEALS ----------
   CollectionReference<Map<String, dynamic>> get _groupDeals =>
@@ -624,8 +561,7 @@ class FirestoreService {
       if (deal.status == GroupDealStatus.unlocked) {
         throw Exception('Cannot leave after the deal is unlocked.');
       }
-      final updated = List<String>.from(deal.participantUids)
-        ..remove(userUid);
+      final updated = List<String>.from(deal.participantUids)..remove(userUid);
       tx.update(ref, {
         'participantUids': updated,
         'updatedAt': FieldValue.serverTimestamp(),
@@ -638,7 +574,6 @@ class FirestoreService {
       _db.collection('claims');
 
   Future<String> createClaim(ClaimModel claim) async {
-    // PHASE E — E4: Fetch referrerUid from user doc
     String? referrerUid;
     try {
       final userSnap = await _users.doc(claim.userUid).get();
@@ -647,22 +582,16 @@ class FirestoreService {
         referrerUid = userData['referredBy'] as String?;
       }
     } catch (e) {
-      // Ignore errors — referrerUid remains null
+      // Ignore
     }
 
-    // Build claim map with referrerUid
     final claimMap = claim.toMap();
     if (referrerUid != null && referrerUid.isNotEmpty) {
       claimMap['referrerUid'] = referrerUid;
     }
 
-    // ആദ്യം ഒരു പുതിയ ഡോക്യുമെന്റ് റഫറൻസ് ഉണ്ടാക്കുന്നു
     final ref = _claims.doc();
-
-    // ആ റഫറൻസിന്റെ ഐഡി claimMap-ലേക്ക് ചേർക്കുന്നു
     claimMap['claimId'] = ref.id;
-
-    // എന്നിട്ട് അത് സേവ് ചെയ്യുന്നു
     await ref.set(claimMap);
 
     await _offers.doc(claim.offerId).update({
@@ -710,9 +639,8 @@ class FirestoreService {
         .where('userUid', isEqualTo: userUid)
         .limit(50)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => ClaimModel.fromMap(d.id, d.data()))
-            .toList());
+        .map((snap) =>
+            snap.docs.map((d) => ClaimModel.fromMap(d.id, d.data())).toList());
   }
 
   Stream<List<ClaimModel>> streamBusinessClaims(String businessId) {
@@ -720,9 +648,8 @@ class FirestoreService {
         .where('businessId', isEqualTo: businessId)
         .limit(200)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => ClaimModel.fromMap(d.id, d.data()))
-            .toList());
+        .map((snap) =>
+            snap.docs.map((d) => ClaimModel.fromMap(d.id, d.data())).toList());
   }
 
   Future<void> updateClaim(String id, Map<String, dynamic> data) async {
@@ -733,9 +660,8 @@ class FirestoreService {
     required String claimId,
     required String businessId,
   }) async {
-    debugPrint('🔵 redeemClaim: claimId=$claimId (length=${claimId.length})');
+    debugPrint('🔵 redeemClaim: claimId=$claimId');
     final snap = await _claims.doc(claimId).get();
-    debugPrint('🔵 Claim exists: ${snap.exists}');
     if (!snap.exists || snap.data() == null) {
       throw Exception('Claim not found');
     }
@@ -744,9 +670,7 @@ class FirestoreService {
       throw Exception('This claim belongs to a different business.');
     }
     if (claim.status != ClaimStatus.active) {
-      throw Exception(
-        'Claim is already ${claim.status.label.toLowerCase()}.',
-      );
+      throw Exception('Claim is already ${claim.status.label.toLowerCase()}.');
     }
     if (claim.expiresAt.isBefore(DateTime.now())) {
       throw Exception('This claim has expired.');
@@ -757,7 +681,6 @@ class FirestoreService {
       'redeemedBy': businessId,
     });
 
-        // 🆕 അഡ്മിൻ സെറ്റിംഗ്സിൽ നിന്ന് കോയിൻ എണ്ണം എടുക്കുന്നു
     final settings = await getCoinSettings();
     final int claimCoins = settings.claimReward;
 
@@ -768,20 +691,20 @@ class FirestoreService {
       bypassCaps: true,
     );
 
-        await createNotification(
+    await createNotification(
       NotificationModel.newDraft(
         userUid: claim.userUid,
         type: NotifType.coinEarned,
-        title: '+$claimCoins MIGO Coins', // 🆕 ഡൈനാമിക് ആക്കി
+        title: '+$claimCoins MIGO Coins',
         body: 'Your "${claim.offerTitle}" was redeemed at ${claim.businessName}.',
         targetRoute: 'wallet',
       ),
     );
 
-    // ⬇️ പുതിയതായി ചേർക്കുന്ന കോഡ് (ഷെയർ ചെയ്തയാൾക്ക് കോയിൻസ്) ⬇️
     final sharedBy = await ReferralTracker.instance.getSharedBy();
     if (sharedBy != null && sharedBy.isNotEmpty && sharedBy != claim.userUid) {
-      final configSnap = await _db.collection('config').doc('share_rewards').get();
+      final configSnap =
+          await _db.collection('config').doc('share_rewards').get();
       final config = configSnap.data();
       final enabled = config?['enabled'] as bool? ?? false;
       final coins = (config?['coinsPerRedeem'] as num?)?.toInt() ?? 10;
@@ -805,17 +728,89 @@ class FirestoreService {
         await ReferralTracker.instance.clearSharedBy();
       }
     }
-    // ⬆️ പുതിയതായി ചേർത്തത് അവസാനിക്കുന്നു ⬆️
   }
 
   // ---------- REVIEWS ----------
   CollectionReference<Map<String, dynamic>> get _reviews =>
       _db.collection('reviews');
 
+  /// 🆕 Average rating (simple double) — used by discover_screen
+  Future<double> getAverageRating(String businessId) async {
+    try {
+      final snap =
+          await _reviews.where('businessId', isEqualTo: businessId).get();
+      if (snap.docs.isEmpty) return 0.0;
+      double total = 0;
+      for (var doc in snap.docs) {
+        total += (doc.data()['rating'] as num?)?.toDouble() ?? 0.0;
+      }
+      return total / snap.docs.length;
+    } catch (e) {
+      return 0.0;
+    }
+  }
+
+  /// 🆕 Average + count (for "4.5 (12)" display) — used by offer_card
+  Future<({double average, int count})> getBusinessRating(
+    String businessId,
+  ) async {
+    try {
+      final snap = await _reviews
+          .where('businessId', isEqualTo: businessId)
+          .limit(200)
+          .get();
+      if (snap.docs.isEmpty) return (average: 0.0, count: 0);
+      double sum = 0;
+      for (final d in snap.docs) {
+        sum += ((d.data()['rating'] as num?) ?? 0).toDouble();
+      }
+      return (average: sum / snap.docs.length, count: snap.docs.length);
+    } catch (_) {
+      return (average: 0.0, count: 0);
+    }
+  }
+
+  /// 🆕 Batch: get ratings for multiple businesses in ONE query
+  /// 50 offers = 2 queries instead of 50
+  Future<Map<String, double>> getAverageRatingsBatch(
+    List<String> businessIds,
+  ) async {
+    if (businessIds.isEmpty) return {};
+    try {
+      final uniqueIds = businessIds.toSet().toList();
+      final result = <String, double>{};
+
+      // whereIn max 30 items — chunk them
+      for (var i = 0; i < uniqueIds.length; i += 30) {
+        final end = (i + 30 > uniqueIds.length) ? uniqueIds.length : i + 30;
+        final chunk = uniqueIds.sublist(i, end);
+        final snap =
+            await _reviews.where('businessId', whereIn: chunk).get();
+
+        final sums = <String, double>{};
+        final counts = <String, int>{};
+        for (var doc in snap.docs) {
+          final data = doc.data();
+          final bid = data['businessId'] as String?;
+          if (bid == null) continue;
+          final r = (data['rating'] as num?)?.toDouble() ?? 0.0;
+          sums[bid] = (sums[bid] ?? 0) + r;
+          counts[bid] = (counts[bid] ?? 0) + 1;
+        }
+        for (var bid in sums.keys) {
+          result[bid] = sums[bid]! / counts[bid]!;
+        }
+      }
+      return result;
+    } catch (_) {
+      return {};
+    }
+  }
+
   Future<String> createReview(ReviewModel review) async {
     final ref = await _reviews.add(review.toMap());
 
-        final settings = await getCoinSettings();
+    final settings = await getCoinSettings();
     final int reviewCoins = settings.reviewReward;
 
     await addCoins(
@@ -825,11 +820,11 @@ class FirestoreService {
       bypassCaps: false,
     );
 
-        await createNotification(
+    await createNotification(
       NotificationModel.newDraft(
         userUid: review.userUid,
         type: NotifType.coinEarned,
-        title: '+$reviewCoins MIGO Coins', // 🆕 ഡൈനാമിക് ആക്കി
+        title: '+$reviewCoins MIGO Coins',
         body: 'Thanks for reviewing ${review.businessName}.',
         targetRoute: 'wallet',
       ),
@@ -882,24 +877,8 @@ class FirestoreService {
         .where('userUid', isEqualTo: uid)
         .limit(50)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => ReviewModel.fromMap(d.id, d.data()))
-            .toList());
-  }
-
-  Future<({double average, int count})> getBusinessRating(
-    String businessId,
-  ) async {
-    final snap = await _reviews
-        .where('businessId', isEqualTo: businessId)
-        .limit(200)
-        .get();
-    if (snap.docs.isEmpty) return (average: 0.0, count: 0);
-    double sum = 0;
-    for (final d in snap.docs) {
-      sum += ((d.data()['rating'] as num?) ?? 0).toDouble();
-    }
-    return (average: sum / snap.docs.length, count: snap.docs.length);
+        .map((snap) =>
+            snap.docs.map((d) => ReviewModel.fromMap(d.id, d.data())).toList());
   }
 
   // ---------- REFERRALS ----------
@@ -929,12 +908,10 @@ class FirestoreService {
 
   Future<String?> findUidByReferralCode(String code) async {
     try {
-      debugPrint('🔵 findUidByReferralCode: code=$code');
       final snap = await _users
           .where('referralCode', isEqualTo: code.toUpperCase())
           .limit(1)
           .get();
-      debugPrint('🔵 Users found: ${snap.docs.length}');
       if (snap.docs.isEmpty) return null;
       return snap.docs.first.id;
     } catch (e) {
@@ -980,9 +957,8 @@ class FirestoreService {
         .where('referrerUid', isEqualTo: referrerUid)
         .limit(50)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => ReferralModel.fromMap(d.id, d.data()))
-            .toList());
+        .map((snap) =>
+            snap.docs.map((d) => ReferralModel.fromMap(d.id, d.data())).toList());
   }
 
   Future<void> _maybeRewardReferral(String uid) async {
@@ -1014,7 +990,6 @@ class FirestoreService {
       'rewardedAt': FieldValue.serverTimestamp(),
       'referredFirstClaimAt': FieldValue.serverTimestamp(),
     });
-        // 🆕 അഡ്മിൻ സെറ്റിംഗ്സിൽ നിന്ന് റെഫറൽ കോയിൻസ് എടുക്കുന്നു
     final settings = await getCoinSettings();
     final int refReward = settings.referralReward;
 
@@ -1051,29 +1026,28 @@ class FirestoreService {
     );
   }
 
-
   // ---------- COIN PAYMENTS (PARTNER SYSTEM) ----------
   CollectionReference<Map<String, dynamic>> get _coinPayments =>
       _db.collection('coin_payments');
 
-  // 🆕 കസ്റ്റമർ QR ഉണ്ടാക്കാൻ (ബിസിനസിൽ നിന്ന് സ്കാൻ ചെയ്യാൻ)
-  Future<void> createCoinPaymentRequest(Map<String, dynamic> paymentData) async {
+  Future<void> createCoinPaymentRequest(
+      Map<String, dynamic> paymentData) async {
     await _coinPayments.doc(paymentData['id']).set({
       ...paymentData,
       'createdAt': FieldValue.serverTimestamp(),
     });
   }
 
-  // 🆕 ബിസിനസ് ആപ്പിൽ പെൻഡിംഗ് പേയ്‌മെന്റുകൾ കാണാൻ
-  Stream<List<Map<String, dynamic>>> streamBusinessCoinPayments(String businessId) {
+  Stream<List<Map<String, dynamic>>> streamBusinessCoinPayments(
+      String businessId) {
     return _coinPayments
         .where('businessId', isEqualTo: businessId)
         .where('status', isEqualTo: 'pending')
         .snapshots()
-        .map((snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+        .map((snap) =>
+            snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
   }
 
-  // 🆕 ബിസിനസ് കോയിൻ പേയ്‌മെന്റ് അക്സെപ്റ്റ് ചെയ്യുമ്പോൾ
   Future<void> acceptCoinPayment({
     required String paymentId,
     required String customerUid,
@@ -1081,26 +1055,24 @@ class FirestoreService {
     required String businessId,
   }) async {
     final ref = _coinPayments.doc(paymentId);
-    
     await _db.runTransaction((tx) async {
       final snap = await tx.get(ref);
       if (!snap.exists) throw Exception("Payment request not found");
-      if (snap.data()!['status'] != 'pending') throw Exception("Already processed");
+      if (snap.data()!['status'] != 'pending') {
+        throw Exception("Already processed");
+      }
 
-      // 1. പേയ്‌മെന്റ് സ്റ്റാറ്റസ് അപ്ഡേറ്റ് ചെയ്യുന്നു
       tx.update(ref, {
         'status': 'accepted',
         'acceptedAt': FieldValue.serverTimestamp(),
       });
 
-      // 2. കസ്റ്റമറുടെ കോയിൻസ് കുറയ്ക്കുന്നു
       final userRef = _users.doc(customerUid);
       tx.update(userRef, {
         'coins': FieldValue.increment(-coinsUsed),
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      // 3. കോയിൻ ട്രാൻസാക്ഷൻ ലോഗ് ചെയ്യുന്നു
       final txRef = _db.collection('coin_transactions').doc();
       tx.set(txRef, {
         'uid': customerUid,
@@ -1170,17 +1142,14 @@ class FirestoreService {
   // ---------- SAVED OFFERS & BUSINESSES ----------
   CollectionReference<Map<String, dynamic>> get _savedOffers =>
       _db.collection('saved_offers');
-
   CollectionReference<Map<String, dynamic>> get _savedBusinesses =>
       _db.collection('saved_businesses');
 
   String _savedOfferId(String uid, String offerId) => '${uid}_$offerId';
-  String _savedBizId(String uid, String businessId) =>
-      '${uid}_$businessId';
+  String _savedBizId(String uid, String businessId) => '${uid}_$businessId';
 
   Future<bool> isOfferSaved(String uid, String offerId) async {
-    final snap =
-        await _savedOffers.doc(_savedOfferId(uid, offerId)).get();
+    final snap = await _savedOffers.doc(_savedOfferId(uid, offerId)).get();
     return snap.exists;
   }
 
@@ -1200,7 +1169,6 @@ class FirestoreService {
         'businessId': businessId,
         'createdAt': FieldValue.serverTimestamp(),
       });
-      // D2: Log save_offer event
       AnalyticsService.instance.logSaveOffer(
         offerId: offerId,
         businessId: businessId ?? '',

@@ -1,5 +1,5 @@
 // mobile/lib/features/demands/my_demands_screen.dart
-// UPDATED - Added Active and History Tabs
+// FIXED - 'locked' status properly shows in Active tab
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,6 +7,7 @@ import '../../core/localization/locale_provider.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/theme/migo_colors.dart';
 import 'my_demand_details_screen.dart';
+import 'claim_ticket_screen.dart';
 
 class MyDemandsScreen extends StatefulWidget {
   const MyDemandsScreen({super.key});
@@ -43,7 +44,6 @@ class _MyDemandsScreenState extends State<MyDemandsScreen> {
             ),
             body: Column(
               children: [
-                // 🆕 Tabs for Active & History
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: Row(
@@ -89,16 +89,21 @@ class _MyDemandsScreenState extends State<MyDemandsScreen> {
                       }
 
                       if (snapshot.hasError) {
-                         return Center(child: Text('Error: ${snapshot.error}'));
+                        return Center(child: Text('Error: ${snapshot.error}'));
                       }
 
                       final allDocs = snapshot.data?.docs ?? [];
                       
-                      // 🆕 Filter based on tab
+                      // 🆕 Active: collecting, threshold_reached, bidding, locked
+                      // History: fulfilled
                       final docs = allDocs.where((doc) {
                         final data = doc.data() as Map<String, dynamic>;
                         final status = data['status'] ?? 'collecting';
-                        return _showHistory ? status == 'fulfilled' : status != 'fulfilled';
+                        if (_showHistory) {
+                          return status == 'fulfilled';
+                        } else {
+                          return status != 'fulfilled'; // Active includes 'locked'
+                        }
                       }).toList();
 
                       if (docs.isEmpty) {
@@ -169,6 +174,9 @@ class _MyDemandCard extends StatelessWidget {
     } else if (status == 'bidding') {
       statusText = t.get('receiving_offers');
       statusColor = Colors.blue;
+    } else if (status == 'locked') {
+      statusText = isAr ? 'جاري التنفيذ' : 'In Progress';
+      statusColor = Colors.blueGrey;
     } else if (status == 'fulfilled') {
       statusText = isAr ? 'مكتمل' : 'Completed';
       statusColor = Colors.green.shade700;
@@ -216,7 +224,46 @@ class _MyDemandCard extends StatelessWidget {
                   Text('${t.get('total_quantity')}: $totalQuantity', style: TextStyle(fontSize: 12, color: Colors.grey)),
                 ],
               ),
-              // 🆕 Fetch and show Redeemed Date from claims collection
+              // 🆕 Show 'View QR Ticket' only if status is locked
+              if (status == 'locked')
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 40,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(backgroundColor: MigoColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                      onPressed: () async {
+                        final claimSnap = await FirebaseFirestore.instance
+                            .collection('demand_claims')
+                            .where('groupId', isEqualTo: groupId)
+                            .limit(1)
+                            .get();
+                        if (claimSnap.docs.isNotEmpty && context.mounted) {
+                          final claimData = claimSnap.docs.first.data();
+                          final claimId = claimSnap.docs.first.id;
+                          final pin = claimData['pin'] ?? '';
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (_) => ClaimTicketScreen(
+                              groupId: groupId,
+                              groupData: data,
+                              bidData: {
+                                'businessName': claimData['businessName'] ?? 'Shop',
+                                'offerPrice': claimData['totalPrice'] ?? 0,
+                                'fulfillmentType': 'Store Pickup'
+                              },
+                              claimId: claimId,
+                              claimCode: pin,
+                            ),
+                          ));
+                        }
+                      },
+                      icon: const Icon(Icons.qr_code, color: Colors.white, size: 18),
+                      label: Text(isAr ? 'عرض تذكرة الاسترداد' : 'View QR Ticket', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ),
+              // 🆕 Show Redeemed Date/Time if fulfilled
               if (status == 'fulfilled')
                 FutureBuilder<QuerySnapshot>(
                   future: FirebaseFirestore.instance
