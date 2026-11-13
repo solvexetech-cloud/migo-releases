@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../core/localization/locale_provider.dart';
 import '../core/theme/migo_colors.dart';
 import '../core/theme/migo_gradients.dart';
-import '../core/theme/migo_shadows.dart';
 import '../models/offer_model.dart';
 import '../services/firestore_service.dart';
 
@@ -17,7 +16,7 @@ class FlashDealCard extends StatelessWidget {
     final diff = offer.endAt.difference(now);
     if (diff.isNegative) return isAr ? 'منتهي' : 'Expired';
     if (diff.inHours >= 24) return isAr ? '${diff.inDays} ي' : '${diff.inDays}d left';
-    if (diff.inHours >= 1) return isAr ? '${diff.inHours} س' : '${diff.inHours}h ${diff.inMinutes % 60}m left';
+    if (diff.inHours >= 1) return isAr ? '${diff.inHours} س' : '${diff.inHours}h left';
     return isAr ? '${diff.inMinutes} د' : '${diff.inMinutes}m left';
   }
 
@@ -33,16 +32,22 @@ class FlashDealCard extends StatelessWidget {
         final isAr = LocaleProvider.instance.locale == 'ar';
 
         return Container(
-          width: 200,
-          height: 230,
+          width: 180, // 🆕 വീതി അൽപ്പം കൂട്ടി
+          height: 240, // 🆕 ഉയരം കൃത്യമാക്കി (Overflow വരാതിരിക്കാൻ)
           decoration: BoxDecoration(
             color: surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.red.withValues(alpha: 0.5),
-              width: 2,
+              color: Colors.red.withValues(alpha: 0.2),
+              width: 1,
             ),
-            boxShadow: MigoShadows.redGlow,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              )
+            ],
           ),
           child: Material(
             color: Colors.transparent,
@@ -51,7 +56,7 @@ class FlashDealCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               onTap: onTap,
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(15),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -70,7 +75,7 @@ class FlashDealCard extends StatelessWidget {
                           const Spacer(),
                           Text(
                             _timeLeft(isAr),
-                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white),
+                            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white),
                           ),
                         ],
                       ),
@@ -80,20 +85,20 @@ class FlashDealCard extends StatelessWidget {
                     if (offer.imageUrl != null && offer.imageUrl!.isNotEmpty)
                       Image.network(
                         offer.imageUrl!,
-                        height: 75,
+                        height: 80, // 🆕 ഇമേജ് ഉയരം കൃത്യമാക്കി
                         width: double.infinity,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => Container(
-                          height: 75,
+                          height: 80,
                           color: Colors.grey.shade200,
-                          child: const Center(child: Icon(Icons.image_not_supported, color: Colors.grey, size: 30)),
+                          child: const Center(child: Icon(Icons.image_not_supported, color: Colors.grey, size: 24)),
                         ),
                       ),
 
                     // Content Section
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(10.0), // 🆕 പാഡിംഗ് കൃത്യമാക്കി
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -107,12 +112,12 @@ class FlashDealCard extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: textSecondary),
                                 ),
-                                const SizedBox(height: 2),
+                                const SizedBox(height: 4),
                                 Text(
                                   offer.title,
-                                  maxLines: 2,
+                                  maxLines: 2, // 🆕 2 വരികൾ വരെ അനുവദിച്ചു
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: textPrimary, height: 1.1),
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: textPrimary, height: 1.1),
                                 ),
                               ],
                             ),
@@ -129,7 +134,7 @@ class FlashDealCard extends StatelessWidget {
                                     const SizedBox(width: 4),
                                     Expanded(
                                       child: Padding(
-                                        padding: const EdgeInsets.only(bottom: 1),
+                                        padding: const EdgeInsets.only(bottom: 2),
                                         child: Text(
                                           '${offer.currency} ${offer.originalPrice.toStringAsFixed(0)}',
                                           maxLines: 1,
@@ -140,52 +145,39 @@ class FlashDealCard extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 4),
-                                // 🆕 SAVE tag + Rating Star Row (ഒരുമിച്ച് താഴെ)
+                                const SizedBox(height: 6),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(gradient: MigoGradients.flash, borderRadius: BorderRadius.circular(4)),
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                      decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
                                       child: Text(
                                         '${offer.percentOff}% ${isAr ? 'خصم' : 'OFF'}',
-                                        style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white),
+                                        style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.red),
                                       ),
                                     ),
-                                    // 🆕 Rating Star
                                     FutureBuilder<({double average, int count})>(
                                       future: FirestoreService.instance.getBusinessRating(offer.businessId),
                                       builder: (context, snapshot) {
                                         if (!snapshot.hasData) return const SizedBox.shrink();
                                         final rating = snapshot.data!.average;
                                         final count = snapshot.data!.count;
-                                        
                                         if (count == 0) {
                                           return Row(
                                             children: [
-                                              Icon(Icons.star_border, size: 10, color: textSecondary),
+                                              Icon(Icons.star_border, size: 11, color: textSecondary),
                                               const SizedBox(width: 2),
-                                              Text(
-                                                isAr ? 'جديد' : 'New',
-                                                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: textSecondary),
-                                              ),
+                                              Text(isAr ? 'جديد' : 'New', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: textSecondary)),
                                             ],
                                           );
                                         }
-                                        
                                         return Row(
                                           children: [
-                                            const Icon(Icons.star, size: 10, color: Colors.amber),
+                                            const Icon(Icons.star, size: 11, color: Colors.amber),
                                             const SizedBox(width: 2),
-                                            Text(
-                                              rating.toStringAsFixed(1),
-                                              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.black87),
-                                            ),
-                                            Text(
-                                              ' ($count)',
-                                              style: TextStyle(fontSize: 8, color: textSecondary),
-                                            ),
+                                            Text(rating.toStringAsFixed(1), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.black87)),
+                                            Text(' ($count)', style: TextStyle(fontSize: 9, color: textSecondary)),
                                           ],
                                         );
                                       },

@@ -130,16 +130,24 @@ class _OfferCardState extends State<OfferCard> {
       builder: (context, _) {
         final isAr = LocaleProvider.instance.locale == 'ar';
 
-        return Container(
-          decoration: BoxDecoration(
-            color: surface,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: categoryColor.withValues(alpha: 0.4),
-              width: 2,
-            ),
-            boxShadow: MigoShadows.soft,
-          ),
+                    return Container(
+  decoration: BoxDecoration(
+    color: surface,
+    borderRadius: BorderRadius.circular(16),
+    // 🆕 ഇവിടെയാണ് കാറ്റഗറി നിറത്തിലുള്ള ബോർഡർ വരേണ്ടത്
+    border: Border.all(
+      color: categoryColor.withValues(alpha: 0.6), 
+      width: 1.5,
+    ),
+    // 🆕 കാറ്റഗറി നിറത്തിലുള്ള ഷാഡോ
+    boxShadow: [
+      BoxShadow(
+        color: categoryColor.withValues(alpha: 0.15),
+        blurRadius: 10,
+        offset: const Offset(0, 4),
+      ),
+    ],
+  ),
           child: Material(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(18),
