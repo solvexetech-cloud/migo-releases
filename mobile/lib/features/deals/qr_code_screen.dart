@@ -38,12 +38,10 @@ class QrCodeScreen extends StatelessWidget {
                   .doc(claimId)
                   .snapshots(),
               builder: (context, snapshot) {
-                // 1. ലോഡിംഗ് അവസ്ഥ
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                // 2. ഡാറ്റ ഇല്ലെങ്കിൽ
                 if (!snapshot.hasData || !snapshot.data!.exists) {
                   return Center(
                     child: Text(isAr ? 'لم يتم العثور على المطالبة' : 'Claim not found'),
@@ -52,14 +50,15 @@ class QrCodeScreen extends StatelessWidget {
 
                 final data = snapshot.data!.data() as Map<String, dynamic>;
                 final status = data['status'] as String?;
+                
+                // 🆕 pickupCode എടുക്കുന്നു (PIN)
+                final pickupCode = data['pickupCode'] as String? ?? claimId;
 
-                // 3. 🆕 സ്റ്റാറ്റസ് 'redeemed' ആണെങ്കിൽ സക്സസ് സ്ക്രീൻ കാണിക്കുക
                 if (status == 'redeemed') {
                   return _buildRedeemedSuccess(isAr);
                 }
 
-                // 4. അല്ലെങ്കിൽ സാധാരണ QR കോഡ് കാണിക്കുക
-                return _buildQrView(isAr);
+                return _buildQrView(isAr, pickupCode);
               },
             ),
           ),
@@ -68,10 +67,7 @@ class QrCodeScreen extends StatelessWidget {
     );
   }
 
-  // ─────────────────────────────────────────────────────
-  // 🆕 QR View (സാധാരണ അവസ്ഥ)
-  // ─────────────────────────────────────────────────────
-  Widget _buildQrView(bool isAr) {
+  Widget _buildQrView(bool isAr, String pickupCode) {
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -112,7 +108,7 @@ class QrCodeScreen extends StatelessWidget {
                 ],
               ),
               child: QrImageView(
-                data: claimId,
+                data: 'MIGO-OFFER-$pickupCode', // 🆕 ശരിയായ QR ഫോർമാറ്റ്
                 version: QrVersions.auto,
                 size: 240.0,
                 backgroundColor: Colors.white,
@@ -134,13 +130,13 @@ class QrCodeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
 
-            // Pickup Code
+            // Pickup Code (PIN)
             SelectableText(
-              claimId,
+              pickupCode, // 🆕 PIN കാണിക്കുന്നു
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 24,
                 fontWeight: FontWeight.w900,
-                letterSpacing: 1.0,
+                letterSpacing: 4.0,
                 color: Colors.black87,
               ),
               textAlign: TextAlign.center,
@@ -156,7 +152,7 @@ class QrCodeScreen extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    isAr ? offerTitle : offerTitle, // Assuming offerTitle has both or we just use it
+                    offerTitle,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
@@ -175,9 +171,6 @@ class QrCodeScreen extends StatelessWidget {
     );
   }
 
-  // ─────────────────────────────────────────────────────
-  // 🆕 Redeemed Success View (ആനിമേഷനോടുകൂടിയ സക്സസ് സ്ക്രീൻ)
-  // ─────────────────────────────────────────────────────
   Widget _buildRedeemedSuccess(bool isAr) {
     return Center(
       child: Padding(
@@ -185,7 +178,6 @@ class QrCodeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Bouncing Checkmark Animation
             TweenAnimationBuilder<double>(
               tween: Tween(begin: 0.0, end: 1.0),
               duration: const Duration(milliseconds: 800),
@@ -211,7 +203,7 @@ class QrCodeScreen extends StatelessWidget {
             const SizedBox(height: 32),
             Text(
               isAr ? 'تم الاسترداد بنجاح!' : 'Successfully Redeemed!',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w900,
                 color: MigoColors.success,
@@ -232,7 +224,6 @@ class QrCodeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 40),
-            // ഓഫറിന്റെ പേര് കാണിക്കാൻ
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               decoration: BoxDecoration(

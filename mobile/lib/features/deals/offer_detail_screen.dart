@@ -79,7 +79,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
   Future<void> _claim() async {
     final isAr = LocaleProvider.instance.locale == 'ar';
     if (_uid == null) {
-      _snack(isAr ? 'ÙŠØ±Ø¬Ù‰ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø£ÙˆÙ„Ø§Ù‹.' : 'Please sign in first.');
+      _snack(isAr ? 'Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â° ÃƒËœÃ‚ÂªÃƒËœÃ‚Â³ÃƒËœÃ‚Â¬Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â®Ãƒâ„¢Ã‹â€ Ãƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â£Ãƒâ„¢Ã‹â€ Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Â¹.' : 'Please sign in first.');
       return;
     }
 
@@ -96,6 +96,8 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
         currency: widget.offer.currency,
         originalPrice: widget.offer.originalPrice,
         offerPrice: widget.offer.offerPrice,
+        pickupCode: (100000 + (DateTime.now().millisecondsSinceEpoch % 900000)).toString(),
+        status: ClaimStatus.active, // ðŸ†• à´‡à´¤àµ à´šàµ‡àµ¼à´¤àµà´¤àµ
         claimedAt: now,
         expiresAt: widget.offer.endAt,
         source: 'home',
@@ -139,7 +141,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
           'claimedCount': FieldValue.increment(-1),
         });
         if (mounted) setState(() => _isJoinedGroup = false);
-        _snack(isAr ? 'Ù„Ù‚Ø¯ ØºØ§Ø¯Ø±Øª Ø§Ù„Ø¹Ø±Ø¶ Ø§Ù„Ø¬Ù…Ø§Ø¹ÙŠ.' : 'You left the group deal.');
+        _snack(isAr ? 'Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Å¡ÃƒËœÃ‚Â¯ ÃƒËœÃ‚ÂºÃƒËœÃ‚Â§ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â±ÃƒËœÃ‚Âª ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¹Ãƒâ„¢Ã…Â .' : 'You left the group deal.');
       } else {
         await docRef.set({
           'offerId': widget.offer.id,
@@ -151,7 +153,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
           'claimedCount': FieldValue.increment(1),
         });
         if (mounted) setState(() => _isJoinedGroup = true);
-        _snack(isAr ? 'Ù„Ù‚Ø¯ Ø§Ù†Ø¶Ù…Ù…Øª Ø¥Ù„Ù‰ Ø§Ù„Ø¹Ø±Ø¶ Ø§Ù„Ø¬Ù…Ø§Ø¹ÙŠ!' : 'You joined the group deal!');
+        _snack(isAr ? 'Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Å¡ÃƒËœÃ‚Â¯ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â¶Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Âª ÃƒËœÃ‚Â¥Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â° ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¹Ãƒâ„¢Ã…Â !' : 'You joined the group deal!');
       }
     } catch (e) {
       if (!mounted) return;
@@ -222,11 +224,11 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                             final url = 'https://migo-app-3030e.web.app/o/${o.id}?ref=$_uid';
                             await Clipboard.setData(ClipboardData(text: url));
                             if (context.mounted) {
-                              _snack(isAr ? 'ØªÙ… Ù†Ø³Ø® Ø§Ù„Ø±Ø§Ø¨Ø·!' : 'Link copied! Share it with your friends.');
+                              _snack(isAr ? 'ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Â¦ Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â³ÃƒËœÃ‚Â® ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â±ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â·!' : 'Link copied! Share it with your friends.');
                             }
                           },
                           icon: const Icon(Icons.copy),
-                          tooltip: isAr ? 'Ù†Ø³Ø® Ø§Ù„Ø±Ø§Ø¨Ø·' : 'Copy link',
+                          tooltip: isAr ? 'Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â³ÃƒËœÃ‚Â® ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â±ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â·' : 'Copy link',
                         ),
                         IconButton(
                           onPressed: () async {
@@ -234,15 +236,15 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                             final price = '${o.currency} ${o.offerPrice.toStringAsFixed(0)}';
                             final original = '${o.currency} ${o.originalPrice.toStringAsFixed(0)}';
                             final shareText = isAr
-                                ? 'ðŸ”¥ ØªØ­Ù‚Ù‚ Ù…Ù† Ù‡Ø°Ø§ Ø§Ù„Ø¹Ø±Ø¶ Ø¹Ù„Ù‰ Ù…ÙŠØ¬Ùˆ!\n\n${o.titleAr}\nØ§Ù„Ø³Ø¹Ø±: $price (ÙƒØ§Ù† $original)\nÙˆÙØ± ${o.currency} ${o.savings.toStringAsFixed(0)}\n\n$url'
-                                : 'ðŸ”¥ Check out this deal on MIGO!\n\n${o.titleEn}\nPrice: $price (was $original)\nSave ${o.currency} ${o.savings.toStringAsFixed(0)}\n\n$url';
+                                ? 'ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¥ ÃƒËœÃ‚ÂªÃƒËœÃ‚Â­Ãƒâ„¢Ã¢â‚¬Å¡Ãƒâ„¢Ã¢â‚¬Å¡ Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã¢â‚¬Â  Ãƒâ„¢Ã¢â‚¬Â¡ÃƒËœÃ‚Â°ÃƒËœÃ‚Â§ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â¹Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â° Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¬Ãƒâ„¢Ã‹â€ !\n\n${o.titleAr}\nÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â³ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±: $price (Ãƒâ„¢Ã†â€™ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Â  $original)\nÃƒâ„¢Ã‹â€ Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â± ${o.currency} ${o.savings.toStringAsFixed(0)}\n\n$url'
+                                : 'ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¥ Check out this deal on MIGO!\n\n${o.titleEn}\nPrice: $price (was $original)\nSave ${o.currency} ${o.savings.toStringAsFixed(0)}\n\n$url';
 
                             SharePlus.instance.share(
                               ShareParams(text: shareText, subject: isAr ? o.titleAr : o.titleEn),
                             );
                           },
                           icon: const Icon(Icons.share_outlined),
-                          tooltip: isAr ? 'Ù…Ø´Ø§Ø±ÙƒØ© Ø§Ù„Ø¹Ø±Ø¶' : 'Share offer',
+                          tooltip: isAr ? 'Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â´ÃƒËœÃ‚Â§ÃƒËœÃ‚Â±Ãƒâ„¢Ã†â€™ÃƒËœÃ‚Â© ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶' : 'Share offer',
                         ),
                         _SaveButton(
                           uid: _uid ?? '',
@@ -306,7 +308,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
-                                      '${o.percentOff}% ${isAr ? 'Ø®ØµÙ…' : 'OFF'}',
+                                      '${o.percentOff}% ${isAr ? 'ÃƒËœÃ‚Â®ÃƒËœÃ‚ÂµÃƒâ„¢Ã¢â‚¬Â¦' : 'OFF'}',
                                       style: const TextStyle(
                                         fontSize: 10,
                                         fontWeight: FontWeight.w800,
@@ -328,7 +330,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                           const Icon(Icons.star, size: 12, color: Colors.black),
                                           const SizedBox(width: 3),
                                           Text(
-                                            isAr ? 'Ù…Ù…ÙŠØ²' : 'FEATURED',
+                                            isAr ? 'Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â²' : 'FEATURED',
                                             style: const TextStyle(
                                               fontSize: 9,
                                               fontWeight: FontWeight.w900,
@@ -371,7 +373,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(isAr ? 'Ø§Ù„Ø³Ø¹Ø± Ø§Ù„Ø£ØµÙ„ÙŠ' : 'Original',
+                                        Text(isAr ? 'ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â³ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â± ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â£ÃƒËœÃ‚ÂµÃƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã…Â ' : 'Original',
                                             style: const TextStyle(fontSize: 11, color: MigoColors.textSecondaryLight)),
                                         Text(
                                           '${o.currency} ${o.originalPrice.toStringAsFixed(0)}',
@@ -387,7 +389,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.end,
                                       children: [
-                                        Text(isAr ? 'Ø³Ø¹Ø± Ù…ÙŠØ¬Ùˆ' : 'MIGO price',
+                                        Text(isAr ? 'ÃƒËœÃ‚Â³ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â± Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¬Ãƒâ„¢Ã‹â€ ' : 'MIGO price',
                                             style: const TextStyle(fontSize: 11, color: MigoColors.textSecondaryLight)),
                                         Text(
                                           '${o.currency} ${(_isPlanB ? o.currentPrice : o.offerPrice).toStringAsFixed(0)}',
@@ -414,7 +416,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                       alignment: isAr ? Alignment.centerRight : Alignment.centerLeft,
                                       child: Text(
                                         isAr
-                                            ? 'ÙˆÙØ± ${o.currency} ${(_isPlanB ? o.originalPrice - o.currentPrice : o.savings).toStringAsFixed(0)}'
+                                            ? 'Ãƒâ„¢Ã‹â€ Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â± ${o.currency} ${(_isPlanB ? o.originalPrice - o.currentPrice : o.savings).toStringAsFixed(0)}'
                                             : 'You save ${o.currency} ${(_isPlanB ? o.originalPrice - o.currentPrice : o.savings).toStringAsFixed(0)}',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w700,
@@ -426,13 +428,13 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                 ],
                               ),
 
-                              // ðŸ†• Plan A (All-or-Nothing) UI
+                              // ÃƒÂ°Ã…Â¸Ã¢â‚¬Â Ã¢â‚¬Â¢ Plan A (All-or-Nothing) UI
                               if (_isPlanA) ...[
                                 const SizedBox(height: 20),
                                 _buildPlanACard(isAr, o),
                               ],
 
-                              // ðŸ†• Plan B (Progressive) UI
+                              // ÃƒÂ°Ã…Â¸Ã¢â‚¬Â Ã¢â‚¬Â¢ Plan B (Progressive) UI
                               if (_isPlanB) ...[
                                 const SizedBox(height: 20),
                                 _buildPlanBCard(isAr, o),
@@ -457,7 +459,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                   label: FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Text(
-                                      isAr ? 'Ø¹Ø±Ø¶ Ù…Ù„Ù Ø§Ù„Ù…ØªØ¬Ø±' : 'View Shop Profile',
+                                      isAr ? 'ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã‚Â ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚ÂªÃƒËœÃ‚Â¬ÃƒËœÃ‚Â±' : 'View Shop Profile',
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -477,7 +479,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                               Row(
                                 children: [
                                   Text(
-                                    isAr ? 'Ø§Ù„ØªÙ‚ÙŠÙŠÙ…Ø§Øª' : 'Reviews',
+                                    isAr ? 'ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Å¡Ãƒâ„¢Ã…Â Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª' : 'Reviews',
                                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(width: 6),
@@ -490,7 +492,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                                 builder: (context, snapshot) {
                                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
                                     return Text(
-                                      isAr ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ ØªÙ‚ÙŠÙŠÙ…Ø§Øª Ø¨Ø¹Ø¯.' : 'No reviews yet.',
+                                      isAr ? 'Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â§ ÃƒËœÃ‚ÂªÃƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â¯ ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Å¡Ãƒâ„¢Ã…Â Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â¯.' : 'No reviews yet.',
                                       style: const TextStyle(color: Colors.grey),
                                     );
                                   }
@@ -520,7 +522,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
 
                               if (o.terms != null && o.terms!.isNotEmpty) ...[
                                 const SizedBox(height: 20),
-                                Text(isAr ? 'Ø§Ù„Ø´Ø±ÙˆØ·' : 'Terms',
+                                Text(isAr ? 'ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â´ÃƒËœÃ‚Â±Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â·' : 'Terms',
                                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                                 const SizedBox(height: 6),
                                 Text(o.terms!,
@@ -582,8 +584,8 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
               Expanded(
                 child: Text(
                   isUnlocked
-                      ? (isAr ? 'ØªÙ… ÙØªØ­ Ø§Ù„Ø¹Ø±Ø¶!' : 'Deal unlocked!')
-                      : (isAr ? 'Ø¹Ø±Ø¶ Ø¬Ù…Ø§Ø¹ÙŠ: ÙƒÙ„ Ø´ÙŠØ¡ Ø£Ùˆ Ù„Ø§ Ø´ÙŠØ¡' : 'Group Deal: All-or-Nothing'),
+                      ? (isAr ? 'ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Â¦ Ãƒâ„¢Ã‚ÂÃƒËœÃ‚ÂªÃƒËœÃ‚Â­ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶!' : 'Deal unlocked!')
+                      : (isAr ? 'ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¹Ãƒâ„¢Ã…Â : Ãƒâ„¢Ã†â€™Ãƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â´Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¡ ÃƒËœÃ‚Â£Ãƒâ„¢Ã‹â€  Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â§ ÃƒËœÃ‚Â´Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¡' : 'Group Deal: All-or-Nothing'),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -612,7 +614,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Text(
-                    isAr ? '/ $required Ø´Ø®Øµ' : '/ $required people',
+                    isAr ? '/ $required ÃƒËœÃ‚Â´ÃƒËœÃ‚Â®ÃƒËœÃ‚Âµ' : '/ $required people',
                     style: const TextStyle(fontSize: 14, color: MigoColors.textSecondaryLight, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -632,9 +634,9 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
           const SizedBox(height: 10),
           Text(
             isUnlocked
-                ? (isAr ? 'ÙŠÙ…ÙƒÙ† Ù„Ù„Ø¬Ù…ÙŠØ¹ ÙÙŠ Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù„Ø¢Ù† Ø§Ù„Ù…Ø·Ø§Ù„Ø¨Ø© Ø¨Ù‡Ø°Ø§ Ø§Ù„Ø¹Ø±Ø¶.' : 'Everyone in the group can now claim this deal.')
+                ? (isAr ? 'Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã†â€™Ãƒâ„¢Ã¢â‚¬Â  Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¹ Ãƒâ„¢Ã‚ÂÃƒâ„¢Ã…Â  ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â© ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¢Ãƒâ„¢Ã¢â‚¬Â  ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â·ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â© ÃƒËœÃ‚Â¨Ãƒâ„¢Ã¢â‚¬Â¡ÃƒËœÃ‚Â°ÃƒËœÃ‚Â§ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶.' : 'Everyone in the group can now claim this deal.')
                 : (isAr
-                    ? 'Ù…Ø·Ù„ÙˆØ¨ ${required - current} Ø£Ø´Ø®Ø§Øµ Ø¥Ø¶Ø§ÙÙŠÙŠÙ†.'
+                    ? 'Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â·Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¨ ${required - current} ÃƒËœÃ‚Â£ÃƒËœÃ‚Â´ÃƒËœÃ‚Â®ÃƒËœÃ‚Â§ÃƒËœÃ‚Âµ ÃƒËœÃ‚Â¥ÃƒËœÃ‚Â¶ÃƒËœÃ‚Â§Ãƒâ„¢Ã‚ÂÃƒâ„¢Ã…Â Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Â .'
                     : '${required - current} more people needed.'),
             style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight),
           ),
@@ -665,7 +667,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  isAr ? 'Ø¹Ø±Ø¶ Ø¬Ù…Ø§Ø¹ÙŠ: ØªØ³Ø¹ÙŠØ± ØªØ¯Ø±ÙŠØ¬ÙŠ' : 'Group Deal: Progressive',
+                  isAr ? 'ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¹Ãƒâ„¢Ã…Â : ÃƒËœÃ‚ÂªÃƒËœÃ‚Â³ÃƒËœÃ‚Â¹Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â± ÃƒËœÃ‚ÂªÃƒËœÃ‚Â¯ÃƒËœÃ‚Â±Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¬Ãƒâ„¢Ã…Â ' : 'Group Deal: Progressive',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -685,7 +687,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isAr ? 'Ø§Ù„Ø³Ø¹Ø± Ø§Ù„Ø­Ø§Ù„ÙŠ' : 'Current Price',
+                    isAr ? 'ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â³ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â± ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â­ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã…Â ' : 'Current Price',
                     style: const TextStyle(fontSize: 11, color: MigoColors.textSecondaryLight),
                   ),
                   Text(
@@ -698,7 +700,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    isAr ? 'Ø§Ù„Ø³Ø¹Ø± Ø§Ù„ØªØ§Ù„ÙŠ' : 'Next Price',
+                    isAr ? 'ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â³ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â± ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚ÂªÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã…Â ' : 'Next Price',
                     style: const TextStyle(fontSize: 11, color: MigoColors.textSecondaryLight),
                   ),
                   Text(
@@ -712,7 +714,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
           const SizedBox(height: 10),
           Text(
             isAr
-                ? 'ÙƒÙ„Ù…Ø§ Ø²Ø§Ø¯ Ø¹Ø¯Ø¯ Ø§Ù„Ø£Ø´Ø®Ø§ØµØŒ Ø§Ù†Ø®ÙØ¶ Ø§Ù„Ø³Ø¹Ø±!'
+                ? 'Ãƒâ„¢Ã†â€™Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â§ ÃƒËœÃ‚Â²ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¯ ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â¯ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â£ÃƒËœÃ‚Â´ÃƒËœÃ‚Â®ÃƒËœÃ‚Â§ÃƒËœÃ‚ÂµÃƒËœÃ…â€™ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â®Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â³ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±!'
                 : 'The more people join, the lower the price!',
             style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight),
           ),
@@ -738,7 +740,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
               },
               icon: const Icon(Icons.event_available, size: 20),
               label: Text(
-                isAr ? 'Ø§Ø­Ø¬Ø² Ø§Ù„Ø¢Ù†' : 'Reserve Now',
+                isAr ? 'ÃƒËœÃ‚Â§ÃƒËœÃ‚Â­ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â² ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¢Ãƒâ„¢Ã¢â‚¬Â ' : 'Reserve Now',
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
               style: ElevatedButton.styleFrom(
@@ -760,7 +762,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                     )
-                  : Text(isAr ? 'Ø§Ø­ØµÙ„ Ø¹Ù„Ù‰ Ø±Ù…Ø² QR' : 'Get QR Code'),
+                  : Text(isAr ? 'ÃƒËœÃ‚Â§ÃƒËœÃ‚Â­ÃƒËœÃ‚ÂµÃƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â¹Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â° ÃƒËœÃ‚Â±Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â² QR' : 'Get QR Code'),
             ),
           ),
         ],
@@ -778,7 +780,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                isAr ? 'Ø§Ù„Ø¹Ø±Ø¶ Ø¬Ø§Ù‡Ø²! Ø§Ø¹Ø±Ø¶ Ù‡Ø°Ø§ ÙÙŠ Ø§Ù„Ù…ØªØ¬Ø±.' : 'Offer is ready! Show this at the store.',
+                isAr ? 'ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Â¡ÃƒËœÃ‚Â²! ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ Ãƒâ„¢Ã¢â‚¬Â¡ÃƒËœÃ‚Â°ÃƒËœÃ‚Â§ Ãƒâ„¢Ã‚ÂÃƒâ„¢Ã…Â  ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚ÂªÃƒËœÃ‚Â¬ÃƒËœÃ‚Â±.' : 'Offer is ready! Show this at the store.',
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
             ),
@@ -787,7 +789,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
         const SizedBox(height: 10),
         OutlinedButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text(isAr ? 'Ø¥ØºÙ„Ø§Ù‚' : 'Close'),
+          child: Text(isAr ? 'ÃƒËœÃ‚Â¥ÃƒËœÃ‚ÂºÃƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¡' : 'Close'),
         ),
       ],
     );
@@ -811,10 +813,10 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
           fit: BoxFit.scaleDown,
           child: Text(
             _isJoinedGroup
-                ? (isAr ? 'Ù…ØºØ§Ø¯Ø±Ø© Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø©' : 'Leave group')
+                ? (isAr ? 'Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚ÂºÃƒËœÃ‚Â§ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â±ÃƒËœÃ‚Â© ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â©' : 'Leave group')
                 : (isAr
-                    ? 'Ø§Ù†Ø¶Ù… Ø¥Ù„Ù‰ Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø© Â· ${widget.offer.claimedCount}/${widget.offer.requiredClaims ?? 5}'
-                    : 'Join group Â· ${widget.offer.claimedCount}/${widget.offer.requiredClaims ?? 5}'),
+                    ? 'ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â¶Ãƒâ„¢Ã¢â‚¬Â¦ ÃƒËœÃ‚Â¥Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â° ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â© Ãƒâ€šÃ‚Â· ${widget.offer.claimedCount}/${widget.offer.requiredClaims ?? 5}'
+                    : 'Join group Ãƒâ€šÃ‚Â· ${widget.offer.claimedCount}/${widget.offer.requiredClaims ?? 5}'),
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
@@ -825,21 +827,21 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
   String _getOfferTypeLabel(OfferType type, bool isAr) {
     switch (type) {
       case OfferType.standard:
-        return isAr ? 'Ø¹Ø±Ø¶ Ù‚ÙŠØ§Ø³ÙŠ' : 'Standard Deal';
+        return isAr ? 'ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ Ãƒâ„¢Ã¢â‚¬Å¡Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â§ÃƒËœÃ‚Â³Ãƒâ„¢Ã…Â ' : 'Standard Deal';
       case OfferType.flash:
-        return isAr ? 'Ø¹Ø±Ø¶ Ø³Ø±ÙŠØ¹' : 'Flash Deal';
+        return isAr ? 'ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â³ÃƒËœÃ‚Â±Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¹' : 'Flash Deal';
       case OfferType.group:
-        return isAr ? 'Ø¹Ø±Ø¶ Ø¬Ù…Ø§Ø¹ÙŠ' : 'Group Deal';
+        return isAr ? 'ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¹Ãƒâ„¢Ã…Â ' : 'Group Deal';
       case OfferType.groupAllOrNothing:
-        return isAr ? 'Ø¹Ø±Ø¶ Ø¬Ù…Ø§Ø¹ÙŠ (Ø§Ù„ÙƒÙ„ Ø£Ùˆ Ù„Ø§ Ø´ÙŠØ¡)' : 'Group Deal (All-or-Nothing)';
+        return isAr ? 'ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¹Ãƒâ„¢Ã…Â  (ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã†â€™Ãƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â£Ãƒâ„¢Ã‹â€  Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â§ ÃƒËœÃ‚Â´Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¡)' : 'Group Deal (All-or-Nothing)';
       case OfferType.groupProgressive:
-        return isAr ? 'Ø¹Ø±Ø¶ Ø¬Ù…Ø§Ø¹ÙŠ (ØªØ¯Ø±ÙŠØ¬ÙŠ)' : 'Group Deal (Progressive)';
+        return isAr ? 'ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¹Ãƒâ„¢Ã…Â  (ÃƒËœÃ‚ÂªÃƒËœÃ‚Â¯ÃƒËœÃ‚Â±Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¬Ãƒâ„¢Ã…Â )' : 'Group Deal (Progressive)';
       case OfferType.hidden:
-        return isAr ? 'Ø¬ÙˆÙ‡Ø±Ø© Ù…Ø®ÙÙŠØ©' : 'Hidden Gem';
+        return isAr ? 'ÃƒËœÃ‚Â¬Ãƒâ„¢Ã‹â€ Ãƒâ„¢Ã¢â‚¬Â¡ÃƒËœÃ‚Â±ÃƒËœÃ‚Â© Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â®Ãƒâ„¢Ã‚ÂÃƒâ„¢Ã…Â ÃƒËœÃ‚Â©' : 'Hidden Gem';
       case OfferType.birthday:
-        return isAr ? 'Ø¹Ø±Ø¶ Ø¹ÙŠØ¯ Ù…ÙŠÙ„Ø§Ø¯' : 'Birthday Deal';
+        return isAr ? 'ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â¹Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¯ Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¯' : 'Birthday Deal';
       default:
-        return isAr ? 'Ø¹Ø±Ø¶' : 'Deal';
+        return isAr ? 'ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶' : 'Deal';
     }
   }
 }
@@ -897,8 +899,8 @@ class _SaveButtonState extends State<_SaveButton> {
       SnackBar(
         content: Text(
           _saved
-            ? (isAr ? 'ØªÙ… Ø§Ù„Ø­ÙØ¸ ÙÙŠ Ø¹Ø±ÙˆØ¶ÙŠ' : 'Saved to My Deals')
-            : (isAr ? 'ØªÙ…Øª Ø§Ù„Ø¥Ø²Ø§Ù„Ø© Ù…Ù† Ø§Ù„Ù…Ø­ÙÙˆØ¸Ø§Øª' : 'Removed from saved')
+            ? (isAr ? 'ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Â¦ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â­Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â¸ Ãƒâ„¢Ã‚ÂÃƒâ„¢Ã…Â  ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¶Ãƒâ„¢Ã…Â ' : 'Saved to My Deals')
+            : (isAr ? 'ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Âª ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¥ÃƒËœÃ‚Â²ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â© Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã¢â‚¬Â  ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â­Ãƒâ„¢Ã‚ÂÃƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¸ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª' : 'Removed from saved')
         ),
       ),
     );

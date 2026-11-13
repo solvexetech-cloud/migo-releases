@@ -40,7 +40,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
 
   Future<void> _redeem(String code) async {
     final trimmed = code.trim();
-    debugPrint('🔍 Scanned QR / PIN: $trimmed');
+    debugPrint('ðŸ” Scanned QR / PIN: $trimmed');
 
     if (trimmed.isEmpty) {
       setState(() => _errorMsg = 'Please provide a code.');
@@ -54,7 +54,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
     });
 
     try {
-      // 🆕 Extract PIN from QR format or direct PIN
+      // ðŸ†• Extract PIN from QR format or direct PIN
       String? pin;
       String? claimId;
 
@@ -64,7 +64,12 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
           claimId = parts[2];
           pin = parts[4];
         }
-      } else if (RegExp(r'^\d{6}$').hasMatch(trimmed)) {
+      } else if (trimmed.startsWith('MIGO-OFFER-')) {
+          final parts = trimmed.split('-');
+          if (parts.length >= 3) {
+            pin = parts[2];
+          }
+        } else if (RegExp(r'^\d{6}$').hasMatch(trimmed)) {
         pin = trimmed;
       }
 
@@ -72,7 +77,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
         throw Exception('Invalid QR format. Please scan a valid claim.');
       }
 
-      // 🆕 Try to find in demand_claims first (new system)
+      // ðŸ†• Try to find in demand_claims first (new system)
       QuerySnapshot demandQuery = await FirebaseFirestore.instance
           .collection('demand_claims')
           .where('pin', isEqualTo: pin)
@@ -113,7 +118,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
         return;
       }
 
-      // 🆕 Try old claims collection
+      // ðŸ†• Try old claims collection
       QuerySnapshot oldQuery = await FirebaseFirestore.instance
           .collection('claims')
           .where('pickupCode', isEqualTo: pin)
