@@ -15,6 +15,7 @@ import '../profile/profile_screen.dart';
 import '../claims/business_claims_screen.dart';
 import '../demands/business_demands_feed_screen.dart';
 import '../scan/shop_counters_screen.dart';
+import '../creator/shop_creators_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -41,7 +42,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             appBar: isWide
                 ? null
                 : AppBar(
-                    title: Text(isAr ? 'MIGO Business' : 'MIGO Business'),
+                    title: const Text('MIGO Business'),
                     actions: [
                       IconButton(
                         icon: const Icon(Icons.logout),
@@ -91,24 +92,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   alignment: Alignment.center,
-                  child: const Text('🎁', style: TextStyle(fontSize: 20)),
+                  child: const Icon(Icons.storefront, color: Colors.white, size: 24),
                 ),
                 const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      isAr ? 'MIGO' : 'MIGO',
-                      style: const TextStyle(
+                    const Text(
+                      'MIGO',
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 3,
                       ),
                     ),
-                    Text(
-                      isAr ? 'BUSINESS' : 'BUSINESS',
-                      style: const TextStyle(
+                    const Text(
+                      'BUSINESS',
+                      style: TextStyle(
                         color: MigoColors.accent,
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -125,16 +126,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  _sidebarItem(0, Icons.dashboard_outlined, isAr ? 'Dashboard' : 'Dashboard'),
-                  _sidebarItem(1, Icons.local_offer_outlined, isAr ? 'My Offers' : 'My Offers'),
-                  _sidebarItem(7, Icons.menu_book_outlined, isAr ? 'My Flyers' : 'My Flyers'),
-                  _sidebarItem(2, Icons.event_note_outlined, isAr ? 'Bookings' : 'Bookings'),
-                  _sidebarItem(6, Icons.people_outline, isAr ? 'Customer Claims' : 'Customer Claims'),
-                  _sidebarItem(8, Icons.gavel, isAr ? 'Community Demands' : 'Community Demands'),
-                  _sidebarItem(3, Icons.qr_code_scanner, isAr ? 'Scan QR' : 'Scan QR'),
-                  _sidebarItem(9, Icons.qr_code_2, isAr ? 'Shop Counters' : 'Shop Counters'),
-                  _sidebarItem(4, Icons.analytics_outlined, isAr ? 'Analytics' : 'Analytics'),
-                  _sidebarItem(5, Icons.settings_outlined, isAr ? 'Settings' : 'Settings'),
+                  _sidebarItem(0, Icons.dashboard_outlined, 'Dashboard'),
+                  _sidebarItem(1, Icons.local_offer_outlined, 'My Offers'),
+                  _sidebarItem(7, Icons.menu_book_outlined, 'My Flyers'),
+                  _sidebarItem(2, Icons.event_note_outlined, 'Bookings'),
+                  _sidebarItem(6, Icons.people_outline, 'Customer Claims'),
+                  _sidebarItem(8, Icons.gavel, 'Community Demands'),
+                  _sidebarItem(3, Icons.qr_code_scanner, 'Scan QR'),
+                  _sidebarItem(9, Icons.qr_code_2, 'Shop Counters'),
+                  _sidebarItem(10, Icons.people_outline, 'Creators'),
+                  _sidebarItem(4, Icons.analytics_outlined, 'Analytics'),
+                  _sidebarItem(5, Icons.settings_outlined, 'Settings'),
                 ],
               ),
             ),
@@ -144,7 +146,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: OutlinedButton.icon(
               onPressed: () => _handleSignOut(isAr),
               icon: const Icon(Icons.logout, size: 18),
-              label: Text(isAr ? 'Sign out' : 'Sign out'),
+              label: const Text('Sign out'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
                 side: const BorderSide(color: Colors.white38),
@@ -159,32 +161,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _sidebarItem(int index, IconData icon, String label) {
     final selected = _selectedIndex == index;
-    return InkWell(
-      onTap: () => setState(() => _selectedIndex = index),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: selected ? MigoColors.accent : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: selected ? MigoColors.primary : Colors.white70,
-              size: 20,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        gradient: selected
+            ? const LinearGradient(
+                colors: [MigoColors.accent, MigoColors.accentDark],
+              )
+            : null,
+        color: selected ? null : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: selected
+            ? [
+                BoxShadow(
+                  color: MigoColors.accent.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => setState(() => _selectedIndex = index),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  color: selected ? MigoColors.primary : Colors.white70,
+                  size: 22,
+                ),
+                const SizedBox(width: 14),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: selected ? MigoColors.primary : Colors.white,
+                    fontSize: 14,
+                    fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: TextStyle(
-                color: selected ? MigoColors.primary : Colors.white,
-                fontSize: 14,
-                fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -197,17 +220,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(color: MigoColors.primaryDark),
+            const DrawerHeader(
+              decoration: BoxDecoration(color: MigoColors.primaryDark),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const Text('🎁', style: TextStyle(fontSize: 32)),
-                  const SizedBox(height: 6),
+                  Icon(Icons.storefront, color: Colors.white, size: 32),
+                  SizedBox(height: 6),
                   Text(
-                    isAr ? 'MIGO Business' : 'MIGO Business',
-                    style: const TextStyle(
+                    'MIGO Business',
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
@@ -216,19 +239,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
-            _drawerItem(0, Icons.dashboard_outlined, isAr ? 'Dashboard' : 'Dashboard'),
-            _drawerItem(1, Icons.local_offer_outlined, isAr ? 'My Offers' : 'My Offers'),
-            _drawerItem(7, Icons.menu_book_outlined, isAr ? 'My Flyers' : 'My Flyers'),
-            _drawerItem(2, Icons.event_note_outlined, isAr ? 'Bookings' : 'Bookings'),
-            _drawerItem(6, Icons.people_outline, isAr ? 'Customer Claims' : 'Customer Claims'),
-            _drawerItem(8, Icons.gavel, isAr ? 'Community Demands' : 'Community Demands'),
-            _drawerItem(3, Icons.qr_code_scanner, isAr ? 'Scan QR' : 'Scan QR'),
-            _drawerItem(4, Icons.analytics_outlined, isAr ? 'Analytics' : 'Analytics'),
-            _drawerItem(5, Icons.settings_outlined, isAr ? 'Settings' : 'Settings'),
+            _drawerItem(0, Icons.dashboard_outlined, 'Dashboard'),
+            _drawerItem(1, Icons.local_offer_outlined, 'My Offers'),
+            _drawerItem(7, Icons.menu_book_outlined, 'My Flyers'),
+            _drawerItem(2, Icons.event_note_outlined, 'Bookings'),
+            _drawerItem(6, Icons.people_outline, 'Customer Claims'),
+            _drawerItem(8, Icons.gavel, 'Community Demands'),
+            _drawerItem(3, Icons.qr_code_scanner, 'Scan QR'),
+            _drawerItem(9, Icons.qr_code_2, 'Shop Counters'),
+            _drawerItem(10, Icons.people_outline, 'Creators'),
+            _drawerItem(4, Icons.analytics_outlined, 'Analytics'),
+            _drawerItem(5, Icons.settings_outlined, 'Settings'),
             const Divider(color: Colors.white24),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.white70),
-              title: Text(isAr ? 'Sign out' : 'Sign out', style: const TextStyle(color: Colors.white)),
+              title: const Text('Sign out', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
                 _handleSignOut(isAr);
@@ -266,6 +291,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 7: return const MyFlyersScreen();
       case 8: return const BusinessDemandsFeedScreen();
       case 9: return _buildBusinessDependentTab((id) => ShopCountersScreen(businessId: id));
+      case 10: return _buildBusinessDependentTab((id) => ShopCreatorsScreen(businessId: id));
       default: return const SizedBox();
     }
   }
@@ -358,9 +384,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          isAr ? 'Welcome back!' : 'Welcome back!',
-                          style: const TextStyle(
+                        const Text(
+                          'Welcome back!',
+                          style: TextStyle(
                             color: Colors.white70,
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -368,7 +394,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          business['name'] ?? (isAr ? 'Your Business' : 'Your Business'),
+                          business['name'] ?? 'Your Business',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 24,
@@ -423,12 +449,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        isAr ? '$count New Demands!' : '$count New Demand${count > 1 ? 's' : ''}!',
+                                        '$count New Demand${count > 1 ? 's' : ''}!',
                                         style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: MigoColors.primaryDark),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        isAr ? 'Waiting for your bids' : 'Waiting for your bids',
+                                        'Waiting for your bids',
                                         style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                                       ),
                                     ],
@@ -471,21 +497,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: const Icon(Icons.qr_code_scanner, color: MigoColors.accentDark, size: 36),
                           ),
                           const SizedBox(width: 16),
-                          Expanded(
+                          const Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  isAr ? 'Scan & Redeem' : 'Scan & Redeem',
-                                  style: const TextStyle(
+                                  'Scan & Redeem',
+                                  style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w900,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                SizedBox(height: 4),
                                 Text(
-                                  isAr ? 'Scan customer QR to redeem offer' : 'Scan customer QR to redeem offer',
-                                  style: const TextStyle(
+                                  'Scan customer QR to redeem offer',
+                                  style: TextStyle(
                                     fontSize: 12,
                                     color: MigoColors.textSecondary,
                                   ),
@@ -493,16 +519,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ],
                             ),
                           ),
-                          Icon(isAr ? Icons.arrow_back_ios : Icons.arrow_forward_ios, size: 16, color: MigoColors.textSecondary),
+                          const Icon(Icons.arrow_forward_ios, size: 16, color: MigoColors.textSecondary),
                         ],
                       ),
                     ),
                   ),
                   
                   const SizedBox(height: 24),
-                  Text(
-                    isAr ? 'Statistics' : 'Statistics',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  const Text(
+                    'Statistics',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
 
@@ -511,7 +537,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Expanded(
                         child: _statCard(
                           icon: Icons.local_offer_outlined,
-                          label: isAr ? 'Total Offers' : 'Total Offers',
+                          label: 'Total Offers',
                           value: totalOffers.toString(),
                           color: MigoColors.info,
                         ),
@@ -520,7 +546,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Expanded(
                         child: _statCard(
                           icon: Icons.check_circle_outline,
-                          label: isAr ? 'Redeemed Claims' : 'Redeemed Claims',
+                          label: 'Redeemed Claims',
                           value: redeemedCount.toString(),
                           color: MigoColors.success,
                         ),
@@ -605,9 +631,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            isAr ? 'Total Revenue' : 'Total Revenue',
-            style: const TextStyle(
+          const Text(
+            'Total Revenue',
+            style: TextStyle(
               fontSize: 11,
               color: MigoColors.textSecondary,
               fontWeight: FontWeight.w600,
@@ -674,16 +700,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(isAr ? 'Sign out?' : 'Sign out?'),
-        content: Text(isAr ? 'Are you sure you want to sign out?' : 'Are you sure you want to sign out?'),
+        title: const Text('Sign out?'),
+        content: const Text('Are you sure you want to sign out?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(isAr ? 'Cancel' : 'Cancel'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(isAr ? 'Sign out' : 'Sign out'),
+            child: const Text('Sign out'),
           ),
         ],
       ),

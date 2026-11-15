@@ -23,10 +23,7 @@ export default function CreatorsPage() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    const q = query(
-      collection(db, 'creators'),
-      orderBy('createdAt', 'desc')
-    );
+    const q = query(collection(db, 'creators'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, (snap) => {
       const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       setCreators(list);
@@ -51,9 +48,9 @@ export default function CreatorsPage() {
     if (search) {
       const s = search.toLowerCase();
       return (
-        c.name?.toLowerCase().includes(s) ||
-        c.email?.toLowerCase().includes(s) ||
-        c.channelName?.toLowerCase().includes(s)
+        c.displayName?.toLowerCase().includes(s) ||
+        c.channelUrl?.toLowerCase().includes(s) ||
+        c.category?.toLowerCase().includes(s)
       );
     }
     return true;
@@ -72,37 +69,17 @@ export default function CreatorsPage() {
 
   return (
     <div style={{ padding: 24 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>
-        Creators
-      </h1>
-      <p style={{ color: '#666', marginBottom: 24 }}>
-        Manage creator accounts and applications
-      </p>
+      <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Creators</h1>
+      <p style={{ color: '#666', marginBottom: 24 }}>Manage creator accounts and applications</p>
 
-      {/* Stats */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-          gap: 12,
-          marginBottom: 24,
-        }}
-      >
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 24 }}>
         <StatCard label="Total" value={stats.total} color="#3B82F6" />
         <StatCard label="Pending" value={stats.pending} color="#F59E0B" />
         <StatCard label="Approved" value={stats.approved} color="#10B981" />
         <StatCard label="Rejected" value={stats.rejected} color="#EF4444" />
       </div>
 
-      {/* Filters */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 12,
-          marginBottom: 20,
-          flexWrap: 'wrap',
-        }}
-      >
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
         {['all', 'pending', 'approved', 'rejected', 'suspended'].map((f) => (
           <button
             key={f}
@@ -123,40 +100,24 @@ export default function CreatorsPage() {
         ))}
         <input
           type="text"
-          placeholder="Search name, email, channel..."
+          placeholder="Search name, channel, email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{
-            flex: 1,
-            minWidth: 200,
-            padding: '8px 14px',
-            borderRadius: 8,
-            border: '1px solid #ddd',
-          }}
+          style={{ flex: 1, minWidth: 200, padding: '8px 14px', borderRadius: 8, border: '1px solid #ddd' }}
         />
       </div>
 
-      {/* Table */}
       {filtered.length === 0 ? (
-        <div style={{ padding: 40, textAlign: 'center', color: '#999' }}>
-          No creators found
-        </div>
+        <div style={{ padding: 40, textAlign: 'center', color: '#999' }}>No creators found</div>
       ) : (
-        <div
-          style={{
-            background: '#fff',
-            borderRadius: 12,
-            border: '1px solid #eee',
-            overflow: 'hidden',
-          }}
-        >
+        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #eee', overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#F9FAFB', textAlign: 'left' }}>
                 <th style={th}>Name</th>
                 <th style={th}>Channel</th>
-                <th style={th}>Email</th>
-                <th style={th}>Platform</th>
+                <th style={th}>Category</th>
+                <th style={th}>Followers</th>
                 <th style={th}>Status</th>
                 <th style={th}>Actions</th>
               </tr>
@@ -167,68 +128,32 @@ export default function CreatorsPage() {
                 return (
                   <tr key={c.id} style={{ borderTop: '1px solid #eee' }}>
                     <td style={td}>
-                      <div style={{ fontWeight: 600 }}>{c.name || '—'}</div>
-                      <div style={{ fontSize: 12, color: '#888' }}>
-                        {c.id.slice(0, 8)}...
-                      </div>
+                      <div style={{ fontWeight: 600 }}>{c.displayName || '—'}</div>
+                      <div style={{ fontSize: 12, color: '#888' }}>{c.id.slice(0, 8)}...</div>
                     </td>
-                    <td style={td}>{c.channelName || '—'}</td>
-                    <td style={td}>{c.email || '—'}</td>
-                    <td style={td}>{c.platform || '—'}</td>
+                    <td style={td}>{c.channelUrl ? <a href={c.channelUrl} target="_blank" rel="noreferrer" style={{ color: '#3B82F6' }}>Open Link</a> : '—'}</td>
+                    <td style={td}>{c.category || '—'}</td>
+                    <td style={td}>{c.followers || c.followersCount || 0}</td>
                     <td style={td}>
-                      <span
-                        style={{
-                          background: sc.bg,
-                          color: sc.text,
-                          padding: '4px 10px',
-                          borderRadius: 12,
-                          fontSize: 12,
-                          fontWeight: 700,
-                        }}
-                      >
+                      <span style={{ background: sc.bg, color: sc.text, padding: '4px 10px', borderRadius: 12, fontSize: 12, fontWeight: 700 }}>
                         {sc.label}
                       </span>
                     </td>
                     <td style={td}>
                       {c.status === 'pending' && (
                         <div style={{ display: 'flex', gap: 6 }}>
-                          <button
-                            onClick={() => handleStatusChange(c.id, 'approved')}
-                            style={btnApprove}
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => handleStatusChange(c.id, 'rejected')}
-                            style={btnReject}
-                          >
-                            Reject
-                          </button>
+                          <button onClick={() => handleStatusChange(c.id, 'approved')} style={btnApprove}>Approve</button>
+                          <button onClick={() => handleStatusChange(c.id, 'rejected')} style={btnReject}>Reject</button>
                         </div>
                       )}
                       {c.status === 'approved' && (
-                        <button
-                          onClick={() => handleStatusChange(c.id, 'suspended')}
-                          style={btnReject}
-                        >
-                          Suspend
-                        </button>
+                        <button onClick={() => handleStatusChange(c.id, 'suspended')} style={btnReject}>Suspend</button>
                       )}
                       {c.status === 'suspended' && (
-                        <button
-                          onClick={() => handleStatusChange(c.id, 'approved')}
-                          style={btnApprove}
-                        >
-                          Restore
-                        </button>
+                        <button onClick={() => handleStatusChange(c.id, 'approved')} style={btnApprove}>Restore</button>
                       )}
                       {c.status === 'rejected' && (
-                        <button
-                          onClick={() => handleStatusChange(c.id, 'approved')}
-                          style={btnApprove}
-                        >
-                          Approve
-                        </button>
+                        <button onClick={() => handleStatusChange(c.id, 'approved')} style={btnApprove}>Approve</button>
                       )}
                     </td>
                   </tr>
@@ -244,58 +169,14 @@ export default function CreatorsPage() {
 
 function StatCard({ label, value, color }) {
   return (
-    <div
-      style={{
-        background: '#fff',
-        padding: 16,
-        borderRadius: 12,
-        border: '1px solid #eee',
-        borderLeft: `4px solid ${color}`,
-      }}
-    >
-      <div style={{ fontSize: 12, color: '#888', fontWeight: 600 }}>
-        {label}
-      </div>
-      <div style={{ fontSize: 24, fontWeight: 800, color, marginTop: 4 }}>
-        {value}
-      </div>
+    <div style={{ background: '#fff', padding: 16, borderRadius: 12, border: '1px solid #eee', borderLeft: `4px solid ${color}` }}>
+      <div style={{ fontSize: 12, color: '#888', fontWeight: 600 }}>{label}</div>
+      <div style={{ fontSize: 24, fontWeight: 800, color, marginTop: 4 }}>{value}</div>
     </div>
   );
 }
 
-const th = {
-  padding: '12px 16px',
-  fontSize: 12,
-  fontWeight: 700,
-  color: '#666',
-  textTransform: 'uppercase',
-  letterSpacing: 0.5,
-};
-
-const td = {
-  padding: '14px 16px',
-  fontSize: 14,
-  verticalAlign: 'top',
-};
-
-const btnApprove = {
-  padding: '6px 12px',
-  background: '#10B981',
-  color: '#fff',
-  border: 'none',
-  borderRadius: 6,
-  cursor: 'pointer',
-  fontWeight: 600,
-  fontSize: 13,
-};
-
-const btnReject = {
-  padding: '6px 12px',
-  background: '#EF4444',
-  color: '#fff',
-  border: 'none',
-  borderRadius: 6,
-  cursor: 'pointer',
-  fontWeight: 600,
-  fontSize: 13,
-};
+const th = { padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#666', textTransform: 'uppercase', letterSpacing: 0.5 };
+const td = { padding: '14px 16px', fontSize: 14, verticalAlign: 'top' };
+const btnApprove = { padding: '6px 12px', background: '#10B981', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontSize: 13 };
+const btnReject = { padding: '6px 12px', background: '#EF4444', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontSize: 13 };

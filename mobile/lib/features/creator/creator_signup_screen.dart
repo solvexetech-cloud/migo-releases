@@ -1,10 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/theme/migo_colors.dart';
 import '../../services/creator_service.dart';
 
-/// PHASE E — E6: Creator/Vlogger Application
 class CreatorSignupScreen extends StatefulWidget {
   const CreatorSignupScreen({super.key});
 
@@ -25,7 +25,7 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
   String? _error;
 
   static const List<Map<String, String>> _categories = [
-    {'id': 'food', 'label': '🍕 Food & Restaurants'},
+    {'id': 'food', 'label': '🍔 Food & Restaurants'},
     {'id': 'tech', 'label': '💻 Tech & Gadgets'},
     {'id': 'lifestyle', 'label': '✨ Lifestyle'},
     {'id': 'fashion', 'label': '👗 Fashion & Beauty'},
@@ -70,9 +70,8 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
     });
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    final email = FirebaseAuth.instance.currentUser?.email;
 
-    if (uid == null || email == null) {
+    if (uid == null) {
       setState(() => _error = 'Please sign in first.');
       return;
     }
@@ -91,15 +90,23 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
 
     setState(() => _loading = true);
     try {
-      await CreatorService.instance.applyAsCreator(
-        uid: uid,
-        displayName: name,
-        email: email,
-        bio: bio,
-        channelUrl: channel,
-        category: _category,
-        followers: followers,
-      );
+      // 🆕 ഡാറ്റാബേസിൽ നേരിട്ട് സേവ് ചെയ്യുന്നു
+      await FirebaseFirestore.instance.collection('creators').add({
+        'userId': uid,
+        'displayName': name,
+        'bio': bio,
+        'channelUrl': channel,
+        'category': _category,
+        'followers': followers,
+        'followersCount': followers,
+        'status': 'pending',
+        'totalViews': 0,
+        'totalClaims': 0,
+        'totalRedemptions': 0,
+        'totalShares': 0,
+        'coinsEarned': 0,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -120,9 +127,7 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
   @override
   Widget build(BuildContext context) {
     if (_checking) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_alreadyApplied) {
@@ -134,30 +139,13 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.check_circle,
-                  size: 72,
-                  color: MigoColors.success,
-                ),
+                const Icon(Icons.check_circle, size: 72, color: MigoColors.success),
                 const SizedBox(height: 20),
-                const Text(
-                  'Application submitted',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                const Text('Application submitted', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                const Text(
-                  'Our team will review your application soon.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: MigoColors.textSecondaryLight),
-                ),
+                const Text('Our team will review your application soon.', textAlign: TextAlign.center, style: TextStyle(color: MigoColors.textSecondaryLight)),
                 const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('OK'),
-                ),
+                ElevatedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK')),
               ],
             ),
           ),
@@ -176,151 +164,86 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    MigoColors.primary,
-                    MigoColors.primary.withValues(alpha: 0.7),
-                  ],
+                  colors: [MigoColors.primary, MigoColors.primary.withValues(alpha: 0.7)],
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '🎬 Creator Program',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  Text('🎬 Creator Program', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
                   SizedBox(height: 8),
-                  Text(
-                    'Share MIGO deals with your followers and earn coins. '
-                    'Free to join!',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white70,
-                      height: 1.4,
-                    ),
-                  ),
+                  Text('Share MIGO deals with your followers and earn coins. Free to join!', style: TextStyle(fontSize: 14, color: Colors.white70, height: 1.4)),
                 ],
               ),
             ),
             const SizedBox(height: 24),
 
-            // Name
-            const Text('Display Name *',
-                style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text('Display Name *', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                hintText: 'Your creator name',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.person_outline),
-              ),
+              decoration: const InputDecoration(hintText: 'Your creator name', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person_outline)),
             ),
             const SizedBox(height: 16),
 
-            // Bio
-            const Text('Bio *',
-                style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text('Bio *', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             TextField(
               controller: _bioController,
               maxLines: 3,
-              decoration: const InputDecoration(
-                hintText: 'Tell us about your content',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(hintText: 'Tell us about your content', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 16),
 
-            // Channel URL
-            const Text('Channel URL *',
-                style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text('Channel URL *', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             TextField(
               controller: _channelController,
-              decoration: const InputDecoration(
-                hintText: 'https://youtube.com/@yourchannel',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.link),
-              ),
+              decoration: const InputDecoration(hintText: 'https://youtube.com/@yourchannel', border: OutlineInputBorder(), prefixIcon: Icon(Icons.link)),
             ),
             const SizedBox(height: 16),
 
-            // Followers
-            const Text('Followers (approx)',
-                style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text('Followers (approx)', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             TextField(
               controller: _followersController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                hintText: '1000',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.people_outline),
-              ),
+              decoration: const InputDecoration(hintText: '1000', border: OutlineInputBorder(), prefixIcon: Icon(Icons.people_outline)),
             ),
             const SizedBox(height: 16),
 
-            // Category
-            const Text('Category *',
-                style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text('Category *', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _category,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-              items: _categories
-                  .map((c) => DropdownMenuItem<String>(
-                        value: c['id'],
-                        child: Text(c['label']!),
-                      ))
-                  .toList(),
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+              items: _categories.map((c) => DropdownMenuItem<String>(value: c['id'], child: Text(c['label']!))).toList(),
               onChanged: (v) {
                 if (v != null) setState(() => _category = v);
               },
             ),
             const SizedBox(height: 24),
 
-            // Error
             if (_error != null) ...[
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: MigoColors.error.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                decoration: BoxDecoration(color: MigoColors.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline,
-                        color: MigoColors.error, size: 20),
+                    const Icon(Icons.error_outline, color: MigoColors.error, size: 20),
                     const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        _error!,
-                        style: const TextStyle(
-                          color: MigoColors.error,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
+                    Expanded(child: Text(_error!, style: const TextStyle(color: MigoColors.error, fontSize: 13))),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
             ],
 
-            // Submit
             SizedBox(
               width: double.infinity,
               height: 52,
@@ -329,26 +252,11 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: MigoColors.primary,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 child: _loading
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2.5,
-                        ),
-                      )
-                    : const Text(
-                        'Submit Application',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                    ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                    : const Text('Submit Application', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
               ),
             ),
           ],
