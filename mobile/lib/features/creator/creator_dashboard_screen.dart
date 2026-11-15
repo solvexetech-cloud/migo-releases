@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/migo_colors.dart';
@@ -7,8 +8,9 @@ import '../../services/creator_service.dart';
 import 'creator_analytics_screen.dart';
 import 'creator_profile_screen.dart';
 import 'creator_performance_screen.dart';
+import 'add_content_screen.dart';
 
-/// PHASE E — E6: Creator Dashboard
+/// PHASE E ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â E6: Creator Dashboard
 class CreatorDashboardScreen extends StatelessWidget {
   const CreatorDashboardScreen({super.key});
 
@@ -23,12 +25,12 @@ class CreatorDashboardScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Creator Dashboard'),
+        title: const Text('Creator Dashboard', style: TextStyle(color: Colors.white)),
         backgroundColor: MigoColors.primary,
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<CreatorModel?>(
-        stream: CreatorService.instance.streamCreator(uid),
+        stream: FirebaseFirestore.instance.collection('creators').where('userId', isEqualTo: uid).snapshots().map((snap) => snap.docs.isNotEmpty ? CreatorModel.fromMap(snap.docs.first.id, snap.docs.first.data()) : null),
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -51,9 +53,6 @@ class CreatorDashboardScreen extends StatelessWidget {
     );
   }
 
-  // ─────────────────────────────────────────────────────
-  // PENDING STATE
-  // ─────────────────────────────────────────────────────
   Widget _buildPending(BuildContext context, CreatorModel creator) {
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -116,16 +115,12 @@ class CreatorDashboardScreen extends StatelessWidget {
     );
   }
 
-  // ─────────────────────────────────────────────────────
-  // DASHBOARD
-  // ─────────────────────────────────────────────────────
   Widget _buildDashboard(BuildContext context, CreatorModel creator) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header card
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -177,7 +172,7 @@ class CreatorDashboardScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Text(
-                          '🎬 CREATOR',
+                          'CREATOR',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
@@ -194,12 +189,11 @@ class CreatorDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // Stats grid
           Row(
             children: [
               Expanded(
                 child: _StatCard(
-                  icon: '👥',
+                  icon: 'Followers',
                   label: 'Followers',
                   value: _formatNumber(creator.followers),
                   color: MigoColors.primary,
@@ -208,7 +202,7 @@ class CreatorDashboardScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _StatCard(
-                  icon: '💰',
+                  icon: 'Coins',
                   label: 'Coins',
                   value: _formatNumber(creator.coinsEarned),
                   color: MigoColors.success,
@@ -221,7 +215,7 @@ class CreatorDashboardScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: _StatCard(
-                  icon: '📤',
+                  icon: 'Shares',
                   label: 'Shares',
                   value: _formatNumber(creator.totalShares),
                   color: const Color(0xFF7C3AED),
@@ -230,7 +224,7 @@ class CreatorDashboardScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _StatCard(
-                  icon: '🎯',
+                  icon: 'Redemptions',
                   label: 'Redemptions',
                   value: _formatNumber(creator.totalRedemptions),
                   color: MigoColors.warning,
@@ -240,7 +234,6 @@ class CreatorDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Referral code
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -276,7 +269,6 @@ class CreatorDashboardScreen extends StatelessWidget {
                     ),
                     IconButton(
                       onPressed: () {
-                        // TODO: Copy to clipboard
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Code copied!'),
@@ -292,7 +284,6 @@ class CreatorDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-                    // Analytics button
           SizedBox(
             width: double.infinity,
             height: 52,
@@ -323,13 +314,11 @@ class CreatorDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Share profile button
           SizedBox(
             width: double.infinity,
             height: 52,
             child: OutlinedButton.icon(
               onPressed: () {
-                // TODO: Share public profile
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Share feature coming soon!'),
@@ -356,7 +345,6 @@ class CreatorDashboardScreen extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // View public profile button
           SizedBox(
             width: double.infinity,
             height: 52,
@@ -391,7 +379,6 @@ class CreatorDashboardScreen extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // My Performance button
           SizedBox(
             width: double.infinity,
             height: 52,
@@ -414,6 +401,43 @@ class CreatorDashboardScreen extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 foregroundColor: MigoColors.primary,
                 side: const BorderSide(color: MigoColors.primary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // ÃƒÂ°Ã…Â¸Ã¢â‚¬Â Ã¢â‚¬Â¢ Add Video Link Button
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const AddContentScreen(
+                      collabId: 'test-collab-id',
+                      shopId: 'test-shop-id',
+                      offerId: 'test-offer-id',
+                      creatorId: 'test-creator-id',
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.video_call),
+              label: const Text(
+                'Add Video Link',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -457,7 +481,7 @@ class _StatCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(icon, style: const TextStyle(fontSize: 24)),
+          Text(icon, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(
             value,

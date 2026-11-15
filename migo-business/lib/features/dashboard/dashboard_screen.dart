@@ -16,6 +16,7 @@ import '../claims/business_claims_screen.dart';
 import '../demands/business_demands_feed_screen.dart';
 import '../scan/shop_counters_screen.dart';
 import '../creator/shop_creators_screen.dart';
+import '../creator/shop_creator_content_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -292,6 +293,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 8: return const BusinessDemandsFeedScreen();
       case 9: return _buildBusinessDependentTab((id) => ShopCountersScreen(businessId: id));
       case 10: return _buildBusinessDependentTab((id) => ShopCreatorsScreen(businessId: id));
+      case 11: return _buildBusinessDependentTab((id) => ShopCreatorContentScreen(businessId: id));
       default: return const SizedBox();
     }
   }

@@ -1,24 +1,25 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../core/localization/locale_provider.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../core/theme/migo_gradients.dart';
-import '../../core/localization/locale_provider.dart';
 import '../../models/country_model.dart';
+import '../../models/creator_model.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/localization_service.dart';
 import '../business/my_business_screen.dart';
-import '../deals/my_claims_screen.dart';
-import '../reserve/my_bookings_screen.dart';
-import '../../models/creator_model.dart';
-import '../../services/creator_service.dart';
 import '../creator/creator_dashboard_screen.dart';
 import '../creator/creator_signup_screen.dart';
-import '../referrals/referral_screen.dart';
-import '../magazine/magazine_screen.dart';
+import '../deals/my_claims_screen.dart';
 import '../demands/my_demands_screen.dart';
+import '../magazine/magazine_screen.dart';
+import '../referrals/referral_screen.dart';
+import '../reserve/my_bookings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -64,7 +65,6 @@ class ProfileScreen extends StatelessWidget {
                 textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
                 child: CustomScrollView(
                   slivers: [
-                    // Gradient hero header
                     SliverToBoxAdapter(
                       child: Container(
                         decoration: const BoxDecoration(
@@ -131,7 +131,6 @@ class ProfileScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             
-                            // ── PRIMARY ACTIONS (Grid Style) ──
                             Row(
                               children: [
                                 Expanded(
@@ -210,7 +209,6 @@ class ProfileScreen extends StatelessWidget {
                             _CreatorMenuTile(isAr: isAr),
                             const SizedBox(height: 8),
                             
-                            // 🆕 Colorful My Business Card
                             GestureDetector(
                               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBusinessScreen())),
                               child: Container(
@@ -258,12 +256,11 @@ class ProfileScreen extends StatelessWidget {
                             
                             const SizedBox(height: 24),
                             
-                            // 🆕 Help & Support
                             _MenuTile(
                               icon: Icons.support_agent,
                               label: isAr ? 'المساعدة والدعم' : 'Help & Support',
                               color: Colors.teal,
-                              onTap: () => _launchUrl('https://wa.me/97412345678'), // നിങ്ങളുടെ സപ്പോർട്ട് നമ്പർ ഇവിടെ കൊടുക്കാം
+                              onTap: () => _launchUrl('https://wa.me/97412345678'),
                             ),
 
                             const SizedBox(height: 32),
@@ -301,7 +298,6 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-// 🆕 പുതിയ പ്രധാന ആക്ഷൻ കാർഡ്
 class _QuickActionCard extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -422,29 +418,64 @@ class _CreatorMenuTile extends StatelessWidget {
     if (uid == null) return const SizedBox.shrink();
 
     return StreamBuilder<CreatorModel?>(
-      stream: CreatorService.instance.streamCreator(uid),
+      stream: FirebaseFirestore.instance
+          .collection('creators')
+          .where('userId', isEqualTo: uid)
+          .snapshots()
+          .map((snap) => snap.docs.isNotEmpty
+              ? CreatorModel.fromMap(snap.docs.first.id, snap.docs.first.data())
+              : null),
       builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const SizedBox.shrink();
+        }
+
         final creator = snap.data;
-        final isCreator = creator != null && creator.isApproved;
+        final isApproved = creator != null && creator.status == CreatorStatus.approved;
+        final isPending = creator != null && creator.status == CreatorStatus.pending;
+
+        String label;
+        IconData icon;
+        Color tileColor;
+        VoidCallback onTap;
+
+        if (isApproved) {
+          label = isAr ? 'لوحة المبدع' : 'Creator Dashboard';
+          icon = Icons.dashboard_outlined;
+          tileColor = const Color(0xFF2E9E5B);
+          onTap = () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const CreatorDashboardScreen()),
+          );
+        } else if (isPending) {
+          label = isAr ? 'تم إرسال الطلب' : 'Application Submitted';
+          icon = Icons.schedule;
+          tileColor = const Color(0xFFD97706);
+          onTap = () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const CreatorSignupScreen()),
+          );
+        } else {
+          label = isAr ? 'كن مبدعاً' : 'Become a Creator';
+          icon = Icons.movie_creation_outlined;
+          tileColor = const Color(0xFFD97706);
+          onTap = () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const CreatorSignupScreen()),
+          );
+        }
 
         return _MenuTile(
-          icon: isCreator ? Icons.dashboard_outlined : Icons.movie_creation_outlined,
-          label: isCreator ? (isAr ? 'لوحة المبدع' : 'Creator Dashboard') : (isAr ? 'كن مبدعاً' : 'Become a Creator'),
-          color: const Color(0xFFD97706),
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => isCreator ? const CreatorDashboardScreen() : const CreatorSignupScreen()),
-            );
-          },
+          icon: icon,
+          label: label,
+          color: tileColor,
+          onTap: onTap,
         );
       },
     );
   }
 }
 
-// ═══════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────
 // D6-A: Country Switcher Widget
-// ═══════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────
 class _CountrySwitcher extends StatelessWidget {
   const _CountrySwitcher({required this.currentCountryCode, required this.currentCurrency, required this.uid});
   final String currentCountryCode;
@@ -568,7 +599,7 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
               const SizedBox(height: 16),
               Text(isAr ? 'اختر دولتك' : 'Choose your country', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: MigoColors.textPrimaryLight)),
               const SizedBox(height: 4),
-              Text(isAr ? 'تتغير العملة تلقائيًا' : 'Currency changes automatically', style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight)),
+              Text(isAr ? 'تتغير العملة تلقائياً' : 'Currency changes automatically', style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight)),
               const SizedBox(height: 16),
               if (_loading)
                 const Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())
@@ -583,7 +614,7 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
                       final selected = c.code == widget.currentCode;
                       return ListTile(
                         onTap: _saving ? null : () => _select(c),
-                        leading: Text(c.flag.isNotEmpty ? c.flag : '🌐', style: const TextStyle(fontSize: 26)),
+                        leading: Text(c.flag.isNotEmpty ? c.flag : '🏳', style: const TextStyle(fontSize: 26)),
                         title: Text(c.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
                         subtitle: Text('${c.currency} · ${c.dialCode}', style: const TextStyle(fontSize: 11)),
                         trailing: selected ? const Icon(Icons.check_circle, color: MigoColors.success) : null,
@@ -599,9 +630,9 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
   }
 }
 
-// ═══════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────
 // D6-B: Language Switcher Widget
-// ═══════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────
 class _LanguageSwitcher extends StatelessWidget {
   const _LanguageSwitcher();
 
@@ -627,7 +658,7 @@ class _LanguageSwitcher extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text(isAr ? 'اختر لغتك' : 'Choose your language', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: MigoColors.textPrimaryLight)),
                   const SizedBox(height: 4),
-                  Text(isAr ? 'يتم تحديث نص التطبيق على الفور' : 'App text updates instantly', style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight)),
+                  Text(isAr ? 'يتم تحديث نص التطبيق فوراً' : 'App text updates instantly', style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight)),
                   const SizedBox(height: 16),
                   ...languages.map((lang) {
                     final selected = lang.code == current;
