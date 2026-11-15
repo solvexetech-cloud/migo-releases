@@ -1,0 +1,7 @@
+MIGO APP - AUDIT REPORT (Step 1)
+Stack: Flutter, React, Firebase.
+Key Collections: users, businesses, offers, claims, demands.
+Claim Flow: Customer claims offer -> generates PIN (pickupCode) -> saved in 'claims' collection -> QR shows pickupCode.
+Redeem Flow: Business app (scan_qr_screen.dart) scans QR or enters PIN -> finds claim by pickupCode -> updates status to redeemed.
+Navigation: Customer (main_shell.dart), Business (dashboard_screen.dart), Admin (AdminLayout.jsx).
+Risks: Ensure new fields in 'claims' are nullable. Update firestore.rules for new collections.

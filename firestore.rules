@@ -497,4 +497,32 @@ service cloud.firestore {
 
     // ---------- DEFAULT: DENY ----------
   }
+
+    // 🆕 Creators
+    match /creators/{creatorId} {
+      allow read: if true;
+      allow create, update: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow delete: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // 🆕 Collabs
+    match /collabs/{collabId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null;
+      allow delete: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // 🆕 Creator Content
+    match /creator_content/{contentId} {
+      allow read: if true;
+      allow create, update: if request.auth != null;
+      allow delete: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // 🆕 Redemptions
+    match /redemptions/{redemptionId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && request.auth.token.admin == true;
+    }
 }

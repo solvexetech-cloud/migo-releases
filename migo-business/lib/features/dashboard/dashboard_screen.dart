@@ -1,5 +1,4 @@
 // migo-business/lib/features/dashboard/dashboard_screen.dart
-// UPDATED - Professional Design for New Demands Alert
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +24,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
+  bool _showRevenue = false; // ðŸ†• à´±à´µà´¨àµà´¯àµ‚ à´•à´¾à´£à´¿à´•àµà´•à´£àµ‹ à´Žà´¨àµà´¨àµ à´¨à´¿à´¯à´¨àµà´¤àµà´°à´¿à´•àµà´•à´¾àµ»
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +40,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             appBar: isWide
                 ? null
                 : AppBar(
-                    title: Text(isAr ? 'ميجو بيزنس' : 'MIGO Business'),
+                    title: Text(isAr ? 'Ù…ÙŠØ¬Ùˆ Ø¨ÙŠØ²Ù†Ø³' : 'MIGO Business'),
                     actions: [
                       IconButton(
                         icon: const Icon(Icons.logout),
@@ -90,14 +90,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   alignment: Alignment.center,
-                  child: const Text('🎁', style: TextStyle(fontSize: 20)),
+                  child: const Text('ðŸŽ', style: TextStyle(fontSize: 20)),
                 ),
                 const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isAr ? 'ميجو' : 'MIGO',
+                      isAr ? 'Ù…ÙŠØ¬Ùˆ' : 'MIGO',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -106,7 +106,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     Text(
-                      isAr ? 'بيزنس' : 'BUSINESS',
+                      isAr ? 'Ø¨ÙŠØ²Ù†Ø³' : 'BUSINESS',
                       style: const TextStyle(
                         color: MigoColors.accent,
                         fontSize: 10,
@@ -124,15 +124,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                _sidebarItem(0, Icons.dashboard_outlined, isAr ? 'لوحة التحكم' : 'Dashboard'),
-                _sidebarItem(1, Icons.local_offer_outlined, isAr ? 'عروضي' : 'My Offers'),
-                _sidebarItem(7, Icons.menu_book_outlined, isAr ? 'منشوراتي' : 'My Flyers'),
-                _sidebarItem(2, Icons.event_note_outlined, isAr ? 'الحجوزات' : 'Bookings'),
-                _sidebarItem(6, Icons.people_outline, isAr ? 'مطالبات العملاء' : 'Customer Claims'),
-                _sidebarItem(8, Icons.gavel, isAr ? 'طلبات المجتمع' : 'Community Demands'),
-                _sidebarItem(3, Icons.qr_code_scanner, isAr ? 'مسح QR' : 'Scan QR'),
-                _sidebarItem(4, Icons.analytics_outlined, isAr ? 'التحليلات' : 'Analytics'),
-                _sidebarItem(5, Icons.settings_outlined, isAr ? 'الإعدادات' : 'Settings'),
+                _sidebarItem(0, Icons.dashboard_outlined, isAr ? 'Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…' : 'Dashboard'),
+                _sidebarItem(1, Icons.local_offer_outlined, isAr ? 'Ø¹Ø±ÙˆØ¶ÙŠ' : 'My Offers'),
+                _sidebarItem(7, Icons.menu_book_outlined, isAr ? 'Ù…Ù†Ø´ÙˆØ±Ø§ØªÙŠ' : 'My Flyers'),
+                _sidebarItem(2, Icons.event_note_outlined, isAr ? 'Ø§Ù„Ø­Ø¬ÙˆØ²Ø§Øª' : 'Bookings'),
+                _sidebarItem(6, Icons.people_outline, isAr ? 'Ù…Ø·Ø§Ù„Ø¨Ø§Øª Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡' : 'Customer Claims'),
+                _sidebarItem(8, Icons.gavel, isAr ? 'Ø·Ù„Ø¨Ø§Øª Ø§Ù„Ù…Ø¬ØªÙ…Ø¹' : 'Community Demands'),
+                _sidebarItem(3, Icons.qr_code_scanner, isAr ? 'Ù…Ø³Ø­ QR' : 'Scan QR'),
+                _sidebarItem(4, Icons.analytics_outlined, isAr ? 'Ø§Ù„ØªØ­Ù„ÙŠÙ„Ø§Øª' : 'Analytics'),
+                _sidebarItem(5, Icons.settings_outlined, isAr ? 'Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª' : 'Settings'),
               ],
             ),
           ),
@@ -141,7 +141,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: OutlinedButton.icon(
               onPressed: () => _handleSignOut(isAr),
               icon: const Icon(Icons.logout, size: 18),
-              label: Text(isAr ? 'تسجيل الخروج' : 'Sign out'),
+              label: Text(isAr ? 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬' : 'Sign out'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
                 side: const BorderSide(color: Colors.white38),
@@ -200,10 +200,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const Text('🎁', style: TextStyle(fontSize: 32)),
+                  const Text('ðŸŽ', style: TextStyle(fontSize: 32)),
                   const SizedBox(height: 6),
                   Text(
-                    isAr ? 'ميجو بيزنس' : 'MIGO Business',
+                    isAr ? 'Ù…ÙŠØ¬Ùˆ Ø¨ÙŠØ²Ù†Ø³' : 'MIGO Business',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -213,19 +213,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
-            _drawerItem(0, Icons.dashboard_outlined, isAr ? 'لوحة التحكم' : 'Dashboard'),
-            _drawerItem(1, Icons.local_offer_outlined, isAr ? 'عروضي' : 'My Offers'),
-            _drawerItem(7, Icons.menu_book_outlined, isAr ? 'منشوراتي' : 'My Flyers'),
-            _drawerItem(2, Icons.event_note_outlined, isAr ? 'الحجوزات' : 'Bookings'),
-            _drawerItem(6, Icons.people_outline, isAr ? 'مطالبات العملاء' : 'Customer Claims'),
-            _drawerItem(8, Icons.gavel, isAr ? 'طلبات المجتمع' : 'Community Demands'),
-            _drawerItem(3, Icons.qr_code_scanner, isAr ? 'مسح QR' : 'Scan QR'),
-            _drawerItem(4, Icons.analytics_outlined, isAr ? 'التحليلات' : 'Analytics'),
-            _drawerItem(5, Icons.settings_outlined, isAr ? 'الإعدادات' : 'Settings'),
+            _drawerItem(0, Icons.dashboard_outlined, isAr ? 'Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…' : 'Dashboard'),
+            _drawerItem(1, Icons.local_offer_outlined, isAr ? 'Ø¹Ø±ÙˆØ¶ÙŠ' : 'My Offers'),
+            _drawerItem(7, Icons.menu_book_outlined, isAr ? 'Ù…Ù†Ø´ÙˆØ±Ø§ØªÙŠ' : 'My Flyers'),
+            _drawerItem(2, Icons.event_note_outlined, isAr ? 'Ø§Ù„Ø­Ø¬ÙˆØ²Ø§Øª' : 'Bookings'),
+            _drawerItem(6, Icons.people_outline, isAr ? 'Ù…Ø·Ø§Ù„Ø¨Ø§Øª Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡' : 'Customer Claims'),
+            _drawerItem(8, Icons.gavel, isAr ? 'Ø·Ù„Ø¨Ø§Øª Ø§Ù„Ù…Ø¬ØªÙ…Ø¹' : 'Community Demands'),
+            _drawerItem(3, Icons.qr_code_scanner, isAr ? 'Ù…Ø³Ø­ QR' : 'Scan QR'),
+            _drawerItem(4, Icons.analytics_outlined, isAr ? 'Ø§Ù„ØªØ­Ù„ÙŠÙ„Ø§Øª' : 'Analytics'),
+            _drawerItem(5, Icons.settings_outlined, isAr ? 'Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª' : 'Settings'),
             const Divider(color: Colors.white24),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.white70),
-              title: Text(isAr ? 'تسجيل الخروج' : 'Sign out', style: const TextStyle(color: Colors.white)),
+              title: Text(isAr ? 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬' : 'Sign out', style: const TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
                 _handleSignOut(isAr);
@@ -292,7 +292,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // 🆕 PROFESSIONAL HOME TAB
+  // ðŸ†• PROFESSIONAL HOME TAB
   Widget _buildHomeTab(bool isAr) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return const Center(child: Text('Not signed in'));
@@ -357,7 +357,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isAr ? 'مرحباً بعودتك!' : 'Welcome back!',
+                          isAr ? 'Ù…Ø±Ø­Ø¨Ø§Ù‹ Ø¨Ø¹ÙˆØ¯ØªÙƒ!' : 'Welcome back!',
                           style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 14,
@@ -366,7 +366,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          business['name'] ?? (isAr ? 'نشاطك التجاري' : 'Your Business'),
+                          business['name'] ?? (isAr ? 'Ù†Ø´Ø§Ø·Ùƒ Ø§Ù„ØªØ¬Ø§Ø±ÙŠ' : 'Your Business'),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 24,
@@ -378,7 +378,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // 🆕 PROFESSIONAL NEW DEMANDS ALERT
+                  // ðŸ†• PROFESSIONAL NEW DEMANDS ALERT
                   FutureBuilder<QuerySnapshot>(
                     future: FirebaseFirestore.instance
                         .collection('demand_groups')
@@ -422,12 +422,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        isAr ? '$count طلبات جديدة!' : '$count New Demand${count > 1 ? 's' : ''}!',
+                                        isAr ? '$count Ø·Ù„Ø¨Ø§Øª Ø¬Ø¯ÙŠØ¯Ø©!' : '$count New Demand${count > 1 ? 's' : ''}!',
                                         style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: MigoColors.primaryDark),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        isAr ? 'في انتظار العروض الخاصة بك' : 'Waiting for your bids',
+                                        isAr ? 'ÙÙŠ Ø§Ù†ØªØ¸Ø§Ø± Ø§Ù„Ø¹Ø±ÙˆØ¶ Ø§Ù„Ø®Ø§ØµØ© Ø¨Ùƒ' : 'Waiting for your bids',
                                         style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                                       ),
                                     ],
@@ -476,7 +476,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  isAr ? 'مسح واسترداد' : 'Scan & Redeem',
+                                  isAr ? 'Ù…Ø³Ø­ ÙˆØ§Ø³ØªØ±Ø¯Ø§Ø¯' : 'Scan & Redeem',
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w900,
@@ -484,7 +484,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  isAr ? 'امسح رمز QR الخاص بالعميل للاسترداد' : 'Scan customer QR to redeem offer',
+                                  isAr ? 'Ø§Ù…Ø³Ø­ Ø±Ù…Ø² QR Ø§Ù„Ø®Ø§Øµ Ø¨Ø§Ù„Ø¹Ù…ÙŠÙ„ Ù„Ù„Ø§Ø³ØªØ±Ø¯Ø§Ø¯' : 'Scan customer QR to redeem offer',
                                   style: const TextStyle(
                                     fontSize: 12,
                                     color: MigoColors.textSecondary,
@@ -501,7 +501,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   
                   const SizedBox(height: 24),
                   Text(
-                    isAr ? 'الإحصائيات' : 'Statistics',
+                    isAr ? 'Ø§Ù„Ø¥Ø­ØµØ§Ø¦ÙŠØ§Øª' : 'Statistics',
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
@@ -511,7 +511,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Expanded(
                         child: _statCard(
                           icon: Icons.local_offer_outlined,
-                          label: isAr ? 'إجمالي العروض' : 'Total Offers',
+                          label: isAr ? 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø¹Ø±ÙˆØ¶' : 'Total Offers',
                           value: totalOffers.toString(),
                           color: MigoColors.info,
                         ),
@@ -520,7 +520,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Expanded(
                         child: _statCard(
                           icon: Icons.check_circle_outline,
-                          label: isAr ? 'المطالبات المستردة' : 'Redeemed Claims',
+                          label: isAr ? 'Ø§Ù„Ù…Ø·Ø§Ù„Ø¨Ø§Øª Ø§Ù„Ù…Ø³ØªØ±Ø¯Ø©' : 'Redeemed Claims',
                           value: redeemedCount.toString(),
                           color: MigoColors.success,
                         ),
@@ -531,11 +531,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: _statCard(
-                          icon: Icons.monetization_on_outlined,
-                          label: isAr ? 'إجمالي الإيرادات' : 'Total Revenue',
-                          value: '${totalRevenue.toStringAsFixed(0)} QAR',
-                          color: MigoColors.warning,
+                        child: _revenueCard(
+                          isAr: isAr,
+                          totalRevenue: totalRevenue,
                         ),
                       ),
                     ],
@@ -546,6 +544,79 @@ class _DashboardScreenState extends State<DashboardScreen> {
           },
         );
       },
+    );
+  }
+
+  // ðŸ†• Revenue Card with Toggle
+  Widget _revenueCard({
+    required bool isAr,
+    required double totalRevenue,
+  }) {
+    return Container(
+      height: 160,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: MigoColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MigoColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: MigoColors.warning.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.monetization_on_outlined, color: MigoColors.warning, size: 20),
+              ),
+              // ðŸ†• Toggle Eye Icon
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                icon: Icon(
+                  _showRevenue ? Icons.visibility : Icons.visibility_off,
+                  size: 20,
+                  color: MigoColors.textSecondary,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _showRevenue = !_showRevenue;
+                  });
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              _showRevenue
+                  ? '${totalRevenue.toStringAsFixed(0)} QAR'
+                  : '***** QAR',
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: MigoColors.warning,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isAr ? 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø¥ÙŠØ±Ø§Ø¯Ø§Øª' : 'Total Revenue',
+            style: const TextStyle(
+              fontSize: 11,
+              color: MigoColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -605,16 +676,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(isAr ? 'تسجيل الخروج؟' : 'Sign out?'),
-        content: Text(isAr ? 'هل أنت متأكد أنك تريد تسجيل الخروج؟' : 'Are you sure you want to sign out?'),
+        title: Text(isAr ? 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬ØŸ' : 'Sign out?'),
+        content: Text(isAr ? 'Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ø£Ù†Ùƒ ØªØ±ÙŠØ¯ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬ØŸ' : 'Are you sure you want to sign out?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(isAr ? 'إلغاء' : 'Cancel'),
+            child: Text(isAr ? 'Ø¥Ù„ØºØ§Ø¡' : 'Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(isAr ? 'تسجيل الخروج' : 'Sign out'),
+            child: Text(isAr ? 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬' : 'Sign out'),
           ),
         ],
       ),
