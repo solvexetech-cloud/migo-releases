@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/theme/migo_colors.dart';
-import '../../services/creator_service.dart';
 
 class CreatorSignupScreen extends StatefulWidget {
   const CreatorSignupScreen({super.key});
@@ -15,24 +14,27 @@ class CreatorSignupScreen extends StatefulWidget {
 class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
   final _nameController = TextEditingController();
   final _bioController = TextEditingController();
-  final _channelController = TextEditingController();
+  final _instagramController = TextEditingController();
+  final _tiktokController = TextEditingController();
+  final _youtubeController = TextEditingController();
+  final _facebookController = TextEditingController();
   final _followersController = TextEditingController();
 
-  String _category = 'food';
+  final Set<String> _selectedCategories = {};
   bool _loading = false;
   bool _checking = true;
   bool _alreadyApplied = false;
   String? _error;
 
   static const List<Map<String, String>> _categories = [
-    {'id': 'food', 'label': '🍔 Food & Restaurants'},
-    {'id': 'tech', 'label': '💻 Tech & Gadgets'},
-    {'id': 'lifestyle', 'label': '✨ Lifestyle'},
-    {'id': 'fashion', 'label': '👗 Fashion & Beauty'},
-    {'id': 'travel', 'label': '✈️ Travel'},
-    {'id': 'fitness', 'label': '💪 Fitness & Sports'},
-    {'id': 'family', 'label': '👨‍👩‍👧 Family'},
-    {'id': 'general', 'label': '🎬 General'},
+    {'id': 'food', 'label': 'Food & Restaurants'},
+    {'id': 'tech', 'label': 'Tech & Gadgets'},
+    {'id': 'lifestyle', 'label': 'Lifestyle'},
+    {'id': 'fashion', 'label': 'Fashion & Beauty'},
+    {'id': 'travel', 'label': 'Travel'},
+    {'id': 'fitness', 'label': 'Fitness & Sports'},
+    {'id': 'family', 'label': 'Family'},
+    {'id': 'general', 'label': 'General'},
   ];
 
   @override
@@ -45,7 +47,10 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
   void dispose() {
     _nameController.dispose();
     _bioController.dispose();
-    _channelController.dispose();
+    _instagramController.dispose();
+    _tiktokController.dispose();
+    _youtubeController.dispose();
+    _facebookController.dispose();
     _followersController.dispose();
     super.dispose();
   }
@@ -56,21 +61,23 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
       setState(() => _checking = false);
       return;
     }
-    final exists = await CreatorService.instance.isCreator(uid);
+    final snap = await FirebaseFirestore.instance
+        .collection('creators')
+        .where('userId', isEqualTo: uid)
+        .limit(1)
+        .get();
+        
     if (!mounted) return;
     setState(() {
-      _alreadyApplied = exists;
+      _alreadyApplied = snap.docs.isNotEmpty;
       _checking = false;
     });
   }
 
   Future<void> _submit() async {
-    setState(() {
-      _error = null;
-    });
+    setState(() => _error = null);
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
-
     if (uid == null) {
       setState(() => _error = 'Please sign in first.');
       return;
@@ -78,11 +85,15 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
 
     final name = _nameController.text.trim();
     final bio = _bioController.text.trim();
-    final channel = _channelController.text.trim();
     final followersText = _followersController.text.trim();
 
-    if (name.isEmpty || bio.isEmpty || channel.isEmpty) {
-      setState(() => _error = 'Please fill name, bio and channel URL.');
+    if (name.isEmpty || bio.isEmpty) {
+      setState(() => _error = 'Please fill name and bio.');
+      return;
+    }
+
+    if (_selectedCategories.isEmpty) {
+      setState(() => _error = 'Please select at least one category.');
       return;
     }
 
@@ -90,15 +101,17 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
 
     setState(() => _loading = true);
     try {
-      // 🆕 ഡാറ്റാബേസിൽ നേരിട്ട് സേവ് ചെയ്യുന്നു
       await FirebaseFirestore.instance.collection('creators').add({
         'userId': uid,
         'displayName': name,
         'bio': bio,
-        'channelUrl': channel,
-        'category': _category,
+        'instagramUrl': _instagramController.text.trim().isEmpty ? null : _instagramController.text.trim(),
+        'tiktokUrl': _tiktokController.text.trim().isEmpty ? null : _tiktokController.text.trim(),
+        'youtubeUrl': _youtubeController.text.trim().isEmpty ? null : _youtubeController.text.trim(),
+        'facebookUrl': _facebookController.text.trim().isEmpty ? null : _facebookController.text.trim(),
         'followers': followers,
         'followersCount': followers,
+        'categories': _selectedCategories.toList(),
         'status': 'pending',
         'totalViews': 0,
         'totalClaims': 0,
@@ -132,7 +145,7 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
 
     if (_alreadyApplied) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Creator Status')),
+        appBar: AppBar(title: const Text('Creator Status', style: TextStyle(color: Colors.white)), backgroundColor: MigoColors.primary),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -155,7 +168,7 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Become a Creator'),
+        title: const Text('Become a Creator', style: TextStyle(color: Colors.white)),
         backgroundColor: MigoColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -175,7 +188,7 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('🎬 Creator Program', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text('Creator Program', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
                   SizedBox(height: 8),
                   Text('Share MIGO deals with your followers and earn coins. Free to join!', style: TextStyle(fontSize: 14, color: Colors.white70, height: 1.4)),
                 ],
@@ -200,13 +213,44 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
             ),
             const SizedBox(height: 16),
 
-            const Text('Channel URL *', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text('Categories * (Select all that apply)', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
-            TextField(
-              controller: _channelController,
-              decoration: const InputDecoration(hintText: 'https://youtube.com/@yourchannel', border: OutlineInputBorder(), prefixIcon: Icon(Icons.link)),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _categories.map((cat) {
+                final isSelected = _selectedCategories.contains(cat['id']);
+                return FilterChip(
+                  label: Text(cat['label']!),
+                  selected: isSelected,
+                  selectedColor: MigoColors.primary.withValues(alpha: 0.2),
+                  checkmarkColor: MigoColors.primary,
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) {
+                        _selectedCategories.add(cat['id']!);
+                      } else {
+                        _selectedCategories.remove(cat['id']!);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
+
+            const Text('Social Media Links', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+            const SizedBox(height: 12),
+
+            _buildSocialField(icon: Icons.camera_alt, label: 'Instagram URL', controller: _instagramController, hint: 'https://instagram.com/...'),
+            const SizedBox(height: 12),
+            _buildSocialField(icon: Icons.music_note, label: 'TikTok URL', controller: _tiktokController, hint: 'https://tiktok.com/@...'),
+            const SizedBox(height: 12),
+            _buildSocialField(icon: Icons.play_circle_outline, label: 'YouTube URL', controller: _youtubeController, hint: 'https://youtube.com/@...'),
+            const SizedBox(height: 12),
+            _buildSocialField(icon: Icons.facebook, label: 'Facebook URL', controller: _facebookController, hint: 'https://facebook.com/...'),
+
+            const SizedBox(height: 24),
 
             const Text('Followers (approx)', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
@@ -214,18 +258,6 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
               controller: _followersController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(hintText: '1000', border: OutlineInputBorder(), prefixIcon: Icon(Icons.people_outline)),
-            ),
-            const SizedBox(height: 16),
-
-            const Text('Category *', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _category,
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-              items: _categories.map((c) => DropdownMenuItem<String>(value: c['id'], child: Text(c['label']!))).toList(),
-              onChanged: (v) {
-                if (v != null) setState(() => _category = v);
-              },
             ),
             const SizedBox(height: 24),
 
@@ -261,6 +293,23 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSocialField({
+    required IconData icon,
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+  }) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        border: const OutlineInputBorder(),
+        prefixIcon: Icon(icon),
       ),
     );
   }

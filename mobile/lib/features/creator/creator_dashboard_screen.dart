@@ -9,8 +9,9 @@ import 'creator_analytics_screen.dart';
 import 'creator_profile_screen.dart';
 import 'creator_performance_screen.dart';
 import 'add_content_screen.dart';
+import 'edit_creator_profile_screen.dart';
 
-/// PHASE E ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â E6: Creator Dashboard
+/// PHASE E ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â E6: Creator Dashboard
 class CreatorDashboardScreen extends StatelessWidget {
   const CreatorDashboardScreen({super.key});
 
@@ -314,6 +315,30 @@ class CreatorDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
+          // ðŸ†• Edit Profile Button
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => EditCreatorProfileScreen(creatorId: creator.id),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.edit_outlined),
+              label: const Text('Edit My Profile', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: MigoColors.accent,
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+
           SizedBox(
             width: double.infinity,
             height: 52,
@@ -410,7 +435,7 @@ class CreatorDashboardScreen extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // ÃƒÂ°Ã…Â¸Ã¢â‚¬Â Ã¢â‚¬Â¢ Add Video Link Button
+          // ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ Add Video Link Button
           SizedBox(
             width: double.infinity,
             height: 52,
