@@ -188,17 +188,38 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ---------- CREATORS ----------
+    // ---------- CREATORS (NEW) ----------
     match /creators/{creatorId} {
       allow read: if true;
-      allow create: if isSignedIn() &&
-        request.resource.data.status == 'pending';
-      allow update: if isSignedIn() &&
-        (
-          request.auth.uid == creatorId ||
-          isAdmin() ||
-          isModerator()
-        );
+      allow create, update: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- CREATOR CONTENT (NEW) ----------
+    match /creator_content/{contentId} {
+      allow read: if true;
+      allow create, update: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- COLLABS (NEW) ----------
+    match /collabs/{collabId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- REDEMPTIONS (NEW) ----------
+    match /redemptions/{redemptionId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- BRANCH COUNTERS (NEW) ----------
+    match /branch_counters/{counterId} {
+      allow read: if true;
+      allow create, update: if isSignedIn();
       allow delete: if isAdmin();
     }
 
@@ -458,17 +479,9 @@ service cloud.firestore {
 
     // ---------- NEW DEMAND GROUPS SYSTEM ----------
     match /demand_groups/{groupId} {
-      // Anyone logged in can read the groups
       allow read: if isSignedIn();
-      
-      // Customers can create a new group
       allow create: if isSignedIn();
-      
-      // Updates (joining, threshold reached) by logged in users, 
-      // or admins managing them
       allow update: if isSignedIn();
-      
-      // Only Admins can delete groups
       allow delete: if isAdmin() || isModerator();
     }
 
@@ -497,46 +510,4 @@ service cloud.firestore {
 
     // ---------- DEFAULT: DENY ----------
   }
-
-    // ðŸ†• Creators
-    match /creators/{creatorId} {
-      allow read: if true;
-      allow create, update: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow delete: if request.auth != null && request.auth.token.admin == true;
-    }
-
-    // ðŸ†• Collabs
-    match /collabs/{collabId} {
-      allow read: if request.auth != null;
-      allow create, update: if request.auth != null;
-      allow delete: if request.auth != null && request.auth.token.admin == true;
-    }
-
-    // ðŸ†• Creator Content
-    match /creator_content/{contentId} {
-      allow read: if true;
-      allow create, update: if request.auth != null;
-      allow delete: if request.auth != null && request.auth.token.admin == true;
-    }
-
-    // ðŸ†• Redemptions
-    match /redemptions/{redemptionId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.token.admin == true;
-    }
-
-    // 🆕 Branch Counters
-    match /branch_counters/{counterId} {
-      allow read: if true;
-      allow create, update: if request.auth != null;
-      allow delete: if request.auth != null && request.auth.token.admin == true;
-    }
-
-    // 🆕 Branch (if not already there)
-    match /shop_branches/{branchId} {
-      allow read: if true;
-      allow create, update: if request.auth != null;
-      allow delete: if request.auth != null && request.auth.token.admin == true;
-    }
 }

@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
 import '../../core/localization/locale_provider.dart';
 import '../../core/theme/migo_colors.dart';
 import '../../core/theme/migo_gradients.dart';
@@ -10,6 +11,7 @@ import '../deals/deals_screen.dart';
 import '../discover/discover_screen.dart';
 import '../home/home_screen.dart';
 import '../profile/profile_screen.dart';
+import '../reels/reels_screen.dart';
 import '../wallet/wallet_screen.dart';
 
 /// Main shell — role-aware navigation.
@@ -45,7 +47,6 @@ class MainShell extends StatelessWidget {
           );
         }
 
-        // Role-based routing
         if (user.isModerator) {
           return _AdminView(user: user);
         }
@@ -55,7 +56,6 @@ class MainShell extends StatelessWidget {
         if (user.isAgency) {
           return _AgencyView(user: user);
         }
-        // Default: customer
         return _CustomerShell(initialIndex: initialIndex);
       },
     );
@@ -63,7 +63,7 @@ class MainShell extends StatelessWidget {
 }
 
 // ============================================================
-// CUSTOMER SHELL (default — 5 tabs)
+// CUSTOMER SHELL (6 tabs including Reels)
 // ============================================================
 class _CustomerShell extends StatefulWidget {
   final int initialIndex;
@@ -80,6 +80,7 @@ class _CustomerShellState extends State<_CustomerShell> {
   static const _screens = <Widget>[
     HomeScreen(),
     DiscoverScreen(),
+    ReelsScreen(),
     DealsScreen(),
     WalletScreen(),
     ProfileScreen(),
@@ -102,36 +103,57 @@ class _CustomerShellState extends State<_CustomerShell> {
           textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
           child: Scaffold(
             body: IndexedStack(index: _index, children: _screens),
-            bottomNavigationBar: NavigationBar(
-              selectedIndex: _index,
-              onDestinationSelected: (i) => setState(() => _index = i),
-              destinations: [
-                NavigationDestination(
-                  icon: const Icon(Icons.home_outlined),
-                  selectedIcon: const Icon(Icons.home),
-                  label: isAr ? 'الرئيسية' : 'Home',
-                ),
-                NavigationDestination(
-                  icon: const Icon(Icons.explore_outlined),
-                  selectedIcon: const Icon(Icons.explore),
-                  label: isAr ? 'اكتشف' : 'Discover',
-                ),
-                NavigationDestination(
-                  icon: const Icon(Icons.local_offer_outlined),
-                  selectedIcon: const Icon(Icons.local_offer),
-                  label: isAr ? 'العروض' : 'Deals',
-                ),
-                NavigationDestination(
-                  icon: const Icon(Icons.account_balance_wallet_outlined),
-                  selectedIcon: const Icon(Icons.account_balance_wallet),
-                  label: isAr ? 'المحفظة' : 'Wallet',
-                ),
-                NavigationDestination(
-                  icon: const Icon(Icons.person_outline),
-                  selectedIcon: const Icon(Icons.person),
-                  label: isAr ? 'الملف' : 'Profile',
-                ),
-              ],
+            bottomNavigationBar: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: NavigationBar(
+                selectedIndex: _index,
+                onDestinationSelected: (i) => setState(() => _index = i),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                indicatorColor: MigoColors.primary.withValues(alpha: 0.1),
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                destinations: [
+                  NavigationDestination(
+                    icon: const Icon(Icons.home_outlined),
+                    selectedIcon: const Icon(Icons.home, color: MigoColors.primary),
+                    label: isAr ? 'الرئيسية' : 'Home',
+                  ),
+                  NavigationDestination(
+                    icon: const Icon(Icons.explore_outlined),
+                    selectedIcon: const Icon(Icons.explore, color: MigoColors.primary),
+                    label: isAr ? 'اكتشف' : 'Discover',
+                  ),
+                  NavigationDestination(
+                    icon: const Icon(Icons.play_circle_outline),
+                    selectedIcon: const Icon(Icons.play_circle_fill, color: MigoColors.primary),
+                    label: isAr ? 'ريلز' : 'Reels',
+                  ),
+                  NavigationDestination(
+                    icon: const Icon(Icons.local_offer_outlined),
+                    selectedIcon: const Icon(Icons.local_offer, color: MigoColors.primary),
+                    label: isAr ? 'العروض' : 'Deals',
+                  ),
+                  NavigationDestination(
+                    icon: const Icon(Icons.account_balance_wallet_outlined),
+                    selectedIcon: const Icon(Icons.account_balance_wallet, color: MigoColors.primary),
+                    label: isAr ? 'المحفظة' : 'Wallet',
+                  ),
+                  NavigationDestination(
+                    icon: const Icon(Icons.person_outline),
+                    selectedIcon: const Icon(Icons.person, color: MigoColors.primary),
+                    label: isAr ? 'الملف' : 'Profile',
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -141,7 +163,7 @@ class _CustomerShellState extends State<_CustomerShell> {
 }
 
 // ============================================================
-// BUSINESS SHELL (2 tabs: My Business + Profile)
+// BUSINESS SHELL
 // ============================================================
 class _BusinessShell extends StatefulWidget {
   const _BusinessShell();
@@ -193,7 +215,7 @@ class _BusinessShellState extends State<_BusinessShell> {
 }
 
 // ============================================================
-// ADMIN VIEW (mobile)
+// ADMIN VIEW
 // ============================================================
 class _AdminView extends StatelessWidget {
   const _AdminView({required this.user});
@@ -338,7 +360,7 @@ class _AdminView extends StatelessWidget {
 }
 
 // ============================================================
-// AGENCY VIEW (mobile — placeholder)
+// AGENCY VIEW
 // ============================================================
 class _AgencyView extends StatelessWidget {
   const _AgencyView({required this.user});
@@ -384,7 +406,7 @@ class _AgencyView extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   isAr
-                      ? 'مرحبًا، ${user.displayName ?? user.email}'
+                      ? 'مرحباً، ${user.displayName ?? user.email}'
                       : 'Welcome, ${user.displayName ?? user.email}',
                   style: const TextStyle(
                     fontSize: 15,
