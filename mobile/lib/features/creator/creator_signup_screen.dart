@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../../core/theme/migo_colors.dart';
 
 class CreatorSignupScreen extends StatefulWidget {
@@ -27,14 +26,14 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
   String? _error;
 
   static const List<Map<String, String>> _categories = [
-    {'id': 'food', 'label': 'Food & Restaurants'},
-    {'id': 'tech', 'label': 'Tech & Gadgets'},
-    {'id': 'lifestyle', 'label': 'Lifestyle'},
-    {'id': 'fashion', 'label': 'Fashion & Beauty'},
-    {'id': 'travel', 'label': 'Travel'},
-    {'id': 'fitness', 'label': 'Fitness & Sports'},
-    {'id': 'family', 'label': 'Family'},
-    {'id': 'general', 'label': 'General'},
+    {'id': 'food', 'label': 'Food & Restaurants', 'color': 'orange'},
+    {'id': 'tech', 'label': 'Tech & Gadgets', 'color': 'blue'},
+    {'id': 'lifestyle', 'label': 'Lifestyle', 'color': 'purple'},
+    {'id': 'fashion', 'label': 'Fashion & Beauty', 'color': 'pink'},
+    {'id': 'travel', 'label': 'Travel', 'color': 'teal'},
+    {'id': 'fitness', 'label': 'Fitness & Sports', 'color': 'green'},
+    {'id': 'family', 'label': 'Family', 'color': 'brown'},
+    {'id': 'general', 'label': 'General', 'color': 'grey'},
   ];
 
   @override
@@ -112,6 +111,7 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
         'followers': followers,
         'followersCount': followers,
         'categories': _selectedCategories.toList(),
+        'category': _selectedCategories.first,
         'status': 'pending',
         'totalViews': 0,
         'totalClaims': 0,
@@ -123,10 +123,7 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ Application submitted! Admin will review soon.'),
-          backgroundColor: MigoColors.success,
-        ),
+        const SnackBar(content: Text('✅ Application submitted!'), backgroundColor: MigoColors.success),
       );
       Navigator.of(context).pop();
     } catch (e) {
@@ -139,9 +136,7 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_checking) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    if (_checking) return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
     if (_alreadyApplied) {
       return Scaffold(
@@ -167,128 +162,169 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
     }
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: const Text('Become a Creator', style: TextStyle(color: Colors.white)),
         backgroundColor: MigoColors.primary,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 🆕 Premium Header
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [MigoColors.primary, MigoColors.primary.withValues(alpha: 0.7)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [MigoColors.primary, Color(0xFF7C3AED)],
                 ),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Creator Program', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-                  SizedBox(height: 8),
-                  Text('Share MIGO deals with your followers and earn coins. Free to join!', style: TextStyle(fontSize: 14, color: Colors.white70, height: 1.4)),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
+                    child: const Icon(Icons.stars, color: Colors.amber, size: 30),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Creator Program', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white)),
+                  const SizedBox(height: 8),
+                  const Text('Share MIGO deals with your followers and earn coins.', style: TextStyle(fontSize: 14, color: Colors.white70, height: 1.4)),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            
+            // Form Body
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Bio Section
+                  _buildSectionTitle('Basic Info', Icons.person_outline, Colors.blue),
+                  const SizedBox(height: 12),
+                  _buildTextField(
+                    controller: _nameController,
+                    hint: 'Display Name *',
+                    icon: Icons.badge_outlined,
+                    color: Colors.blue,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildTextField(
+                    controller: _bioController,
+                    hint: 'Short Bio *',
+                    icon: Icons.description_outlined,
+                    color: Colors.blue,
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 24),
 
-            const Text('Display Name *', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(hintText: 'Your creator name', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person_outline)),
-            ),
-            const SizedBox(height: 16),
+                  // Categories Section
+                  _buildSectionTitle('Categories', Icons.category_outlined, Colors.purple),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _categories.map((cat) {
+                      final isSelected = _selectedCategories.contains(cat['id']);
+                      return FilterChip(
+                        label: Text(cat['label']!),
+                        selected: isSelected,
+                        selectedColor: MigoColors.primary.withValues(alpha: 0.2),
+                        checkmarkColor: MigoColors.primary,
+                        onSelected: (selected) {
+                          setState(() {
+                            if (selected) {
+                              _selectedCategories.add(cat['id']!);
+                            } else {
+                              _selectedCategories.remove(cat['id']!);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 24),
 
-            const Text('Bio *', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _bioController,
-              maxLines: 3,
-              decoration: const InputDecoration(hintText: 'Tell us about your content', border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 16),
+                  // Social Media Section
+                  _buildSectionTitle('Social Media Links', Icons.link, Colors.pink),
+                  const SizedBox(height: 12),
+                  _buildTextField(controller: _instagramController, hint: 'Instagram URL', icon: Icons.camera_alt, color: Colors.pink),
+                  const SizedBox(height: 12),
+                  _buildTextField(controller: _tiktokController, hint: 'TikTok URL', icon: Icons.music_note, color: Colors.black),
+                  const SizedBox(height: 12),
+                  _buildTextField(controller: _youtubeController, hint: 'YouTube URL', icon: Icons.play_circle_outline, color: Colors.red),
+                  const SizedBox(height: 12),
+                  _buildTextField(controller: _facebookController, hint: 'Facebook URL', icon: Icons.facebook, color: Colors.blue),
+                  const SizedBox(height: 24),
 
-            const Text('Categories * (Select all that apply)', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _categories.map((cat) {
-                final isSelected = _selectedCategories.contains(cat['id']);
-                return FilterChip(
-                  label: Text(cat['label']!),
-                  selected: isSelected,
-                  selectedColor: MigoColors.primary.withValues(alpha: 0.2),
-                  checkmarkColor: MigoColors.primary,
-                  onSelected: (selected) {
-                    setState(() {
-                      if (selected) {
-                        _selectedCategories.add(cat['id']!);
-                      } else {
-                        _selectedCategories.remove(cat['id']!);
-                      }
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 24),
+                  // Followers Section
+                  _buildSectionTitle('Followers', Icons.people_outline, Colors.orange),
+                  const SizedBox(height: 12),
+                  _buildTextField(
+                    controller: _followersController,
+                    hint: 'Approx Followers',
+                    icon: Icons.people,
+                    color: Colors.orange,
+                    keyboardType: TextInputType.number,
+                  ),
 
-            const Text('Social Media Links', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-            const SizedBox(height: 12),
+                  const SizedBox(height: 32),
 
-            _buildSocialField(icon: Icons.camera_alt, label: 'Instagram URL', controller: _instagramController, hint: 'https://instagram.com/...'),
-            const SizedBox(height: 12),
-            _buildSocialField(icon: Icons.music_note, label: 'TikTok URL', controller: _tiktokController, hint: 'https://tiktok.com/@...'),
-            const SizedBox(height: 12),
-            _buildSocialField(icon: Icons.play_circle_outline, label: 'YouTube URL', controller: _youtubeController, hint: 'https://youtube.com/@...'),
-            const SizedBox(height: 12),
-            _buildSocialField(icon: Icons.facebook, label: 'Facebook URL', controller: _facebookController, hint: 'https://facebook.com/...'),
-
-            const SizedBox(height: 24),
-
-            const Text('Followers (approx)', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _followersController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(hintText: '1000', border: OutlineInputBorder(), prefixIcon: Icon(Icons.people_outline)),
-            ),
-            const SizedBox(height: 24),
-
-            if (_error != null) ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: MigoColors.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                child: Row(
-                  children: [
-                    const Icon(Icons.error_outline, color: MigoColors.error, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(_error!, style: const TextStyle(color: MigoColors.error, fontSize: 13))),
+                  if (_error != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(color: MigoColors.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: MigoColors.error, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(_error!, style: const TextStyle(color: MigoColors.error, fontSize: 13))),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                   ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
 
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _loading ? null : _submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: MigoColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: _loading
-                    ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                    : const Text('Submit Application', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  // Submit Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: _loading ? null : _submit,
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 5,
+                        shadowColor: MigoColors.primary.withValues(alpha: 0.5),
+                      ),
+                      child: Ink(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [MigoColors.primary, Color(0xFF7C3AED)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: _loading
+                              ? const CircularProgressIndicator(color: Colors.white)
+                              : const Text('Submit Application', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -297,19 +333,41 @@ class _CreatorSignupScreenState extends State<CreatorSignupScreen> {
     );
   }
 
-  Widget _buildSocialField({
-    required IconData icon,
-    required String label,
+  Widget _buildSectionTitle(String title, IconData icon, Color color) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: 8),
+        Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color)),
+      ],
+    );
+  }
+
+  Widget _buildTextField({
     required TextEditingController controller,
     required String hint,
+    required IconData icon,
+    required Color color,
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
   }) {
     return TextField(
       controller: controller,
+      maxLines: maxLines,
+      keyboardType: keyboardType,
       decoration: InputDecoration(
-        labelText: label,
         hintText: hint,
-        border: const OutlineInputBorder(),
-        prefixIcon: Icon(icon),
+        prefixIcon: Icon(icon, color: color),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: color.withValues(alpha: 0.3)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: color, width: 2),
+        ),
+        filled: true,
+        fillColor: color.withValues(alpha: 0.05),
       ),
     );
   }

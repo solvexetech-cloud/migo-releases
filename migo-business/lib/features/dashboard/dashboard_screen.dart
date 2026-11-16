@@ -142,12 +142,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
-          Padding(
+                    Padding(
             padding: const EdgeInsets.all(16),
             child: OutlinedButton.icon(
               onPressed: () => _handleSignOut(isAr),
               icon: const Icon(Icons.logout, size: 18),
-              label: const Text('Sign out'),
+              label: Text(isAr ? 'تسجيل الخروج' : 'Sign out'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
                 side: const BorderSide(color: Colors.white38),
@@ -252,14 +252,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _drawerItem(4, Icons.analytics_outlined, 'Analytics'),
             _drawerItem(5, Icons.settings_outlined, 'Settings'),
             const Divider(color: Colors.white24),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.white70),
-              title: const Text('Sign out', style: TextStyle(color: Colors.white)),
-              onTap: () {
-                Navigator.pop(context);
-                _handleSignOut(isAr);
-              },
-            ),
+                            ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.white70),
+                  title: Text(isAr ? 'تسجيل الخروج' : 'Sign out', style: const TextStyle(color: Colors.white)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _handleSignOut(isAr);
+                  },
+                ),
           ],
         ),
       ),

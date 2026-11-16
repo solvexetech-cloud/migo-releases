@@ -1,239 +1,161 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../core/theme/migo_colors.dart';
-import '../../models/creator_model.dart';
-import '../../services/creator_service.dart';
 
-/// PHASE E — E6: In-app Creator Public Profile
 class CreatorProfileScreen extends StatelessWidget {
-  const CreatorProfileScreen({
-    super.key,
-    required this.creatorId,
-  });
-
   final String creatorId;
+  const CreatorProfileScreen({super.key, required this.creatorId});
+
+  Future<void> _launchUrl(String? url) async {
+    if (url == null || url.isEmpty) return;
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      debugPrint('Could not launch $url');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Creator Profile'),
-        backgroundColor: MigoColors.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: StreamBuilder<CreatorModel?>(
-        stream: CreatorService.instance.streamCreator(creatorId),
-        builder: (context, snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: FutureBuilder<QuerySnapshot>(
+        future: FirebaseFirestore.instance
+            .collection('creators')
+            .where('userId', isEqualTo: creatorId)
+            .limit(1)
+            .get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
-          final creator = snap.data;
-          if (creator == null) {
-            return const Center(
-              child: Text('Creator not found'),
-            );
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('Creator not found.'));
           }
 
-          return _buildProfile(context, creator);
+          final data = snapshot.data!.docs.first.data() as Map<String, dynamic>;
+          final imageUrl = data['profileImageUrl'];
+          final name = data['displayName'] ?? 'Creator';
+          final bio = data['bio'] ?? 'No bio';
+          final followers = data['followersCount'] ?? data['followers'] ?? 0;
+          final insta = data['instagramUrl'];
+          final tiktok = data['tiktokUrl'];
+          final youtube = data['youtubeUrl'];
+          final facebook = data['facebookUrl'];
+
+          final categories = data['categories'] != null
+              ? List<String>.from(data['categories'])
+              : (data['category'] != null ? [data['category'] as String] : <String>[]);
+
+          return CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 220,
+                pinned: true,
+                backgroundColor: MigoColors.primary,
+                foregroundColor: Colors.white,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [MigoColors.primary, MigoColors.primary.withValues(alpha: 0.6)],
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 40),
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.white,
+                          backgroundImage: imageUrl != null && imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+                          child: imageUrl == null || imageUrl.isEmpty
+                              ? Text(name[0].toUpperCase(), style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: MigoColors.primary))
+                              : null,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                        const SizedBox(height: 4),
+                        Text('$followers Followers', style: const TextStyle(fontSize: 14, color: Colors.white70)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('About', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade700, fontSize: 16)),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
+                        child: Text(bio, style: const TextStyle(fontSize: 14, height: 1.5)),
+                      ),
+                      const SizedBox(height: 24),
+                      if (categories.isNotEmpty) ...[
+                        Text('Categories', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade700, fontSize: 16)),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: categories.map((c) => Chip(label: Text(c.toUpperCase()), backgroundColor: MigoColors.primary.withValues(alpha: 0.1), labelStyle: const TextStyle(color: MigoColors.primary, fontSize: 12, fontWeight: FontWeight.bold))).toList(),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                      Text('Social Media', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade700, fontSize: 16)),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          if (insta != null) _SocialButton(icon: FontAwesomeIcons.instagram, color: Colors.pink, label: 'Instagram', onTap: () => _launchUrl(insta)),
+                          if (tiktok != null) _SocialButton(icon: FontAwesomeIcons.tiktok, color: Colors.black, label: 'TikTok', onTap: () => _launchUrl(tiktok)),
+                          if (youtube != null) _SocialButton(icon: FontAwesomeIcons.youtube, color: Colors.red, label: 'YouTube', onTap: () => _launchUrl(youtube)),
+                          if (facebook != null) _SocialButton(icon: FontAwesomeIcons.facebook, color: Colors.blue, label: 'Facebook', onTap: () => _launchUrl(facebook)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
         },
       ),
     );
   }
-
-  Widget _buildProfile(BuildContext context, CreatorModel creator) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          // Avatar
-          CircleAvatar(
-            radius: 50,
-            backgroundColor: MigoColors.primary.withValues(alpha: 0.15),
-            backgroundImage: creator.profileImageUrl != null
-                ? NetworkImage(creator.profileImageUrl!)
-                : null,
-            child: creator.profileImageUrl == null
-                ? Text(
-                    creator.displayName.isNotEmpty
-                        ? creator.displayName[0].toUpperCase()
-                        : '?',
-                    style: TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.w900,
-                      color: MigoColors.primary,
-                    ),
-                  )
-                : null,
-          ),
-          const SizedBox(height: 16),
-
-          // Name
-          Text(
-            creator.displayName,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-
-          // Category + Email
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: MigoColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              creator.category.toUpperCase(),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: MigoColors.primary,
-                letterSpacing: 1,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Bio
-          if (creator.bio.isNotEmpty) ...[
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: MigoColors.dividerLight),
-              ),
-              child: Text(
-                creator.bio,
-                style: const TextStyle(fontSize: 14, height: 1.5),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
-
-          // Stats row
-          Row(
-            children: [
-              Expanded(
-                child: _StatChip(
-                  label: 'Followers',
-                  value: _formatNumber(creator.followers),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _StatChip(
-                  label: 'Views',
-                  value: _formatNumber(creator.totalViews),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _StatChip(
-                  label: 'Claims',
-                  value: _formatNumber(creator.totalClaims),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-
-          // Channel link button
-          if (creator.channelUrl != null &&
-              creator.channelUrl!.isNotEmpty)
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  final uri = Uri.tryParse(creator.channelUrl!);
-                  if (uri != null && await canLaunchUrl(uri)) {
-                    await launchUrl(uri,
-                        mode: LaunchMode.externalApplication);
-                  } else {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Cannot open channel link'),
-                        ),
-                      );
-                    }
-                  }
-                },
-                icon: const Icon(Icons.open_in_new),
-                label: const Text(
-                  'Visit Channel',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: MigoColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  String _formatNumber(int n) {
-    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
-    if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
-    return n.toString();
-  }
 }
 
-class _StatChip extends StatelessWidget {
-  const _StatChip({required this.label, required this.value});
-
+class _SocialButton extends StatelessWidget {
+  final FaIconData icon;
+  final Color color;
   final String label;
-  final String value;
+  final VoidCallback onTap;
+  const _SocialButton({required this.icon, required this.color, required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: MigoColors.dividerLight),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              color: MigoColors.primary,
-            ),
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(30),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+            child: FaIcon(icon, color: color, size: 28),
           ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              color: MigoColors.textSecondaryLight,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+      ],
     );
   }
 }

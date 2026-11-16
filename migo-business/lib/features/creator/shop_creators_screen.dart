@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/migo_theme.dart';
+import 'view_creator_profile_screen.dart';
 
 class ShopCreatorsScreen extends StatefulWidget {
   final String businessId;
@@ -69,7 +71,7 @@ class _ShopCreatorsScreenState extends State<ShopCreatorsScreen> {
               });
               if (context.mounted) Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('✅ Collab invitation sent to creator!')),
+                const SnackBar(content: Text('âœ… Collab invitation sent to creator!')),
               );
             },
             child: const Text('Send Invite'),
@@ -83,7 +85,7 @@ class _ShopCreatorsScreenState extends State<ShopCreatorsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Find Creators'),
+        title: const Text('Find Creators', style: TextStyle(color: Colors.white)),
         backgroundColor: MigoColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -127,20 +129,102 @@ class _ShopCreatorsScreenState extends State<ShopCreatorsScreen> {
                   itemCount: filtered.length,
                   itemBuilder: (context, index) {
                     final c = filtered[index].data() as Map<String, dynamic>;
+                    final name = c['displayName'] ?? 'Unknown';
+                    final photoUrl = c['profileImageUrl'];
+                    // 🆕 Handle both 'categories' (list) and 'category' (single string)
+                    final categories = c['categories'] != null
+                        ? List<String>.from(c['categories'])
+                        : (c['category'] != null ? [c['category'] as String] : <String>[]);
+                    final followers = c['followersCount'] ?? c['followers'] ?? 0;
+                    final bio = c['bio'] ?? 'No bio';
+                    final insta = c['instagramUrl'];
+                    final tiktok = c['tiktokUrl'];
+                    final youtube = c['youtubeUrl'];
+                    final facebook = c['facebookUrl'];
+
                     return Card(
                       margin: const EdgeInsets.only(bottom: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: MigoColors.accent.withValues(alpha: 0.2),
-                          child: Text((c['displayName'] ?? 'U')[0].toUpperCase()),
-                        ),
-                        title: Text(c['displayName'] ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('${c['category']} · ${c['followers']} followers'),
-                        trailing: ElevatedButton(
-                          onPressed: () => _recordCollab(c),
-                          style: ElevatedButton.styleFrom(backgroundColor: MigoColors.primary),
-                          child: const Text('Invite', style: TextStyle(color: Colors.white)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Profile Row (Clickable)
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ViewCreatorProfileScreen(creatorId: c['userId'] ?? ''),
+                                  ),
+                                );
+                              },
+                              child: Row(
+                                children: [
+                                CircleAvatar(
+                                  radius: 28,
+                                  backgroundColor: MigoColors.accent.withValues(alpha: 0.2),
+                                  backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+                                  child: photoUrl == null
+                                      ? Text(name[0].toUpperCase(), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: MigoColors.primary))
+                                      : null,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                      const SizedBox(height: 2),
+                                      Text('$followers Followers', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                    ],
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => _recordCollab(c),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: MigoColors.primary,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                  child: const Text('Invite'),
+                                ),
+                              ],
+                            ),
+                            ),
+                            const SizedBox(height: 12),
+                            // Bio
+                            Text(bio, style: const TextStyle(fontSize: 13, height: 1.4), maxLines: 2, overflow: TextOverflow.ellipsis),
+                            const SizedBox(height: 12),
+                            // Categories
+                            if (categories.isNotEmpty)
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: categories.map((cat) => Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: MigoColors.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(cat.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: MigoColors.primary)),
+                                )).toList(),
+                              ),
+                            const SizedBox(height: 12),
+                            // Social Links
+                            Row(
+                              children: [
+                                if (insta != null) _SocialIcon(icon: Icons.camera_alt, color: Colors.pink, onTap: () => _launch(insta)),
+                                if (tiktok != null) _SocialIcon(icon: Icons.music_note, color: Colors.black, onTap: () => _launch(tiktok)),
+                                if (youtube != null) _SocialIcon(icon: Icons.play_circle_fill, color: Colors.red, onTap: () => _launch(youtube)),
+                                if (facebook != null) _SocialIcon(icon: Icons.facebook, color: Colors.blue, onTap: () => _launch(facebook)),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -150,6 +234,33 @@ class _ShopCreatorsScreenState extends State<ShopCreatorsScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _launch(String? url) async {
+    if (url == null || url.isEmpty) return;
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      debugPrint('Could not launch $url');
+    }
+  }
+}
+
+class _SocialIcon extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+  const _SocialIcon({required this.icon, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Icon(icon, color: color, size: 24),
       ),
     );
   }
