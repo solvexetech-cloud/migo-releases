@@ -124,32 +124,40 @@ class _CustomerShellState extends State<_CustomerShell> {
                 destinations: [
                   NavigationDestination(
                     icon: const Icon(Icons.home_outlined),
-                    selectedIcon: const Icon(Icons.home, color: MigoColors.primary),
+                    selectedIcon:
+                        const Icon(Icons.home, color: MigoColors.primary),
                     label: isAr ? 'الرئيسية' : 'Home',
                   ),
                   NavigationDestination(
                     icon: const Icon(Icons.explore_outlined),
-                    selectedIcon: const Icon(Icons.explore, color: MigoColors.primary),
+                    selectedIcon:
+                        const Icon(Icons.explore, color: MigoColors.primary),
                     label: isAr ? 'اكتشف' : 'Discover',
                   ),
                   NavigationDestination(
                     icon: const Icon(Icons.play_circle_outline),
-                    selectedIcon: const Icon(Icons.play_circle_fill, color: MigoColors.primary),
+                    selectedIcon:
+                        const Icon(Icons.play_circle_fill, color: MigoColors.primary),
                     label: isAr ? 'ريلز' : 'Reels',
                   ),
                   NavigationDestination(
                     icon: const Icon(Icons.local_offer_outlined),
-                    selectedIcon: const Icon(Icons.local_offer, color: MigoColors.primary),
+                    selectedIcon:
+                        const Icon(Icons.local_offer, color: MigoColors.primary),
                     label: isAr ? 'العروض' : 'Deals',
                   ),
                   NavigationDestination(
                     icon: const Icon(Icons.account_balance_wallet_outlined),
-                    selectedIcon: const Icon(Icons.account_balance_wallet, color: MigoColors.primary),
+                    selectedIcon: const Icon(
+                      Icons.account_balance_wallet,
+                      color: MigoColors.primary,
+                    ),
                     label: isAr ? 'المحفظة' : 'Wallet',
                   ),
                   NavigationDestination(
                     icon: const Icon(Icons.person_outline),
-                    selectedIcon: const Icon(Icons.person, color: MigoColors.primary),
+                    selectedIcon:
+                        const Icon(Icons.person, color: MigoColors.primary),
                     label: isAr ? 'الملف' : 'Profile',
                   ),
                 ],

@@ -14,8 +14,10 @@ import '../business/business_detail_screen.dart';
 import 'claim_success_screen.dart';
 
 class OfferDetailScreen extends StatefulWidget {
-  const OfferDetailScreen({super.key, required this.offer});
+  const OfferDetailScreen({super.key, required this.offer,this.creatorId,});
   final OfferModel offer;
+  final String? creatorId;
+
 
   @override
   State<OfferDetailScreen> createState() => _OfferDetailScreenState();

@@ -53,6 +53,8 @@ dependencies:
   syncfusion_flutter_pdfviewer: ^35.1.41
   geolocator: ^14.1.2
   geocoding: ^5.0.1
+  youtube_player_iframe: ^6.0.2
+  webview_flutter: ^4.14.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
