@@ -178,9 +178,19 @@ class CreatorDashboardScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Total Earnings', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                           const Text('Total Coins', style: TextStyle(fontSize: 12, color: Colors.grey)),
                       const SizedBox(height: 8),
-                      Text('\$0.00', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: MigoColors.primary)),
+                      FutureBuilder<QuerySnapshot>(
+                        future: FirebaseFirestore.instance.collection('creator_earnings').where('creatorId', isEqualTo: creator.userId).get(),
+                        builder: (context, snap) {
+                          if (!snap.hasData) return const Text('...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: MigoColors.primary));
+                          double total = 0;
+                          for (var doc in snap.data!.docs) {
+                            total += (doc.data() as Map<String, dynamic>)['amount'] as double? ?? 0;
+                          }
+                          return Text('${total.toStringAsFixed(0)} Coins', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: MigoColors.primary));
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -193,9 +203,19 @@ class CreatorDashboardScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Pending Payout', style: TextStyle(fontSize: 12, color: Colors.orange)),
+                                          const Text('Pending Coins', style: TextStyle(fontSize: 12, color: Colors.orange)),
                       const SizedBox(height: 8),
-                      const Text('\$0.00', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange)),
+                      FutureBuilder<QuerySnapshot>(
+                        future: FirebaseFirestore.instance.collection('creator_earnings').where('creatorId', isEqualTo: creator.userId).where('status', isEqualTo: 'pending').get(),
+                        builder: (context, snap) {
+                          if (!snap.hasData) return const Text('...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange));
+                          double pending = 0;
+                          for (var doc in snap.data!.docs) {
+                            pending += (doc.data() as Map<String, dynamic>)['amount'] as double? ?? 0;
+                          }
+                          return Text('${pending.toStringAsFixed(0)} Coins', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange));
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -220,7 +240,7 @@ class CreatorDashboardScreen extends StatelessWidget {
           ),
           
           const SizedBox(height: 24),
-          const Text('Recent Earnings', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const Text('Recent Coin Earnings', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           const Center(
             child: Padding(

@@ -121,7 +121,25 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
             'trustScore': FieldValue.increment(1),
           });
         }
-
+        // 🆕 Creator Earnings: ക്രിയേറ്റർക്ക് എർണിംഗ് ഉണ്ടാക്കുക
+        final creatorId = claimData['creatorId'];
+        final collabId = claimData['collabId'];
+        if (creatorId != null && collabId != null) {
+          final collabSnap = await FirebaseFirestore.instance.collection('collabs').doc(collabId).get();
+          if (collabSnap.exists) {
+            final fee = (collabSnap.data()?['feePerRedemption'] as num?)?.toDouble() ?? 0;
+            if (fee > 0) {
+              await FirebaseFirestore.instance.collection('creator_earnings').add({
+                'creatorId': creatorId,
+                'claimId': oldQuery.docs.first.id,
+                'amount': fee,
+                'currency': 'QAR',
+                'status': 'pending',
+                'createdAt': FieldValue.serverTimestamp(),
+              });
+            }
+          }
+        }
         if (!mounted) return;
         setState(() {
           _successMsg = 'Offer Claim Redeemed Successfully!\nCode: $pin';

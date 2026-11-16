@@ -288,7 +288,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 3: return _buildScanTab();
       case 4: return _buildAnalyticsTab();
       case 5: return _buildProfileTab();
-      case 6: return const BusinessClaimsScreen();
+      case 6: return _buildBusinessDependentTab((id) => BusinessClaimsScreen(businessId: id));
       case 7: return const MyFlyersScreen();
       case 8: return const BusinessDemandsFeedScreen();
       case 9: return _buildBusinessDependentTab((id) => ShopCountersScreen(businessId: id));

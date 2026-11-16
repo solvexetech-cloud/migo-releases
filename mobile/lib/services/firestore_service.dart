@@ -14,6 +14,8 @@ import '../models/group_deal_model.dart';
 import '../models/notification_model.dart';
 import '../models/offer_model.dart';
 import '../models/referral_model.dart';
+import '../models/creator_model.dart';
+import '../models/earning_model.dart';
 import '../models/review_model.dart';
 import '../models/user_model.dart';
 import 'referral_tracker.dart';
@@ -24,7 +26,7 @@ class FirestoreService {
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // 🆕 കോയിൻ സെറ്റിംഗ്സ് വായിക്കാൻ
+  // Ã°Å¸â€ â€¢ Ã Â´â€¢Ã Âµâ€¹Ã Â´Â¯Ã Â´Â¿Ã ÂµÂ» Ã Â´Â¸Ã Âµâ€ Ã Â´Â±Ã ÂµÂÃ Â´Â±Ã Â´Â¿Ã Â´â€šÃ Â´â€”Ã ÂµÂÃ Â´Â¸Ã ÂµÂ Ã Â´ÂµÃ Â´Â¾Ã Â´Â¯Ã Â´Â¿Ã Â´â€¢Ã ÂµÂÃ Â´â€¢Ã Â´Â¾Ã ÂµÂ»
   Future<CoinSettingsModel> getCoinSettings() async {
     try {
       final doc = await _db.collection('config').doc('coin_settings').get();
@@ -105,7 +107,7 @@ class FirestoreService {
       }
 
       if (dailyEarned >= dailyCap || monthlyEarned >= monthlyCap) {
-        debugPrint('⚠️ Coin cap reached — skipping');
+        debugPrint('Ã¢Å¡Â Ã¯Â¸Â Coin cap reached Ã¢â‚¬â€ skipping');
         return;
       }
 
@@ -660,7 +662,7 @@ class FirestoreService {
     required String claimId,
     required String businessId,
   }) async {
-    debugPrint('🔵 redeemClaim: claimId=$claimId');
+    debugPrint('Ã°Å¸â€Âµ redeemClaim: claimId=$claimId');
     final snap = await _claims.doc(claimId).get();
     if (!snap.exists || snap.data() == null) {
       throw Exception('Claim not found');
@@ -734,7 +736,7 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> get _reviews =>
       _db.collection('reviews');
 
-  /// 🆕 Average rating (simple double) — used by discover_screen
+  /// Ã°Å¸â€ â€¢ Average rating (simple double) Ã¢â‚¬â€ used by discover_screen
   Future<double> getAverageRating(String businessId) async {
     try {
       final snap =
@@ -750,7 +752,7 @@ class FirestoreService {
     }
   }
 
-  /// 🆕 Average + count (for "4.5 (12)" display) — used by offer_card
+  /// Ã°Å¸â€ â€¢ Average + count (for "4.5 (12)" display) Ã¢â‚¬â€ used by offer_card
   Future<({double average, int count})> getBusinessRating(
     String businessId,
   ) async {
@@ -770,7 +772,7 @@ class FirestoreService {
     }
   }
 
-  /// 🆕 Batch: get ratings for multiple businesses in ONE query
+  /// Ã°Å¸â€ â€¢ Batch: get ratings for multiple businesses in ONE query
   /// 50 offers = 2 queries instead of 50
   Future<Map<String, double>> getAverageRatingsBatch(
     List<String> businessIds,
@@ -780,7 +782,7 @@ class FirestoreService {
       final uniqueIds = businessIds.toSet().toList();
       final result = <String, double>{};
 
-      // whereIn max 30 items — chunk them
+      // whereIn max 30 items Ã¢â‚¬â€ chunk them
       for (var i = 0; i < uniqueIds.length; i += 30) {
         final end = (i + 30 > uniqueIds.length) ? uniqueIds.length : i + 30;
         final chunk = uniqueIds.sublist(i, end);
@@ -839,7 +841,7 @@ class FirestoreService {
           type: NotifType.newReview,
           title: 'New review on ${review.businessName}',
           body:
-              '${review.userDisplayName} rated ${review.rating}★ — "${review.comment}"',
+              '${review.userDisplayName} rated ${review.rating}Ã¢Ëœâ€¦ Ã¢â‚¬â€ "${review.comment}"',
           targetRoute: 'business',
         ),
       );
@@ -915,7 +917,7 @@ class FirestoreService {
       if (snap.docs.isEmpty) return null;
       return snap.docs.first.id;
     } catch (e) {
-      debugPrint('🔴 findUidByReferralCode FAILED: $e');
+      debugPrint('Ã°Å¸â€Â´ findUidByReferralCode FAILED: $e');
       return null;
     }
   }
@@ -1011,7 +1013,7 @@ class FirestoreService {
         userUid: referredBy,
         type: NotifType.referralReward,
         title: 'Referral reward received',
-        body: '+$refReward coins — your friend just made their first claim.',
+        body: '+$refReward coins Ã¢â‚¬â€ your friend just made their first claim.',
         targetRoute: 'wallet',
       ),
     );
@@ -1235,5 +1237,29 @@ class FirestoreService {
       }
       return results;
     });
+  }
+
+  // ---------- EARNINGS (CREATOR SYSTEM) ----------
+  CollectionReference<Map<String, dynamic>> get _earnings =>
+      _db.collection('creator_earnings');
+
+  Future<void> createEarning(String creatorId, String claimId, double amount) async {
+    await _earnings.add({
+      'creatorId': creatorId,
+      'claimId': claimId,
+      'amount': amount,
+      'currency': 'QAR',
+      'status': 'pending',
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Stream<List<EarningModel>> streamMyEarnings(String creatorId) {
+    return _earnings
+        .where('creatorId', isEqualTo: creatorId)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((d) => EarningModel.fromMap(d.id, d.data()))
+            .toList());
   }
 }
