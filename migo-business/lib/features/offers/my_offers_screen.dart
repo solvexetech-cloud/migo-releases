@@ -268,6 +268,25 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (offer.imageUrl != null && offer.imageUrl!.isNotEmpty) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Image.network(
+                    offer.imageUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => Container(
+                      color: Colors.grey.shade200,
+                      child: const Center(
+                        child: Icon(Icons.broken_image_outlined, size: 40, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
             Row(
               children: [
                 Expanded(
@@ -350,6 +369,29 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                _infoChip(Icons.category_outlined, _typeLabel(offer.type)),
+                _infoChip(Icons.event_available_outlined, 'Starts ${_fmtDate(offer.startAt)}'),
+                _infoChip(Icons.event_busy_outlined, 'Ends ${_fmtDate(offer.endAt)}'),
+                if (offer.totalLimit != null)
+                  _infoChip(Icons.confirmation_number_outlined, 'Limit ${offer.totalLimit}'),
+                if (offer.dailyLimit != null)
+                  _infoChip(Icons.today_outlined, '${offer.dailyLimit} per day'),
+              ],
+            ),
+            if (offer.terms != null && offer.terms!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Terms: ${offer.terms}',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12, color: MigoColors.textSecondary),
+              ),
+            ],
 
             const SizedBox(height: 10),
             
@@ -435,6 +477,37 @@ class _MyOffersScreenState extends State<MyOffersScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  String _fmtDate(DateTime d) {
+    final l = d.toLocal();
+    return '${l.day.toString().padLeft(2, '0')}/${l.month.toString().padLeft(2, '0')}/${l.year}';
+  }
+
+  String _typeLabel(OfferType type) {
+    final n = type.name;
+    if (n.isEmpty) return '';
+    final spaced = n.replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (m) => '${m[1]} ${m[2]}');
+    return spaced[0].toUpperCase() + spaced.substring(1);
+  }
+
+  Widget _infoChip(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: MigoColors.surface,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: MigoColors.textSecondary),
+          const SizedBox(width: 4),
+          Text(text, style: const TextStyle(fontSize: 11, color: MigoColors.textSecondary)),
+        ],
       ),
     );
   }

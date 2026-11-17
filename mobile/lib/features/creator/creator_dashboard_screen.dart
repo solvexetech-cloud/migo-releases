@@ -7,6 +7,8 @@ import 'creator_analytics_screen.dart';
 import 'creator_profile_screen.dart';
 import 'creator_performance_screen.dart';
 import 'edit_creator_profile_screen.dart';
+import 'creator_collabs_screen.dart';
+import 'creator_collect_coins_card.dart';
 
 class CreatorDashboardScreen extends StatefulWidget {
   const CreatorDashboardScreen({super.key});
@@ -218,19 +220,95 @@ class _CreatorDashboardScreenState extends State<CreatorDashboardScreen> {
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
-            height: 48,
-            child: ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payout request feature coming soon!')));
+            height: 52,
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('collabs').where('creatorId', isEqualTo: creator.userId).snapshots(),
+              builder: (context, snap) {
+                var newCount = 0;
+                for (final d in snap.data?.docs ?? <QueryDocumentSnapshot>[]) {
+                  final m = d.data() as Map<String, dynamic>;
+                  if (m['status'] == 'invited') newCount++;
+                }
+                return ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CreatorCollabsScreen()));
+                  },
+                  icon: const Icon(Icons.assignment_outlined),
+                  label: Text(
+                    newCount > 0 ? 'My Collabs  ($newCount new)' : 'My Collabs',
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: newCount > 0 ? Colors.orange.shade700 : MigoColors.success,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                );
               },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade300, foregroundColor: Colors.grey.shade600, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-              child: const Text('Request Payout'),
             ),
           ),
           const SizedBox(height: 24),
+          CreatorCollectCoinsCard(
+            creatorUserId: creator.userId,
+            onCollected: () {
+              if (mounted) setState(() {});
+            },
+          ),
+          const SizedBox(height: 16),
           const Text('Recent Coin Earnings', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
-          const Center(child: Padding(padding: EdgeInsets.all(20), child: Text('No earnings yet.', style: TextStyle(color: Colors.grey)))),
+          FutureBuilder<QuerySnapshot>(
+            future: FirebaseFirestore.instance.collection('creator_earnings').where('creatorId', isEqualTo: creator.userId).get(),
+            builder: (context, snap) {
+              if (!snap.hasData) {
+                return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
+              }
+              final docs = snap.data!.docs.toList();
+              if (docs.isEmpty) {
+                return const Center(child: Padding(padding: EdgeInsets.all(20), child: Text('No earnings yet.', style: TextStyle(color: Colors.grey))));
+              }
+              docs.sort((a, b) {
+                final ta = ((a.data() as Map<String, dynamic>)['createdAt'] as Timestamp?)?.millisecondsSinceEpoch ?? 0;
+                final tb = ((b.data() as Map<String, dynamic>)['createdAt'] as Timestamp?)?.millisecondsSinceEpoch ?? 0;
+                return tb.compareTo(ta);
+              });
+              return Column(
+                children: docs.take(10).map((d) {
+                  final m = d.data() as Map<String, dynamic>;
+                  final amount = ((m['amount'] as num?) ?? 0).toStringAsFixed(0);
+                  final st = (m['status'] ?? 'pending').toString();
+                  final ts = (m['createdAt'] as Timestamp?)?.toDate().toLocal();
+                  final dateText = ts == null ? '' : '${ts.day.toString().padLeft(2, '0')}/${ts.month.toString().padLeft(2, '0')}/${ts.year}';
+                  final stColor = st == 'pending' ? Colors.orange : (st == 'reversed' ? Colors.red : Colors.green);
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: MigoColors.dividerLight),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.stars_rounded, color: Colors.amber),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('+$amount coins', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              Text('Claim redeemed  |  $dateText', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                            ],
+                          ),
+                        ),
+                        Text(st.toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: stColor)),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+          ),
 
           const SizedBox(height: 24),
 

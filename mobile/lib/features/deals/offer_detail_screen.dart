@@ -14,9 +14,9 @@ import '../business/business_detail_screen.dart';
 import 'claim_success_screen.dart';
 
 class OfferDetailScreen extends StatefulWidget {
-  const OfferDetailScreen({super.key, required this.offer,this.creatorId,});
+  const OfferDetailScreen({super.key, required this.offer, this.creatorId, this.collabId, this.contentId});
   final OfferModel offer;
-  final String? creatorId;
+  final String? creatorId; final String? collabId; final String? contentId;
 
 
   @override
@@ -102,7 +102,7 @@ class _OfferDetailScreenState extends State<OfferDetailScreen> {
         status: ClaimStatus.active, // ðŸ†• à´‡à´¤àµ à´šàµ‡àµ¼à´¤àµà´¤àµ
         claimedAt: now,
         expiresAt: widget.offer.endAt,
-        source: 'home',
+        source: (widget.creatorId != null && widget.creatorId != _uid) ? 'creator_content' : 'home', creatorId: widget.creatorId != _uid ? widget.creatorId : null, collabId: widget.creatorId != _uid ? widget.collabId : null, contentId: widget.creatorId != _uid ? widget.contentId : null,
       );
 
       await FirestoreService.instance.createClaim(claim);

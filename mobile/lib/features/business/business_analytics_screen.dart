@@ -97,7 +97,7 @@ class _BusinessAnalyticsScreenState extends State<BusinessAnalyticsScreen> {
           final data = doc.data() as Map<String, dynamic>;
           totalClaims++;
 
-          final referredBy = data['referredByCreatorId'] as String?;
+          final referredBy = (data['creatorId'] ?? data['referredByCreatorId']) as String?;
           final isRedeemed = data['status'] == 'redeemed';
 
           if (isRedeemed) totalRedeems++;

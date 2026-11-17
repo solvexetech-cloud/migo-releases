@@ -1,0 +1,1583 @@
+﻿AUDIT 2
+
+===== mobile\lib\features\deals\qr_code_screen.dart (1-99999) =====
+1: import 'package:cloud_firestore/cloud_firestore.dart';
+2: import 'package:flutter/material.dart';
+3: import 'package:qr_flutter/qr_flutter.dart';
+4: import 'package:mobile_scanner/mobile_scanner.dart';
+5: import 'package:mobile_scanner/mobile_scanner.dart';
+6: import '../../core/localization/locale_provider.dart';
+7: import '../../core/theme/migo_colors.dart';
+8: 
+9: class QrCodeScreen extends StatelessWidget {
+10:   final String claimId;
+11:   final String offerTitle;
+12:   final String businessName;
+13: 
+14:   const QrCodeScreen({
+15:     super.key,
+16:     required this.claimId,
+17:     required this.offerTitle,
+18:     required this.businessName,
+19:   });
+20: 
+21:   @override
+22:   Widget build(BuildContext context) {
+23:     return ListenableBuilder(
+24:       listenable: LocaleProvider.instance,
+25:       builder: (context, _) {
+26:         final isAr = LocaleProvider.instance.locale == 'ar';
+27: 
+28:         return Directionality(
+29:           textDirection: isAr ? TextDirection.rtl : TextDirection.ltr,
+30:           child: Scaffold(
+31:             backgroundColor: MigoColors.backgroundLight,
+32:             appBar: AppBar(
+33:               title: Text(isAr ? 'Ã˜Â¹Ã˜Â±Ã˜Â¶ Ã˜Â±Ã™â€¦Ã˜Â² QR' : 'Show QR Code'),
+34:               backgroundColor: MigoColors.primary,
+35:               foregroundColor: Colors.white,
+36:             ),
+37:             body: StreamBuilder<DocumentSnapshot>(
+38:               stream: FirebaseFirestore.instance
+39:                   .collection('claims')
+40:                   .doc(claimId)
+41:                   .snapshots(),
+42:               builder: (context, snapshot) {
+43:                 if (snapshot.connectionState == ConnectionState.waiting) {
+44:                   return const Center(child: CircularProgressIndicator());
+45:                 }
+46: 
+47:                 if (!snapshot.hasData || !snapshot.data!.exists) {
+48:                   return Center(
+49:                     child: Text(isAr ? 'Ã™â€žÃ™â€¦ Ã™Å Ã˜ÂªÃ™â€¦ Ã˜Â§Ã™â€žÃ˜Â¹Ã˜Â«Ã™Ë†Ã˜Â± Ã˜Â¹Ã™â€žÃ™â€° Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â·Ã˜Â§Ã™â€žÃ˜Â¨Ã˜Â©' : 'Claim not found'),
+50:                   );
+51:                 }
+52: 
+53:                 final data = snapshot.data!.data() as Map<String, dynamic>;
+54:                 final status = data['status'] as String?;
+55:                 
+56:                 // Ã°Å¸â€ â€¢ pickupCode Ã Â´Å½Ã Â´Å¸Ã ÂµÂÃ Â´â€¢Ã ÂµÂÃ Â´â€¢Ã ÂµÂÃ Â´Â¨Ã ÂµÂÃ Â´Â¨Ã ÂµÂ (PIN)
+57:                 final pickupCode = data['pickupCode'] as String? ?? claimId;
+58: 
+59:                 if (status == 'redeemed') {
+60:                   return _buildRedeemedSuccess(isAr);
+61:                 }
+62: 
+63:                 return _buildQrView(isAr, pickupCode);
+64:               },
+65:             ),
+66:           ),
+67:         );
+68:       },
+69:     );
+70:   }
+71: 
+72:   Widget _buildQrView(bool isAr, String pickupCode) {
+73:     return Center(
+74:       child: SingleChildScrollView(
+75:         padding: const EdgeInsets.all(24.0),
+76:         child: Column(
+77:           mainAxisAlignment: MainAxisAlignment.center,
+78:           children: [
+79:             Container(
+80:               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+81:               decoration: BoxDecoration(
+82:                 color: MigoColors.primary.withValues(alpha: 0.1),
+83:                 borderRadius: BorderRadius.circular(20),
+84:               ),
+85:               child: Text(
+86:                 isAr ? 'Ã˜Â£Ã˜Â¸Ã™â€¡Ã˜Â± Ã™â€¡Ã˜Â°Ã˜Â§ Ã™ÂÃ™Å  Ã˜Â§Ã™â€žÃ™â€¦Ã˜ÂªÃ˜Â¬Ã˜Â±' : 'SHOW THIS AT THE SHOP',
+87:                 style: const TextStyle(
+88:                   fontSize: 13,
+89:                   fontWeight: FontWeight.bold,
+90:                   color: MigoColors.primary,
+91:                   letterSpacing: 1,
+92:                 ),
+93:               ),
+94:             ),
+95:             const SizedBox(height: 24),
+96: 
+97:             // QR Code Container
+98:             Container(
+99:               padding: const EdgeInsets.all(20),
+100:               decoration: BoxDecoration(
+101:                 color: Colors.white,
+102:                 border: Border.all(color: Colors.black12, width: 2),
+103:                 borderRadius: BorderRadius.circular(24),
+104:                 boxShadow: [
+105:                   BoxShadow(
+106:                     color: Colors.black.withValues(alpha: 0.05),
+107:                     blurRadius: 20,
+108:                     offset: const Offset(0, 10),
+109:                   ),
+110:                 ],
+111:               ),
+112:               child: QrImageView(
+113:                 data: 'MIGO-OFFER-$pickupCode', // Ã°Å¸â€ â€¢ Ã Â´Â¶Ã Â´Â°Ã Â´Â¿Ã Â´Â¯Ã Â´Â¾Ã Â´Â¯ QR Ã Â´Â«Ã Âµâ€¹Ã ÂµÂ¼Ã Â´Â®Ã Â´Â¾Ã Â´Â±Ã ÂµÂÃ Â´Â±Ã ÂµÂ
+114:                 version: QrVersions.auto,
+115:                 size: 240.0,
+116:                 backgroundColor: Colors.white,
+117:                 dataModuleStyle: const QrDataModuleStyle(
+118:                   dataModuleShape: QrDataModuleShape.square,
+119:                   color: Colors.black,
+120:                 ),
+121:                 eyeStyle: const QrEyeStyle(
+122:                   eyeShape: QrEyeShape.square,
+123:                   color: Colors.black,
+124:                 ),
+125:               ),
+126:             ),
+127: 
+128:             const SizedBox(height: 32),
+129:             Text(
+130:               isAr ? 'Ã˜Â£Ã™Ë† Ã˜Â§Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦ Ã˜Â±Ã™â€¦Ã˜Â² Ã˜Â§Ã™â€žÃ˜Â§Ã˜Â³Ã˜ÂªÃ™â€žÃ˜Â§Ã™â€¦' : 'Or use pickup code',
+131:               style: const TextStyle(fontSize: 14, color: Colors.grey),
+132:             ),
+133:             const SizedBox(height: 8),
+134: 
+135:             // Pickup Code (PIN)
+136:             SelectableText(
+137:               pickupCode, // Ã°Å¸â€ â€¢ PIN Ã Â´â€¢Ã Â´Â¾Ã Â´Â£Ã Â´Â¿Ã Â´â€¢Ã ÂµÂÃ Â´â€¢Ã ÂµÂÃ Â´Â¨Ã ÂµÂÃ Â´Â¨Ã ÂµÂ
+138:               style: const TextStyle(
+139:                 fontSize: 24,
+140:                 fontWeight: FontWeight.w900,
+141:                 letterSpacing: 4.0,
+142:                 color: Colors.black87,
+143:               ),
+144:               textAlign: TextAlign.center,
+145:             ),
+146: 
+147:             const SizedBox(height: 40),
+148:             Container(
+149:               padding: const EdgeInsets.all(16),
+150:               decoration: BoxDecoration(
+151:                 color: Colors.white,
+152:                 borderRadius: BorderRadius.circular(16),
+153:               ),
+154:               child: Column(
+155:                 children: [
+156:                   Text(
+157:                     offerTitle,
+158:                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+159:                     textAlign: TextAlign.center,
+160:                   ),
+161:                   const SizedBox(height: 4),
+162:                   Text(
+163:                     businessName,
+164:                     style: const TextStyle(fontSize: 14, color: Colors.grey),
+165:                     textAlign: TextAlign.center,
+166:                   ),
+167:                 ],
+168:               ),
+169:             ),
+170:           ],
+171:         ),
+172:       ),
+173:     );
+174:   }
+175: 
+176:   Widget _buildRedeemedSuccess(bool isAr) {
+177:     return Center(
+178:       child: Padding(
+179:         padding: const EdgeInsets.all(24.0),
+180:         child: Column(
+181:           mainAxisAlignment: MainAxisAlignment.center,
+182:           children: [
+183:             TweenAnimationBuilder<double>(
+184:               tween: Tween(begin: 0.0, end: 1.0),
+185:               duration: const Duration(milliseconds: 800),
+186:               curve: Curves.elasticOut,
+187:               builder: (context, value, child) {
+188:                 return Transform.scale(
+189:                   scale: value,
+190:                   child: Container(
+191:                     padding: const EdgeInsets.all(30),
+192:                     decoration: BoxDecoration(
+193:                       color: MigoColors.success.withValues(alpha: 0.15),
+194:                       shape: BoxShape.circle,
+195:                     ),
+196:                     child: const Icon(
+197:                       Icons.check_circle_rounded,
+198:                       color: MigoColors.success,
+199:                       size: 100,
+200:                     ),
+201:                   ),
+202:                 );
+203:               },
+204:             ),
+205:             const SizedBox(height: 32),
+206:             Text(
+207:               isAr ? 'Ã˜ÂªÃ™â€¦ Ã˜Â§Ã™â€žÃ˜Â§Ã˜Â³Ã˜ÂªÃ˜Â±Ã˜Â¯Ã˜Â§Ã˜Â¯ Ã˜Â¨Ã™â€ Ã˜Â¬Ã˜Â§Ã˜Â­!' : 'Successfully Redeemed!',
+208:               style: const TextStyle(
+209:                 fontSize: 26,
+210:                 fontWeight: FontWeight.w900,
+211:                 color: MigoColors.success,
+212:                 letterSpacing: -0.5,
+213:               ),
+214:               textAlign: TextAlign.center,
+215:             ),
+216:             const SizedBox(height: 12),
+217:             Text(
+218:               isAr
+219:                   ? 'Ã˜Â´Ã™Æ’Ã˜Â±Ã˜Â§Ã™â€¹ Ã™â€žÃ˜Â§Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã˜Â§Ã™â€¦Ã™Æ’ Ã™â€¦Ã™Å Ã˜Â¬Ã™Ë†. Ã™â€ Ã˜ÂªÃ™â€¦Ã™â€ Ã™â€° Ã™â€žÃ™Æ’ Ã™Å Ã™Ë†Ã™â€¦Ã˜Â§Ã™â€¹ Ã˜Â³Ã˜Â¹Ã™Å Ã˜Â¯Ã˜Â§Ã™â€¹!'
+220:                   : 'Thank you for using MIGO. Have a great day!',
+221:               textAlign: TextAlign.center,
+222:               style: const TextStyle(
+223:                 fontSize: 15,
+224:                 color: MigoColors.textSecondaryLight,
+225:                 height: 1.5,
+226:               ),
+227:             ),
+228:             const SizedBox(height: 40),
+229:             Container(
+230:               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+231:               decoration: BoxDecoration(
+232:                 color: Colors.white,
+233:                 borderRadius: BorderRadius.circular(30),
+234:                 border: Border.all(color: Colors.black12),
+235:               ),
+236:               child: Text(
+237:                 offerTitle,
+238:                 style: const TextStyle(
+239:                   fontSize: 15,
+240:                   fontWeight: FontWeight.bold,
+241:                   color: MigoColors.textPrimaryLight,
+242:                 ),
+243:               ),
+244:             ),
+245:           ],
+246:         ),
+247:       ),
+248:     );
+249:   }
+250: }
+251: class _CounterScannerScreen extends StatefulWidget {
+252:   final String claimId;
+253:   final bool isAr;
+254:   const _CounterScannerScreen({required this.claimId, required this.isAr});
+255: 
+256:   @override
+257:   State<_CounterScannerScreen> createState() => _CounterScannerScreenState();
+258: }
+259: 
+260: class _CounterScannerScreenState extends State<_CounterScannerScreen> {
+261:   final MobileScannerController _controller = MobileScannerController();
+262:   bool _loading = false;
+263: 
+264:   Future<void> _redeem(String token) async {
+265:     if (_loading) return;
+266:     setState(() => _loading = true);
+267: 
+268:     try {
+269:       // Find counter by token
+270:       final counterSnap = await FirebaseFirestore.instance
+271:           .collection('branch_counters')
+272:           .where('token', isEqualTo: token)
+273:           .where('active', isEqualTo: true)
+274:           .limit(1)
+275:           .get();
+276: 
+277:       if (counterSnap.docs.isEmpty) {
+278:         throw Exception('Invalid or expired counter QR.');
+279:       }
+280: 
+281:       final counterData = counterSnap.docs.first.data();
+282:       final shopId = counterData['businessId'];
+283: 
+284:       // Get claim
+285:       final claimSnap = await FirebaseFirestore.instance.collection('claims').doc(widget.claimId).get();
+286:       if (!claimSnap.exists) throw Exception('Claim not found.');
+287:       
+288:       final claimData = claimSnap.data()!;
+289:       if (claimData['status'] != 'active') throw Exception('Claim is not active.');
+290:       if (claimData['businessId'] != shopId) throw Exception('Wrong shop! This claim belongs to another business.');
+291: 
+292:       // Update claim
+293:       await FirebaseFirestore.instance.collection('claims').doc(widget.claimId).update({
+294:         'status': 'redeemed',
+295:         'redeemedAt': FieldValue.serverTimestamp(),
+296:         'redeemedBy': shopId,
+297:       });
+298: 
+299:       if (mounted) {
+300:         Navigator.pop(context, true);
+301:       }
+302:     } catch (e) {
+303:       if (mounted) {
+304:         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+305:         setState(() => _loading = false);
+306:       }
+307:     }
+308:   }
+309: 
+310:   @override
+311:   Widget build(BuildContext context) {
+312:     return Scaffold(
+313:       appBar: AppBar(
+314:         title: Text(widget.isAr ? 'Ø§Ù…Ø³Ø­ Ø±Ù…Ø² Ø§Ù„ÙƒØ§Ø´ÙŠØ±' : 'Scan Cashier QR'),
+315:         backgroundColor: Colors.black,
+316:         foregroundColor: Colors.white,
+317:       ),
+318:       body: Stack(
+319:         children: [
+320:           MobileScanner(
+321:             controller: _controller,
+322:             onDetect: (capture) {
+323:               final barcodes = capture.barcodes;
+324:               for (final barcode in barcodes) {
+325:                 if (barcode.rawValue != null && barcode.rawValue!.startsWith('MIGO-COUNTER-')) {
+326:                   final token = barcode.rawValue!.replaceFirst('MIGO-COUNTER-', '');
+327:                   _controller.stop();
+328:                   _redeem(token);
+329:                   break;
+330:                 }
+331:               }
+332:             },
+333:           ),
+334:           if (_loading)
+335:             Container(
+336:               color: Colors.black54,
+337:               child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+338:             ),
+339:           Positioned(
+340:             bottom: 40,
+341:             left: 0,
+342:             right: 0,
+343:             child: Center(
+344:               child: Container(
+345:                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+346:                 decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(30)),
+347:                 child: Text(
+348:                   widget.isAr ? 'ÙˆØ¬Ù‡ Ø§Ù„ÙƒØ§Ù…ÙŠØ±Ø§ Ù†Ø­Ùˆ Ø±Ù…Ø² Ø§Ù„ÙƒØ§Ø´ÙŠØ±' : 'Point at the cashier QR code',
+349:                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+350:                 ),
+351:               ),
+352:             ),
+353:           ),
+354:         ],
+355:       ),
+356:     );
+357:   }
+358: }
+
+===== migo-business\lib\features\scan\shop_counters_screen.dart (1-99999) =====
+1: import 'package:flutter/material.dart';
+2: import 'package:cloud_firestore/cloud_firestore.dart';
+3: import 'package:qr_flutter/qr_flutter.dart';
+4: 
+5: class ShopCountersScreen extends StatefulWidget {
+6:   final String businessId;
+7:   const ShopCountersScreen({super.key, required this.businessId});
+8: 
+9:   @override
+10:   State<ShopCountersScreen> createState() => _ShopCountersScreenState();
+11: }
+12: 
+13: class _ShopCountersScreenState extends State<ShopCountersScreen> {
+14:   void _addCounter() async {
+15:     final nameController = TextEditingController();
+16:     await showDialog(
+17:       context: context,
+18:       builder: (context) => AlertDialog(
+19:         title: const Text('Add New Counter'),
+20:         content: TextField(
+21:           controller: nameController,
+22:           decoration: const InputDecoration(labelText: 'Counter Name (e.g. Counter 1)'),
+23:         ),
+24:         actions: [
+25:           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+26:           ElevatedButton(
+27:             onPressed: () async {
+28:               if (nameController.text.trim().isEmpty) return;
+29:               final token = DateTime.now().millisecondsSinceEpoch.toString() + widget.businessId.substring(0, 4);
+30:               await FirebaseFirestore.instance.collection('branch_counters').add({
+31:                 'businessId': widget.businessId,
+32:                 'name': nameController.text.trim(),
+33:                 'token': token,
+34:                 'active': true,
+35:                 'createdAt': FieldValue.serverTimestamp(),
+36:               });
+37:               if (context.mounted) Navigator.pop(context);
+38:             },
+39:             child: const Text('Create'),
+40:           ),
+41:         ],
+42:       ),
+43:     );
+44:   }
+45: 
+46:   @override
+47:   Widget build(BuildContext context) {
+48:     return Scaffold(
+49:       appBar: AppBar(
+50:         title: const Text('My Counters'),
+51:         backgroundColor: const Color(0xFF0F172A),
+52:         foregroundColor: Colors.white,
+53:       ),
+54:       floatingActionButton: FloatingActionButton.extended(
+55:         onPressed: _addCounter,
+56:         backgroundColor: const Color(0xFFD4AF37),
+57:         foregroundColor: Colors.black,
+58:         icon: const Icon(Icons.add),
+59:         label: const Text('Add Counter', style: TextStyle(fontWeight: FontWeight.bold)),
+60:       ),
+61:       body: StreamBuilder<QuerySnapshot>(
+62:         stream: FirebaseFirestore.instance
+63:             .collection('branch_counters')
+64:             .where('businessId', isEqualTo: widget.businessId)
+65:             .snapshots(),
+66:         builder: (context, snapshot) {
+67:           if (snapshot.connectionState == ConnectionState.waiting) {
+68:             return const Center(child: CircularProgressIndicator());
+69:           }
+70:           final docs = snapshot.data?.docs ?? [];
+71:           if (docs.isEmpty) {
+72:             return const Center(child: Text('No counters found. Add one to get started.'));
+73:           }
+74:           return ListView.builder(
+75:             padding: const EdgeInsets.all(16),
+76:             itemCount: docs.length,
+77:             itemBuilder: (context, index) {
+78:               final data = docs[index].data() as Map<String, dynamic>;
+79:               final token = data['token'] ?? '';
+80:               return Card(
+81:                 margin: const EdgeInsets.only(bottom: 16),
+82:                 elevation: 4,
+83:                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+84:                 child: Padding(
+85:                   padding: const EdgeInsets.all(20),
+86:                   child: Column(
+87:                     children: [
+88:                       Text(
+89:                         data['name'] ?? 'Counter',
+90:                         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+91:                       ),
+92:                       const SizedBox(height: 16),
+93:                       if (token.isNotEmpty)
+94:                         QrImageView(
+95:                           data: 'MIGO-COUNTER-$token',
+96:                           version: QrVersions.auto,
+97:                           size: 200.0,
+98:                         ),
+99:                       const SizedBox(height: 16),
+100:                       const Text(
+101:                         'Show this to a customer to redeem their offer.',
+102:                         textAlign: TextAlign.center,
+103:                         style: TextStyle(color: Colors.grey),
+104:                       ),
+105:                     ],
+106:                   ),
+107:                 ),
+108:               );
+109:             },
+110:           );
+111:         },
+112:       ),
+113:     );
+114:   }
+115: }
+
+===== migo-business\lib\features\scan\scan_qr_screen.dart (1-175) =====
+1: import 'package:flutter/material.dart';
+2: import 'package:cloud_firestore/cloud_firestore.dart';
+3: import 'package:mobile_scanner/mobile_scanner.dart';
+4: 
+5: 
+6: class ScanQrScreen extends StatefulWidget {
+7:   final String businessId;
+8:   const ScanQrScreen({super.key, required this.businessId});
+9: 
+10:   @override
+11:   State<ScanQrScreen> createState() => _ScanQrScreenState();
+12: }
+13: 
+14: class _ScanQrScreenState extends State<ScanQrScreen> {
+15:   final _codeController = TextEditingController();
+16:   final _scannerController = MobileScannerController();
+17:   
+18:   bool _loading = false;
+19:   bool _cameraMode = false;
+20:   String? _successMsg;
+21:   String? _errorMsg;
+22: 
+23:   @override
+24:   void dispose() {
+25:     _codeController.dispose();
+26:     _scannerController.dispose();
+27:     super.dispose();
+28:   }
+29: 
+30:   Future<void> _redeem(String code) async {
+31:     final trimmed = code.trim();
+32:     if (trimmed.isEmpty) return;
+33: 
+34:     FocusScope.of(context).unfocus();
+35:     setState(() {
+36:       _loading = true;
+37:       _successMsg = null;
+38:       _errorMsg = null;
+39:     });
+40: 
+41:     try {
+42:       String? pin;
+43:       String? claimId;
+44: 
+45:       if (trimmed.startsWith('MIGO-CLAIM-')) {
+46:         final parts = trimmed.split('-');
+47:         if (parts.length >= 5) {
+48:           claimId = parts[2];
+49:           pin = parts[4];
+50:         }
+51:       } else if (trimmed.startsWith('MIGO-OFFER-')) {
+52:         final parts = trimmed.split('-');
+53:         if (parts.length >= 3) {
+54:           pin = parts[2];
+55:         }
+56:       } else if (RegExp(r'^\d{6}$').hasMatch(trimmed)) {
+57:         pin = trimmed;
+58:       }
+59: 
+60:       if (pin == null) {
+61:         throw Exception('Invalid QR format. Please scan a valid claim.');
+62:       }
+63: 
+64:       // Try demand_claims first
+65:       QuerySnapshot demandQuery = await FirebaseFirestore.instance
+66:           .collection('demand_claims')
+67:           .where('pin', isEqualTo: pin)
+68:           .where('businessId', isEqualTo: widget.businessId)
+69:           .where('status', isEqualTo: 'locked')
+70:           .limit(1)
+71:           .get();
+72: 
+73:       if (demandQuery.docs.isNotEmpty) {
+74:         final claimDoc = demandQuery.docs.first;
+75:         final claimData = claimDoc.data() as Map<String, dynamic>;
+76: 
+77:         await claimDoc.reference.update({
+78:           'status': 'redeemed',
+79:           'redeemedAt': FieldValue.serverTimestamp(),
+80:         });
+81: 
+82:         final groupId = claimData['groupId'];
+83:         if (groupId != null) {
+84:           await FirebaseFirestore.instance
+85:               .collection('demand_groups')
+86:               .doc(groupId)
+87:               .update({
+88:             'status': 'fulfilled',
+89:             'redeemedAt': FieldValue.serverTimestamp(),
+90:           });
+91:         }
+92: 
+93:         if (!mounted) return;
+94:         setState(() {
+95:           _successMsg = 'Demand Claim Redeemed!\nPIN: ${claimData['pin']}';
+96:           _codeController.clear();
+97:           _cameraMode = false;
+98:         });
+99:         return;
+100:       }
+101: 
+102:       // Try old claims collection
+103:       QuerySnapshot oldQuery = await FirebaseFirestore.instance
+104:           .collection('claims')
+105:           .where('pickupCode', isEqualTo: pin)
+106:           .where('businessId', isEqualTo: widget.businessId)
+107:           .where('status', isEqualTo: 'active')
+108:           .limit(1)
+109:           .get();
+110: 
+111:       if (oldQuery.docs.isNotEmpty) {
+112:         await oldQuery.docs.first.reference.update({
+113:           'status': 'redeemed',
+114:           'redeemedAt': FieldValue.serverTimestamp(),
+115:         });
+116:         // 🆕 Trust Score System
+117:         final claimData = oldQuery.docs.first.data() as Map<String, dynamic>;
+118:         final bizId = claimData['businessId'];
+119:         if (bizId != null) {
+120:           await FirebaseFirestore.instance.collection('businesses').doc(bizId).update({
+121:             'trustScore': FieldValue.increment(1),
+122:           });
+123:         }
+124:         // 🆕 Creator Earnings: ക്രിയേറ്റർക്ക് എർണിംഗ് ഉണ്ടാക്കുക
+125:         final creatorId = claimData['creatorId'];
+126:         final collabId = claimData['collabId'];
+127:         if (creatorId != null && collabId != null) {
+128:           final collabSnap = await FirebaseFirestore.instance.collection('collabs').doc(collabId).get();
+129:           if (collabSnap.exists) {
+130:             final fee = (collabSnap.data()?['feePerRedemption'] as num?)?.toDouble() ?? 0;
+131:             if (fee > 0) {
+132:               await FirebaseFirestore.instance.collection('creator_earnings').add({
+133:                 'creatorId': creatorId,
+134:                 'claimId': oldQuery.docs.first.id,
+135:                 'amount': fee,
+136:                 'currency': 'QAR',
+137:                 'status': 'pending',
+138:                 'createdAt': FieldValue.serverTimestamp(),
+139:               });
+140:             }
+141:           }
+142:         }
+143:         if (!mounted) return;
+144:         setState(() {
+145:           _successMsg = 'Offer Claim Redeemed Successfully!\nCode: $pin';
+146:           _codeController.clear();
+147:           _cameraMode = false;
+148:         });
+149:         return;
+150:       }
+151: 
+152:       throw Exception('Invalid or already redeemed claim.');
+153:     } catch (e) {
+154:       if (!mounted) return;
+155:       setState(() {
+156:         _errorMsg = e.toString().replaceFirst('Exception: ', '');
+157:       });
+158:     } finally {
+159:       if (mounted) setState(() => _loading = false);
+160:     }
+161:   }
+162: 
+163:   @override
+164:   Widget build(BuildContext context) {
+165:     return Scaffold(
+166:       backgroundColor: const Color(0xFFF8F9FA), // à´ªàµà´°àµ€à´®à´¿à´¯à´‚ à´¬à´¾à´•àµà´•àµà´—àµà´°àµ—à´£àµà´Ÿàµ
+167:       appBar: AppBar(
+168:         title: const Text(
+169:           'Scan & Redeem',
+170:           style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
+171:         ),
+172:         backgroundColor: const Color(0xFF0F172A), // à´¡à´¾àµ¼à´•àµà´•àµ à´¬àµà´²àµ‚
+173:         foregroundColor: Colors.white,
+174:         elevation: 0,
+175:       ),
+
+===== migo-business\lib\services\claim_service.dart (1-99999) =====
+1: import 'package:cloud_firestore/cloud_firestore.dart';
+2: import 'package:firebase_auth/firebase_auth.dart';
+3: import 'package:flutter/foundation.dart';
+4: 
+5: import '../models/claim_model.dart';
+6: 
+7: class ClaimService {
+8:   ClaimService._();
+9:   static final ClaimService instance = ClaimService._();
+10: 
+11:   final FirebaseFirestore _db = FirebaseFirestore.instance;
+12: 
+13:   CollectionReference get _claims => _db.collection('claims');
+14:   CollectionReference get _users => _db.collection('users');
+15:   CollectionReference get _notifications => _db.collection('notifications');
+16: 
+17:   Future<void> redeemClaim({
+18:     required String claimId,
+19:     required String businessId,
+20:   }) async {
+21:     debugPrint('ðŸ”µ redeemClaim: claimId=$claimId');
+22: 
+23:     // âœ… 1. QR à´•àµ‹à´¡àµ à´‰à´ªà´¯àµ‹à´—à´¿à´šàµà´šàµ 'demand_claims' à´•à´³à´•àµà´·à´¨à´¿àµ½ à´¤à´¿à´°à´¯àµà´¨àµà´¨àµ
+24:     var querySnapshot = await _db.collection('demand_claims')
+25:         .where('qrData', isEqualTo: claimId)
+26:         .limit(1)
+27:         .get();
+28: 
+29:     // âœ… 2. à´’à´°àµ à´ªà´•àµà´·àµ‡ QR à´¡à´¾à´±àµà´± à´•à´£àµà´Ÿàµ†à´¤àµà´¤à´¿à´¯à´¿à´²àµà´²àµ†à´™àµà´•à´¿àµ½, redemptionPin à´‰à´ªà´¯àµ‹à´—à´¿à´šàµà´šàµ à´¨àµ‹à´•àµà´•àµà´¨àµà´¨àµ
+30:     if (querySnapshot.docs.isEmpty) {
+31:        querySnapshot = await _db.collection('demand_claims')
+32:         .where('redemptionPin', isEqualTo: claimId)
+33:         .limit(1)
+34:         .get();
+35:     }
+36: 
+37:     // âœ… 3. à´…à´¤àµà´‚ à´•à´£àµà´Ÿàµ†à´¤àµà´¤à´¿à´¯à´¿à´²àµà´²àµ†à´™àµà´•à´¿àµ½, à´¨àµ‡à´°à´¿à´Ÿàµà´Ÿàµ à´¡àµ‹à´•àµà´¯àµà´®àµ†à´¨àµà´±àµ ID à´†à´¯à´¿ à´¤à´¿à´°à´¯àµà´¨àµà´¨àµ
+38:     if (querySnapshot.docs.isEmpty) {
+39:        querySnapshot = await _db.collection('demand_claims')
+40:         .where(FieldPath.documentId, isEqualTo: claimId)
+41:         .limit(1)
+42:         .get();
+43:     }
+44: 
+45:     if (querySnapshot.docs.isEmpty) {
+46:       throw Exception('Invalid or already used QR code');
+47:     }
+48: 
+49:     final snap = querySnapshot.docs.first;
+50:     final data = snap.data() as Map<String, dynamic>;
+51:     
+52:     if (data['status'] != 'locked') {
+53:        throw Exception('This claim is already ${data['status']}.');
+54:     }
+55: 
+56:     // 4. Mark as redeemed (à´‡à´µà´¿à´Ÿàµ† à´±àµ‚à´³àµà´®à´¾à´¯à´¿ à´ªàµŠà´°àµà´¤àµà´¤à´ªàµà´ªàµ†à´Ÿà´¾àµ» businessId à´¨àµ½à´•àµà´¨àµà´¨àµ)
+57:     await _db.collection('demand_claims').doc(snap.id).update({
+58:       'status': 'redeemed',
+59:       'redeemedAt': FieldValue.serverTimestamp(),
+60:       'businessId': FirebaseAuth.instance.currentUser?.uid, // âœ… à´²àµ‹à´—à´¿àµ» UID
+61:       'redeemedBy': FirebaseAuth.instance.currentUser?.uid,
+62:     });
+63: 
+64:     debugPrint('âœ… Claim redeemed successfully!');
+65:   }
+66: 
+67:   // ðŸ†• Coin Payment Accept (Pay with Coins)
+68:   Future<void> acceptCoinPayment({
+69:     required String paymentId,
+70:     required String customerUid,
+71:     required int coinsUsed,
+72:     required String businessId,
+73:   }) async {
+74:     final ref = _db.collection('coin_payments').doc(paymentId);
+75:     
+76:     await _db.runTransaction((tx) async {
+77:       final snap = await tx.get(ref);
+78:       if (!snap.exists) throw Exception("Payment request not found");
+79:       if (snap.data()!['status'] != 'pending') throw Exception("Already processed");
+80: 
+81:       tx.update(ref, {
+82:         'status': 'accepted',
+83:         'acceptedAt': FieldValue.serverTimestamp(),
+84:       });
+85: 
+86:       final userRef = _users.doc(customerUid);
+87:       tx.update(userRef, {
+88:         'coins': FieldValue.increment(-coinsUsed),
+89:         'updatedAt': FieldValue.serverTimestamp(),
+90:       });
+91: 
+92:       final txRef = _db.collection('coin_transactions').doc();
+93:       tx.set(txRef, {
+94:         'uid': customerUid,
+95:         'amount': -coinsUsed,
+96:         'type': 'spent',
+97:         'description': 'Paid at business ($businessId)',
+98:         'createdAt': FieldValue.serverTimestamp(),
+99:       });
+100:     });
+101:   }
+102: 
+103:   Future<void> _addCoins({
+104:     required String uid,
+105:     required int amount,
+106:     required String reason,
+107:     required int expiryDays,
+108:   }) async {
+109:     try {
+110:       final expiryDate = DateTime.now().add(Duration(days: expiryDays));
+111: 
+112:       await _users.doc(uid).update({
+113:         'coins': FieldValue.increment(amount),
+114:         'coinsExpireAt': Timestamp.fromDate(expiryDate),
+115:       });
+116: 
+117:       await _db.collection('coin_transactions').add({
+118:         'uid': uid,
+119:         'amount': amount,
+120:         'type': 'redeem',
+121:         'description': reason,
+122:         'createdAt': FieldValue.serverTimestamp(),
+123:       });
+124:     } catch (e) {
+125:       debugPrint('âš ï¸ addCoins error: $e');
+126:     }
+127:   }
+128: }
+
+===== mobile\lib\services\firestore_service.dart (600-740) =====
+600:       'claimedCount': FieldValue.increment(1),
+601:       'updatedAt': FieldValue.serverTimestamp(),
+602:     });
+603: 
+604:     await createNotification(
+605:       NotificationModel.newDraft(
+606:         userUid: claim.userUid,
+607:         type: NotifType.coinEarned,
+608:         title: 'Offer Claimed',
+609:         body: 'You claimed "${claim.offerTitle}" at ${claim.businessName}.',
+610:         targetRoute: 'claim',
+611:         targetId: ref.id,
+612:       ),
+613:     );
+614: 
+615:     await _maybeRewardReferral(claim.userUid);
+616: 
+617:     return ref.id;
+618:   }
+619: 
+620:   Future<ClaimModel?> findActiveClaim({
+621:     required String userUid,
+622:     required String offerId,
+623:   }) async {
+624:     final snap = await _claims
+625:         .where('userUid', isEqualTo: userUid)
+626:         .where('offerId', isEqualTo: offerId)
+627:         .limit(10)
+628:         .get();
+629:     for (final doc in snap.docs) {
+630:       final claim = ClaimModel.fromMap(doc.id, doc.data());
+631:       if (claim.status == ClaimStatus.active ||
+632:           claim.status == ClaimStatus.redeemed) {
+633:         return claim;
+634:       }
+635:     }
+636:     return null;
+637:   }
+638: 
+639:   Stream<List<ClaimModel>> streamMyClaims(String userUid) {
+640:     return _claims
+641:         .where('userUid', isEqualTo: userUid)
+642:         .limit(50)
+643:         .snapshots()
+644:         .map((snap) =>
+645:             snap.docs.map((d) => ClaimModel.fromMap(d.id, d.data())).toList());
+646:   }
+647: 
+648:   Stream<List<ClaimModel>> streamBusinessClaims(String businessId) {
+649:     return _claims
+650:         .where('businessId', isEqualTo: businessId)
+651:         .limit(200)
+652:         .snapshots()
+653:         .map((snap) =>
+654:             snap.docs.map((d) => ClaimModel.fromMap(d.id, d.data())).toList());
+655:   }
+656: 
+657:   Future<void> updateClaim(String id, Map<String, dynamic> data) async {
+658:     await _claims.doc(id).update(data);
+659:   }
+660: 
+661:   Future<void> redeemClaim({
+662:     required String claimId,
+663:     required String businessId,
+664:   }) async {
+665:     debugPrint('Ã°Å¸â€Âµ redeemClaim: claimId=$claimId');
+666:     final snap = await _claims.doc(claimId).get();
+667:     if (!snap.exists || snap.data() == null) {
+668:       throw Exception('Claim not found');
+669:     }
+670:     final claim = ClaimModel.fromMap(claimId, snap.data()!);
+671:     if (claim.businessId != businessId) {
+672:       throw Exception('This claim belongs to a different business.');
+673:     }
+674:     if (claim.status != ClaimStatus.active) {
+675:       throw Exception('Claim is already ${claim.status.label.toLowerCase()}.');
+676:     }
+677:     if (claim.expiresAt.isBefore(DateTime.now())) {
+678:       throw Exception('This claim has expired.');
+679:     }
+680:     await _claims.doc(claimId).update({
+681:       'status': ClaimStatus.redeemed.id,
+682:       'redeemedAt': FieldValue.serverTimestamp(),
+683:       'redeemedBy': businessId,
+684:     });
+685: 
+686:     final settings = await getCoinSettings();
+687:     final int claimCoins = settings.claimReward;
+688: 
+689:     await addCoins(
+690:       uid: claim.userUid,
+691:       amount: claimCoins,
+692:       reason: 'Redeemed "${claim.offerTitle}"',
+693:       bypassCaps: true,
+694:     );
+695: 
+696:     await createNotification(
+697:       NotificationModel.newDraft(
+698:         userUid: claim.userUid,
+699:         type: NotifType.coinEarned,
+700:         title: '+$claimCoins MIGO Coins',
+701:         body: 'Your "${claim.offerTitle}" was redeemed at ${claim.businessName}.',
+702:         targetRoute: 'wallet',
+703:       ),
+704:     );
+705: 
+706:     final sharedBy = await ReferralTracker.instance.getSharedBy();
+707:     if (sharedBy != null && sharedBy.isNotEmpty && sharedBy != claim.userUid) {
+708:       final configSnap =
+709:           await _db.collection('config').doc('share_rewards').get();
+710:       final config = configSnap.data();
+711:       final enabled = config?['enabled'] as bool? ?? false;
+712:       final coins = (config?['coinsPerRedeem'] as num?)?.toInt() ?? 10;
+713: 
+714:       if (enabled) {
+715:         await addCoins(
+716:           uid: sharedBy,
+717:           amount: coins,
+718:           reason: 'Your shared offer was redeemed',
+719:           bypassCaps: true,
+720:         );
+721:         await createNotification(
+722:           NotificationModel.newDraft(
+723:             userUid: sharedBy,
+724:             type: NotifType.coinEarned,
+725:             title: '+$coins MIGO Coins',
+726:             body: 'Your shared offer "${claim.offerTitle}" was redeemed!',
+727:             targetRoute: 'wallet',
+728:           ),
+729:         );
+730:         await ReferralTracker.instance.clearSharedBy();
+731:       }
+732:     }
+733:   }
+734: 
+735:   // ---------- REVIEWS ----------
+736:   CollectionReference<Map<String, dynamic>> get _reviews =>
+737:       _db.collection('reviews');
+738: 
+739:   /// Ã°Å¸â€ â€¢ Average rating (simple double) Ã¢â‚¬â€ used by discover_screen
+740:   Future<double> getAverageRating(String businessId) async {
+
+===== mobile\lib\models\claim_model.dart (1-99999) =====
+1: import 'package:cloud_firestore/cloud_firestore.dart';
+2: 
+3: enum ClaimStatus {
+4:   active,
+5:   redeemed,
+6:   expired,
+7: }
+8: 
+9: extension ClaimStatusX on ClaimStatus {
+10:   String get id => name;
+11:   
+12:   String get label {
+13:     switch (this) {
+14:       case ClaimStatus.active:
+15:         return 'Active';
+16:       case ClaimStatus.redeemed:
+17:         return 'Redeemed';
+18:       case ClaimStatus.expired:
+19:         return 'Expired';
+20:     }
+21:   }
+22: }
+23: 
+24: ClaimStatus claimStatusFromString(String? s) {
+25:   switch (s) {
+26:     case 'redeemed':
+27:       return ClaimStatus.redeemed;
+28:     case 'expired':
+29:       return ClaimStatus.expired;
+30:     default:
+31:       return ClaimStatus.active;
+32:   }
+33: }
+34: 
+35: class ClaimModel {
+36:   const ClaimModel({
+37:     required this.id,
+38:     required this.userUid,
+39:     required this.businessId,
+40:     required this.businessName,
+41:     required this.offerId,
+42:     required this.offerTitle,
+43:     required this.currency,
+44:     required this.originalPrice,
+45:     required this.offerPrice,
+46:     this.pickupCode, // ðŸ†• PIN / Pickup Code
+47:     required this.status,
+48:     required this.claimedAt,
+49:     required this.expiresAt,
+50:     this.redeemedAt,
+51:     this.redeemedBy,
+52:     this.source,
+53:     this.creatorId,
+54:     this.collabId,
+55:     this.contentId,
+56:   });
+57: 
+58:   final String id;
+59:   final String userUid;
+60:   final String businessId;
+61:   final String businessName;
+62:   final String offerId;
+63:   final String offerTitle;
+64:   final String currency;
+65:   final double originalPrice;
+66:   final double offerPrice;
+67:   
+68:   final String? pickupCode; // ðŸ†• PIN / Pickup Code
+69:   
+70:   final ClaimStatus status;
+71:   final DateTime claimedAt;
+72:   final DateTime expiresAt;
+73:   final DateTime? redeemedAt;
+74:   final String? redeemedBy;
+75:   final String? source;
+76:   final String? creatorId;
+77:   final String? collabId;
+78:   final String? contentId;
+79: 
+80:   factory ClaimModel.fromMap(String id, Map<String, dynamic> map) {
+81:     return ClaimModel(
+82:       id: id,
+83:       userUid: (map['userUid'] ?? '') as String,
+84:       businessId: (map['businessId'] ?? '') as String,
+85:       businessName: (map['businessName'] ?? '') as String,
+86:       offerId: (map['offerId'] ?? '') as String,
+87:       offerTitle: (map['offerTitle'] ?? '') as String,
+88:       currency: (map['currency'] ?? 'QAR') as String,
+89:       originalPrice: (map['originalPrice'] as num? ?? 0).toDouble(),
+90:       offerPrice: (map['offerPrice'] as num? ?? 0).toDouble(),
+91:       pickupCode: map['pickupCode'] as String?, // ðŸ†• à´®à´¾à´ªàµà´ªà´¿àµ½ à´¨à´¿à´¨àµà´¨àµ à´Žà´Ÿàµà´•àµà´•àµà´¨àµà´¨àµ
+92:       status: claimStatusFromString(map['status'] as String?),
+93:       claimedAt: (map['claimedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+94:       expiresAt: (map['expiresAt'] as Timestamp?)?.toDate() ?? DateTime.now().add(const Duration(days: 7)),
+95:       redeemedAt: (map['redeemedAt'] as Timestamp?)?.toDate(),
+96:       redeemedBy: map['redeemedBy'] as String?,
+97:       source: map['source'] as String?,
+98:       creatorId: map['creatorId'] as String?,
+99:       collabId: map['collabId'] as String?,
+100:       contentId: map['contentId'] as String?,
+101:     );
+102:   }
+103: 
+104:   Map<String, dynamic> toMap() {
+105:     return {
+106:       'userUid': userUid,
+107:       'businessId': businessId,
+108:       'businessName': businessName,
+109:       'offerId': offerId,
+110:       'offerTitle': offerTitle,
+111:       'currency': currency,
+112:       'originalPrice': originalPrice,
+113:       'offerPrice': offerPrice,
+114:       'pickupCode': pickupCode, // ðŸ†• à´¡à´¾à´±àµà´±à´¾à´¬àµ‡à´¸à´¿à´²àµ‡à´•àµà´•àµ à´¸àµ‡à´µàµ à´šàµ†à´¯àµà´¯àµà´¨àµà´¨àµ
+115:       'status': status.id,
+116:       'claimedAt': Timestamp.fromDate(claimedAt),
+117:       'expiresAt': Timestamp.fromDate(expiresAt),
+118:       'redeemedAt': redeemedAt != null ? Timestamp.fromDate(redeemedAt!) : null,
+119:       'redeemedBy': redeemedBy,
+120:       'source': source,
+121:       'creatorId': creatorId,
+122:       'collabId': collabId,
+123:       'contentId': contentId,
+124:     };
+125:   }
+126: }
+
+===== firestore.rules (1-99999) =====
+1: rules_version = '2';
+2: service cloud.firestore {
+3:   match /databases/{database}/documents {
+4: 
+5:     // Product Requests
+6:     match /product_requests/{document=**} {
+7:       allow read: if true;
+8:       allow write: if request.auth != null;
+9:     }
+10: 
+11:     // App Config (Theme Colors & Demand Settings)
+12:     match /app_config/{document=**} {
+13:       allow read: if true;
+14:       allow write: if request.auth != null;
+15:     }
+16: 
+17:     // ---------- HELPER FUNCTIONS ----------
+18:     function isSignedIn() {
+19:       return request.auth != null;
+20:     }
+21: 
+22:     function isOwner(uid) {
+23:       return isSignedIn() && request.auth.uid == uid;
+24:     }
+25: 
+26:     function getUserRole() {
+27:       return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+28:         ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+29:         : 'guest';
+30:     }
+31: 
+32:     function isSuperAdmin() {
+33:       return isSignedIn() && getUserRole() == 'super_admin';
+34:     }
+35: 
+36:     function isAdmin() {
+37:       return isSignedIn() &&
+38:         (getUserRole() == 'admin' || getUserRole() == 'super_admin');
+39:     }
+40: 
+41:     function isModerator() {
+42:       return isSignedIn() &&
+43:         (getUserRole() == 'moderator' ||
+44:          getUserRole() == 'admin' ||
+45:          getUserRole() == 'super_admin');
+46:     }
+47: 
+48:     function isAgency() {
+49:       return isSignedIn() && getUserRole() == 'agency';
+50:     }
+51: 
+52:     function isBusinessOwner(businessId) {
+53:       return isSignedIn() &&
+54:         get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerUid == request.auth.uid;
+55:     }
+56: 
+57:     function isAgencyOwner(businessId) {
+58:       return isSignedIn() &&
+59:         isAgency() &&
+60:         get(/databases/$(database)/documents/businesses/$(businessId)).data.agencyUid == request.auth.uid;
+61:     }
+62: 
+63:     // ---------- USERS ----------
+64:     match /users/{uid} {
+65:       allow read: if isSignedIn();
+66:       allow list: if isSignedIn();
+67:       
+68:       allow create: if isSignedIn() &&
+69:         request.auth.uid == uid;
+70:       
+71:       allow update: if isSignedIn() && (
+72:         (request.auth.uid == uid &&
+73:          (
+74:            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']) ||
+75:            (request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']) && request.resource.data.role == 'customer')
+76:          )
+77:         ) ||
+78:         isAdmin() ||
+79:         (request.resource.data.diff(resource.data)
+80:            .affectedKeys().hasOnly(['coins', 'coinsExpireAt', 'updatedAt']) && 
+81:          (getUserRole() == 'business' || isAdmin() || isModerator()))
+82:       );
+83:       
+84:       allow delete: if isSuperAdmin();
+85:     }
+86: 
+87:     // ---------- FLYERS ----------
+88:     match /flyers/{flyerId} {
+89:       allow read: if true; 
+90:       allow create: if isSignedIn() && 
+91:         isBusinessOwner(request.resource.data.businessId);
+92:       allow update: if isSignedIn() && 
+93:         (
+94:           isBusinessOwner(resource.data.businessId) || 
+95:           isAdmin() || 
+96:           isModerator() ||
+97:           (request.resource.data.diff(resource.data).affectedKeys()
+98:             .hasOnly(['viewedBy', 'fullyViewedBy', 'updatedAt']))
+99:         );
+100:       allow delete: if isSignedIn() && 
+101:         (isBusinessOwner(resource.data.businessId) || isAdmin() || isModerator());
+102:     }
+103: 
+104:     // ---------- BUSINESSES ----------
+105:     match /businesses/{businessId} {
+106:       allow read: if true;
+107:       allow create: if isSignedIn() &&
+108:         (
+109:           request.resource.data.ownerUid == request.auth.uid ||
+110:           isAdmin() ||
+111:           isModerator()
+112:         );
+113:       allow update: if isSignedIn() &&
+114:         (resource.data.ownerUid == request.auth.uid ||
+115:          isAdmin() ||
+116:          isModerator() ||
+117:          isAgencyOwner(businessId));
+118:       allow delete: if isAdmin();
+119:     }
+120: 
+121:     // ---------- OFFERS ----------
+122:     match /offers/{offerId} {
+123:       allow read: if true;
+124:       allow create: if isSignedIn() &&
+125:         isBusinessOwner(request.resource.data.businessId);
+126:       allow update: if isSignedIn() &&
+127:         (
+128:           (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bookedSlots', 'updatedAt'])) ||
+129:           (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['claimedCount', 'updatedAt']) &&
+130:             request.resource.data.claimedCount == resource.data.claimedCount + 1) ||
+131:           (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reserve', 'updatedAt'])) ||
+132:           isBusinessOwner(resource.data.businessId) ||
+133:           isAdmin() ||
+134:           isModerator()
+135:         );
+136:       allow delete: if isAdmin();
+137:     }
+138: 
+139:     // ---------- CLAIMS ----------
+140:     match /claims/{claimId} {
+141:       allow read: if isSignedIn() && (
+142:         resource.data.userUid == request.auth.uid ||
+143:         isBusinessOwner(resource.data.businessId) ||
+144:         isModerator() ||
+145:         isAgency()
+146:       );
+147:       allow list: if isSignedIn();
+148:       allow create: if isSignedIn() &&
+149:         request.resource.data.userUid == request.auth.uid;
+150:       allow update: if isSignedIn() && (
+151:         resource.data.userUid == request.auth.uid ||
+152:         isBusinessOwner(resource.data.businessId) || 
+153:         isModerator() ||
+154:         isAdmin()
+155:       );
+156:       allow delete: if isAdmin();
+157:     }
+158: 
+159:     // ---------- GROUP DEALS ----------
+160:     match /group_deals/{offerId} {
+161:       allow read, write: if request.auth != null;
+162:     }
+163:     match /group_joins/{joinId} {
+164:       allow read: if isSignedIn();
+165:       allow create: if isSignedIn() && request.resource.data.userUid == request.auth.uid;
+166:       allow delete: if isSignedIn() && resource.data.userUid == request.auth.uid;
+167:     }
+168: 
+169:     // ---------- REVIEWS ----------
+170:     match /reviews/{reviewId} {
+171:       allow read: if true;
+172:       allow create: if isSignedIn() &&
+173:         request.resource.data.userUid == request.auth.uid;
+174:       allow update: if isSignedIn() &&
+175:         (resource.data.userUid == request.auth.uid || isModerator());
+176:       allow delete: if isSignedIn() &&
+177:         (resource.data.userUid == request.auth.uid || isAdmin());
+178:     }
+179: 
+180:     // ---------- REFERRALS ----------
+181:     match /referrals/{referralId} {
+182:       allow read: if isSignedIn() &&
+183:         (resource.data.referrerUid == request.auth.uid ||
+184:          resource.data.referredUid == request.auth.uid ||
+185:          isModerator());
+186:       allow create: if true;
+187:       allow update: if true;
+188:       allow delete: if isAdmin();
+189:     }
+190: 
+191:     // ---------- CREATORS (NEW) ----------
+192:     match /creators/{creatorId} {
+193:       allow read: if true;
+194:       allow create, update: if isSignedIn();
+195:       allow delete: if isAdmin();
+196:     }
+197: 
+198:     // ---------- CREATOR CONTENT (NEW) ----------
+199:     match /creator_content/{contentId} {
+200:       allow read: if true;
+201:       allow create, update: if isSignedIn();
+202:       allow delete: if isAdmin();
+203:     }
+204: 
+205:     // 🆕 CONTENT LIKES
+206:     match /content_likes/{likeId} {
+207:       allow read: if true;
+208:       allow create, delete: if isSignedIn();
+209:     }
+210: 
+211:     // 🆕 SAVED REELS
+212:     match /saved_reels/{saveId} {
+213:       allow read: if isSignedIn();
+214:       allow create, delete: if isSignedIn();
+215:     }
+216: 
+217:     // ---------- COLLABS (NEW) ----------
+218:     match /collabs/{collabId} {
+219:       allow read: if isSignedIn();
+220:       allow create, update: if isSignedIn();
+221:       allow delete: if isAdmin();
+222:     }
+223: 
+224:     // ---------- REDEMPTIONS (NEW) ----------
+225:     match /redemptions/{redemptionId} {
+226:       allow read: if isSignedIn();
+227:       allow create: if isSignedIn();
+228:       allow update, delete: if isAdmin();
+229:     }
+230: 
+231:     // ---------- BRANCH COUNTERS (NEW) ----------
+232:     match /branch_counters/{counterId} {
+233:       allow read: if true;
+234:       allow create, update: if isSignedIn();
+235:       allow delete: if isAdmin();
+236:     }
+237: 
+238:     // ---------- NOTIFICATIONS ----------
+239:     match /notifications/{notifId} {
+240:       allow read: if isSignedIn() &&
+241:         resource.data.userUid == request.auth.uid;
+242:       allow create: if isSignedIn(); 
+243:       allow update: if isSignedIn() &&
+244:         resource.data.userUid == request.auth.uid;
+245:       allow delete: if isAdmin();
+246:     }
+247: 
+248:     // ---------- COIN TRANSACTIONS ----------
+249:     match /coin_transactions/{txId} {
+250:       allow read: if isSignedIn() &&
+251:         (resource.data.uid == request.auth.uid || isModerator());
+252:       allow create: if isSignedIn();
+253:       allow update, delete: if isAdmin();
+254:     }
+255: 
+256:     // ---------- FRAUD LOGS ----------
+257:     match /fraud_logs/{logId} {
+258:       allow create: if isSignedIn();
+259:       allow read: if isModerator();
+260:       allow update, delete: if isAdmin();
+261:     }
+262: 
+263:     // ---------- SAVED OFFERS ----------
+264:     match /saved_offers/{docId} {
+265:       allow read: if isSignedIn() &&
+266:         ((resource != null && resource.data.userUid == request.auth.uid) || (resource == null));
+267:       allow create: if isSignedIn() &&
+268:         request.resource.data.userUid == request.auth.uid;
+269:       allow update, delete: if isSignedIn() &&
+270:         resource.data.userUid == request.auth.uid;
+271:     }
+272: 
+273:     // ---------- SAVED BUSINESSES ----------
+274:     match /saved_businesses/{docId} {
+275:       allow read: if isSignedIn() &&
+276:         ((resource != null && resource.data.userUid == request.auth.uid) || (resource == null));
+277:       allow create: if isSignedIn() &&
+278:         request.resource.data.userUid == request.auth.uid;
+279:       allow update, delete: if isSignedIn() &&
+280:         resource.data.userUid == request.auth.uid;
+281:     }
+282: 
+283:     // ---------- CATEGORIES ----------
+284:     match /categories/{categoryId} {
+285:       allow read: if true;
+286:       allow create, update: if isModerator();
+287:       allow delete: if isAdmin();
+288:     }
+289: 
+290:     // ---------- GEOGRAPHY ----------
+291:     match /countries/{countryCode} {
+292:       allow read: if true;
+293:       allow create, update: if isAdmin() || isModerator();
+294:       allow delete: if isAdmin();
+295:     }
+296: 
+297:     match /zones/{zoneId} {
+298:       allow read: if true;
+299:       allow create, update: if isAdmin() || isModerator();
+300:       allow delete: if isAdmin();
+301:     }
+302: 
+303:     match /areas/{areaId} {
+304:       allow read: if true;
+305:       allow create, update: if isAdmin() || isModerator();
+306:       allow delete: if isAdmin();
+307:     }
+308: 
+309:     // ---------- AGENCIES ----------
+310:     match /agencies/{agencyId} {
+311:       allow read: if true;
+312:       allow create: if isAdmin() ||
+313:         (isSignedIn() && request.resource.data.ownerUid == request.auth.uid);
+314:       allow update: if isAdmin() ||
+315:         (isSignedIn() && resource.data.ownerUid == request.auth.uid);
+316:       allow delete: if isSuperAdmin();
+317:     }
+318: 
+319:     // ---------- LANGUAGES ----------
+320:     match /languages/{langCode} {
+321:       allow read: if true;
+322:       allow write: if isAdmin();
+323:     }
+324: 
+325:     // ---------- APP STRINGS ----------
+326:     match /app_strings/{stringId} {
+327:       allow read: if true;
+328:       allow write: if isAdmin();
+329:     }
+330: 
+331:     // ---------- CUSTOMER BEHAVIOR ----------
+332:     match /customer_behavior/{eventId} {
+333:       allow read: if isModerator();
+334:       allow create: if isSignedIn() &&
+335:         request.resource.data.userUid == request.auth.uid;
+336:       allow update, delete: if isAdmin();
+337:     }
+338: 
+339:     // ---------- CONFIG ----------
+340:     match /config/{configId} {
+341:       allow read: if isSignedIn();
+342:       allow write: if isAdmin();
+343:     }
+344: 
+345:     // ---------- PLANS ----------
+346:     match /plans/{planId} {
+347:       allow read: if true;
+348:       allow create, update: if isAdmin();
+349:       allow delete: if isSuperAdmin();
+350:     }
+351: 
+352:     // ---------- SUBSCRIPTIONS ----------
+353:     match /subscriptions/{subId} {
+354:       allow read: if isSignedIn() &&
+355:         (isAdmin() || isModerator() ||
+356:          resource.data.businessId == request.auth.uid ||
+357:          resource.data.ownerUid == request.auth.uid);
+358:       allow create, update, delete: if isAdmin();
+359:     }
+360: 
+361:     // ---------- PAYMENTS ----------
+362:     match /payments/{paymentId} {
+363:       allow read: if isAdmin() || isModerator();
+364:       allow create, update: if isAdmin() || isModerator();
+365:       allow delete: if isAdmin();
+366:     }
+367: 
+368:     // ---------- REVENUE TRANSACTIONS ----------
+369:     match /revenue_transactions/{txId} {
+370:       allow read: if isAdmin() || isModerator();
+371:       allow create, update: if isAdmin() || isModerator();
+372:       allow delete: if isAdmin();
+373:     }
+374: 
+375:     // ---------- AGENCY PAYOUTS ----------
+376:     match /agency_payouts/{payoutId} {
+377:       allow read: if isAdmin() ||
+378:         (isAgency() && resource.data.agencyUid == request.auth.uid);
+379:       allow create, update: if isAdmin();
+380:       allow delete: if isSuperAdmin();
+381:     }
+382: 
+383:     // ---------- MIGO RESERVE ----------
+384:     match /reservations/{resId} {
+385:       allow create: if isSignedIn() &&
+386:         request.resource.data.status == 'reserved';
+387:       allow read: if isSignedIn();
+388:       allow list: if isSignedIn();
+389:       allow update: if isSignedIn() && (
+390:         (resource.data.userUid == request.auth.uid &&
+391:          request.resource.data.diff(resource.data).affectedKeys()
+392:            .hasOnly(['status', 'cancelledAt', 'cancelledBy', 'updatedAt'])) ||
+393:         (resource != null && isBusinessOwner(resource.data.businessId)) ||
+394:         isModerator()
+395:       );
+396:       allow delete: if isSuperAdmin();
+397:     }
+398: 
+399:     match /reservation_rules/{ruleId} {
+400:       allow read: if true;
+401:       allow create, update: if isAdmin();
+402:       allow delete: if isSuperAdmin();
+403:     }
+404: 
+405:     match /no_show_log/{logId} {
+406:       allow read: if isModerator() ||
+407:         (isSignedIn() && resource.data.userUid == request.auth.uid);
+408:       allow create: if isSignedIn() && (
+409:         isAdmin() ||
+410:         isModerator() ||
+411:         (request.resource.data.businessId is string &&
+412:          isBusinessOwner(request.resource.data.businessId))
+413:       );
+414:       allow update, delete: if isAdmin();
+415:     }
+416: 
+417:     match /reservation_config/{configId} {
+418:       allow read: if isSignedIn();
+419:       allow create, update: if isAdmin();
+420:       allow delete: if isSuperAdmin();
+421:     }
+422: 
+423:     match /reservation_bans/{userUid} {
+424:       allow read: if isSignedIn() && (
+425:         request.auth.uid == userUid ||
+426:         isModerator()
+427:       );
+428:       allow create, update: if isModerator();
+429:       allow delete: if isAdmin();
+430:     }
+431: 
+432:     match /reservation_rules_acceptance/{acceptId} {
+433:       allow read: if isSignedIn();
+434:       allow create: if isSignedIn() &&
+435:         request.resource.data.userUid == request.auth.uid;
+436:       allow update: if false;
+437:       allow delete: if isAdmin();
+438:     }
+439: 
+440:     // ---------- COIN PAYMENTS ----------
+441:     match /coin_payments/{paymentId} {
+442:       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+443:       allow read: if isSignedIn() && (
+444:         resource.data.userId == request.auth.uid ||
+445:         isBusinessOwner(resource.data.businessId) ||
+446:         isModerator()
+447:       );
+448:       allow update: if isSignedIn() && (
+449:         isBusinessOwner(resource.data.businessId) ||
+450:         isModerator()
+451:       );
+452:     }
+453: 
+454:     // ---------- COMMUNITY DEMANDS (Old) ----------
+455:     match /demands/{demandId} {
+456:       allow read: if isSignedIn();
+457:       allow create: if isSignedIn();
+458:       allow update: if isSignedIn(); 
+459:       allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+460:     }
+461: 
+462:     match /demand_joins/{joinId} {
+463:       allow read: if isSignedIn();
+464:       allow create: if isSignedIn();
+465:       allow update, delete: if isSignedIn(); 
+466:     }
+467: 
+468:     match /demand_bids/{bidId} {
+469:       allow read: if isSignedIn();
+470:       allow create: if isSignedIn();
+471:       allow update: if isSignedIn(); 
+472:       allow delete: if isAdmin() || isModerator() || (isSignedIn() && resource.data.businessId == request.auth.uid);
+473:     }
+474: 
+475:     match /demand_commits/{commitId} {
+476:       allow read: if isSignedIn();
+477:       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+478:       allow update: if isSignedIn();
+479:     }
+480: 
+481:     match /demand_claims/{claimId} {
+482:       allow read: if isSignedIn();
+483:       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+484:       allow update: if isSignedIn() && (
+485:         isModerator() ||
+486:         isAdmin() ||
+487:         request.auth.uid == resource.data.businessId || 
+488:         request.auth.uid == resource.data.ownerUid
+489:       );
+490:     }
+491: 
+492:     // ---------- NEW DEMAND GROUPS SYSTEM ----------
+493:     match /demand_groups/{groupId} {
+494:       allow read: if isSignedIn();
+495:       allow create: if isSignedIn();
+496:       allow update: if isSignedIn();
+497:       allow delete: if isAdmin() || isModerator();
+498:     }
+499: 
+500:     // ---------- COMPLAINTS ----------
+501:     match /community_complaints/{complaintId} {
+502:       allow read: if isSignedIn() && (
+503:         resource.data.userId == request.auth.uid || 
+504:         isModerator() || 
+505:         isAdmin()
+506:       );
+507:       allow create: if isSignedIn() && 
+508:         request.resource.data.userId == request.auth.uid;
+509:       allow update: if isSignedIn() && (
+510:         isModerator() || 
+511:         isAdmin()
+512:       );
+513:       allow delete: if isAdmin();
+514:     }
+515: 
+516:     // ---------- DEMAND MATCHING (Admin Review Queue) ----------
+517:     match /demand_matches/{matchId} {
+518:       allow read: if isModerator();
+519:       allow create, update: if isModerator();
+520:       allow delete: if isAdmin();
+521:     }
+522: 
+523:     // ---------- DEFAULT: DENY ----------
+524:   }
+525: }

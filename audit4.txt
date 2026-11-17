@@ -1,0 +1,567 @@
+﻿AUDIT 4
+
+===== mobile\lib\features\deals\offer_detail_screen.dart (1-170) =====
+1: import 'package:firebase_auth/firebase_auth.dart';
+2: import 'package:flutter/material.dart';
+3: import 'package:share_plus/share_plus.dart';
+4: import 'package:flutter/services.dart';
+5: import 'package:cloud_firestore/cloud_firestore.dart';
+6: import '../reserve/booking_screen.dart';
+7: import '../../core/localization/locale_provider.dart';
+8: import '../../core/theme/migo_colors.dart';
+9: import '../../models/claim_model.dart';
+10: import '../../models/offer_model.dart';
+11: import '../../models/review_model.dart';
+12: import '../../services/firestore_service.dart';
+13: import '../business/business_detail_screen.dart';
+14: import 'claim_success_screen.dart';
+15: 
+16: class OfferDetailScreen extends StatefulWidget {
+17:   const OfferDetailScreen({super.key, required this.offer,this.creatorId,});
+18:   final OfferModel offer;
+19:   final String? creatorId;
+20: 
+21: 
+22:   @override
+23:   State<OfferDetailScreen> createState() => _OfferDetailScreenState();
+24: }
+25: 
+26: class _OfferDetailScreenState extends State<OfferDetailScreen> {
+27:   bool _loading = false;
+28:   bool _checkingExisting = true;
+29:   ClaimModel? _existingClaim;
+30:   bool _isJoinedGroup = false;
+31: 
+32:   String? get _uid => FirebaseAuth.instance.currentUser?.uid;
+33: 
+34:   bool get _isPlanA => widget.offer.type == OfferType.groupAllOrNothing || widget.offer.type == OfferType.group;
+35:   bool get _isPlanB => widget.offer.type == OfferType.groupProgressive;
+36:   bool get _isGroupDeal => _isPlanA || _isPlanB;
+37: 
+38:   @override
+39:   void initState() {
+40:     super.initState();
+41:     _checkExisting();
+42:     _checkGroupJoined();
+43:   }
+44: 
+45:   Future<void> _checkGroupJoined() async {
+46:     if (_uid == null || !_isGroupDeal) return;
+47:     try {
+48:       final doc = await FirebaseFirestore.instance
+49:           .collection('group_joins')
+50:           .doc('${widget.offer.id}_$_uid')
+51:           .get();
+52:       if (mounted) {
+53:         setState(() {
+54:           _isJoinedGroup = doc.exists;
+55:         });
+56:       }
+57:     } catch (_) {}
+58:   }
+59: 
+60:   Future<void> _checkExisting() async {
+61:     if (_uid == null) {
+62:       setState(() => _checkingExisting = false);
+63:       return;
+64:     }
+65:     try {
+66:       final claim = await FirestoreService.instance.findActiveClaim(
+67:         userUid: _uid!,
+68:         offerId: widget.offer.id,
+69:       );
+70:       if (!mounted) return;
+71:       setState(() {
+72:         _existingClaim = claim;
+73:         _checkingExisting = false;
+74:       });
+75:     } catch (e) {
+76:       if (!mounted) return;
+77:       setState(() => _checkingExisting = false);
+78:     }
+79:   }
+80: 
+81:   Future<void> _claim() async {
+82:     final isAr = LocaleProvider.instance.locale == 'ar';
+83:     if (_uid == null) {
+84:       _snack(isAr ? 'Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â° ÃƒËœÃ‚ÂªÃƒËœÃ‚Â³ÃƒËœÃ‚Â¬Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â®Ãƒâ„¢Ã‹â€ Ãƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â£Ãƒâ„¢Ã‹â€ Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Â¹.' : 'Please sign in first.');
+85:       return;
+86:     }
+87: 
+88:     setState(() => _loading = true);
+89:     try {
+90:       final now = DateTime.now();
+91:       final claim = ClaimModel(
+92:         id: '',
+93:         userUid: _uid!,
+94:         businessId: widget.offer.businessId,
+95:         businessName: widget.offer.businessName,
+96:         offerId: widget.offer.id,
+97:         offerTitle: widget.offer.title,
+98:         currency: widget.offer.currency,
+99:         originalPrice: widget.offer.originalPrice,
+100:         offerPrice: widget.offer.offerPrice,
+101:         pickupCode: (100000 + (DateTime.now().millisecondsSinceEpoch % 900000)).toString(),
+102:         status: ClaimStatus.active, // ðŸ†• à´‡à´¤àµ à´šàµ‡àµ¼à´¤àµà´¤àµ
+103:         claimedAt: now,
+104:         expiresAt: widget.offer.endAt,
+105:         source: 'home',
+106:       );
+107: 
+108:       await FirestoreService.instance.createClaim(claim);
+109: 
+110:       final settings = await FirestoreService.instance.getCoinSettings();
+111:       final int claimCoins = settings.claimReward;
+112: 
+113:       if (!mounted) return;
+114:       Navigator.of(context).pushReplacement(
+115:         MaterialPageRoute(
+116:           builder: (_) => ClaimSuccessScreen(
+117:             offer: widget.offer,
+118:             coinsAwarded: claimCoins,
+119:           ),
+120:         ),
+121:       );
+122:     } catch (e) {
+123:       if (!mounted) return;
+124:       _snack('Failed to claim: $e');
+125:     } finally {
+126:       if (mounted) setState(() => _loading = false);
+127:     }
+128:   }
+129: 
+130:   Future<void> _toggleJoin() async {
+131:     if (_uid == null) return;
+132:     final isAr = LocaleProvider.instance.locale == 'ar';
+133:     setState(() => _loading = true);
+134:     try {
+135:       final docRef = FirebaseFirestore.instance
+136:           .collection('group_joins')
+137:           .doc('${widget.offer.id}_$_uid');
+138: 
+139:       if (_isJoinedGroup) {
+140:         await docRef.delete();
+141:         // Decrement count in offer
+142:         await FirebaseFirestore.instance.collection('offers').doc(widget.offer.id).update({
+143:           'claimedCount': FieldValue.increment(-1),
+144:         });
+145:         if (mounted) setState(() => _isJoinedGroup = false);
+146:         _snack(isAr ? 'Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Å¡ÃƒËœÃ‚Â¯ ÃƒËœÃ‚ÂºÃƒËœÃ‚Â§ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â±ÃƒËœÃ‚Âª ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¹Ãƒâ„¢Ã…Â .' : 'You left the group deal.');
+147:       } else {
+148:         await docRef.set({
+149:           'offerId': widget.offer.id,
+150:           'userUid': _uid,
+151:           'joinedAt': FieldValue.serverTimestamp(),
+152:         });
+153:         // Increment count in offer
+154:         await FirebaseFirestore.instance.collection('offers').doc(widget.offer.id).update({
+155:           'claimedCount': FieldValue.increment(1),
+156:         });
+157:         if (mounted) setState(() => _isJoinedGroup = true);
+158:         _snack(isAr ? 'Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Å¡ÃƒËœÃ‚Â¯ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â¶Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Âª ÃƒËœÃ‚Â¥Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â° ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¹Ãƒâ„¢Ã…Â !' : 'You joined the group deal!');
+159:       }
+160:     } catch (e) {
+161:       if (!mounted) return;
+162:       _snack(e.toString());
+163:     } finally {
+164:       if (mounted) setState(() => _loading = false);
+165:     }
+166:   }
+167: 
+168:   void _snack(String msg) {
+169:     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+170:   }
+
+===== mobile\lib\features\reels\reels_screen.dart (255-290) =====
+255:     setState(() => _claiming = true);
+256:     try {
+257:       final offerId = widget.content['offerId'];
+258:       if (offerId == null) throw Exception('No offer linked.');
+259:       final offerSnap = await FirebaseFirestore.instance
+260:           .collection('offers')
+261:           .doc(offerId)
+262:           .get();
+263:       if (!offerSnap.exists) throw Exception('Offer not found.');
+264: 
+265:       final offer = OfferModel.fromMap(offerSnap.id, offerSnap.data()!);
+266:       final creatorId = widget.content['creatorId'];
+267:       if (!mounted) return;
+268: 
+269:       Navigator.push(
+270:         context,
+271:         MaterialPageRoute(
+272:           builder: (_) => OfferDetailScreen(
+273:             offer: offer,
+274:             creatorId: creatorId,
+275:           ),
+276:         ),
+277:       );
+278:     } catch (e) {
+279:       if (mounted) {
+280:         ScaffoldMessenger.of(context).showSnackBar(
+281:           SnackBar(content: Text('Error: $e')),
+282:         );
+283:       }
+284:     } finally {
+285:       if (mounted) setState(() => _claiming = false);
+286:     }
+287:   }
+288: 
+289:   @override
+290:   void dispose() {
+
+===== mobile\lib\services\firestore_service.dart (520-620) =====
+520:       final snap = await tx.get(ref);
+521:       if (!snap.exists || snap.data() == null) {
+522:         throw Exception('Group deal not found.');
+523:       }
+524:       final deal = GroupDealModel.fromMap(offerId, snap.data()!);
+525:       if (deal.status == GroupDealStatus.unlocked) {
+526:         throw Exception('This deal is already unlocked.');
+527:       }
+528:       if (deal.status == GroupDealStatus.failed ||
+529:           deal.status == GroupDealStatus.expired) {
+530:         throw Exception('This group deal is closed.');
+531:       }
+532:       if (deal.deadline.isBefore(DateTime.now())) {
+533:         throw Exception('This group deal has expired.');
+534:       }
+535:       if (deal.isFull) {
+536:         throw Exception('This group deal is full.');
+537:       }
+538:       if (deal.participantUids.contains(userUid)) {
+539:         throw Exception('You already joined this group.');
+540:       }
+541:       final updated = List<String>.from(deal.participantUids)..add(userUid);
+542:       final meetsMin = updated.length >= deal.minParticipants;
+543:       tx.update(ref, {
+544:         'participantUids': updated,
+545:         'updatedAt': FieldValue.serverTimestamp(),
+546:         if (meetsMin) ...{
+547:           'status': GroupDealStatus.unlocked.id,
+548:           'unlockedAt': FieldValue.serverTimestamp(),
+549:         },
+550:       });
+551:     });
+552:   }
+553: 
+554:   Future<void> leaveGroupDeal({
+555:     required String offerId,
+556:     required String userUid,
+557:   }) async {
+558:     final ref = _groupDeals.doc(offerId);
+559:     await _db.runTransaction((tx) async {
+560:       final snap = await tx.get(ref);
+561:       if (!snap.exists || snap.data() == null) return;
+562:       final deal = GroupDealModel.fromMap(offerId, snap.data()!);
+563:       if (deal.status == GroupDealStatus.unlocked) {
+564:         throw Exception('Cannot leave after the deal is unlocked.');
+565:       }
+566:       final updated = List<String>.from(deal.participantUids)..remove(userUid);
+567:       tx.update(ref, {
+568:         'participantUids': updated,
+569:         'updatedAt': FieldValue.serverTimestamp(),
+570:       });
+571:     });
+572:   }
+573: 
+574:   // ---------- CLAIMS ----------
+575:   CollectionReference<Map<String, dynamic>> get _claims =>
+576:       _db.collection('claims');
+577: 
+578:   Future<String> createClaim(ClaimModel claim) async {
+579:     String? referrerUid;
+580:     try {
+581:       final userSnap = await _users.doc(claim.userUid).get();
+582:       if (userSnap.exists) {
+583:         final userData = userSnap.data() as Map<String, dynamic>;
+584:         referrerUid = userData['referredBy'] as String?;
+585:       }
+586:     } catch (e) {
+587:       // Ignore
+588:     }
+589: 
+590:     final claimMap = claim.toMap();
+591:     if (referrerUid != null && referrerUid.isNotEmpty) {
+592:       claimMap['referrerUid'] = referrerUid;
+593:     }
+594: 
+595:     final ref = _claims.doc();
+596:     claimMap['claimId'] = ref.id;
+597:     await ref.set(claimMap);
+598: 
+599:     await _offers.doc(claim.offerId).update({
+600:       'claimedCount': FieldValue.increment(1),
+601:       'updatedAt': FieldValue.serverTimestamp(),
+602:     });
+603: 
+604:     await createNotification(
+605:       NotificationModel.newDraft(
+606:         userUid: claim.userUid,
+607:         type: NotifType.coinEarned,
+608:         title: 'Offer Claimed',
+609:         body: 'You claimed "${claim.offerTitle}" at ${claim.businessName}.',
+610:         targetRoute: 'claim',
+611:         targetId: ref.id,
+612:       ),
+613:     );
+614: 
+615:     await _maybeRewardReferral(claim.userUid);
+616: 
+617:     return ref.id;
+618:   }
+619: 
+620:   Future<ClaimModel?> findActiveClaim({
+
+===== mobile\lib\services\firestore_service.dart (1240-1270) =====
+1240:   }
+1241: 
+1242:   // ---------- EARNINGS (CREATOR SYSTEM) ----------
+1243:   CollectionReference<Map<String, dynamic>> get _earnings =>
+1244:       _db.collection('creator_earnings');
+1245: 
+1246:   Future<void> createEarning(String creatorId, String claimId, double amount) async {
+1247:     await _earnings.add({
+1248:       'creatorId': creatorId,
+1249:       'claimId': claimId,
+1250:       'amount': amount,
+1251:       'currency': 'QAR',
+1252:       'status': 'pending',
+1253:       'createdAt': FieldValue.serverTimestamp(),
+1254:     });
+1255:   }
+1256: 
+1257:   Stream<List<EarningModel>> streamMyEarnings(String creatorId) {
+1258:     return _earnings
+1259:         .where('creatorId', isEqualTo: creatorId)
+1260:         .snapshots()
+1261:         .map((snap) => snap.docs
+1262:             .map((d) => EarningModel.fromMap(d.id, d.data()))
+1263:             .toList());
+1264:   }
+1265: }
+
+===== mobile\lib\features\creator\add_content_screen.dart (1-99999) =====
+1: import 'package:flutter/material.dart';
+2: import 'package:cloud_firestore/cloud_firestore.dart';
+3: import '../../core/theme/migo_colors.dart';
+4: 
+5: class AddContentScreen extends StatefulWidget {
+6:   final String collabId;
+7:   final String shopId;
+8:   final String offerId;
+9:   final String creatorId;
+10:   const AddContentScreen({
+11:     super.key,
+12:     required this.collabId,
+13:     required this.shopId,
+14:     required this.offerId,
+15:     required this.creatorId,
+16:   });
+17: 
+18:   @override
+19:   State<AddContentScreen> createState() => _AddContentScreenState();
+20: }
+21: 
+22: class _AddContentScreenState extends State<AddContentScreen> {
+23:   final _urlController = TextEditingController();
+24:   final _captionController = TextEditingController();
+25:   bool _loading = false;
+26:   bool _disclosureConfirmed = false;
+27:   String _platform = 'instagram';
+28: 
+29:   Future<void> _submit() async {
+30:     if (_urlController.text.trim().isEmpty) return;
+31:     if (!_disclosureConfirmed) {
+32:       ScaffoldMessenger.of(context).showSnackBar(
+33:         const SnackBar(content: Text('Please confirm the disclosure checkbox.')),
+34:       );
+35:       return;
+36:     }
+37: 
+38:     setState(() => _loading = true);
+39:     try {
+40:       await FirebaseFirestore.instance.collection('creator_content').add({
+41:         'collabId': widget.collabId,
+42:         'creatorId': widget.creatorId,
+43:         'shopId': widget.shopId,
+44:         'offerId': widget.offerId,
+45:         'platform': _platform,
+46:         'url': _urlController.text.trim(),
+47:         'caption': _captionController.text.trim(),
+48:         'disclosureConfirmed': true,
+49:         'status': 'submitted',
+50:         'viewsCount': 0,
+51:         'likesCount': 0,
+52:         'createdAt': FieldValue.serverTimestamp(),
+53:       });
+54:       if (mounted) {
+55:         Navigator.pop(context, true);
+56:         ScaffoldMessenger.of(context).showSnackBar(
+57:           const SnackBar(content: Text('✅ Content submitted for approval!')),
+58:         );
+59:       }
+60:     } catch (e) {
+61:       if (mounted) {
+62:         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+63:       }
+64:     } finally {
+65:       if (mounted) setState(() => _loading = false);
+66:     }
+67:   }
+68: 
+69:   @override
+70:   Widget build(BuildContext context) {
+71:     return Scaffold(
+72:       appBar: AppBar(
+73:         title: const Text('Add Video Link'),
+74:         backgroundColor: MigoColors.primary,
+75:         foregroundColor: Colors.white,
+76:       ),
+77:       body: ListView(
+78:         padding: const EdgeInsets.all(20),
+79:         children: [
+80:           DropdownButtonFormField<String>(
+81:             initialValue: _platform,
+82:             decoration: const InputDecoration(labelText: 'Platform', border: OutlineInputBorder()),
+83:             items: const [
+84:               DropdownMenuItem(value: 'instagram', child: Text('Instagram')),
+85:               DropdownMenuItem(value: 'tiktok', child: Text('TikTok')),
+86:               DropdownMenuItem(value: 'youtube', child: Text('YouTube')),
+87:             ],
+88:             onChanged: (val) => setState(() => _platform = val!),
+89:           ),
+90:           const SizedBox(height: 16),
+91:           TextField(
+92:             controller: _urlController,
+93:             decoration: const InputDecoration(
+94:               labelText: 'Video URL *',
+95:               hintText: 'https://instagram.com/p/...',
+96:               border: OutlineInputBorder(),
+97:               prefixIcon: Icon(Icons.link),
+98:             ),
+99:           ),
+100:           const SizedBox(height: 16),
+101:           TextField(
+102:             controller: _captionController,
+103:             maxLines: 3,
+104:             decoration: const InputDecoration(
+105:               labelText: 'Caption (optional)',
+106:               border: OutlineInputBorder(),
+107:             ),
+108:           ),
+109:           const SizedBox(height: 16),
+110:           CheckboxListTile(
+111:             title: const Text('This post clearly says it is a paid partnership or advertisement (#ad)'),
+112:             value: _disclosureConfirmed,
+113:             onChanged: (val) => setState(() => _disclosureConfirmed = val ?? false),
+114:             controlAffinity: ListTileControlAffinity.leading,
+115:           ),
+116:           const SizedBox(height: 24),
+117:           ElevatedButton(
+118:             onPressed: _loading ? null : _submit,
+119:             style: ElevatedButton.styleFrom(
+120:               backgroundColor: MigoColors.primary,
+121:               foregroundColor: Colors.white,
+122:               minimumSize: const Size(double.infinity, 50),
+123:             ),
+124:             child: _loading
+125:                 ? const CircularProgressIndicator(color: Colors.white)
+126:                 : const Text('Submit for Approval'),
+127:           ),
+128:         ],
+129:       ),
+130:     );
+131:   }
+132: }
+
+===== migo-business\lib\features\creator\shop_creators_screen.dart (40-110) =====
+40:             ),
+41:             const SizedBox(height: 12),
+42:             TextField(
+43:               controller: feeController,
+44:               keyboardType: TextInputType.number,
+45:               decoration: const InputDecoration(labelText: 'Fee per Redemption (QAR)'),
+46:             ),
+47:             const SizedBox(height: 12),
+48:             TextField(
+49:               controller: endDateController,
+50:               decoration: const InputDecoration(labelText: 'End Date (YYYY-MM-DD)'),
+51:             ),
+52:           ],
+53:         ),
+54:         actions: [
+55:           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+56:           ElevatedButton(
+57:             onPressed: () async {
+58:               if (feeController.text.isEmpty || offerIdController.text.isEmpty) return;
+59:               final fee = double.tryParse(feeController.text) ?? 0;
+60:               final endDate = DateTime.tryParse(endDateController.text) ?? DateTime.now().add(const Duration(days: 30));
+61: 
+62:               await FirebaseFirestore.instance.collection('collabs').add({
+63:                 'shopId': widget.businessId,
+64:                 'creatorId': creator['userId'],
+65:                 'offerId': offerIdController.text.trim(),
+66:                 'feePerRedemption': fee,
+67:                 'currency': 'QAR',
+68:                 'endsAt': Timestamp.fromDate(endDate),
+69:                 'status': 'invited',
+70:                 'createdAt': FieldValue.serverTimestamp(),
+71:               });
+72:               if (context.mounted) Navigator.pop(context);
+73:               ScaffoldMessenger.of(context).showSnackBar(
+74:                 const SnackBar(content: Text('âœ… Collab invitation sent to creator!')),
+75:               );
+76:             },
+77:             child: const Text('Send Invite'),
+78:           ),
+79:         ],
+80:       ),
+81:     );
+82:   }
+83: 
+84:   @override
+85:   Widget build(BuildContext context) {
+86:     return Scaffold(
+87:       appBar: AppBar(
+88:         title: const Text('Find Creators', style: TextStyle(color: Colors.white)),
+89:         backgroundColor: MigoColors.primary,
+90:         foregroundColor: Colors.white,
+91:       ),
+92:       body: Column(
+93:         children: [
+94:           Padding(
+95:             padding: const EdgeInsets.all(16),
+96:             child: TextField(
+97:               controller: _searchController,
+98:               decoration: InputDecoration(
+99:                 hintText: 'Search creators by name...',
+100:                 prefixIcon: const Icon(Icons.search),
+101:                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+102:               ),
+103:               onChanged: (val) => setState(() => _search = val.toLowerCase()),
+104:             ),
+105:           ),
+106:           Expanded(
+107:             child: StreamBuilder<QuerySnapshot>(
+108:               stream: FirebaseFirestore.instance
+109:                   .collection('creators')
+110:                   .where('status', isEqualTo: 'approved')
+
+===== CALL SITES =====
+mobile\lib\features\business\business_analytics_screen.dart:100: final referredBy = data['referredByCreatorId'] as String?;
+mobile\lib\features\business\business_detail_screen.dart:268: builder: (_) => OfferDetailScreen(offer: offer),
+mobile\lib\features\business\redeem_screen.dart:97: await FirestoreService.instance.redeemClaim(
+mobile\lib\features\deals\deals_screen.dart:551: FadeSlideRoute(child: OfferDetailScreen(offer: trending[i])),
+mobile\lib\features\deals\offer_detail_screen.dart:17: const OfferDetailScreen({super.key, required this.offer,this.creatorId,});
+mobile\lib\features\deals\offer_detail_screen.dart:108: await FirestoreService.instance.createClaim(claim);
+mobile\lib\features\discover\discover_screen.dart:510: child: OfferDetailScreen(offer: o),
+mobile\lib\features\discover\discover_screen.dart:521: child: OfferDetailScreen(offer: o),
+mobile\lib\features\home\home_screen.dart:558: onTap: () => Navigator.of(context).push(FadeSlideRoute(child: OfferDetailScreen(offer: offers[i]))),
+mobile\lib\features\home\home_screen.dart:627: onTap: () => Navigator.of(context).push(FadeSlideRoute(child: OfferDetailScreen(offer: offers[i]))),
+mobile\lib\features\reels\reels_screen.dart:272: builder: (_) => OfferDetailScreen(
+mobile\lib\services\firestore_service.dart:578: Future<String> createClaim(ClaimModel claim) async {
+mobile\lib\services\firestore_service.dart:661: Future<void> redeemClaim({
+mobile\lib\services\firestore_service.dart:1246: Future<void> createEarning(String creatorId, String claimId, double amount) async {
+migo-business\lib\features\analytics\business_analytics_screen.dart:65: final referredBy = data['referredByCreatorId'] as String?;
+migo-business\lib\services\claim_service.dart:17: Future<void> redeemClaim({

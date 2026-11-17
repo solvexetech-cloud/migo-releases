@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/migo_theme.dart';
 import 'view_creator_profile_screen.dart';
+import 'shop_collabs_screen.dart';
 
 class ShopCreatorsScreen extends StatefulWidget {
   final String businessId;
@@ -15,68 +17,312 @@ class ShopCreatorsScreen extends StatefulWidget {
 class _ShopCreatorsScreenState extends State<ShopCreatorsScreen> {
   final _searchController = TextEditingController();
   String _search = '';
+  Map<String, String> _collabStatusByCreator = {};
+  StreamSubscription? _collabSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _collabSub = FirebaseFirestore.instance
+        .collection('collabs')
+        .where('shopId', isEqualTo: widget.businessId)
+        .snapshots()
+        .listen((snap) {
+      final m = <String, String>{};
+      for (final d in snap.docs) {
+        final data = d.data();
+        final cid = (data['creatorId'] ?? '').toString();
+        final st = (data['status'] ?? '').toString();
+        final ends = (data['endsAt'] as Timestamp?)?.toDate();
+        final expired = ends != null && ends.isBefore(DateTime.now());
+        if ((st == 'invited' || st == 'accepted') && !expired) {
+          if (m[cid] != 'accepted') m[cid] = st;
+        }
+      }
+      if (mounted) setState(() => _collabStatusByCreator = m);
+    }, onError: (_) {});
+  }
 
   @override
   void dispose() {
+    _collabSub?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
   Future<void> _recordCollab(Map<String, dynamic> creator) async {
-    final feeController = TextEditingController();
-    final offerIdController = TextEditingController();
-    final endDateController = TextEditingController();
+    final noteController = TextEditingController();
+    final creatorUid = (creator['userId'] ?? '').toString();
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> offers = [];
+    final Map<String, String> activeByOffer = {};
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('offers')
+          .where('businessId', isEqualTo: widget.businessId)
+          .get();
+      offers = snap.docs.toList();
+      offers.sort((a, b) {
+        final ta = (a.data()['createdAt'] as Timestamp?)?.millisecondsSinceEpoch ?? 0;
+        final tb = (b.data()['createdAt'] as Timestamp?)?.millisecondsSinceEpoch ?? 0;
+        return tb.compareTo(ta);
+      });
+      final cs = await FirebaseFirestore.instance
+          .collection('collabs')
+          .where('shopId', isEqualTo: widget.businessId)
+          .where('creatorId', isEqualTo: creatorUid)
+          .get();
+      for (final d in cs.docs) {
+        final data = d.data();
+        final st = (data['status'] ?? '').toString();
+        final ends = (data['endsAt'] as Timestamp?)?.toDate();
+        final expired = ends != null && ends.isBefore(DateTime.now());
+        if ((st == 'invited' || st == 'accepted') && !expired) {
+          activeByOffer[(data['offerId'] ?? '').toString()] = st;
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not load data: $e')),
+      );
+      return;
+    }
+    if (!mounted) return;
+
+    if (offers.isEmpty) {
+      await showDialog(
+        context: context,
+        builder: (dialogCtx) => AlertDialog(
+          title: const Text('No offers yet'),
+          content: const Text('Create an offer in My Offers first, then invite a creator to promote it.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('OK')),
+          ],
+        ),
+      );
+      return;
+    }
+
+    String? selectedId;
+    Map<String, dynamic>? selected;
+    DateTime endDate = DateTime.now().add(const Duration(days: 30));
+    bool saving = false;
+    String? errorText;
+
+    String two(int n) => n.toString().padLeft(2, '0');
 
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Record Collab with ${creator['displayName']}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: offerIdController,
-              decoration: const InputDecoration(labelText: 'Offer ID (from My Offers)'),
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setSt) {
+          final cur = (selected?['currency'] ?? 'QAR').toString();
+          final dateText = '${endDate.year}-${two(endDate.month)}-${two(endDate.day)}';
+          return AlertDialog(
+            title: Text('Invite ${creator['displayName'] ?? 'creator'}'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('1. Choose the offer to promote', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    ...offers.map((d) {
+                      final o = d.data();
+                      final isSel = d.id == selectedId;
+                      final active = activeByOffer[d.id];
+                      final disabled = active != null;
+                      final img = (o['imageUrl'] ?? '').toString();
+                      final oCur = (o['currency'] ?? 'QAR').toString();
+                      final price = ((o['offerPrice'] as num?) ?? 0).toStringAsFixed(0);
+                      final status = (o['status'] ?? '').toString();
+                      final title = (o['title'] ?? 'Untitled').toString();
+                      final sub = disabled
+                          ? (active == 'accepted' ? 'Collab already active' : 'Invite already sent')
+                          : '$oCur $price  |  ${status.toUpperCase()}';
+                      return GestureDetector(
+                        onTap: disabled
+                            ? null
+                            : () => setSt(() {
+                                  selectedId = d.id;
+                                  selected = o;
+                                  final endTs = o['endAt'];
+                                  final limit = DateTime.now().add(const Duration(days: 730));
+                                  if (endTs is Timestamp) {
+                                    final e = endTs.toDate();
+                                    if (e.isAfter(DateTime.now()) && e.isBefore(limit)) endDate = e;
+                                  }
+                                  errorText = null;
+                                }),
+                        child: Opacity(
+                          opacity: disabled ? 0.5 : 1,
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: isSel ? MigoColors.primary.withValues(alpha: 0.08) : Colors.white,
+                              border: Border.all(
+                                color: isSel ? MigoColors.primary : Colors.grey.shade300,
+                                width: isSel ? 2 : 1,
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: SizedBox(
+                                    width: 56,
+                                    height: 56,
+                                    child: img.isEmpty
+                                        ? Container(
+                                            color: Colors.grey.shade200,
+                                            child: const Icon(Icons.local_offer_outlined, color: Colors.grey),
+                                          )
+                                        : Image.network(
+                                            img,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, _, _) => Container(
+                                              color: Colors.grey.shade200,
+                                              child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        title,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(sub, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                    ],
+                                  ),
+                                ),
+                                if (isSel) const Icon(Icons.check_circle, color: MigoColors.primary),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 8),
+                    const Text('2. Agreed deal (optional)', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: noteController,
+                      maxLines: 2,
+                      decoration: const InputDecoration(
+                        hintText: 'e.g. Free meal + 50 QAR per video',
+                        helperText: 'Payment is agreed directly between you and the creator. MIGO only tracks claims and redemptions.',
+                        helperMaxLines: 3,
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('3. Collab end date', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final picked = await showDatePicker(
+                          context: ctx,
+                          initialDate: endDate,
+                          firstDate: DateTime.now().subtract(const Duration(days: 1)),
+                          lastDate: DateTime.now().add(const Duration(days: 730)),
+                        );
+                        if (picked != null) setSt(() => endDate = picked);
+                      },
+                      icon: const Icon(Icons.calendar_today, size: 16),
+                      label: Text(dateText),
+                    ),
+                    if (errorText != null) ...[
+                      const SizedBox(height: 12),
+                      Text(errorText!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+                    ],
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: feeController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Fee per Redemption (QAR)'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: endDateController,
-              decoration: const InputDecoration(labelText: 'End Date (YYYY-MM-DD)'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () async {
-              if (feeController.text.isEmpty || offerIdController.text.isEmpty) return;
-              final fee = double.tryParse(feeController.text) ?? 0;
-              final endDate = DateTime.tryParse(endDateController.text) ?? DateTime.now().add(const Duration(days: 30));
-
-              await FirebaseFirestore.instance.collection('collabs').add({
-                'shopId': widget.businessId,
-                'creatorId': creator['userId'],
-                'offerId': offerIdController.text.trim(),
-                'feePerRedemption': fee,
-                'currency': 'QAR',
-                'endsAt': Timestamp.fromDate(endDate),
-                'status': 'invited',
-                'createdAt': FieldValue.serverTimestamp(),
-              });
-              if (context.mounted) Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('âœ… Collab invitation sent to creator!')),
-              );
-            },
-            child: const Text('Send Invite'),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: saving ? null : () => Navigator.pop(dialogCtx),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: saving
+                    ? null
+                    : () async {
+                        if (selectedId == null) {
+                          setSt(() => errorText = 'Please select an offer.');
+                          return;
+                        }
+                        setSt(() {
+                          saving = true;
+                          errorText = null;
+                        });
+                        try {
+                          await FirebaseFirestore.instance.collection('collabs').add({
+                            'shopId': widget.businessId,
+                            'creatorId': creatorUid,
+                            'offerId': selectedId,
+                            'offerTitle': (selected?['title'] ?? '').toString(),
+                            'dealNote': noteController.text.trim(),
+                            'feePerRedemption': 0,
+                            'currency': cur,
+                            'endsAt': Timestamp.fromDate(endDate),
+                            'status': 'invited',
+                            'createdAt': FieldValue.serverTimestamp(),
+                          });
+                          try {
+                            final offerName = (selected?['title'] ?? 'an offer').toString();
+                            var shopName = 'A shop';
+                            try {
+                              final bs = await FirebaseFirestore.instance.collection('businesses').doc(widget.businessId).get();
+                              final n = (bs.data()?['name'] ?? '').toString();
+                              if (n.isNotEmpty) shopName = n;
+                            } catch (_) {}
+                            await FirebaseFirestore.instance.collection('notifications').add({
+                              'userUid': creatorUid,
+                              'type': 'system',
+                              'title': 'New collab invitation',
+                              'body': '$shopName invited you to promote "$offerName". Open My Collabs to respond.',
+                              'read': false,
+                              'targetRoute': null,
+                              'targetId': null,
+                              'createdAt': FieldValue.serverTimestamp(),
+                            });
+                          } catch (_) {}
+                          if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Invitation sent. You can track it in My Collabs.')),
+                            );
+                          }
+                        } catch (e) {
+                          setSt(() {
+                            saving = false;
+                            errorText = 'Could not send invite: $e';
+                          });
+                        }
+                      },
+                child: saving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Text('Send Invite'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -86,6 +332,16 @@ class _ShopCreatorsScreenState extends State<ShopCreatorsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Find Creators', style: TextStyle(color: Colors.white)),
+        actions: [
+          TextButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => ShopCollabsScreen(businessId: widget.businessId)),
+            ),
+            icon: const Icon(Icons.assignment_outlined, color: Colors.white, size: 18),
+            label: const Text('My Collabs', style: TextStyle(color: Colors.white)),
+          ),
+        ],
         backgroundColor: MigoColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -184,14 +440,23 @@ class _ShopCreatorsScreenState extends State<ShopCreatorsScreen> {
                                     ],
                                   ),
                                 ),
-                                ElevatedButton(
-                                  onPressed: () => _recordCollab(c),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: MigoColors.primary,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  ),
-                                  child: const Text('Invite'),
+                                Builder(
+                                  builder: (_) {
+                                    final st = _collabStatusByCreator[(c['userId'] ?? '').toString()];
+                                    final label = st == 'accepted' ? 'Collab active' : (st == 'invited' ? 'Invite sent' : 'Invite');
+                                    final bg = st == 'accepted'
+                                        ? Colors.green
+                                        : (st == 'invited' ? Colors.orange.shade700 : MigoColors.primary);
+                                    return ElevatedButton(
+                                      onPressed: () => _recordCollab(c),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: bg,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                      child: Text(label),
+                                    );
+                                  },
                                 ),
                               ],
                             ),

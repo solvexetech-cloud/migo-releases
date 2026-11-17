@@ -2,6 +2,18 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Product Requests
+    match /product_requests/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // App Config (Theme Colors & Demand Settings)
+    match /app_config/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
     // ---------- HELPER FUNCTIONS ----------
     function isSignedIn() {
       return request.auth != null;
@@ -92,20 +104,17 @@ service cloud.firestore {
     // ---------- BUSINESSES ----------
     match /businesses/{businessId} {
       allow read: if true;
-      
       allow create: if isSignedIn() &&
         (
           request.resource.data.ownerUid == request.auth.uid ||
           isAdmin() ||
           isModerator()
         );
-      
       allow update: if isSignedIn() &&
         (resource.data.ownerUid == request.auth.uid ||
          isAdmin() ||
          isModerator() ||
          isAgencyOwner(businessId));
-      
       allow delete: if isAdmin();
     }
 
@@ -136,32 +145,25 @@ service cloud.firestore {
         isAgency()
       );
       allow list: if isSignedIn();
-      
       allow create: if isSignedIn() &&
         request.resource.data.userUid == request.auth.uid;
-      
       allow update: if isSignedIn() && (
         resource.data.userUid == request.auth.uid ||
         isBusinessOwner(resource.data.businessId) || 
         isModerator() ||
         isAdmin()
       );
-      
       allow delete: if isAdmin();
     }
 
     // ---------- GROUP DEALS ----------
     match /group_deals/{offerId} {
-      allow read: if true;
-      allow create: if isSignedIn() &&
-        isBusinessOwner(request.resource.data.businessId);
-      allow update: if isSignedIn() &&
-        (request.auth.uid in resource.data.participantUids ||
-         request.auth.uid in request.resource.data.participantUids ||
-         isBusinessOwner(resource.data.businessId) ||
-         isAdmin() ||
-         isModerator());
-      allow delete: if isAdmin();
+      allow read, write: if request.auth != null;
+    }
+    match /group_joins/{joinId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userUid == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userUid == request.auth.uid;
     }
 
     // ---------- REVIEWS ----------
@@ -186,17 +188,50 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ---------- CREATORS ----------
+    // ---------- CREATORS (NEW) ----------
     match /creators/{creatorId} {
       allow read: if true;
-      allow create: if isSignedIn() &&
-        request.resource.data.status == 'pending';
-      allow update: if isSignedIn() &&
-        (
-          request.auth.uid == creatorId ||
-          isAdmin() ||
-          isModerator()
-        );
+      allow create, update: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- CREATOR CONTENT (NEW) ----------
+    match /creator_content/{contentId} {
+      allow read: if true;
+      allow create, update: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // 🆕 CONTENT LIKES
+    match /content_likes/{likeId} {
+      allow read: if true;
+      allow create, delete: if isSignedIn();
+    }
+
+    // 🆕 SAVED REELS
+    match /saved_reels/{saveId} {
+      allow read: if isSignedIn();
+      allow create, delete: if isSignedIn();
+    }
+
+    // ---------- COLLABS (NEW) ----------
+    match /collabs/{collabId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- REDEMPTIONS (NEW) ----------
+    match /redemptions/{redemptionId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- BRANCH COUNTERS (NEW) ----------
+    match /branch_counters/{counterId} {
+      allow read: if true;
+      allow create, update: if isSignedIn();
       allow delete: if isAdmin();
     }
 
@@ -345,7 +380,7 @@ service cloud.firestore {
       allow delete: if isSuperAdmin();
     }
 
-    // ---------- PHASE H — MIGO RESERVE ----------
+    // ---------- MIGO RESERVE ----------
     match /reservations/{resId} {
       allow create: if isSignedIn() &&
         request.resource.data.status == 'reserved';
@@ -405,20 +440,18 @@ service cloud.firestore {
     // ---------- COIN PAYMENTS ----------
     match /coin_payments/{paymentId} {
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      
       allow read: if isSignedIn() && (
         resource.data.userId == request.auth.uid ||
         isBusinessOwner(resource.data.businessId) ||
         isModerator()
       );
-      
       allow update: if isSignedIn() && (
         isBusinessOwner(resource.data.businessId) ||
         isModerator()
       );
     }
 
-    // ---------- PHASE L — COMMUNITY DEMAND RULES ----------
+    // ---------- COMMUNITY DEMANDS (Old) ----------
     match /demands/{demandId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
@@ -436,29 +469,32 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn(); 
-      allow delete: if isSignedIn() && resource.data.businessId == request.auth.uid;
+      allow delete: if isAdmin() || isModerator() || (isSignedIn() && resource.data.businessId == request.auth.uid);
     }
 
-    // 🆕 DEMAND COMMITS (Waitlist & Locking)
     match /demand_commits/{commitId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if isSignedIn();
     }
 
-        // 🆕 DEMAND CLAIMS (QR/PIN Redemption)
     match /demand_claims/{claimId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      
-      // 🆕 റെഡീം ചെയ്യാൻ ബിസിനസ് ഉടമയ്ക്കോ അഡ്മിനോ അനുമതി
-      // സ്കാൻ ചെയ്യുന്ന ആളുടെ UID ആണോ എന്ന് മാത്രം ചെക്ക് ചെയ്യുന്നു (എളുപ്പത്തിന്)
       allow update: if isSignedIn() && (
-        isModerator() || 
+        isModerator() ||
         isAdmin() ||
-        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'redeemedAt', 'claimId']) && 
-         request.resource.data.status == 'redeemed')
+        request.auth.uid == resource.data.businessId || 
+        request.auth.uid == resource.data.ownerUid
       );
+    }
+
+    // ---------- NEW DEMAND GROUPS SYSTEM ----------
+    match /demand_groups/{groupId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isAdmin() || isModerator();
     }
 
     // ---------- COMPLAINTS ----------

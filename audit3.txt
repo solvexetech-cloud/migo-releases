@@ -1,0 +1,672 @@
+﻿AUDIT 3
+
+===== mobile\lib\models\creator_model.dart =====
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+enum CreatorStatus {
+  pending,
+  approved,
+  rejected,
+  suspended,
+}
+
+extension CreatorStatusX on CreatorStatus {
+  String get id => name;
+}
+
+CreatorStatus creatorStatusFromString(String? s) {
+  switch (s) {
+    case 'approved': return CreatorStatus.approved;
+    case 'rejected': return CreatorStatus.rejected;
+    case 'suspended': return CreatorStatus.suspended;
+    default: return CreatorStatus.pending;
+  }
+}
+
+class CreatorModel {
+  final String id;
+  final String userId;
+  final String displayName;
+  final String bio;
+  final String? profileImageUrl;
+  final String city;
+  final String category;
+  final List<String> categories;
+  final String phoneOrWhatsapp;
+  final String? instagramUrl;
+  final String? tiktokUrl;
+  final String? youtubeUrl;
+  final String? channelUrl;
+  final int followers;
+  final int followersCount;
+  final CreatorStatus status;
+  final String? rejectionReason;
+  final DateTime? approvedAt;
+  final DateTime createdAt;
+  
+  final int totalViews;
+  final int totalClaims;
+  final int totalRedemptions;
+  final int totalShares;
+  final int coinsEarned;
+  final String referralCode;
+
+  CreatorModel({
+    required this.id,
+    required this.userId,
+    required this.displayName,
+    required this.bio,
+    this.profileImageUrl,
+    required this.city,
+    required this.category,
+    required this.categories,
+    required this.phoneOrWhatsapp,
+    this.instagramUrl,
+    this.tiktokUrl,
+    this.youtubeUrl,
+    this.channelUrl,
+    required this.followers,
+    required this.followersCount,
+    required this.status,
+    this.rejectionReason,
+    this.approvedAt,
+    required this.createdAt,
+    required this.totalViews,
+    required this.totalClaims,
+    required this.totalRedemptions,
+    required this.totalShares,
+    required this.coinsEarned,
+    required this.referralCode,
+  });
+
+  bool get isApproved => status == CreatorStatus.approved;
+
+  factory CreatorModel.fromMap(String id, Map<String, dynamic> map) {
+    return CreatorModel(
+      id: id,
+      userId: map['userId'] ?? '',
+      displayName: map['displayName'] ?? '',
+      bio: map['bio'] ?? '',
+      profileImageUrl: map['profileImageUrl'],
+      city: map['city'] ?? '',
+      category: map['category'] ?? '',
+      categories: List<String>.from(map['categories'] ?? []),
+      phoneOrWhatsapp: map['phoneOrWhatsapp'] ?? '',
+      instagramUrl: map['instagramUrl'],
+      tiktokUrl: map['tiktokUrl'],
+      youtubeUrl: map['youtubeUrl'],
+      channelUrl: map['channelUrl'],
+      followers: (map['followers'] as num? ?? 0).toInt(),
+      followersCount: (map['followersCount'] as num? ?? 0).toInt(),
+      status: creatorStatusFromString(map['status'] as String?),
+      rejectionReason: map['rejectionReason'],
+      approvedAt: (map['approvedAt'] as Timestamp?)?.toDate(),
+      createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      totalViews: (map['totalViews'] as num? ?? 0).toInt(),
+      totalClaims: (map['totalClaims'] as num? ?? 0).toInt(),
+      totalRedemptions: (map['totalRedemptions'] as num? ?? 0).toInt(),
+      totalShares: (map['totalShares'] as num? ?? 0).toInt(),
+      coinsEarned: (map['coinsEarned'] as num? ?? 0).toInt(),
+      referralCode: map['referralCode'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'userId': userId,
+      'displayName': displayName,
+      'bio': bio,
+      'profileImageUrl': profileImageUrl,
+      'city': city,
+      'category': category,
+      'categories': categories,
+      'phoneOrWhatsapp': phoneOrWhatsapp,
+      'instagramUrl': instagramUrl,
+      'tiktokUrl': tiktokUrl,
+      'youtubeUrl': youtubeUrl,
+      'channelUrl': channelUrl,
+      'followers': followers,
+      'followersCount': followersCount,
+      'status': status.id,
+      'rejectionReason': rejectionReason,
+      'approvedAt': approvedAt != null ? Timestamp.fromDate(approvedAt!) : null,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'totalViews': totalViews,
+      'totalClaims': totalClaims,
+      'totalRedemptions': totalRedemptions,
+      'totalShares': totalShares,
+      'coinsEarned': coinsEarned,
+      'referralCode': referralCode,
+    };
+  }
+}
+
+===== mobile\lib\models\creator_content_model.dart =====
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class CreatorContentModel {
+  final String id;
+  final String collabId;
+  final String creatorId;
+  final String shopId;
+  final String offerId;
+  final String platform; // instagram, tiktok, youtube
+  final String url;
+  final String? thumbnailUrl;
+  final String? caption;
+  final bool disclosureConfirmed;
+  final String status; // submitted, approved, rejected, hidden
+  final String? rejectNote;
+  final int viewsCount;
+  final int likesCount;
+  final DateTime createdAt;
+
+  CreatorContentModel({
+    required this.id,
+    required this.collabId,
+    required this.creatorId,
+    required this.shopId,
+    required this.offerId,
+    required this.platform,
+    required this.url,
+    this.thumbnailUrl,
+    this.caption,
+    required this.disclosureConfirmed,
+    required this.status,
+    this.rejectNote,
+    required this.viewsCount,
+    required this.likesCount,
+    required this.createdAt,
+  });
+
+  factory CreatorContentModel.fromMap(String id, Map<String, dynamic> map) {
+    return CreatorContentModel(
+      id: id,
+      collabId: map['collabId'] ?? '',
+      creatorId: map['creatorId'] ?? '',
+      shopId: map['shopId'] ?? '',
+      offerId: map['offerId'] ?? '',
+      platform: map['platform'] ?? '',
+      url: map['url'] ?? '',
+      thumbnailUrl: map['thumbnailUrl'],
+      caption: map['caption'],
+      disclosureConfirmed: map['disclosureConfirmed'] ?? false,
+      status: map['status'] ?? 'submitted',
+      rejectNote: map['rejectNote'],
+      viewsCount: (map['viewsCount'] as num? ?? 0).toInt(),
+      likesCount: (map['likesCount'] as num? ?? 0).toInt(),
+      createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'collabId': collabId,
+      'creatorId': creatorId,
+      'shopId': shopId,
+      'offerId': offerId,
+      'platform': platform,
+      'url': url,
+      'thumbnailUrl': thumbnailUrl,
+      'caption': caption,
+      'disclosureConfirmed': disclosureConfirmed,
+      'status': status,
+      'rejectNote': rejectNote,
+      'viewsCount': viewsCount,
+      'likesCount': likesCount,
+      'createdAt': Timestamp.fromDate(createdAt),
+    };
+  }
+}
+
+===== mobile\lib\models\collab_model.dart =====
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class CollabModel {
+  final String id;
+  final String shopId;
+  final String creatorId;
+  final String offerId;
+  final double feePerRedemption;
+  final String currency;
+  final DateTime? endsAt;
+  final String status; // invited, accepted, done, cancelled
+  final DateTime createdAt;
+  final DateTime? acceptedAt;
+
+  CollabModel({
+    required this.id,
+    required this.shopId,
+    required this.creatorId,
+    required this.offerId,
+    required this.feePerRedemption,
+    required this.currency,
+    this.endsAt,
+    required this.status,
+    required this.createdAt,
+    this.acceptedAt,
+  });
+
+  factory CollabModel.fromMap(String id, Map<String, dynamic> map) {
+    return CollabModel(
+      id: id,
+      shopId: map['shopId'] ?? '',
+      creatorId: map['creatorId'] ?? '',
+      offerId: map['offerId'] ?? '',
+      feePerRedemption: (map['feePerRedemption'] as num? ?? 0).toDouble(),
+      currency: map['currency'] ?? 'QAR',
+      endsAt: (map['endsAt'] as Timestamp?)?.toDate(),
+      status: map['status'] ?? 'invited',
+      createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      acceptedAt: (map['acceptedAt'] as Timestamp?)?.toDate(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'shopId': shopId,
+      'creatorId': creatorId,
+      'offerId': offerId,
+      'feePerRedemption': feePerRedemption,
+      'currency': currency,
+      'endsAt': endsAt != null ? Timestamp.fromDate(endsAt!) : null,
+      'status': status,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'acceptedAt': acceptedAt != null ? Timestamp.fromDate(acceptedAt!) : null,
+    };
+  }
+}
+
+===== mobile\lib\models\earning_model.dart =====
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class EarningModel {
+  final String id;
+  final String creatorId;
+  final String claimId;
+  final double amount;
+  final String currency;
+  final String status; // pending, approved, paid, reversed
+  final DateTime createdAt;
+  final DateTime? approvedAt;
+
+  EarningModel({
+    required this.id,
+    required this.creatorId,
+    required this.claimId,
+    required this.amount,
+    required this.currency,
+    required this.status,
+    required this.createdAt,
+    this.approvedAt,
+  });
+
+  factory EarningModel.fromMap(String id, Map<String, dynamic> map) {
+    return EarningModel(
+      id: id,
+      creatorId: map['creatorId'] ?? '',
+      claimId: map['claimId'] ?? '',
+      amount: (map['amount'] as num? ?? 0).toDouble(),
+      currency: map['currency'] ?? 'QAR',
+      status: map['status'] ?? 'pending',
+      createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      approvedAt: (map['approvedAt'] as Timestamp?)?.toDate(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'creatorId': creatorId,
+      'claimId': claimId,
+      'amount': amount,
+      'currency': currency,
+      'status': status,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'approvedAt': approvedAt != null ? Timestamp.fromDate(approvedAt!) : null,
+    };
+  }
+}
+
+===== mobile\lib\models\redemption_model.dart =====
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class RedemptionModel {
+  final String id;
+  final String claimId;
+  final String shopId;
+  final String? branchId;
+  final String? counterId;
+  final String method; // customer_scan_counter_qr, shop_scan_claim_qr, shop_pin
+  final DateTime redeemedAt;
+  final double? lat;
+  final double? lng;
+
+  RedemptionModel({
+    required this.id,
+    required this.claimId,
+    required this.shopId,
+    this.branchId,
+    this.counterId,
+    required this.method,
+    required this.redeemedAt,
+    this.lat,
+    this.lng,
+  });
+
+  factory RedemptionModel.fromMap(String id, Map<String, dynamic> map) {
+    return RedemptionModel(
+      id: id,
+      claimId: map['claimId'] ?? '',
+      shopId: map['shopId'] ?? '',
+      branchId: map['branchId'],
+      counterId: map['counterId'],
+      method: map['method'] ?? '',
+      redeemedAt: (map['redeemedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      lat: (map['lat'] as num?)?.toDouble(),
+      lng: (map['lng'] as num?)?.toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'claimId': claimId,
+      'shopId': shopId,
+      'branchId': branchId,
+      'counterId': counterId,
+      'method': method,
+      'redeemedAt': Timestamp.fromDate(redeemedAt),
+      'lat': lat,
+      'lng': lng,
+    };
+  }
+}
+
+===== mobile\lib\models\payout_model.dart =====
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class PayoutModel {
+  final String id;
+  final String creatorId;
+  final double amount;
+  final String status; // 'requested', 'approved', 'completed', 'rejected'
+  final DateTime requestedAt;
+  final String? transactionId;
+
+  PayoutModel({
+    required this.id,
+    required this.creatorId,
+    required this.amount,
+    required this.status,
+    required this.requestedAt,
+    this.transactionId,
+  });
+
+  factory PayoutModel.fromMap(String id, Map<String, dynamic> data) {
+    return PayoutModel(
+      id: id,
+      creatorId: data['creatorId'] ?? '',
+      amount: (data['amount'] ?? 0).toDouble(),
+      status: data['status'] ?? 'requested',
+      requestedAt: (data['requestedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      transactionId: data['transactionId'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'creatorId': creatorId,
+      'amount': amount,
+      'status': status,
+      'requestedAt': FieldValue.serverTimestamp(),
+      'transactionId': transactionId,
+    };
+  }
+}
+
+===== mobile\lib\services\creator_service.dart =====
+import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/creator_model.dart';
+
+/// PHASE E ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â E6: Creator/Vlogger service
+class CreatorService {
+  CreatorService._();
+  static final CreatorService instance = CreatorService._();
+
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  CollectionReference<Map<String, dynamic>> get _creators =>
+      _db.collection('creators');
+
+  /// Generate unique creator referral code
+  String _generateCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final rand = Random.secure();
+    return 'CR_${List.generate(6, (_) => chars[rand.nextInt(chars.length)]).join()}';
+  }
+
+  /// Check if user is already a creator
+  Future<bool> isCreator(String uid) async {
+    try {
+      final doc = await _creators.doc(uid).get();
+      return doc.exists;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Get creator by uid
+  Future<CreatorModel?> getCreator(String uid) async {
+    try {
+      final doc = await _creators.doc(uid).get();
+      if (!doc.exists || doc.data() == null) return null;
+      return CreatorModel.fromMap(uid, doc.data()!);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Get creator by referral code
+  Future<CreatorModel?> getCreatorByCode(String code) async {
+    try {
+      final snap = await _creators
+          .where('referralCode', isEqualTo: code.toUpperCase())
+          .where('status', isEqualTo: 'approved')
+          .limit(1)
+          .get();
+      if (snap.docs.isEmpty) return null;
+      return CreatorModel.fromMap(snap.docs.first.id, snap.docs.first.data());
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Stream creator data
+  Stream<CreatorModel?> streamCreator(String uid) {
+    return _creators.doc(uid).snapshots().map((snap) {
+      if (!snap.exists || snap.data() == null) return null;
+      return CreatorModel.fromMap(uid, snap.data()!);
+    });
+  }
+
+  /// Apply as creator
+  Future<void> applyAsCreator({
+    required String uid,
+    required String displayName,
+    required String email,
+    required String bio,
+    String? channelUrl,
+    String category = 'general',
+    int followers = 0,
+  }) async {
+    final existing = await _creators.doc(uid).get();
+    if (existing.exists) {
+      throw Exception('You already have a creator application');
+    }
+
+    final code = _generateCode();
+    final creator = CreatorModel(
+      id: '',
+      phoneOrWhatsapp: '',
+      city: '',
+      
+      categories: [],
+      
+      followersCount: 0,
+      totalViews: 0,
+      totalClaims: 0,
+      totalRedemptions: 0,
+      totalShares: 0,
+      coinsEarned: 0,
+      
+      userId: uid,
+      displayName: displayName,
+      
+      bio: bio,
+      channelUrl: channelUrl,
+      category: category,
+      followers: followers,
+      referralCode: code,
+      status: CreatorStatus.pending,
+      createdAt: DateTime.now(),
+    );
+
+    await _creators.doc(uid).set(creator.toMap());
+  }
+
+  /// Stream my creator profile
+  Stream<CreatorModel?> streamMyCreator(String uid) {
+    return _creators.doc(uid).snapshots().map((snap) {
+      if (!snap.exists || snap.data() == null) return null;
+      return CreatorModel.fromMap(uid, snap.data()!);
+    });
+  }
+
+  /// Update creator profile
+  Future<void> updateCreator(String uid, Map<String, dynamic> data) async {
+    await _creators.doc(uid).set(
+      {...data, 'updatedAt': FieldValue.serverTimestamp()},
+      SetOptions(merge: true),
+    );
+  }
+}
+
+===== WHERE creatorId/collabId/source ARE SET =====
+mobile\lib\features\business\business_analytics_screen.dart:100: final referredBy = data['referredByCreatorId'] as String?;
+mobile\lib\features\business\business_analytics_screen.dart:109: creatorId: referredBy,
+mobile\lib\features\business\business_analytics_screen.dart:219: required this.creatorId,
+mobile\lib\features\business\business_analytics_screen.dart:224: final String creatorId;
+mobile\lib\features\business\business_analytics_screen.dart:351: 'Creator ${stats.creatorId.substring(0, 6)}...',
+mobile\lib\features\business\create_offer_screen.dart:82: source: source,
+mobile\lib\features\business\my_business_screen.dart:69: source: source,
+mobile\lib\features\business\my_business_screen.dart:125: source: source,
+mobile\lib\features\creator\add_content_screen.dart:6: final String collabId;
+mobile\lib\features\creator\add_content_screen.dart:9: final String creatorId;
+mobile\lib\features\creator\add_content_screen.dart:12: required this.collabId,
+mobile\lib\features\creator\add_content_screen.dart:15: required this.creatorId,
+mobile\lib\features\creator\add_content_screen.dart:41: 'collabId': widget.collabId,
+mobile\lib\features\creator\add_content_screen.dart:42: 'creatorId': widget.creatorId,
+mobile\lib\features\creator\creator_dashboard_screen.dart:177: future: FirebaseFirestore.instance.collection('creator_earnings').where('creatorId', isEqualTo: creator.userId).get(),
+mobile\lib\features\creator\creator_dashboard_screen.dart:202: future: FirebaseFirestore.instance.collection('creator_earnings').where('creatorId', isEqualTo: creator.userId).where('status', isEqualTo: 'pending').get(),
+mobile\lib\features\creator\creator_dashboard_screen.dart:268: Navigator.of(context).push(MaterialPageRoute(builder: (_) => EditCreatorProfileScreen(creatorId: creator.id)));
+mobile\lib\features\creator\creator_dashboard_screen.dart:309: Navigator.of(context).push(MaterialPageRoute(builder: (_) => CreatorProfileScreen(creatorId: uid)));
+mobile\lib\features\creator\creator_profile_screen.dart:8: final String creatorId;
+mobile\lib\features\creator\creator_profile_screen.dart:9: const CreatorProfileScreen({super.key, required this.creatorId});
+mobile\lib\features\creator\creator_profile_screen.dart:26: .where('userId', isEqualTo: creatorId)
+mobile\lib\features\creator\edit_creator_profile_screen.dart:12: final String creatorId;
+mobile\lib\features\creator\edit_creator_profile_screen.dart:13: const EditCreatorProfileScreen({super.key, required this.creatorId});
+mobile\lib\features\creator\edit_creator_profile_screen.dart:39: final snap = await FirebaseFirestore.instance.collection('creators').doc(widget.creatorId).get();
+mobile\lib\features\creator\edit_creator_profile_screen.dart:56: final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+mobile\lib\features\creator\edit_creator_profile_screen.dart:81: await FirebaseFirestore.instance.collection('creators').doc(widget.creatorId).update({
+mobile\lib\features\deals\offer_detail_screen.dart:17: const OfferDetailScreen({super.key, required this.offer,this.creatorId,});
+mobile\lib\features\deals\offer_detail_screen.dart:19: final String? creatorId;
+mobile\lib\features\deals\offer_detail_screen.dart:105: source: 'home',
+mobile\lib\features\reels\reels_screen.dart:108: final contentId = doc.id;
+mobile\lib\features\reels\reels_screen.dart:111: contentId: contentId,
+mobile\lib\features\reels\reels_screen.dart:122: final String contentId;
+mobile\lib\features\reels\reels_screen.dart:127: required this.contentId,
+mobile\lib\features\reels\reels_screen.dart:187: .doc('${widget.contentId}_$uid')
+mobile\lib\features\reels\reels_screen.dart:197: .doc('${widget.contentId}_$uid')
+mobile\lib\features\reels\reels_screen.dart:207: .doc('${widget.contentId}_$uid');
+mobile\lib\features\reels\reels_screen.dart:215: 'contentId': widget.contentId,
+mobile\lib\features\reels\reels_screen.dart:228: .doc('${widget.contentId}_$uid');
+mobile\lib\features\reels\reels_screen.dart:235: 'contentId': widget.contentId,
+mobile\lib\features\reels\reels_screen.dart:266: final creatorId = widget.content['creatorId'];
+mobile\lib\features\reels\reels_screen.dart:274: creatorId: creatorId,
+mobile\lib\features\reels\reels_screen.dart:408: 'https://migo-app-3030e.web.app/c/${widget.contentId}';
+mobile\lib\models\claim_model.dart:53: this.creatorId,
+mobile\lib\models\claim_model.dart:54: this.collabId,
+mobile\lib\models\claim_model.dart:55: this.contentId,
+mobile\lib\models\claim_model.dart:76: final String? creatorId;
+mobile\lib\models\claim_model.dart:77: final String? collabId;
+mobile\lib\models\claim_model.dart:78: final String? contentId;
+mobile\lib\models\claim_model.dart:97: source: map['source'] as String?,
+mobile\lib\models\claim_model.dart:98: creatorId: map['creatorId'] as String?,
+mobile\lib\models\claim_model.dart:99: collabId: map['collabId'] as String?,
+mobile\lib\models\claim_model.dart:100: contentId: map['contentId'] as String?,
+mobile\lib\models\claim_model.dart:120: 'source': source,
+mobile\lib\models\claim_model.dart:121: 'creatorId': creatorId,
+mobile\lib\models\claim_model.dart:122: 'collabId': collabId,
+mobile\lib\models\claim_model.dart:123: 'contentId': contentId,
+mobile\lib\models\collab_model.dart:6: final String creatorId;
+mobile\lib\models\collab_model.dart:18: required this.creatorId,
+mobile\lib\models\collab_model.dart:32: creatorId: map['creatorId'] ?? '',
+mobile\lib\models\collab_model.dart:46: 'creatorId': creatorId,
+mobile\lib\models\creator_content_model.dart:5: final String collabId;
+mobile\lib\models\creator_content_model.dart:6: final String creatorId;
+mobile\lib\models\creator_content_model.dart:22: required this.collabId,
+mobile\lib\models\creator_content_model.dart:23: required this.creatorId,
+mobile\lib\models\creator_content_model.dart:41: collabId: map['collabId'] ?? '',
+mobile\lib\models\creator_content_model.dart:42: creatorId: map['creatorId'] ?? '',
+mobile\lib\models\creator_content_model.dart:60: 'collabId': collabId,
+mobile\lib\models\creator_content_model.dart:61: 'creatorId': creatorId,
+mobile\lib\models\earning_model.dart:5: final String creatorId;
+mobile\lib\models\earning_model.dart:15: required this.creatorId,
+mobile\lib\models\earning_model.dart:27: creatorId: map['creatorId'] ?? '',
+mobile\lib\models\earning_model.dart:39: 'creatorId': creatorId,
+mobile\lib\models\payout_model.dart:5: final String creatorId;
+mobile\lib\models\payout_model.dart:13: required this.creatorId,
+mobile\lib\models\payout_model.dart:23: creatorId: data['creatorId'] ?? '',
+mobile\lib\models\payout_model.dart:33: 'creatorId': creatorId,
+mobile\lib\models\reservation_model.dart:157: source: data['source'] ?? 'app',
+mobile\lib\models\reservation_model.dart:199: 'source': source,
+mobile\lib\models\reservation_model.dart:246: source: source,
+mobile\lib\services\analytics_service.dart:41: 'source': source ?? 'app',
+mobile\lib\services\firestore_service.dart:1246: Future<void> createEarning(String creatorId, String claimId, double amount) async {
+mobile\lib\services\firestore_service.dart:1248: 'creatorId': creatorId,
+mobile\lib\services\firestore_service.dart:1257: Stream<List<EarningModel>> streamMyEarnings(String creatorId) {
+mobile\lib\services\firestore_service.dart:1259: .where('creatorId', isEqualTo: creatorId)
+mobile\lib\services\reservation_service.dart:398: 'source': 'app',
+migo-business\lib\features\analytics\business_analytics_screen.dart:65: final referredBy = data['referredByCreatorId'] as String?;
+migo-business\lib\features\analytics\business_analytics_screen.dart:74: creatorId: referredBy,
+migo-business\lib\features\analytics\business_analytics_screen.dart:199: required this.creatorId,
+migo-business\lib\features\analytics\business_analytics_screen.dart:204: final String creatorId;
+migo-business\lib\features\analytics\business_analytics_screen.dart:329: 'Creator ${stats.creatorId.length > 6 ? stats.creatorId.substring(0, 6) : stats.creatorId}...',
+migo-business\lib\features\creator\shop_creators_screen.dart:64: 'creatorId': creator['userId'],
+migo-business\lib\features\creator\shop_creators_screen.dart:162: builder: (_) => ViewCreatorProfileScreen(creatorId: c['userId'] ?? ''),
+migo-business\lib\features\creator\view_creator_profile_screen.dart:8: final String creatorId;
+migo-business\lib\features\creator\view_creator_profile_screen.dart:9: const ViewCreatorProfileScreen({super.key, required this.creatorId});
+migo-business\lib\features\creator\view_creator_profile_screen.dart:26: .where('userId', isEqualTo: creatorId)
+migo-business\lib\features\offers\create_offer_screen.dart:197: final picked = await _picker.pickImage(source: source, maxWidth: 1600, maxHeight: 1600, imageQuality: 85);
+migo-business\lib\features\profile\profile_screen.dart:34: source: source,
+migo-business\lib\features\profile\profile_screen.dart:98: source: source,
+migo-business\lib\features\scan\scan_qr_screen.dart:125: final creatorId = claimData['creatorId'];
+migo-business\lib\features\scan\scan_qr_screen.dart:126: final collabId = claimData['collabId'];
+migo-business\lib\features\scan\scan_qr_screen.dart:127: if (creatorId != null && collabId != null) {
+migo-business\lib\features\scan\scan_qr_screen.dart:129: final collabSnap = await FirebaseFirestore.instance.collection('collabs').doc(collabId).get();
+migo-business\lib\features\scan\scan_qr_screen.dart:136: 'creatorId': creatorId,
+migo-business\lib\features\scan\scan_qr_screen.dart:137: 'collabId': collabId,
+migo-business\lib\models\claim_model.dart:97: source: (map['source'] ?? 'home') as String,
+migo-business\lib\models\claim_model.dart:118: 'source': source,
+migo-business\lib\models\reservation_model.dart:153: source: data['source'] ?? 'app',
+migo-business\lib\models\reservation_model.dart:194: 'source': source,
+migo-business\lib\models\reservation_model.dart:238: source: source,
+migo-business\lib\services\reservation_service.dart:365: 'source': 'app',
+
+===== WHERE QrCodeScreen / ClaimDetailScreen ARE OPENED =====
+mobile\lib\features\deals\claim_detail_screen.dart:7: const ClaimDetailScreen({super.key, required this.claim});
+mobile\lib\features\deals\claim_success_screen.dart:12: const ClaimSuccessScreen({
+mobile\lib\features\deals\deals_screen.dart:440: builder: (_) => QrCodeScreen(
+mobile\lib\features\deals\my_claims_screen.dart:265: builder: (_) => QrCodeScreen(
+mobile\lib\features\deals\offer_detail_screen.dart:116: builder: (_) => ClaimSuccessScreen(
+mobile\lib\features\deals\qr_code_screen.dart:14: const QrCodeScreen({

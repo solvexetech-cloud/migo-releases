@@ -1,0 +1,942 @@
+﻿AUDIT 6
+
+===== migo-business\lib\features\creator\shop_creators_screen.dart =====
+1: import 'package:flutter/material.dart';
+2: import 'package:cloud_firestore/cloud_firestore.dart';
+3: import 'package:url_launcher/url_launcher.dart';
+4: import '../../core/theme/migo_theme.dart';
+5: import 'view_creator_profile_screen.dart';
+6: 
+7: class ShopCreatorsScreen extends StatefulWidget {
+8:   final String businessId;
+9:   const ShopCreatorsScreen({super.key, required this.businessId});
+10: 
+11:   @override
+12:   State<ShopCreatorsScreen> createState() => _ShopCreatorsScreenState();
+13: }
+14: 
+15: class _ShopCreatorsScreenState extends State<ShopCreatorsScreen> {
+16:   final _searchController = TextEditingController();
+17:   String _search = '';
+18: 
+19:   @override
+20:   void dispose() {
+21:     _searchController.dispose();
+22:     super.dispose();
+23:   }
+24: 
+25:   Future<void> _recordCollab(Map<String, dynamic> creator) async {
+26:     final feeController = TextEditingController();
+27:     final offerIdController = TextEditingController();
+28:     final endDateController = TextEditingController();
+29: 
+30:     await showDialog(
+31:       context: context,
+32:       builder: (context) => AlertDialog(
+33:         title: Text('Record Collab with ${creator['displayName']}'),
+34:         content: Column(
+35:           mainAxisSize: MainAxisSize.min,
+36:           children: [
+37:             TextField(
+38:               controller: offerIdController,
+39:               decoration: const InputDecoration(labelText: 'Offer ID (from My Offers)'),
+40:             ),
+41:             const SizedBox(height: 12),
+42:             TextField(
+43:               controller: feeController,
+44:               keyboardType: TextInputType.number,
+45:               decoration: const InputDecoration(labelText: 'Fee per Redemption (QAR)'),
+46:             ),
+47:             const SizedBox(height: 12),
+48:             TextField(
+49:               controller: endDateController,
+50:               decoration: const InputDecoration(labelText: 'End Date (YYYY-MM-DD)'),
+51:             ),
+52:           ],
+53:         ),
+54:         actions: [
+55:           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+56:           ElevatedButton(
+57:             onPressed: () async {
+58:               if (feeController.text.isEmpty || offerIdController.text.isEmpty) return;
+59:               final fee = double.tryParse(feeController.text) ?? 0;
+60:               final endDate = DateTime.tryParse(endDateController.text) ?? DateTime.now().add(const Duration(days: 30));
+61: 
+62:               await FirebaseFirestore.instance.collection('collabs').add({
+63:                 'shopId': widget.businessId,
+64:                 'creatorId': creator['userId'],
+65:                 'offerId': offerIdController.text.trim(),
+66:                 'feePerRedemption': fee,
+67:                 'currency': 'QAR',
+68:                 'endsAt': Timestamp.fromDate(endDate),
+69:                 'status': 'invited',
+70:                 'createdAt': FieldValue.serverTimestamp(),
+71:               });
+72:               if (context.mounted) Navigator.pop(context);
+73:               ScaffoldMessenger.of(context).showSnackBar(
+74:                 const SnackBar(content: Text('âœ… Collab invitation sent to creator!')),
+75:               );
+76:             },
+77:             child: const Text('Send Invite'),
+78:           ),
+79:         ],
+80:       ),
+81:     );
+82:   }
+83: 
+84:   @override
+85:   Widget build(BuildContext context) {
+86:     return Scaffold(
+87:       appBar: AppBar(
+88:         title: const Text('Find Creators', style: TextStyle(color: Colors.white)),
+89:         backgroundColor: MigoColors.primary,
+90:         foregroundColor: Colors.white,
+91:       ),
+92:       body: Column(
+93:         children: [
+94:           Padding(
+95:             padding: const EdgeInsets.all(16),
+96:             child: TextField(
+97:               controller: _searchController,
+98:               decoration: InputDecoration(
+99:                 hintText: 'Search creators by name...',
+100:                 prefixIcon: const Icon(Icons.search),
+101:                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+102:               ),
+103:               onChanged: (val) => setState(() => _search = val.toLowerCase()),
+104:             ),
+105:           ),
+106:           Expanded(
+107:             child: StreamBuilder<QuerySnapshot>(
+108:               stream: FirebaseFirestore.instance
+109:                   .collection('creators')
+110:                   .where('status', isEqualTo: 'approved')
+111:                   .snapshots(),
+112:               builder: (context, snapshot) {
+113:                 if (snapshot.connectionState == ConnectionState.waiting) {
+114:                   return const Center(child: CircularProgressIndicator());
+115:                 }
+116:                 final docs = snapshot.data?.docs ?? [];
+117:                 final filtered = docs.where((doc) {
+118:                   final data = doc.data() as Map<String, dynamic>;
+119:                   final name = (data['displayName'] ?? '').toString().toLowerCase();
+120:                   return name.contains(_search);
+121:                 }).toList();
+122: 
+123:                 if (filtered.isEmpty) {
+124:                   return const Center(child: Text('No creators found.'));
+125:                 }
+126: 
+127:                 return ListView.builder(
+128:                   padding: const EdgeInsets.symmetric(horizontal: 16),
+129:                   itemCount: filtered.length,
+130:                   itemBuilder: (context, index) {
+131:                     final c = filtered[index].data() as Map<String, dynamic>;
+132:                     final name = c['displayName'] ?? 'Unknown';
+133:                     final photoUrl = c['profileImageUrl'];
+134:                     // 🆕 Handle both 'categories' (list) and 'category' (single string)
+135:                     final categories = c['categories'] != null
+136:                         ? List<String>.from(c['categories'])
+137:                         : (c['category'] != null ? [c['category'] as String] : <String>[]);
+138:                     final followers = c['followersCount'] ?? c['followers'] ?? 0;
+139:                     final bio = c['bio'] ?? 'No bio';
+140:                     final insta = c['instagramUrl'];
+141:                     final tiktok = c['tiktokUrl'];
+142:                     final youtube = c['youtubeUrl'];
+143:                     final facebook = c['facebookUrl'];
+144: 
+145:                     return Card(
+146:                       margin: const EdgeInsets.only(bottom: 12),
+147:                       shape: RoundedRectangleBorder(
+148:                         borderRadius: BorderRadius.circular(12),
+149:                         side: BorderSide(color: Colors.grey.shade300),
+150:                       ),
+151:                       child: Padding(
+152:                         padding: const EdgeInsets.all(16),
+153:                         child: Column(
+154:                           crossAxisAlignment: CrossAxisAlignment.start,
+155:                           children: [
+156:                             // Profile Row (Clickable)
+157:                             GestureDetector(
+158:                               onTap: () {
+159:                                 Navigator.push(
+160:                                   context,
+161:                                   MaterialPageRoute(
+162:                                     builder: (_) => ViewCreatorProfileScreen(creatorId: c['userId'] ?? ''),
+163:                                   ),
+164:                                 );
+165:                               },
+166:                               child: Row(
+167:                                 children: [
+168:                                 CircleAvatar(
+169:                                   radius: 28,
+170:                                   backgroundColor: MigoColors.accent.withValues(alpha: 0.2),
+171:                                   backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+172:                                   child: photoUrl == null
+173:                                       ? Text(name[0].toUpperCase(), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: MigoColors.primary))
+174:                                       : null,
+175:                                 ),
+176:                                 const SizedBox(width: 12),
+177:                                 Expanded(
+178:                                   child: Column(
+179:                                     crossAxisAlignment: CrossAxisAlignment.start,
+180:                                     children: [
+181:                                       Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+182:                                       const SizedBox(height: 2),
+183:                                       Text('$followers Followers', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+184:                                     ],
+185:                                   ),
+186:                                 ),
+187:                                 ElevatedButton(
+188:                                   onPressed: () => _recordCollab(c),
+189:                                   style: ElevatedButton.styleFrom(
+190:                                     backgroundColor: MigoColors.primary,
+191:                                     foregroundColor: Colors.white,
+192:                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+193:                                   ),
+194:                                   child: const Text('Invite'),
+195:                                 ),
+196:                               ],
+197:                             ),
+198:                             ),
+199:                             const SizedBox(height: 12),
+200:                             // Bio
+201:                             Text(bio, style: const TextStyle(fontSize: 13, height: 1.4), maxLines: 2, overflow: TextOverflow.ellipsis),
+202:                             const SizedBox(height: 12),
+203:                             // Categories
+204:                             if (categories.isNotEmpty)
+205:                               Wrap(
+206:                                 spacing: 6,
+207:                                 runSpacing: 6,
+208:                                 children: categories.map((cat) => Container(
+209:                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+210:                                   decoration: BoxDecoration(
+211:                                     color: MigoColors.primary.withValues(alpha: 0.1),
+212:                                     borderRadius: BorderRadius.circular(6),
+213:                                   ),
+214:                                   child: Text(cat.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: MigoColors.primary)),
+215:                                 )).toList(),
+216:                               ),
+217:                             const SizedBox(height: 12),
+218:                             // Social Links
+219:                             Row(
+220:                               children: [
+221:                                 if (insta != null) _SocialIcon(icon: Icons.camera_alt, color: Colors.pink, onTap: () => _launch(insta)),
+222:                                 if (tiktok != null) _SocialIcon(icon: Icons.music_note, color: Colors.black, onTap: () => _launch(tiktok)),
+223:                                 if (youtube != null) _SocialIcon(icon: Icons.play_circle_fill, color: Colors.red, onTap: () => _launch(youtube)),
+224:                                 if (facebook != null) _SocialIcon(icon: Icons.facebook, color: Colors.blue, onTap: () => _launch(facebook)),
+225:                               ],
+226:                             ),
+227:                           ],
+228:                         ),
+229:                       ),
+230:                     );
+231:                   },
+232:                 );
+233:               },
+234:             ),
+235:           ),
+236:         ],
+237:       ),
+238:     );
+239:   }
+240: 
+241:   Future<void> _launch(String? url) async {
+242:     if (url == null || url.isEmpty) return;
+243:     final uri = Uri.parse(url);
+244:     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+245:       debugPrint('Could not launch $url');
+246:     }
+247:   }
+248: }
+249: 
+250: class _SocialIcon extends StatelessWidget {
+251:   final IconData icon;
+252:   final Color color;
+253:   final VoidCallback onTap;
+254:   const _SocialIcon({required this.icon, required this.color, required this.onTap});
+255: 
+256:   @override
+257:   Widget build(BuildContext context) {
+258:     return InkWell(
+259:       onTap: onTap,
+260:       borderRadius: BorderRadius.circular(20),
+261:       child: Padding(
+262:         padding: const EdgeInsets.all(8.0),
+263:         child: Icon(icon, color: color, size: 24),
+264:       ),
+265:     );
+266:   }
+267: }
+
+===== migo-business\lib\features\offers\my_offers_screen.dart =====
+1: import 'package:cloud_firestore/cloud_firestore.dart';
+2: import 'package:firebase_auth/firebase_auth.dart';
+3: import 'package:flutter/material.dart';
+4: 
+5: import '../../core/theme/migo_theme.dart';
+6: import '../../models/offer_model.dart';
+7: import '../../services/offer_service.dart';
+8: import 'create_offer_screen.dart';
+9: import 'business_offer_reserve_settings.dart';
+10: import 'offer_stats_screen.dart';
+11: 
+12: /// PHASE I — My Offers (Business)
+13: class MyOffersScreen extends StatefulWidget {
+14:   const MyOffersScreen({super.key});
+15: 
+16:   @override
+17:   State<MyOffersScreen> createState() => _MyOffersScreenState();
+18: }
+19: 
+20: class _MyOffersScreenState extends State<MyOffersScreen> {
+21:   String? _businessId;
+22:   String? _businessName;
+23:   String? _areaId;
+24:   bool _loading = true;
+25: 
+26:   // ഫിൽട്ടർ സ്റ്റേറ്റുകൾ
+27:   String _searchQuery = '';
+28:   String _filterType = 'all';
+29:   String _filterCountry = 'all';
+30: 
+31:   @override
+32:   void initState() {
+33:     super.initState();
+34:     _loadBusiness();
+35:   }
+36: 
+37:   Future<void> _loadBusiness() async {
+38:     final uid = FirebaseAuth.instance.currentUser?.uid;
+39:     if (uid == null) {
+40:       setState(() => _loading = false);
+41:       return;
+42:     }
+43: 
+44:     final snap = await FirebaseFirestore.instance
+45:         .collection('businesses')
+46:         .where('ownerUid', isEqualTo: uid)
+47:         .limit(1)
+48:         .get();
+49: 
+50:     if (snap.docs.isNotEmpty) {
+51:       final data = snap.docs.first.data();
+52:       _businessId = snap.docs.first.id;
+53:       _businessName = data['name'] as String?;
+54:       _areaId = data['areaId'] as String?;
+55:     }
+56: 
+57:     if (mounted) setState(() => _loading = false);
+58:   }
+59: 
+60:   @override
+61:   Widget build(BuildContext context) {
+62:     if (_loading) {
+63:       return const Center(child: CircularProgressIndicator());
+64:     }
+65: 
+66:     if (_businessId == null) {
+67:       return const Center(
+68:         child: Padding(
+69:           padding: EdgeInsets.all(24),
+70:           child: Text(
+71:             'No business linked to your account.\nPlease contact MIGO support.',
+72:             textAlign: TextAlign.center,
+73:             style: TextStyle(color: MigoColors.textSecondary),
+74:           ),
+75:         ),
+76:       );
+77:     }
+78: 
+79:     return StreamBuilder<List<OfferModel>>(
+80:       stream: OfferService.instance.streamMyOffers(_businessId!),
+81:       builder: (context, snap) {
+82:         if (snap.connectionState == ConnectionState.waiting) {
+83:           return const Center(child: CircularProgressIndicator());
+84:         }
+85: 
+86:         final allOffers = snap.data ?? [];
+87: 
+88:         // ഫിൽട്ടർ ചെയ്ത ഓഫറുകൾ
+89:         final filteredOffers = allOffers.where((o) {
+90:           final matchesSearch = o.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+91:               o.description.toLowerCase().contains(_searchQuery.toLowerCase());
+92:           final matchesType = _filterType == 'all' || o.type == _filterType;
+93:           // countryCode ഇല്ലെങ്കിൽ 'QA' എന്ന് കണക്കാക്കുക
+94:           final offerCountry = o.countryCode ?? 'QA';
+95:           final matchesCountry = _filterCountry == 'all' || offerCountry == _filterCountry;
+96:           return matchesSearch && matchesType && matchesCountry;
+97:         }).toList();
+98: 
+99:         return SingleChildScrollView(
+100:           padding: const EdgeInsets.all(20),
+101:           child: Column(
+102:             crossAxisAlignment: CrossAxisAlignment.start,
+103:             children: [
+104:               // Header
+105:               Row(
+106:                 children: [
+107:                   Expanded(
+108:                     child: Column(
+109:                       crossAxisAlignment: CrossAxisAlignment.start,
+110:                       children: [
+111:                         const Text(
+112:                           'My Offers',
+113:                           style: TextStyle(
+114:                             fontSize: 24,
+115:                             fontWeight: FontWeight.w800,
+116:                           ),
+117:                         ),
+118:                         const SizedBox(height: 4),
+119:                         Text(
+120:                           '${filteredOffers.length} total',
+121:                           style: const TextStyle(
+122:                             color: MigoColors.textSecondary,
+123:                             fontSize: 13,
+124:                           ),
+125:                         ),
+126:                       ],
+127:                     ),
+128:                   ),
+129:                   ElevatedButton.icon(
+130:                     onPressed: () => _openCreate(context),
+131:                     icon: const Icon(Icons.add, size: 18),
+132:                     label: const Text('New'),
+133:                   ),
+134:                 ],
+135:               ),
+136:               const SizedBox(height: 16),
+137: 
+138:               // Search Bar
+139:               TextField(
+140:                 decoration: InputDecoration(
+141:                   hintText: 'Search offers...',
+142:                   prefixIcon: const Icon(Icons.search),
+143:                   filled: true,
+144:                   fillColor: MigoColors.surface,
+145:                   border: OutlineInputBorder(
+146:                     borderRadius: BorderRadius.circular(12),
+147:                     borderSide: BorderSide.none,
+148:                   ),
+149:                   contentPadding: const EdgeInsets.symmetric(vertical: 0),
+150:                 ),
+151:                 onChanged: (v) => setState(() => _searchQuery = v),
+152:               ),
+153:               const SizedBox(height: 12),
+154: 
+155:               // Filters Row
+156:               Row(
+157:                 children: [
+158:                   Expanded(
+159:                     child: DropdownButtonFormField<String>(
+160:                       initialValue: _filterType,
+161:                       decoration: InputDecoration(
+162:                         labelText: 'Type',
+163:                         isDense: true,
+164:                         border: OutlineInputBorder(
+165:                           borderRadius: BorderRadius.circular(10),
+166:                         ),
+167:                         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+168:                       ),
+169:                       items: const [
+170:                         DropdownMenuItem(value: 'all', child: Text('All Types', style: TextStyle(fontSize: 12))),
+171:                         DropdownMenuItem(value: 'standard', child: Text('Standard', style: TextStyle(fontSize: 12))),
+172:                         DropdownMenuItem(value: 'flash', child: Text('Flash', style: TextStyle(fontSize: 12))),
+173:                         DropdownMenuItem(value: 'group', child: Text('Group', style: TextStyle(fontSize: 12))),
+174:                         DropdownMenuItem(value: 'hidden', child: Text('Hidden', style: TextStyle(fontSize: 12))),
+175:                         DropdownMenuItem(value: 'birthday', child: Text('Birthday', style: TextStyle(fontSize: 12))),
+176:                       ],
+177:                       onChanged: (v) => setState(() => _filterType = v ?? 'all'),
+178:                     ),
+179:                   ),
+180:                   const SizedBox(width: 10),
+181:                   Expanded(
+182:                     child: DropdownButtonFormField<String>(
+183:                       initialValue: _filterCountry,
+184:                       decoration: InputDecoration(
+185:                         labelText: 'Country',
+186:                         isDense: true,
+187:                         border: OutlineInputBorder(
+188:                           borderRadius: BorderRadius.circular(10),
+189:                         ),
+190:                         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+191:                       ),
+192:                       items: const [
+193:                         DropdownMenuItem(value: 'all', child: Text('All', style: TextStyle(fontSize: 12))),
+194:                         DropdownMenuItem(value: 'QA', child: Text('Qatar', style: TextStyle(fontSize: 12))),
+195:                         DropdownMenuItem(value: 'AE', child: Text('UAE', style: TextStyle(fontSize: 12))),
+196:                         DropdownMenuItem(value: 'SA', child: Text('Saudi', style: TextStyle(fontSize: 12))),
+197:                         DropdownMenuItem(value: 'KW', child: Text('Kuwait', style: TextStyle(fontSize: 12))),
+198:                         DropdownMenuItem(value: 'OM', child: Text('Oman', style: TextStyle(fontSize: 12))),
+199:                         DropdownMenuItem(value: 'BH', child: Text('Bahrain', style: TextStyle(fontSize: 12))),
+200:                         DropdownMenuItem(value: 'IN', child: Text('India', style: TextStyle(fontSize: 12))),
+201:                       ],
+202:                       onChanged: (v) => setState(() => _filterCountry = v ?? 'all'),
+203:                     ),
+204:                   ),
+205:                 ],
+206:               ),
+207:               const SizedBox(height: 20),
+208: 
+209:               // Offers List
+210:               if (filteredOffers.isEmpty)
+211:                 _emptyState(context)
+212:               else
+213:                 ...filteredOffers.map((o) => _offerCard(context, o)),
+214:             ],
+215:           ),
+216:         );
+217:       },
+218:     );
+219:   }
+220: 
+221:   Widget _emptyState(BuildContext context) {
+222:     return Card(
+223:       child: Padding(
+224:         padding: const EdgeInsets.all(40),
+225:         child: Column(
+226:           children: [
+227:             const Icon(
+228:               Icons.local_offer_outlined,
+229:               size: 56,
+230:               color: MigoColors.accent,
+231:             ),
+232:             const SizedBox(height: 12),
+233:             const Text(
+234:               'No offers found',
+235:               style: TextStyle(
+236:                 fontSize: 18,
+237:                 fontWeight: FontWeight.w700,
+238:               ),
+239:             ),
+240:             const SizedBox(height: 6),
+241:             const Text(
+242:               'Create your first offer to attract customers.',
+243:               textAlign: TextAlign.center,
+244:               style: TextStyle(
+245:                 fontSize: 13,
+246:                 color: MigoColors.textSecondary,
+247:               ),
+248:             ),
+249:             const SizedBox(height: 20),
+250:             ElevatedButton.icon(
+251:               onPressed: () => _openCreate(context),
+252:               icon: const Icon(Icons.add),
+253:               label: const Text('Create Offer'),
+254:             ),
+255:           ],
+256:         ),
+257:       ),
+258:     );
+259:   }
+260: 
+261:   Widget _offerCard(BuildContext context, OfferModel offer) {
+262:     final statusColor = _statusColor(offer.status);
+263: 
+264:     return Card(
+265:       margin: const EdgeInsets.only(bottom: 12),
+266:       child: Padding(
+267:         padding: const EdgeInsets.all(16),
+268:         child: Column(
+269:           crossAxisAlignment: CrossAxisAlignment.start,
+270:           children: [
+271:             Row(
+272:               children: [
+273:                 Expanded(
+274:                   child: Text(
+275:                     offer.title.isEmpty ? 'Untitled' : offer.title,
+276:                     style: const TextStyle(
+277:                       fontSize: 16,
+278:                       fontWeight: FontWeight.w700,
+279:                     ),
+280:                   ),
+281:                 ),
+282:                 Container(
+283:                   padding: const EdgeInsets.symmetric(
+284:                     horizontal: 8,
+285:                     vertical: 3,
+286:                   ),
+287:                   decoration: BoxDecoration(
+288:                     color: statusColor.withValues(alpha: 0.15),
+289:                     borderRadius: BorderRadius.circular(6),
+290:                   ),
+291:                   child: Text(
+292:                     offer.status.toUpperCase(),
+293:                     style: TextStyle(
+294:                       fontSize: 10,
+295:                       fontWeight: FontWeight.w800,
+296:                       color: statusColor,
+297:                     ),
+298:                   ),
+299:                 ),
+300:               ],
+301:             ),
+302:             const SizedBox(height: 6),
+303:             Text(
+304:               offer.description,
+305:               maxLines: 2,
+306:               overflow: TextOverflow.ellipsis,
+307:               style: const TextStyle(
+308:                 fontSize: 13,
+309:                 color: MigoColors.textSecondary,
+310:               ),
+311:             ),
+312:             const SizedBox(height: 10),
+313:             Row(
+314:               children: [
+315:                 Text(
+316:                   '${offer.currency} ${offer.originalPrice.toStringAsFixed(0)}',
+317:                   style: const TextStyle(
+318:                     fontSize: 12,
+319:                     decoration: TextDecoration.lineThrough,
+320:                     color: MigoColors.textSecondary,
+321:                   ),
+322:                 ),
+323:                 const SizedBox(width: 6),
+324:                 Text(
+325:                   '${offer.currency} ${offer.offerPrice.toStringAsFixed(0)}',
+326:                   style: const TextStyle(
+327:                     fontSize: 16,
+328:                     fontWeight: FontWeight.w800,
+329:                     color: MigoColors.primary,
+330:                   ),
+331:                 ),
+332:                 const SizedBox(width: 6),
+333:                 Container(
+334:                   padding: const EdgeInsets.symmetric(
+335:                     horizontal: 6,
+336:                     vertical: 2,
+337:                   ),
+338:                   decoration: BoxDecoration(
+339:                     color: MigoColors.success.withValues(alpha: 0.12),
+340:                     borderRadius: BorderRadius.circular(4),
+341:                   ),
+342:                   child: Text(
+343:                     'SAVE ${offer.percentOff}%',
+344:                     style: const TextStyle(
+345:                       fontSize: 10,
+346:                       fontWeight: FontWeight.w800,
+347:                       color: MigoColors.success,
+348:                     ),
+349:                   ),
+350:                 ),
+351:               ],
+352:             ),
+353: 
+354:             const SizedBox(height: 10),
+355:             
+356:                         // 🆕 ഓഫർ സ്റ്റാറ്റിസ്റ്റിക്സ് (നിറങ്ങളോടുകൂടി)
+357:             SingleChildScrollView(
+358:               scrollDirection: Axis.horizontal,
+359:               child: Row(
+360:                 children: [
+361:                   _statItem(Icons.visibility, '${offer.claimedCount}', 'Claims', Colors.blue.shade700),
+362:                   const SizedBox(width: 16),
+363:                   _statItem(Icons.favorite, '${offer.claimedCount}', 'Saved', Colors.pink.shade400),
+364:                   const SizedBox(width: 16),
+365:                   _statItem(Icons.receipt_long, '${offer.claimedCount}', 'Redeemed', Colors.green.shade600),
+366:                 ],
+367:               ),
+368:             ),
+369:             
+370:                         const SizedBox(height: 12),
+371:             // Action Buttons Row
+372:             Row(
+373:               children: [
+374:                 Expanded(
+375:                   flex: 1,
+376:                   child: OutlinedButton.icon(
+377:                    onPressed: () => _openEdit(context, offer),
+378:                     icon: const Icon(Icons.edit_outlined, size: 14),
+379:                     label: const Text('Edit', style: TextStyle(fontSize: 11)),
+380:                     style: OutlinedButton.styleFrom(
+381:                       padding: EdgeInsets.zero,
+382:                       minimumSize: const Size(0, 36),
+383:                     ),
+384:                   ),
+385:                 ),
+386:                 const SizedBox(width: 6),
+387:                 Expanded(
+388:                   flex: 1,
+389:                   child: OutlinedButton.icon(
+390:                     onPressed: () => _toggleActive(context, offer),
+391:                     icon: Icon(
+392:                       offer.status == 'live' ? Icons.pause_circle_outline : Icons.play_circle_outline,
+393:                       size: 14,
+394:                     ),
+395:                     label: Text(
+396:                       offer.status == 'live' ? 'Pause' : 'Activate',
+397:                       style: const TextStyle(fontSize: 11),
+398:                     ),
+399:                     style: OutlinedButton.styleFrom(
+400:                       padding: EdgeInsets.zero,
+401:                       minimumSize: const Size(0, 36),
+402:                     ),
+403:                   ),
+404:                 ),
+405:                 const SizedBox(width: 8),
+406:                 _actionIcon(
+407:                   icon: Icons.tune,
+408:                   color: Colors.deepPurple,
+409:                   tooltip: 'Reserve Settings',
+410:                   onPressed: () => _openReserveSettings(context, offer),
+411:                 ),
+412:                 _actionIcon(
+413:                   icon: Icons.bar_chart,
+414:                   color: MigoColors.info,
+415:                   tooltip: 'View Stats',
+416:                   onPressed: () {
+417:                     Navigator.push(
+418:                       context,
+419:                       MaterialPageRoute(
+420:                         builder: (_) => OfferStatsScreen(
+421:                           offerId: offer.id,
+422:                           offerTitle: offer.title,
+423:                         ),
+424:                       ),
+425:                     );
+426:                   },
+427:                 ),
+428:                 _actionIcon(
+429:                   icon: Icons.delete_outline,
+430:                   color: MigoColors.error,
+431:                   tooltip: 'Delete',
+432:                   onPressed: () => _confirmDelete(context, offer),
+433:                 ),
+434:               ],
+435:             ),
+436:           ],
+437:         ),
+438:       ),
+439:     );
+440:   }
+441: 
+442:   Widget _actionIcon({
+443:     required IconData icon,
+444:     required Color color,
+445:     required String tooltip,
+446:     required VoidCallback onPressed,
+447:   }) {
+448:     return IconButton(
+449:       onPressed: onPressed,
+450:       icon: Icon(icon, color: color, size: 20),
+451:       tooltip: tooltip,
+452:       padding: EdgeInsets.zero,
+453:       constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+454:       visualDensity: VisualDensity.compact,
+455:     );
+456:   }
+457: 
+458:     Widget _statItem(IconData icon, String value, String label, Color color) {
+459:     return Row(
+460:       mainAxisSize: MainAxisSize.min,
+461:       children: [
+462:         Icon(icon, size: 14, color: color),
+463:         const SizedBox(width: 4),
+464:         Text(
+465:           '$value $label',
+466:           style: TextStyle(
+467:             fontSize: 11,
+468:             color: color,
+469:             fontWeight: FontWeight.w700,
+470:           ),
+471:         ),
+472:       ],
+473:     );
+474:   }
+475: 
+476: 
+477:   Color _statusColor(String status) {
+478:     switch (status) {
+479:       case 'live':
+480:       case 'approved':
+481:         return MigoColors.success;
+482:       case 'pending':
+483:         return MigoColors.warning;
+484:       case 'paused':
+485:       case 'rejected':
+486:         return MigoColors.error;
+487:       default:
+488:         return MigoColors.textSecondary;
+489:     }
+490:   }
+491: 
+492:   Future<void> _openCreate(BuildContext context) async {
+493:     await Navigator.of(context).push(
+494:       MaterialPageRoute(
+495:         builder: (_) => CreateOfferScreen(
+496:           businessId: _businessId!,
+497:           businessName: _businessName ?? 'Business',
+498:           areaId: _areaId ?? '',
+499:         ),
+500:       ),
+501:     );
+502:   }
+503: 
+504:   Future<void> _openEdit(BuildContext context, OfferModel offer) async {
+505:     await Navigator.of(context).push(
+506:       MaterialPageRoute(
+507:         builder: (_) => CreateOfferScreen(
+508:           businessId: _businessId!,
+509:           businessName: _businessName ?? 'Business',
+510:           areaId: _areaId ?? '',
+511:           existingOffer: offer,
+512:         ),
+513:       ),
+514:     );
+515:   }
+516: 
+517:   Future<void> _toggleActive(BuildContext context, OfferModel offer) async {
+518:     final err = await OfferService.instance.toggleActive(
+519:       offerId: offer.id,
+520:       currentActive: offer.status == 'live',
+521:     );
+522:     if (!context.mounted) return;
+523:     if (err != null) {
+524:       ScaffoldMessenger.of(context).showSnackBar(
+525:         SnackBar(content: Text(err)),
+526:       );
+527:     }
+528:   }
+529: 
+530:   Future<void> _openReserveSettings(BuildContext context, OfferModel offer) async {
+531:     await Navigator.of(context).push(
+532:       MaterialPageRoute(
+533:         builder: (_) => BusinessOfferReserveSettingsScreen(
+534:           offerId: offer.id,
+535:           businessId: _businessId!,
+536:         ),
+537:       ),
+538:     );
+539:   }
+540: 
+541:   Future<void> _confirmDelete(BuildContext context, OfferModel offer) async {
+542:     final ok = await showDialog<bool>(
+543:       context: context,
+544:       builder: (_) => AlertDialog(
+545:         title: const Text('Delete offer?'),
+546:         content: Text('"${offer.title}" will be deleted permanently.'),
+547:         actions: [
+548:           TextButton(
+549:             onPressed: () => Navigator.pop(context, false),
+550:             child: const Text('Cancel'),
+551:           ),
+552:           TextButton(
+553:             onPressed: () => Navigator.pop(context, true),
+554:             style: TextButton.styleFrom(
+555:               foregroundColor: MigoColors.error,
+556:             ),
+557:             child: const Text('Delete'),
+558:           ),
+559:         ],
+560:       ),
+561:     );
+562: 
+563:     if (ok == true) {
+564:       await OfferService.instance.deleteOffer(offer.id);
+565:       if (!context.mounted) return;
+566:       ScaffoldMessenger.of(context).showSnackBar(
+567:         const SnackBar(content: Text('Offer deleted')),
+568:       );
+569:     }
+570:   }
+571: }
+
+===== OFFER MODEL FIELDS (business app) =====
+4: enum OfferType {
+105: final String id;
+106: final String businessId;
+107: final String businessName;
+108: final String title;
+109: final String titleEn;
+110: final String titleAr;
+111: final String description;
+112: final String descriptionEn;
+113: final String descriptionAr;
+114: final double originalPrice;
+115: final double offerPrice;
+116: final String currency;
+117: final OfferType type;
+118: final DateTime startAt;
+119: final DateTime endAt;
+120: final String category;
+121: final String? imageUrl;
+122: final String? terms;
+123: final int? dailyLimit;
+124: final int? totalLimit;
+125: final int claimedCount;
+126: final bool reserveEnabled;
+127: final int reserveTotalSlots;
+128: final int reserveBookedSlots;
+129: final int reserveHoldHours;
+130: final bool reserveTokenRequired;
+131: final int reserveMaxPerCustomer;
+132: final String status;
+133: final bool isPromoted;
+134: final DateTime? promotedUntil;
+137: final String? countryCode;
+138: final String? zoneId;
+139: final String? areaId;
+141: final DateTime? createdAt;
+142: final DateTime? updatedAt;
+145: final int? requiredClaims; // പ്ലാൻ A-യ്ക്ക് (ഉദാ: 10)
+146: final double? floorPrice;  // പ്ലാൻ B-യ്ക്ക് (ഏറ്റവും കുറഞ്ഞ വില)
+147: final double? stepPrice;   // പ്ലാൻ B-യ്ക്ക് (ഓരോ ക്ലെയിമിലും കുറയുന്ന വില)
+148: final int? maxSlots;       // പ്ലാൻ A-യ്ക്ക് (waitlist-ന് വേണ്ടി)
+149: final int? groupTimerHours; // ഡീൽ ടൈമർ (മണിക്കൂറിൽ)
+150: final int? redemptionWindowHours; // റിഡീം ചെയ്യാനുള്ള സമയം
+151: final bool lockOnSlotsFull; // പ്ലാൻ B-യ്ക്ക് (സ്ലോട്ട് നിറഞ്ഞാൽ ലോക്ക് ചെയ്യുക)
+152: final double? finalPrice;   // പ്ലാൻ B-യ്ക്ക് (ലോക്ക് ചെയ്ത വില)
+153: final String dealState;     // DRAFT, OPEN, LIVE, LOCKED, ACTIVATED, CLOSED, EXPIRED
+163: final now = DateTime.now();
+170: final diff = endAt.difference(DateTime.now()).inDays;
+186: final currentClaims = claimedCount;
+187: final flr = floorPrice ?? offerPrice;
+188: final stp = stepPrice ?? 0.0;
+190: final calculated = originalPrice - (currentClaims * stp);
+224: final now = DateTime.now();
+225: final tEn = titleEn ?? title;
+226: final tAr = titleAr ?? title;
+227: final dEn = descriptionEn ?? description;
+228: final dAr = descriptionAr ?? description;
+265: final baseTitle = (map['title'] ?? '') as String;
+266: final baseDesc = (map['description'] ?? '') as String;
+
+===== IMAGE FIELD USE =====
+migo-business\lib\features\creator\shop_creators_screen.dart:133: final photoUrl = c['profileImageUrl'];
+migo-business\lib\features\creator\shop_creators_screen.dart:171: backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+migo-business\lib\features\creator\shop_creators_screen.dart:172: child: photoUrl == null
+migo-business\lib\features\creator\view_creator_profile_screen.dart:38: final imageUrl = data['profileImageUrl'];
+migo-business\lib\features\creator\view_creator_profile_screen.dart:83: backgroundImage: imageUrl != null && imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+migo-business\lib\features\creator\view_creator_profile_screen.dart:84: child: imageUrl == null || imageUrl.isEmpty
+migo-business\lib\features\offers\create_offer_screen.dart:75: String? _imageUrl;
+migo-business\lib\features\offers\create_offer_screen.dart:115: _imageUrl = (o.imageUrl != null && o.imageUrl!.isNotEmpty) ? o.imageUrl : null;
+migo-business\lib\features\offers\create_offer_screen.dart:225: _imageUrl = null;
+migo-business\lib\features\offers\create_offer_screen.dart:238: String? imageUrl = _imageUrl;
+migo-business\lib\features\offers\create_offer_screen.dart:257: imageUrl = uploaded;
+migo-business\lib\features\offers\create_offer_screen.dart:282: imageUrl: imageUrl ?? '',
+migo-business\lib\features\offers\create_offer_screen.dart:306: imageUrl: imageUrl ?? '',
+migo-business\lib\features\offers\create_offer_screen.dart:668: final hasImage = _pickedFile != null || _pickedBytes != null || (_imageUrl != null && _imageUrl!.isNotEmpty);
+migo-business\lib\features\offers\create_offer_screen.dart:683: : Image.network(_imageUrl!, fit: BoxFit.cover, errorBuilder: (_, _, _) => const Center(child: Icon(Icons.broken_image_outlined, size: 48, color: MigoColors.textSecondary))),
+migo-business\lib\features\offers\my_flyers_screen.dart:122: final List<String> imageUrls = [];
+migo-business\lib\features\offers\my_flyers_screen.dart:129: if (url != null) imageUrls.add(url);
+migo-business\lib\features\offers\my_flyers_screen.dart:132: if (imageUrls.isEmpty) throw Exception('No images uploaded');
+migo-business\lib\features\offers\my_flyers_screen.dart:151: 'imageUrls': imageUrls,
+migo-business\lib\features\offers\my_flyers_screen.dart:153: 'thumbnailUrl': imageUrls.first,
+migo-business\lib\features\offers\my_flyers_screen.dart:156: 'totalPages': imageUrls.length,
+migo-business\lib\models\offer_model.dart:74: this.imageUrl,
+migo-business\lib\models\offer_model.dart:121: final String? imageUrl;
+migo-business\lib\models\offer_model.dart:285: imageUrl: map['imageUrl'] as String?,
+migo-business\lib\models\offer_model.dart:334: 'imageUrl': imageUrl,
+migo-business\lib\models\offer_model.dart:363: String? imageUrl,
+migo-business\lib\models\offer_model.dart:402: imageUrl: imageUrl ?? this.imageUrl,
+migo-business\lib\models\reservation_model.dart:21: final String offerImageUrl;
+migo-business\lib\models\reservation_model.dart:74: required this.offerImageUrl,
+migo-business\lib\models\reservation_model.dart:129: offerImageUrl: data['offerImageUrl'] ?? '',
+migo-business\lib\models\reservation_model.dart:169: 'offerImageUrl': offerImageUrl,
+migo-business\lib\models\reservation_model.dart:215: offerImageUrl: offerImageUrl,
+migo-business\lib\services\offer_service.dart:37: required String imageUrl,
+migo-business\lib\services\offer_service.dart:84: 'imageUrl': imageUrl,
+migo-business\lib\services\offer_service.dart:161: required String imageUrl,
+migo-business\lib\services\offer_service.dart:186: 'imageUrl': imageUrl,
+migo-business\lib\services\reservation_service.dart:339: 'offerImageUrl': offerData['imageUrl'] ?? '',

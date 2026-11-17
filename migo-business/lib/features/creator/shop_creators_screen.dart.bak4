@@ -1,0 +1,450 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../core/theme/migo_theme.dart';
+import 'view_creator_profile_screen.dart';
+
+class ShopCreatorsScreen extends StatefulWidget {
+  final String businessId;
+  const ShopCreatorsScreen({super.key, required this.businessId});
+
+  @override
+  State<ShopCreatorsScreen> createState() => _ShopCreatorsScreenState();
+}
+
+class _ShopCreatorsScreenState extends State<ShopCreatorsScreen> {
+  final _searchController = TextEditingController();
+  String _search = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _recordCollab(Map<String, dynamic> creator) async {
+    final feeController = TextEditingController();
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> offers = [];
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('offers')
+          .where('businessId', isEqualTo: widget.businessId)
+          .get();
+      offers = snap.docs.toList();
+      offers.sort((a, b) {
+        final ta = (a.data()['createdAt'] as Timestamp?)?.millisecondsSinceEpoch ?? 0;
+        final tb = (b.data()['createdAt'] as Timestamp?)?.millisecondsSinceEpoch ?? 0;
+        return tb.compareTo(ta);
+      });
+    } catch (e) {
+      feeController.dispose();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not load your offers: $e')),
+      );
+      return;
+    }
+    if (!mounted) return;
+
+    if (offers.isEmpty) {
+      feeController.dispose();
+      await showDialog(
+        context: context,
+        builder: (dialogCtx) => AlertDialog(
+          title: const Text('No offers yet'),
+          content: const Text('Create an offer in My Offers first, then invite a creator to promote it.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('OK')),
+          ],
+        ),
+      );
+      return;
+    }
+
+    String? selectedId;
+    Map<String, dynamic>? selected;
+    DateTime endDate = DateTime.now().add(const Duration(days: 30));
+    bool saving = false;
+    String? errorText;
+
+    String two(int n) => n.toString().padLeft(2, '0');
+
+    await showDialog(
+      context: context,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setSt) {
+          final cur = (selected?['currency'] ?? 'QAR').toString();
+          final dateText = '${endDate.year}-${two(endDate.month)}-${two(endDate.day)}';
+          return AlertDialog(
+            title: Text('Invite ${creator['displayName'] ?? 'creator'}'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('1. Choose the offer to promote', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    ...offers.map((d) {
+                      final o = d.data();
+                      final isSel = d.id == selectedId;
+                      final img = (o['imageUrl'] ?? '').toString();
+                      final oCur = (o['currency'] ?? 'QAR').toString();
+                      final price = ((o['offerPrice'] as num?) ?? 0).toStringAsFixed(0);
+                      final status = (o['status'] ?? '').toString();
+                      final title = (o['title'] ?? 'Untitled').toString();
+                      return GestureDetector(
+                        onTap: () => setSt(() {
+                          selectedId = d.id;
+                          selected = o;
+                          final endTs = o['endAt'];
+                          final limit = DateTime.now().add(const Duration(days: 730));
+                          if (endTs is Timestamp) {
+                            final e = endTs.toDate();
+                            if (e.isAfter(DateTime.now()) && e.isBefore(limit)) endDate = e;
+                          }
+                          errorText = null;
+                        }),
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isSel ? MigoColors.primary.withValues(alpha: 0.08) : Colors.white,
+                            border: Border.all(
+                              color: isSel ? MigoColors.primary : Colors.grey.shade300,
+                              width: isSel ? 2 : 1,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: SizedBox(
+                                  width: 56,
+                                  height: 56,
+                                  child: img.isEmpty
+                                      ? Container(
+                                          color: Colors.grey.shade200,
+                                          child: const Icon(Icons.local_offer_outlined, color: Colors.grey),
+                                        )
+                                      : Image.network(
+                                          img,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, _, _) => Container(
+                                            color: Colors.grey.shade200,
+                                            child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '$oCur $price  |  ${status.toUpperCase()}',
+                                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (isSel) const Icon(Icons.check_circle, color: MigoColors.primary),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 8),
+                    const Text('2. Fee per redeemed claim', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: feeController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: InputDecoration(
+                        labelText: 'Fee ($cur)',
+                        helperText: 'Paid to the creator for each claim redeemed at your shop. Use 0 for free-meal deals.',
+                        helperMaxLines: 3,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('3. Collab end date', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final picked = await showDatePicker(
+                          context: ctx,
+                          initialDate: endDate,
+                          firstDate: DateTime.now().subtract(const Duration(days: 1)),
+                          lastDate: DateTime.now().add(const Duration(days: 730)),
+                        );
+                        if (picked != null) setSt(() => endDate = picked);
+                      },
+                      icon: const Icon(Icons.calendar_today, size: 16),
+                      label: Text(dateText),
+                    ),
+                    if (errorText != null) ...[
+                      const SizedBox(height: 12),
+                      Text(errorText!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: saving ? null : () => Navigator.pop(dialogCtx),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: saving
+                    ? null
+                    : () async {
+                        if (selectedId == null) {
+                          setSt(() => errorText = 'Please select an offer.');
+                          return;
+                        }
+                        final fee = double.tryParse(feeController.text.trim());
+                        if (fee == null || fee < 0) {
+                          setSt(() => errorText = 'Enter a valid fee (0 or more).');
+                          return;
+                        }
+                        setSt(() {
+                          saving = true;
+                          errorText = null;
+                        });
+                        try {
+                          await FirebaseFirestore.instance.collection('collabs').add({
+                            'shopId': widget.businessId,
+                            'creatorId': creator['userId'],
+                            'offerId': selectedId,
+                            'offerTitle': (selected?['title'] ?? '').toString(),
+                            'feePerRedemption': fee,
+                            'currency': cur,
+                            'endsAt': Timestamp.fromDate(endDate),
+                            'status': 'invited',
+                            'createdAt': FieldValue.serverTimestamp(),
+                          });
+                          if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Collab invitation sent to creator!')),
+                            );
+                          }
+                        } catch (e) {
+                          setSt(() {
+                            saving = false;
+                            errorText = 'Could not send invite: $e';
+                          });
+                        }
+                      },
+                child: saving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Text('Send Invite'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    feeController.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Find Creators', style: TextStyle(color: Colors.white)),
+        backgroundColor: MigoColors.primary,
+        foregroundColor: Colors.white,
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search creators by name...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onChanged: (val) => setState(() => _search = val.toLowerCase()),
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('creators')
+                  .where('status', isEqualTo: 'approved')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final docs = snapshot.data?.docs ?? [];
+                final filtered = docs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final name = (data['displayName'] ?? '').toString().toLowerCase();
+                  return name.contains(_search);
+                }).toList();
+
+                if (filtered.isEmpty) {
+                  return const Center(child: Text('No creators found.'));
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final c = filtered[index].data() as Map<String, dynamic>;
+                    final name = c['displayName'] ?? 'Unknown';
+                    final photoUrl = c['profileImageUrl'];
+                    // 🆕 Handle both 'categories' (list) and 'category' (single string)
+                    final categories = c['categories'] != null
+                        ? List<String>.from(c['categories'])
+                        : (c['category'] != null ? [c['category'] as String] : <String>[]);
+                    final followers = c['followersCount'] ?? c['followers'] ?? 0;
+                    final bio = c['bio'] ?? 'No bio';
+                    final insta = c['instagramUrl'];
+                    final tiktok = c['tiktokUrl'];
+                    final youtube = c['youtubeUrl'];
+                    final facebook = c['facebookUrl'];
+
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Profile Row (Clickable)
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ViewCreatorProfileScreen(creatorId: c['userId'] ?? ''),
+                                  ),
+                                );
+                              },
+                              child: Row(
+                                children: [
+                                CircleAvatar(
+                                  radius: 28,
+                                  backgroundColor: MigoColors.accent.withValues(alpha: 0.2),
+                                  backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+                                  child: photoUrl == null
+                                      ? Text(name[0].toUpperCase(), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: MigoColors.primary))
+                                      : null,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                      const SizedBox(height: 2),
+                                      Text('$followers Followers', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                    ],
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => _recordCollab(c),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: MigoColors.primary,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                  child: const Text('Invite'),
+                                ),
+                              ],
+                            ),
+                            ),
+                            const SizedBox(height: 12),
+                            // Bio
+                            Text(bio, style: const TextStyle(fontSize: 13, height: 1.4), maxLines: 2, overflow: TextOverflow.ellipsis),
+                            const SizedBox(height: 12),
+                            // Categories
+                            if (categories.isNotEmpty)
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: categories.map((cat) => Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: MigoColors.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(cat.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: MigoColors.primary)),
+                                )).toList(),
+                              ),
+                            const SizedBox(height: 12),
+                            // Social Links
+                            Row(
+                              children: [
+                                if (insta != null) _SocialIcon(icon: Icons.camera_alt, color: Colors.pink, onTap: () => _launch(insta)),
+                                if (tiktok != null) _SocialIcon(icon: Icons.music_note, color: Colors.black, onTap: () => _launch(tiktok)),
+                                if (youtube != null) _SocialIcon(icon: Icons.play_circle_fill, color: Colors.red, onTap: () => _launch(youtube)),
+                                if (facebook != null) _SocialIcon(icon: Icons.facebook, color: Colors.blue, onTap: () => _launch(facebook)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _launch(String? url) async {
+    if (url == null || url.isEmpty) return;
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      debugPrint('Could not launch $url');
+    }
+  }
+}
+
+class _SocialIcon extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+  const _SocialIcon({required this.icon, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Icon(icon, color: color, size: 24),
+      ),
+    );
+  }
+}

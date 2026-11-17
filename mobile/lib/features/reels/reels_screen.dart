@@ -271,7 +271,7 @@ class _FullScreenReelState extends State<_FullScreenReel> {
         MaterialPageRoute(
           builder: (_) => OfferDetailScreen(
             offer: offer,
-            creatorId: creatorId,
+            creatorId: creatorId, collabId: widget.content['collabId'], contentId: widget.contentId,
           ),
         ),
       );

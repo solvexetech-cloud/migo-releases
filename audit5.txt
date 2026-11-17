@@ -1,0 +1,29 @@
+﻿mobile\lib\features\creator\add_content_screen.dart:40: await FirebaseFirestore.instance.collection('creator_content').add({
+mobile\lib\features\creator\creator_dashboard_screen.dart:33: stream: FirebaseFirestore.instance.collection('creators').where('userId', isEqualTo: uid).snapshots(),
+mobile\lib\features\creator\creator_dashboard_screen.dart:177: future: FirebaseFirestore.instance.collection('creator_earnings').where('creatorId', isEqualTo: creator.userId).get(),
+mobile\lib\features\creator\creator_dashboard_screen.dart:202: future: FirebaseFirestore.instance.collection('creator_earnings').where('creatorId', isEqualTo: creator.userId).where('status', isEqualTo: 'pending').get(),
+mobile\lib\features\creator\creator_profile_screen.dart:25: .collection('creators')
+mobile\lib\features\creator\creator_signup_screen.dart:64: .collection('creators')
+mobile\lib\features\creator\creator_signup_screen.dart:103: await FirebaseFirestore.instance.collection('creators').add({
+mobile\lib\features\creator\edit_creator_profile_screen.dart:39: final snap = await FirebaseFirestore.instance.collection('creators').doc(widget.creatorId).get();
+mobile\lib\features\creator\edit_creator_profile_screen.dart:81: await FirebaseFirestore.instance.collection('creators').doc(widget.creatorId).update({
+mobile\lib\features\deals\offer_detail_screen.dart:105: source: (widget.creatorId != null && widget.creatorId != _uid) ? 'creator_content' : 'home', creatorId: widget.creatorId != _uid ? widget.creatorId : null, collabId: widget.creatorId != _uid ? widget.collabId : null, contentId: widget.creatorId != _uid ? widget.contentId : null,
+mobile\lib\features\deals\qr_code_screen.dart:271: .collection('branch_counters')
+mobile\lib\features\profile\profile_screen.dart:422: .collection('creators')
+mobile\lib\features\reels\reels_screen.dart:38: .collection('creator_content')
+mobile\lib\features\reels\reels_screen.dart:56: .collection('creator_content')
+mobile\lib\services\creator_service.dart:13: _db.collection('creators');
+mobile\lib\services\firestore_service.dart:1244: _db.collection('creator_earnings');
+migo-business\lib\features\creator\shop_creators_screen.dart:62: await FirebaseFirestore.instance.collection('collabs').add({
+migo-business\lib\features\creator\shop_creators_screen.dart:109: .collection('creators')
+migo-business\lib\features\creator\shop_creator_content_screen.dart:19: .collection('creator_content')
+migo-business\lib\features\creator\view_creator_profile_screen.dart:25: .collection('creators')
+migo-business\lib\features\dashboard\dashboard_screen.dart:138: _sidebarItem(10, Icons.people_outline, 'Creators'),
+migo-business\lib\features\dashboard\dashboard_screen.dart:251: _drawerItem(10, Icons.people_outline, 'Creators'),
+migo-business\lib\features\scan\scan_qr_screen.dart:129: final collabSnap = await FirebaseFirestore.instance.collection('collabs').doc(collabId).get();
+migo-business\lib\features\scan\scan_qr_screen.dart:133: .collection('creator_earnings')
+migo-business\lib\features\scan\shop_counters_screen.dart:30: await FirebaseFirestore.instance.collection('branch_counters').add({
+migo-business\lib\features\scan\shop_counters_screen.dart:63: .collection('branch_counters')
+admin\src\hooks\useRoleNav.js:11: { to: '/creators', label: 'Creators', icon: '🎬' },
+admin\src\pages\CreatorsPage.jsx:26: const q = query(collection(db, 'creators'), orderBy('createdAt', 'desc'));
+admin\src\pages\CreatorsPage.jsx:37: await updateDoc(doc(db, 'creators', creatorId), {

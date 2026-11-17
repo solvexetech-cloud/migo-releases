@@ -190,15 +190,38 @@ service cloud.firestore {
 
     // ---------- CREATORS (NEW) ----------
     match /creators/{creatorId} {
-      allow read: if true;
-      allow create, update: if isSignedIn();
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.get('totalViews', 0) == 0 &&
+        request.resource.data.get('totalClaims', 0) == 0 &&
+        request.resource.data.get('totalRedemptions', 0) == 0 &&
+        request.resource.data.get('totalShares', 0) == 0 &&
+        request.resource.data.get('coinsEarned', 0) == 0;
+      allow update: if isSignedIn() && (
+        isModerator() ||
+        (resource.data.userId == request.auth.uid &&
+         request.resource.data.diff(resource.data).affectedKeys()
+           .hasOnly(['bio', 'instagramUrl', 'tiktokUrl', 'youtubeUrl', 'facebookUrl', 'profileImageUrl', 'updatedAt']))
+      );
       allow delete: if isAdmin();
     }
 
     // ---------- CREATOR CONTENT (NEW) ----------
     match /creator_content/{contentId} {
       allow read: if true;
-      allow create, update: if isSignedIn();
+      allow create: if isSignedIn() &&
+        request.resource.data.creatorId == request.auth.uid &&
+        request.resource.data.status == 'submitted' &&
+        request.resource.data.get('viewsCount', 0) == 0 &&
+        request.resource.data.get('likesCount', 0) == 0;
+      allow update: if isSignedIn() && (
+        isModerator() ||
+        (isBusinessOwner(resource.data.shopId) &&
+         !request.resource.data.diff(resource.data).affectedKeys()
+           .hasAny(['creatorId', 'collabId', 'shopId', 'offerId', 'url', 'platform']))
+      );
       allow delete: if isAdmin();
     }
 
@@ -216,8 +239,26 @@ service cloud.firestore {
 
     // ---------- COLLABS (NEW) ----------
     match /collabs/{collabId} {
-      allow read: if isSignedIn();
-      allow create, update: if isSignedIn();
+      allow read: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        isBusinessOwner(resource.data.shopId) ||
+        isModerator()
+      );
+      allow create: if isSignedIn() &&
+        isBusinessOwner(request.resource.data.shopId) &&
+        request.resource.data.status == 'invited' &&
+        request.resource.data.feePerRedemption is number &&
+        request.resource.data.feePerRedemption >= 0;
+      allow update: if isSignedIn() && (
+        isModerator() ||
+        (resource.data.creatorId == request.auth.uid &&
+         request.resource.data.diff(resource.data).affectedKeys()
+           .hasOnly(['status', 'acceptedAt', 'updatedAt']) &&
+         request.resource.data.status in ['accepted', 'declined', 'cancelled']) ||
+        (isBusinessOwner(resource.data.shopId) &&
+         !request.resource.data.diff(resource.data).affectedKeys()
+           .hasAny(['creatorId', 'shopId']))
+      );
       allow delete: if isAdmin();
     }
 
@@ -230,11 +271,35 @@ service cloud.firestore {
 
     // ---------- BRANCH COUNTERS (NEW) ----------
     match /branch_counters/{counterId} {
-      allow read: if true;
-      allow create, update: if isSignedIn();
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isBusinessOwner(request.resource.data.businessId);
+      allow update: if isSignedIn() && (isBusinessOwner(resource.data.businessId) || isModerator());
       allow delete: if isAdmin();
     }
 
+    // ---------- CREATOR EARNINGS ----------
+    match /creator_earnings/{earningId} {
+      allow read: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        (resource.data.get('businessId', '') != '' && isBusinessOwner(resource.data.businessId)) ||
+        isModerator()
+      );
+      allow create: if isSignedIn() &&
+        earningId == request.resource.data.claimId &&
+        request.resource.data.status == 'pending' &&
+        isBusinessOwner(get(/databases/$(database)/documents/claims/$(request.resource.data.claimId)).data.businessId) &&
+        get(/databases/$(database)/documents/claims/$(request.resource.data.claimId)).data.status == 'redeemed' &&
+        get(/databases/$(database)/documents/claims/$(request.resource.data.claimId)).data.creatorId == request.resource.data.creatorId;
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        (resource.data.creatorId == request.auth.uid &&
+         resource.data.status == 'pending' &&
+         request.resource.data.status == 'collected' &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'collectedAt']) &&
+         request.time > resource.data.createdAt + duration.value(24, 'h'))
+      );
+      allow delete: if isAdmin();
+    }
     // ---------- NOTIFICATIONS ----------
     match /notifications/{notifId} {
       allow read: if isSignedIn() &&

@@ -1,0 +1,543 @@
+﻿== MOBILE FILES ==
+mobile\lib\firebase_options.dart  3016
+mobile\lib\main.dart  5598
+mobile\lib\core\config\ads_config.dart  1929
+mobile\lib\core\config\app_config.dart  1265
+mobile\lib\core\constants\app_sizes.dart  688
+mobile\lib\core\localization\app_localizations.dart  4899
+mobile\lib\core\localization\locale_provider.dart  1109
+mobile\lib\core\theme\migo_colors.dart  2613
+mobile\lib\core\theme\migo_gradients.dart  2169
+mobile\lib\core\theme\migo_shadows.dart  1415
+mobile\lib\core\theme\migo_theme.dart  15304
+mobile\lib\core\theme\theme_provider.dart  2311
+mobile\lib\core\utils\migo_animations.dart  3537
+mobile\lib\features\auth\login_screen.dart  12058
+mobile\lib\features\auth\register_screen.dart  0
+mobile\lib\features\auth\signup_screen.dart  30251
+mobile\lib\features\auth\terms_screen.dart  11379
+mobile\lib\features\auth\welcome_screen.dart  6964
+mobile\lib\features\business\business_analytics_screen.dart  12242
+mobile\lib\features\business\business_detail_screen.dart  18802
+mobile\lib\features\business\business_offer_reserve_settings.dart  12015
+mobile\lib\features\business\create_offer_screen.dart  20287
+mobile\lib\features\business\my_business_screen.dart  39505
+mobile\lib\features\business\no_show_history_screen.dart  11972
+mobile\lib\features\business\redeem_screen.dart  12683
+mobile\lib\features\business\register_business_screen.dart  20402
+mobile\lib\features\business\reservation_detail_shop_screen.dart  14748
+mobile\lib\features\business\scan_pickup_screen.dart  0
+mobile\lib\features\business\shop_bookings_screen.dart  12302
+mobile\lib\features\complaints\report_complaint_screen.dart  6854
+mobile\lib\features\creator\add_content_screen.dart  4462
+mobile\lib\features\creator\creator_analytics_screen.dart  9810
+mobile\lib\features\creator\creator_dashboard_screen.dart  17094
+mobile\lib\features\creator\creator_performance_screen.dart  16857
+mobile\lib\features\creator\creator_profile_screen.dart  7658
+mobile\lib\features\creator\creator_signup_screen.dart  14630
+mobile\lib\features\creator\edit_creator_profile_screen.dart  11543
+mobile\lib\features\deals\claim_detail_screen.dart  10130
+mobile\lib\features\deals\claim_success_screen.dart  12907
+mobile\lib\features\deals\deals_screen.dart  34297
+mobile\lib\features\deals\my_claims_screen.dart  19183
+mobile\lib\features\deals\my_deals_screen.dart  0
+mobile\lib\features\deals\offer_detail_screen.dart  49967
+mobile\lib\features\deals\qr_code_screen.dart  14041
+mobile\lib\features\demands\bids_comparison_screen.dart  9863
+mobile\lib\features\demands\claim_details_screen.dart  54887
+mobile\lib\features\demands\claim_ticket_screen.dart  9181
+mobile\lib\features\demands\community_demands_screen.dart  0
+mobile\lib\features\demands\create_demand_screen.dart  23458
+mobile\lib\features\demands\demands_feed_screen.dart  21858
+mobile\lib\features\demands\my_demands_screen.dart  13902
+mobile\lib\features\demands\my_demand_details_screen.dart  8927
+mobile\lib\features\demands\new_demand_screen.dart  21996
+mobile\lib\features\discover\discover_screen.dart  35999
+mobile\lib\features\home\home_screen.dart  29285
+mobile\lib\features\home\main_shell.dart  0
+mobile\lib\features\magazine\magazine_screen.dart  38221
+mobile\lib\features\main\main_shell.dart  17770
+mobile\lib\features\notifications\notifications_screen.dart  8664
+mobile\lib\features\onboarding\how_to_use_dialog.dart  4597
+mobile\lib\features\profile\my_claims_screen.dart  0
+mobile\lib\features\profile\profile_screen.dart  33900
+mobile\lib\features\profile\wallet_screen.dart  0
+mobile\lib\features\reels\link_helper.dart  2317
+mobile\lib\features\reels\reels_screen.dart  15909
+mobile\lib\features\referrals\referral_screen.dart  13594
+mobile\lib\features\requests\product_request_screen.dart  5879
+mobile\lib\features\reserve\booking_screen.dart  20301
+mobile\lib\features\reserve\my_bookings_screen.dart  6390
+mobile\lib\features\reserve\reservation_detail_screen.dart  14061
+mobile\lib\features\reserve\rules_screen.dart  9672
+mobile\lib\features\reserve\widgets\countdown_timer_widget.dart  5039
+mobile\lib\features\reserve\widgets\reservation_card.dart  9845
+mobile\lib\features\reviews\business_reviews_screen.dart  20694
+mobile\lib\features\reviews\write_review_screen.dart  10046
+mobile\lib\features\wallet\pay_with_coins_screen.dart  15984
+mobile\lib\features\wallet\wallet_screen.dart  38321
+mobile\lib\models\agency_model.dart  2667
+mobile\lib\models\area_model.dart  2048
+mobile\lib\models\business_model.dart  6564
+mobile\lib\models\category_model.dart  4776
+mobile\lib\models\claim_model.dart  4076
+mobile\lib\models\coin_settings_model.dart  1936
+mobile\lib\models\coin_transaction_model.dart  908
+mobile\lib\models\collab_model.dart  1678
+mobile\lib\models\country_model.dart  3707
+mobile\lib\models\creator_content_model.dart  2229
+mobile\lib\models\creator_model.dart  4215
+mobile\lib\models\demand_bid_model.dart  2561
+mobile\lib\models\demand_claim_model.dart  2681
+mobile\lib\models\demand_group_model.dart  3356
+mobile\lib\models\demand_join_model.dart  871
+mobile\lib\models\demand_model.dart  3378
+mobile\lib\models\demand_settings_model.dart  3544
+mobile\lib\models\earning_model.dart  1346
+mobile\lib\models\group_deal_model.dart  4002
+mobile\lib\models\language_model.dart  1366
+mobile\lib\models\notification_model.dart  3594
+mobile\lib\models\no_show_log_model.dart  3218
+mobile\lib\models\offer_model.dart  14308
+mobile\lib\models\payout_model.dart  1070
+mobile\lib\models\redemption_model.dart  1328
+mobile\lib\models\referral_model.dart  3109
+mobile\lib\models\reservation_ban_model.dart  3171
+mobile\lib\models\reservation_config_model.dart  7451
+mobile\lib\models\reservation_model.dart  9114
+mobile\lib\models\reservation_rules_model.dart  5050
+mobile\lib\models\review_model.dart  3333
+mobile\lib\models\user_model.dart  8369
+mobile\lib\models\zone_model.dart  1430
+mobile\lib\services\ads_service.dart  4709
+mobile\lib\services\analytics_service.dart  2801
+mobile\lib\services\auth_service.dart  4458
+mobile\lib\services\claim_service.dart  0
+mobile\lib\services\cloudinary_service.dart  3123
+mobile\lib\services\creator_service.dart  4491
+mobile\lib\services\demand_group_service.dart  5253
+mobile\lib\services\demand_service.dart  14741
+mobile\lib\services\firestore_service.dart  41844
+mobile\lib\services\fraud_service.dart  8042
+mobile\lib\services\localization_service.dart  2601
+mobile\lib\services\location_service.dart  5563
+mobile\lib\services\notification_service.dart  3729
+mobile\lib\services\referral_tracker.dart  5821
+mobile\lib\services\reservation_service.dart  27782
+mobile\lib\widgets\ad_banner.dart  1761
+mobile\lib\widgets\ad_native_card.dart  2468
+mobile\lib\widgets\category_grid.dart  4720
+mobile\lib\widgets\flash_deal_card.dart  10489
+mobile\lib\widgets\intention_chip.dart  3155
+mobile\lib\widgets\location_picker_modal.dart  8819
+mobile\lib\widgets\location_picker_screen.dart  5415
+mobile\lib\widgets\migo_card.dart  1183
+mobile\lib\widgets\migo_empty_state.dart  2602
+mobile\lib\widgets\migo_gold_button.dart  2252
+mobile\lib\widgets\migo_primary_button.dart  2305
+mobile\lib\widgets\offer_card.dart  21476
+mobile\lib\widgets\pick_for_me_sheet.dart  13332
+mobile\lib\widgets\section_header.dart  1319
+== BUSINESS FILES ==
+migo-business\lib\firebase_options.dart  3014
+migo-business\lib\main.dart  5126
+migo-business\lib\core\localization\app_localizations.dart  4899
+migo-business\lib\core\localization\locale_provider.dart  704
+migo-business\lib\core\theme\migo_gradients.dart  863
+migo-business\lib\core\theme\migo_theme.dart  3137
+migo-business\lib\features\analytics\business_analytics_screen.dart  11796
+migo-business\lib\features\auth\login_screen.dart  7434
+migo-business\lib\features\auth\register_screen.dart  15788
+migo-business\lib\features\auth\terms_screen.dart  8476
+migo-business\lib\features\bookings\claims_history_screen.dart  7288
+migo-business\lib\features\bookings\no_show_history_screen.dart  11821
+migo-business\lib\features\bookings\reservation_detail_shop_screen.dart  14684
+migo-business\lib\features\bookings\shop_bookings_screen.dart  11820
+migo-business\lib\features\bookings\widgets\countdown_timer_widget.dart  5046
+migo-business\lib\features\claims\business_claims_screen.dart  11403
+migo-business\lib\features\creator\shop_creators_screen.dart  11919
+migo-business\lib\features\creator\shop_creator_content_screen.dart  2511
+migo-business\lib\features\creator\view_creator_profile_screen.dart  9613
+migo-business\lib\features\dashboard\dashboard_screen.dart  27671
+migo-business\lib\features\demands\business_demands_feed_screen.dart  11105
+migo-business\lib\features\demands\demand_bids_screen.dart  21080
+migo-business\lib\features\demands\demand_redemption_screen.dart  15122
+migo-business\lib\features\demands\my_bids_screen.dart  24418
+migo-business\lib\features\offers\business_offer_reserve_settings.dart  11876
+migo-business\lib\features\offers\create_offer_screen.dart  37677
+migo-business\lib\features\offers\my_flyers_screen.dart  28175
+migo-business\lib\features\offers\my_offers_screen.dart  20659
+migo-business\lib\features\offers\offer_stats_screen.dart  2226
+migo-business\lib\features\profile\profile_screen.dart  25097
+migo-business\lib\features\scan\scan_qr_screen.dart  14674
+migo-business\lib\features\scan\shop_counters_screen.dart  4365
+migo-business\lib\models\claim_model.dart  3783
+migo-business\lib\models\demand_bid_model.dart  2415
+migo-business\lib\models\demand_claim_model.dart  2681
+migo-business\lib\models\demand_join_model.dart  871
+migo-business\lib\models\demand_model.dart  2881
+migo-business\lib\models\no_show_log_model.dart  2155
+migo-business\lib\models\offer_model.dart  15012
+migo-business\lib\models\reservation_ban_model.dart  2070
+migo-business\lib\models\reservation_config_model.dart  5937
+migo-business\lib\models\reservation_model.dart  7707
+migo-business\lib\models\reservation_rules_model.dart  3258
+migo-business\lib\services\auth_service.dart  3784
+migo-business\lib\services\claim_service.dart  4999
+migo-business\lib\services\cloudinary_service.dart  3030
+migo-business\lib\services\demand_service.dart  12636
+migo-business\lib\services\offer_service.dart  8080
+migo-business\lib\services\reservation_service.dart  25343
+migo-business\lib\services\translation_service.dart  1572
+== QR / REDEEM / PIN USAGE ==
+mobile\lib\features\business\business_analytics_screen.dart:8: /// Shows which creators brought claims/redeems
+mobile\lib\features\business\business_analytics_screen.dart:94: int totalRedeems = 0;
+mobile\lib\features\business\business_analytics_screen.dart:101: final isRedeemed = data['status'] == 'redeemed';
+mobile\lib\features\business\business_analytics_screen.dart:103: if (isRedeemed) totalRedeems++;
+mobile\lib\features\business\business_analytics_screen.dart:111: redeems: isRedeemed ? 1 : 0,
+mobile\lib\features\business\business_analytics_screen.dart:115: if (isRedeemed) existing.redeems++;
+mobile\lib\features\business\business_analytics_screen.dart:145: label: 'Redeemed',
+mobile\lib\features\business\business_analytics_screen.dart:146: value: totalRedeems.toString(),
+mobile\lib\features\business\business_analytics_screen.dart:169: ? '${(totalRedeems / totalClaims * 100).toStringAsFixed(0)}%'
+mobile\lib\features\business\business_analytics_screen.dart:221: required this.redeems,
+mobile\lib\features\business\business_analytics_screen.dart:226: int redeems;
+mobile\lib\features\business\business_analytics_screen.dart:313: ? (stats.redeems / stats.claims * 100).toStringAsFixed(0)
+mobile\lib\features\business\business_analytics_screen.dart:359: '${stats.claims} claims • ${stats.redeems} redeems',
+mobile\lib\features\business\my_business_screen.dart:14: import 'redeem_screen.dart';
+mobile\lib\features\business\my_business_screen.dart:566: builder: (_) => RedeemScreen(business: biz),
+mobile\lib\features\business\my_business_screen.dart:571: label: Text(isAr ? 'استرداد المطالبة' : 'Redeem claim'),
+mobile\lib\features\business\redeem_screen.dart:2: import 'package:mobile_scanner/mobile_scanner.dart';
+mobile\lib\features\business\redeem_screen.dart:9: class RedeemScreen extends StatefulWidget {
+mobile\lib\features\business\redeem_screen.dart:10: const RedeemScreen({super.key, required this.business});
+mobile\lib\features\business\redeem_screen.dart:14: State<RedeemScreen> createState() => _RedeemScreenState();
+mobile\lib\features\business\redeem_screen.dart:17: class _RedeemScreenState extends State<RedeemScreen> {
+mobile\lib\features\business\redeem_screen.dart:19: final _scannerController = MobileScannerController(
+mobile\lib\features\business\redeem_screen.dart:37: Future<void> _redeem(String code) async {
+mobile\lib\features\business\redeem_screen.dart:39: debugPrint('🔵 Redeem called with code=$trimmed (length=${trimmed.length})');
+mobile\lib\features\business\redeem_screen.dart:97: await FirestoreService.instance.redeemClaim(
+mobile\lib\features\business\redeem_screen.dart:104: 'Claim redeemed successfully! +25 coins sent to customer.';
+mobile\lib\features\business\redeem_screen.dart:126: _redeem(raw);
+mobile\lib\features\business\redeem_screen.dart:137: title: const Text('Redeem claim'),
+mobile\lib\features\business\redeem_screen.dart:167: MobileScanner(
+mobile\lib\features\business\redeem_screen.dart:291: _loading ? null : () => _redeem(_codeController.text),
+mobile\lib\features\business\redeem_screen.dart:302: label: const Text('Redeem'),
+mobile\lib\features\creator\creator_analytics_screen.dart:141: label: 'Claim → Redeem',
+mobile\lib\features\creator\creator_performance_screen.dart:85: label: 'Redeems',
+mobile\lib\features\creator\creator_performance_screen.dart:164: label: 'Redeems',
+mobile\lib\features\creator\creator_performance_screen.dart:432: final redeemRate = creator.totalClaims > 0
+mobile\lib\features\creator\creator_performance_screen.dart:441: redeemRate * 0.2 +
+mobile\lib\features\deals\claim_detail_screen.dart:2: import 'package:qr_flutter/qr_flutter.dart';
+mobile\lib\features\deals\claim_detail_screen.dart:14: case ClaimStatus.redeemed:
+mobile\lib\features\deals\claim_detail_screen.dart:27: final canRedeem =
+mobile\lib\features\deals\claim_detail_screen.dart:71: opacity: canRedeem ? 1.0 : 0.3,
+mobile\lib\features\deals\claim_detail_screen.dart:72: child: QrImageView(
+mobile\lib\features\deals\claim_detail_screen.dart:89: canRedeem
+mobile\lib\features\deals\claim_detail_screen.dart:91: : claim.status == ClaimStatus.redeemed
+mobile\lib\features\deals\claim_detail_screen.dart:92: ? 'Already redeemed'
+mobile\lib\features\deals\claim_detail_screen.dart:192: if (claim.status == ClaimStatus.redeemed &&
+mobile\lib\features\deals\claim_detail_screen.dart:193: claim.redeemedAt != null) ...[
+mobile\lib\features\deals\claim_detail_screen.dart:204: 'Redeemed ${claim.redeemedAt!.toLocal().toString().split('.').first}',
+mobile\lib\features\deals\claim_detail_screen.dart:230: 'You can no longer redeem this offer.'
+mobile\lib\features\deals\claim_success_screen.dart:118: : 'You can view this offer and its QR code in your Active Deals. Show it at the business to redeem.',
+mobile\lib\features\deals\my_claims_screen.dart:54: return status == 'active' || status == 'redeemed';
+mobile\lib\features\deals\my_claims_screen.dart:72: isAr ? 'طالب بعرض أو استرده لرؤيته هنا.' : 'Claim or redeem an offer to see it here.',
+mobile\lib\features\deals\my_claims_screen.dart:89: final isRedeemed = data['status'] == 'redeemed';
+mobile\lib\features\deals\my_claims_screen.dart:129: color: isRedeemed
+mobile\lib\features\deals\my_claims_screen.dart:135: isRedeemed
+mobile\lib\features\deals\my_claims_screen.dart:141: color: isRedeemed ? MigoColors.success : MigoColors.primary,
+mobile\lib\features\deals\my_claims_screen.dart:182: if (isRedeemed)
+mobile\lib\features\deals\my_claims_screen.dart:221: if (!isRedeemed && offer != null) ...[
+mobile\lib\features\deals\my_claims_screen.dart:254: if (!isRedeemed) ...[
+mobile\lib\features\deals\my_claims_screen.dart:283: if (isRedeemed) ...[
+mobile\lib\features\deals\my_claims_screen.dart:302: status: ClaimStatus.redeemed,
+mobile\lib\features\deals\my_claims_screen.dart:305: redeemedAt: (data['redeemedAt'] as Timestamp?)?.toDate(),
+mobile\lib\features\deals\qr_code_screen.dart:3: import 'package:qr_flutter/qr_flutter.dart';
+mobile\lib\features\deals\qr_code_screen.dart:4: import 'package:mobile_scanner/mobile_scanner.dart';
+mobile\lib\features\deals\qr_code_screen.dart:5: import 'package:mobile_scanner/mobile_scanner.dart';
+mobile\lib\features\deals\qr_code_screen.dart:59: if (status == 'redeemed') {
+mobile\lib\features\deals\qr_code_screen.dart:60: return _buildRedeemedSuccess(isAr);
+mobile\lib\features\deals\qr_code_screen.dart:63: return _buildQrView(isAr, pickupCode);
+mobile\lib\features\deals\qr_code_screen.dart:72: Widget _buildQrView(bool isAr, String pickupCode) {
+mobile\lib\features\deals\qr_code_screen.dart:112: child: QrImageView(
+mobile\lib\features\deals\qr_code_screen.dart:176: Widget _buildRedeemedSuccess(bool isAr) {
+mobile\lib\features\deals\qr_code_screen.dart:207: isAr ? 'Ã˜ÂªÃ™â€¦ Ã˜Â§Ã™â€žÃ˜Â§Ã˜Â³Ã˜ÂªÃ˜Â±Ã˜Â¯Ã˜Â§Ã˜Â¯ Ã˜Â¨Ã™â€ Ã˜Â¬Ã˜Â§Ã˜Â­!' : 'Successfully Redeemed!',
+mobile\lib\features\deals\qr_code_screen.dart:261: final MobileScannerController _controller = MobileScannerController();
+mobile\lib\features\deals\qr_code_screen.dart:264: Future<void> _redeem(String token) async {
+mobile\lib\features\deals\qr_code_screen.dart:294: 'status': 'redeemed',
+mobile\lib\features\deals\qr_code_screen.dart:295: 'redeemedAt': FieldValue.serverTimestamp(),
+mobile\lib\features\deals\qr_code_screen.dart:296: 'redeemedBy': shopId,
+mobile\lib\features\deals\qr_code_screen.dart:320: MobileScanner(
+mobile\lib\features\deals\qr_code_screen.dart:328: _redeem(token);
+mobile\lib\features\demands\claim_ticket_screen.dart:3: import 'package:qr_flutter/qr_flutter.dart';
+mobile\lib\features\demands\claim_ticket_screen.dart:94: Text(isAr ? 'امسح الرمز للاسترداد' : 'Scan QR to Redeem', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+mobile\lib\features\demands\claim_ticket_screen.dart:101: child: QrImageView(data: qrData, version: QrVersions.auto, size: 200.0, backgroundColor: Colors.white),
+mobile\lib\features\demands\my_demands_screen.dart:266: // 🆕 Show Redeemed Date/Time if fulfilled
+mobile\lib\features\demands\my_demands_screen.dart:272: .where('status', isEqualTo: 'redeemed')
+mobile\lib\features\demands\my_demands_screen.dart:278: final redeemedAt = (claimData['redeemedAt'] as Timestamp?)?.toDate();
+mobile\lib\features\demands\my_demands_screen.dart:279: if (redeemedAt != null) {
+mobile\lib\features\demands\my_demands_screen.dart:287: '${isAr ? 'تم الاسترداد' : 'Redeemed'}: ${redeemedAt.day}/${redeemedAt.month}/${redeemedAt.year} - ${redeemedAt.hour}:${redeemedAt.minute.toString().padLeft(2, '0')}',
+mobile\lib\features\onboarding\how_to_use_dialog.dart:55: _buildStep(Icons.qr_code_scanner, 'Scan & Redeem', 'Scan QR codes at the shop to redeem your offers.'),
+mobile\lib\features\reserve\reservation_detail_screen.dart:6: import 'package:qr_flutter/qr_flutter.dart';
+mobile\lib\features\reserve\reservation_detail_screen.dart:179: child: QrImageView(
+mobile\lib\features\wallet\pay_with_coins_screen.dart:4: import 'package:qr_flutter/qr_flutter.dart';
+mobile\lib\features\wallet\pay_with_coins_screen.dart:200: QrImageView(
+mobile\lib\features\wallet\wallet_screen.dart:270: : 'Earn more by claiming and redeeming deals',
+mobile\lib\features\wallet\wallet_screen.dart:353: : 'Redeem at business  +${settings?.claimReward ?? 25}',
+mobile\lib\features\wallet\wallet_screen.dart:401: .where('status', isEqualTo: 'redeemed')
+mobile\lib\features\wallet\wallet_screen.dart:433: label: isAr ? 'تم استردادها' : 'Redeemed',
+mobile\lib\features\wallet\wallet_screen.dart:516: .where('status', isEqualTo: 'redeemed')
+mobile\lib\features\wallet\wallet_screen.dart:534: final redeemedAt = (data['redeemedAt'] as Timestamp?)?.toDate();
+mobile\lib\features\wallet\wallet_screen.dart:535: if (redeemedAt != null && redeemedAt.isAfter(monthStart)) {
+mobile\lib\models\claim_model.dart:5: redeemed,
+mobile\lib\models\claim_model.dart:16: case ClaimStatus.redeemed:
+mobile\lib\models\claim_model.dart:17: return 'Redeemed';
+mobile\lib\models\claim_model.dart:26: case 'redeemed':
+mobile\lib\models\claim_model.dart:27: return ClaimStatus.redeemed;
+mobile\lib\models\claim_model.dart:50: this.redeemedAt,
+mobile\lib\models\claim_model.dart:51: this.redeemedBy,
+mobile\lib\models\claim_model.dart:73: final DateTime? redeemedAt;
+mobile\lib\models\claim_model.dart:74: final String? redeemedBy;
+mobile\lib\models\claim_model.dart:95: redeemedAt: (map['redeemedAt'] as Timestamp?)?.toDate(),
+mobile\lib\models\claim_model.dart:96: redeemedBy: map['redeemedBy'] as String?,
+mobile\lib\models\claim_model.dart:118: 'redeemedAt': redeemedAt != null ? Timestamp.fromDate(redeemedAt!) : null,
+mobile\lib\models\claim_model.dart:119: 'redeemedBy': redeemedBy,
+mobile\lib\models\demand_claim_model.dart:18: final String status; // 'locked', 'redeemed', 'cancelled'
+mobile\lib\models\demand_claim_model.dart:22: final DateTime? redeemedAt;
+mobile\lib\models\demand_claim_model.dart:40: this.redeemedAt,
+mobile\lib\models\demand_claim_model.dart:59: 'redeemedAt': redeemedAt != null ? Timestamp.fromDate(redeemedAt!) : null,
+mobile\lib\models\demand_claim_model.dart:80: redeemedAt: (map['redeemedAt'] as Timestamp?)?.toDate(),
+mobile\lib\models\redemption_model.dart:10: final DateTime redeemedAt;
+mobile\lib\models\redemption_model.dart:21: required this.redeemedAt,
+mobile\lib\models\redemption_model.dart:34: redeemedAt: (map['redeemedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+mobile\lib\models\redemption_model.dart:47: 'redeemedAt': Timestamp.fromDate(redeemedAt),
+mobile\lib\services\firestore_service.dart:632: claim.status == ClaimStatus.redeemed) {
+mobile\lib\services\firestore_service.dart:661: Future<void> redeemClaim({
+mobile\lib\services\firestore_service.dart:665: debugPrint('Ã°Å¸â€Âµ redeemClaim: claimId=$claimId');
+mobile\lib\services\firestore_service.dart:681: 'status': ClaimStatus.redeemed.id,
+mobile\lib\services\firestore_service.dart:682: 'redeemedAt': FieldValue.serverTimestamp(),
+mobile\lib\services\firestore_service.dart:683: 'redeemedBy': businessId,
+mobile\lib\services\firestore_service.dart:692: reason: 'Redeemed "${claim.offerTitle}"',
+mobile\lib\services\firestore_service.dart:701: body: 'Your "${claim.offerTitle}" was redeemed at ${claim.businessName}.',
+mobile\lib\services\firestore_service.dart:712: final coins = (config?['coinsPerRedeem'] as num?)?.toInt() ?? 10;
+mobile\lib\services\firestore_service.dart:718: reason: 'Your shared offer was redeemed',
+mobile\lib\services\firestore_service.dart:726: body: 'Your shared offer "${claim.offerTitle}" was redeemed!',
+migo-business\lib\features\analytics\business_analytics_screen.dart:7: /// Shows which creators brought claims/redeems
+migo-business\lib\features\analytics\business_analytics_screen.dart:59: int totalRedeems = 0;
+migo-business\lib\features\analytics\business_analytics_screen.dart:66: final isRedeemed = data['status'] == 'redeemed';
+migo-business\lib\features\analytics\business_analytics_screen.dart:68: if (isRedeemed) totalRedeems++;
+migo-business\lib\features\analytics\business_analytics_screen.dart:76: redeems: isRedeemed ? 1 : 0,
+migo-business\lib\features\analytics\business_analytics_screen.dart:80: if (isRedeemed) existing.redeems++;
+migo-business\lib\features\analytics\business_analytics_screen.dart:126: label: 'Redeemed',
+migo-business\lib\features\analytics\business_analytics_screen.dart:127: value: totalRedeems.toString(),
+migo-business\lib\features\analytics\business_analytics_screen.dart:150: ? '${(totalRedeems / totalClaims * 100).toStringAsFixed(0)}%'
+migo-business\lib\features\analytics\business_analytics_screen.dart:201: required this.redeems,
+migo-business\lib\features\analytics\business_analytics_screen.dart:206: int redeems;
+migo-business\lib\features\analytics\business_analytics_screen.dart:293: ? (stats.redeems / stats.claims * 100).toStringAsFixed(0)
+migo-business\lib\features\analytics\business_analytics_screen.dart:337: '${stats.claims} claims • ${stats.redeems} redeems',
+migo-business\lib\features\bookings\claims_history_screen.dart:14: String _filter = 'all'; // all, active, redeemed
+migo-business\lib\features\bookings\claims_history_screen.dart:35: _buildFilterChip('Redeemed', 'redeemed'),
+migo-business\lib\features\bookings\claims_history_screen.dart:127: case 'redeemed':
+migo-business\lib\features\bookings\claims_history_screen.dart:129: statusLabel = 'REDEEMED';
+migo-business\lib\features\claims\business_claims_screen.dart:122: .where('status', isEqualTo: _showHistory ? 'redeemed' : 'active')
+migo-business\lib\features\claims\business_claims_screen.dart:144: final redeemedAt = (data['redeemedAt'] as Timestamp?)?.toDate();
+migo-business\lib\features\claims\business_claims_screen.dart:146: final targetDate = redeemedAt ?? claimedAt;
+migo-business\lib\features\claims\business_claims_screen.dart:173: final aTime = aData['redeemedAt'] as Timestamp? ?? aData['claimedAt'] as Timestamp?;
+migo-business\lib\features\claims\business_claims_screen.dart:174: final bTime = bData['redeemedAt'] as Timestamp? ?? bData['claimedAt'] as Timestamp?;
+migo-business\lib\features\claims\business_claims_screen.dart:186: final redeemedAt = (data['redeemedAt'] as Timestamp?)?.toDate();
+migo-business\lib\features\claims\business_claims_screen.dart:204: status == 'redeemed' ? Icons.check_circle : Icons.schedule,
+migo-business\lib\features\claims\business_claims_screen.dart:205: color: status == 'redeemed' ? Colors.green : Colors.orange,
+migo-business\lib\features\claims\business_claims_screen.dart:226: color: status == 'redeemed' ? Colors.green : Colors.orange,
+migo-business\lib\features\claims\business_claims_screen.dart:230: if (status == 'redeemed' && redeemedAt != null) ...[
+migo-business\lib\features\claims\business_claims_screen.dart:233: 'Redeemed: ${redeemedAt.day}/${redeemedAt.month}/${redeemedAt.year} - ${redeemedAt.hour}:${redeemedAt.minute.toString().padLeft(2, '0')}',
+migo-business\lib\features\dashboard\dashboard_screen.dart:351: FirebaseFirestore.instance.collection('claims').where('businessId', isEqualTo: businessId).where('status', isEqualTo: 'redeemed').get(),
+migo-business\lib\features\dashboard\dashboard_screen.dart:359: final redeemedSnap = snap.data![1] as QuerySnapshot;
+migo-business\lib\features\dashboard\dashboard_screen.dart:362: final redeemedCount = redeemedSnap.docs.length;
+migo-business\lib\features\dashboard\dashboard_screen.dart:365: for (var doc in redeemedSnap.docs) {
+migo-business\lib\features\dashboard\dashboard_screen.dart:507: 'Scan & Redeem',
+migo-business\lib\features\dashboard\dashboard_screen.dart:515: 'Scan customer QR to redeem offer',
+migo-business\lib\features\dashboard\dashboard_screen.dart:551: label: 'Redeemed Claims',
+migo-business\lib\features\dashboard\dashboard_screen.dart:552: value: redeemedCount.toString(),
+migo-business\lib\features\demands\demand_bids_screen.dart:38: tooltip: isAr ? 'استرداد الطلب' : 'Redeem Order',
+migo-business\lib\features\demands\demand_redemption_screen.dart:4: import 'package:mobile_scanner/mobile_scanner.dart';
+migo-business\lib\features\demands\demand_redemption_screen.dart:51: // --- 1. REDEEM VIA PIN ---
+migo-business\lib\features\demands\demand_redemption_screen.dart:52: Future<void> _redeemWithPin(bool isAr) async {
+migo-business\lib\features\demands\demand_redemption_screen.dart:81: 'status': 'redeemed',
+migo-business\lib\features\demands\demand_redemption_screen.dart:82: 'redeemedAt': FieldValue.serverTimestamp(),
+migo-business\lib\features\demands\demand_redemption_screen.dart:84: 'redeemedBy': FirebaseAuth.instance.currentUser?.uid,
+migo-business\lib\features\demands\demand_redemption_screen.dart:91: debugPrint('PIN Redeem Error: $e');
+migo-business\lib\features\demands\demand_redemption_screen.dart:97: // --- 2. REDEEM VIA QR ---
+migo-business\lib\features\demands\demand_redemption_screen.dart:136: 'status': 'redeemed',
+migo-business\lib\features\demands\demand_redemption_screen.dart:137: 'redeemedAt': FieldValue.serverTimestamp(),
+migo-business\lib\features\demands\demand_redemption_screen.dart:139: 'redeemedBy': FirebaseAuth.instance.currentUser?.uid,
+migo-business\lib\features\demands\demand_redemption_screen.dart:148: debugPrint('QR Redeem Error: $e');
+migo-business\lib\features\demands\demand_redemption_screen.dart:163: Text(isAr ? 'ØªÙ… Ø§Ù„Ø§Ø³ØªØ±Ø¯Ø§Ø¯!' : 'Redeemed!'),
+migo-business\lib\features\demands\demand_redemption_screen.dart:169: : 'Deal successfully redeemed via $method.',
+migo-business\lib\features\demands\demand_redemption_screen.dart:195: title: Text(isAr ? 'Ø§Ø³ØªØ±Ø¯Ø§Ø¯ Ø§Ù„Ø·Ù„Ø¨' : 'Redeem Demand'),
+migo-business\lib\features\demands\demand_redemption_screen.dart:239: isAr ? 'Ø§Ù…Ø³Ø­ Ø±Ù…Ø² QR Ø§Ù„Ø®Ø§Øµ Ø¨Ø§Ù„Ø¹Ù…ÙŠÙ„ Ù„Ø§Ø³ØªØ±Ø¯Ø§Ø¯ Ø§Ù„Ø·Ù„Ø¨.' : 'Scan the customer\'s QR code to redeem.',
+migo-business\lib\features\demands\demand_redemption_screen.dart:247: child: MobileScanner(
+migo-business\lib\features\demands\demand_redemption_screen.dart:325: onPressed: _isLoading ? null : () => _redeemWithPin(isAr),
+migo-business\lib\features\offers\my_offers_screen.dart:365: _statItem(Icons.receipt_long, '${offer.claimedCount}', 'Redeemed', Colors.green.shade600),
+migo-business\lib\features\offers\offer_stats_screen.dart:27: int redeemed = 0;
+migo-business\lib\features\offers\offer_stats_screen.dart:31: if (status == 'redeemed') redeemed++;
+migo-business\lib\features\offers\offer_stats_screen.dart:43: _statTile('Redeemed Claims', '$redeemed', MigoColors.success),
+migo-business\lib\features\scan\scan_qr_screen.dart:3: import 'package:mobile_scanner/mobile_scanner.dart';
+migo-business\lib\features\scan\scan_qr_screen.dart:16: final _scannerController = MobileScannerController();
+migo-business\lib\features\scan\scan_qr_screen.dart:30: Future<void> _redeem(String code) async {
+migo-business\lib\features\scan\scan_qr_screen.dart:78: 'status': 'redeemed',
+migo-business\lib\features\scan\scan_qr_screen.dart:79: 'redeemedAt': FieldValue.serverTimestamp(),
+migo-business\lib\features\scan\scan_qr_screen.dart:89: 'redeemedAt': FieldValue.serverTimestamp(),
+migo-business\lib\features\scan\scan_qr_screen.dart:95: _successMsg = 'Demand Claim Redeemed!\nPIN: ${claimData['pin']}';
+migo-business\lib\features\scan\scan_qr_screen.dart:113: 'status': 'redeemed',
+migo-business\lib\features\scan\scan_qr_screen.dart:114: 'redeemedAt': FieldValue.serverTimestamp(),
+migo-business\lib\features\scan\scan_qr_screen.dart:145: _successMsg = 'Offer Claim Redeemed Successfully!\nCode: $pin';
+migo-business\lib\features\scan\scan_qr_screen.dart:152: throw Exception('Invalid or already redeemed claim.');
+migo-business\lib\features\scan\scan_qr_screen.dart:169: 'Scan & Redeem',
+migo-business\lib\features\scan\scan_qr_screen.dart:192: 'Type the 6-digit pickup code to redeem the offer.',
+migo-business\lib\features\scan\scan_qr_screen.dart:230: // Redeem Button
+migo-business\lib\features\scan\scan_qr_screen.dart:235: onPressed: _loading ? null : () => _redeem(_codeController.text),
+migo-business\lib\features\scan\scan_qr_screen.dart:253: Text('Redeem Code', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+migo-business\lib\features\scan\scan_qr_screen.dart:355: MobileScanner(
+migo-business\lib\features\scan\scan_qr_screen.dart:361: _redeem(barcode.rawValue!);
+migo-business\lib\features\scan\shop_counters_screen.dart:3: import 'package:qr_flutter/qr_flutter.dart';
+migo-business\lib\features\scan\shop_counters_screen.dart:94: QrImageView(
+migo-business\lib\features\scan\shop_counters_screen.dart:101: 'Show this to a customer to redeem their offer.',
+migo-business\lib\models\claim_model.dart:4: /// - active   → claimed, not yet redeemed
+migo-business\lib\models\claim_model.dart:5: /// - redeemed → QR scanned by business
+migo-business\lib\models\claim_model.dart:8: enum ClaimStatus { active, redeemed, expired, cancelled }
+migo-business\lib\models\claim_model.dart:12: case 'redeemed':
+migo-business\lib\models\claim_model.dart:13: return ClaimStatus.redeemed;
+migo-business\lib\models\claim_model.dart:29: case ClaimStatus.redeemed:
+migo-business\lib\models\claim_model.dart:30: return 'Redeemed';
+migo-business\lib\models\claim_model.dart:54: this.redeemedAt,
+migo-business\lib\models\claim_model.dart:55: this.redeemedBy,
+migo-business\lib\models\claim_model.dart:72: final DateTime? redeemedAt;
+migo-business\lib\models\claim_model.dart:73: final String? redeemedBy;
+migo-business\lib\models\claim_model.dart:95: redeemedAt: (map['redeemedAt'] as Timestamp?)?.toDate(),
+migo-business\lib\models\claim_model.dart:96: redeemedBy: map['redeemedBy'] as String?,
+migo-business\lib\models\claim_model.dart:115: 'redeemedAt':
+migo-business\lib\models\claim_model.dart:116: redeemedAt != null ? Timestamp.fromDate(redeemedAt!) : null,
+migo-business\lib\models\claim_model.dart:117: 'redeemedBy': redeemedBy,
+migo-business\lib\models\demand_claim_model.dart:18: final String status; // 'locked', 'redeemed', 'cancelled'
+migo-business\lib\models\demand_claim_model.dart:22: final DateTime? redeemedAt;
+migo-business\lib\models\demand_claim_model.dart:40: this.redeemedAt,
+migo-business\lib\models\demand_claim_model.dart:59: 'redeemedAt': redeemedAt != null ? Timestamp.fromDate(redeemedAt!) : null,
+migo-business\lib\models\demand_claim_model.dart:80: redeemedAt: (map['redeemedAt'] as Timestamp?)?.toDate(),
+migo-business\lib\services\claim_service.dart:17: Future<void> redeemClaim({
+migo-business\lib\services\claim_service.dart:21: debugPrint('ðŸ”µ redeemClaim: claimId=$claimId');
+migo-business\lib\services\claim_service.dart:56: // 4. Mark as redeemed (à´‡à´µà´¿à´Ÿàµ† à´±àµ‚à´³àµà´®à´¾à´¯à´¿ à´ªàµŠà´°àµà´¤àµà´¤à´ªàµà´ªàµ†à´Ÿà´¾àµ» businessId à´¨àµ½à´•àµà´¨àµà´¨àµ)
+migo-business\lib\services\claim_service.dart:58: 'status': 'redeemed',
+migo-business\lib\services\claim_service.dart:59: 'redeemedAt': FieldValue.serverTimestamp(),
+migo-business\lib\services\claim_service.dart:61: 'redeemedBy': FirebaseAuth.instance.currentUser?.uid,
+migo-business\lib\services\claim_service.dart:64: debugPrint('âœ… Claim redeemed successfully!');
+migo-business\lib\services\claim_service.dart:120: 'type': 'redeem',
+== PUBSPEC (mobile) ==
+name: migo_mobile
+description: "A new Flutter project."
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+# In Windows, build-name is used as the major, minor, and patch parts
+# of the product and file versions while build-number is used as the build suffix.
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.5
+
+# Dependencies specify other packages that your package needs in order to work.
+# To automatically upgrade your package dependencies to the latest versions
+# consider running `flutter pub upgrade --major-versions`. Alternatively,
+# dependencies can be manually updated by changing the version numbers below to
+# the latest version available on pub.dev. To see which dependencies have newer
+# versions available, run `flutter pub outdated`.
+dependencies:
+  flutter:
+    sdk: flutter
+  google_mobile_ads: ^6.0.0
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.8
+  intl: ^0.19.0
+  firebase_core: ^4.15.0
+  firebase_auth: ^6.7.0
+  firebase_messaging: ^16.1.0
+  cloud_firestore: ^6.10.0
+  qr_flutter: ^4.1.0
+  confetti: ^0.8.0
+  url_launcher: ^6.3.3
+  mobile_scanner: ^7.5.0
+  image_picker: ^1.2.3
+  http: ^1.6.0
+  share_plus: ^13.3.1
+  app_links: ^7.2.2
+  shared_preferences: ^2.5.6
+  play_install_referrer: ^0.5.0
+  syncfusion_flutter_pdfviewer: ^35.1.41
+  geolocator: ^14.1.2
+  geocoding: ^5.0.1
+  youtube_player_iframe: ^6.0.2
+  webview_flutter: ^4.14.1
+  font_awesome_flutter: ^11.0.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # The "flutter_lints" package below contains a set of recommended lints to
+  # encourage good coding practices. The lint set provided by the package is
+  # activated in the `analysis_options.yaml` file located at the root of your
+  # package. See that file for information about deactivating specific lint
+  # rules and activating additional ones.
+  flutter_lints: ^6.0.0
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter packages.
+flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  # assets:
+  #   - images/a_dot_burr.jpeg
+  #   - images/a_dot_ham.jpeg
+
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/to/resolution-aware-images
+
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/to/asset-from-package
+
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  # fonts:
+  #   - family: Schyler
+  #     fonts:
+  #       - asset: fonts/Schyler-Regular.ttf
+  #       - asset: fonts/Schyler-Italic.ttf
+  #         style: italic
+  #   - family: Trajan Pro
+  #     fonts:
+  #       - asset: fonts/TrajanPro.ttf
+  #       - asset: fonts/TrajanPro_Bold.ttf
+  #         weight: 700
+  #
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.dev/to/font-from-package

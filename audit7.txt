@@ -1,0 +1,519 @@
+﻿AUDIT 7
+
+===== creator_dashboard_screen.dart =====
+1: import 'package:firebase_auth/firebase_auth.dart';
+2: import 'package:flutter/material.dart';
+3: import 'package:cloud_firestore/cloud_firestore.dart';
+4: import '../../core/theme/migo_colors.dart';
+5: import '../../models/creator_model.dart';
+6: import 'creator_analytics_screen.dart';
+7: import 'creator_profile_screen.dart';
+8: import 'creator_performance_screen.dart';
+9: import 'edit_creator_profile_screen.dart';
+10: 
+11: class CreatorDashboardScreen extends StatefulWidget {
+12:   const CreatorDashboardScreen({super.key});
+13: 
+14:   @override
+15:   State<CreatorDashboardScreen> createState() => _CreatorDashboardScreenState();
+16: }
+17: 
+18: class _CreatorDashboardScreenState extends State<CreatorDashboardScreen> {
+19:   @override
+20:   Widget build(BuildContext context) {
+21:     final uid = FirebaseAuth.instance.currentUser?.uid;
+22:     if (uid == null) {
+23:       return const Scaffold(body: Center(child: Text('Not signed in')));
+24:     }
+25: 
+26:     return Scaffold(
+27:       appBar: AppBar(
+28:         title: const Text('Creator Dashboard', style: TextStyle(color: Colors.white)),
+29:         backgroundColor: MigoColors.primary,
+30:         foregroundColor: Colors.white,
+31:       ),
+32:       body: StreamBuilder<QuerySnapshot>(
+33:         stream: FirebaseFirestore.instance.collection('creators').where('userId', isEqualTo: uid).snapshots(),
+34:         builder: (context, snapshot) {
+35:           if (snapshot.connectionState == ConnectionState.waiting) {
+36:             return const Center(child: CircularProgressIndicator());
+37:           }
+38:           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+39:             return const Center(child: Text('Creator profile not found'));
+40:           }
+41: 
+42:           final creator = CreatorModel.fromMap(snapshot.data!.docs.first.id, snapshot.data!.docs.first.data() as Map<String, dynamic>);
+43: 
+44:           if (!creator.isApproved) {
+45:             return _buildPending(context, creator);
+46:           }
+47: 
+48:           return _buildDashboard(context, creator);
+49:         },
+50:       ),
+51:     );
+52:   }
+53: 
+54:   Widget _buildPending(BuildContext context, CreatorModel creator) {
+55:     return Padding(
+56:       padding: const EdgeInsets.all(24),
+57:       child: Column(
+58:         mainAxisAlignment: MainAxisAlignment.center,
+59:         children: [
+60:           Icon(
+61:             creator.status == CreatorStatus.rejected ? Icons.cancel_outlined : Icons.schedule,
+62:             size: 72,
+63:             color: creator.status == CreatorStatus.rejected ? MigoColors.error : MigoColors.warning,
+64:           ),
+65:           const SizedBox(height: 20),
+66:           Text(
+67:             creator.status == CreatorStatus.rejected ? 'Application Rejected' : 'Application Pending',
+68:             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+69:           ),
+70:           const SizedBox(height: 8),
+71:           Text(
+72:             creator.status == CreatorStatus.rejected
+73:                 ? 'Your creator application was not approved.'
+74:                 : 'Our team will review your application soon.',
+75:             textAlign: TextAlign.center,
+76:             style: const TextStyle(color: MigoColors.textSecondaryLight),
+77:           ),
+78:           const SizedBox(height: 24),
+79:           if (creator.status == CreatorStatus.pending)
+80:             Container(
+81:               padding: const EdgeInsets.all(16),
+82:               decoration: BoxDecoration(
+83:                 color: MigoColors.warning.withValues(alpha: 0.1),
+84:                 borderRadius: BorderRadius.circular(12),
+85:                 border: Border.all(color: MigoColors.warning.withValues(alpha: 0.3)),
+86:               ),
+87:               child: const Row(
+88:                 children: [
+89:                   Icon(Icons.info_outline, color: MigoColors.warning),
+90:                   SizedBox(width: 12),
+91:                   Expanded(child: Text('You will be notified once approved.', style: TextStyle(fontSize: 13))),
+92:                 ],
+93:               ),
+94:             ),
+95:         ],
+96:       ),
+97:     );
+98:   }
+99: 
+100:   Widget _buildDashboard(BuildContext context, CreatorModel creator) {
+101:     return SingleChildScrollView(
+102:       padding: const EdgeInsets.all(20),
+103:       child: Column(
+104:         crossAxisAlignment: CrossAxisAlignment.start,
+105:         children: [
+106:           // Header Card
+107:           Container(
+108:             padding: const EdgeInsets.all(20),
+109:             decoration: BoxDecoration(
+110:               gradient: LinearGradient(colors: [MigoColors.primary, MigoColors.primary.withValues(alpha: 0.7)]),
+111:               borderRadius: BorderRadius.circular(16),
+112:             ),
+113:             child: Row(
+114:               children: [
+115:                 CircleAvatar(
+116:                   radius: 32,
+117:                   backgroundColor: Colors.white.withValues(alpha: 0.2),
+118:                   backgroundImage: creator.profileImageUrl != null ? NetworkImage(creator.profileImageUrl!) : null,
+119:                   child: creator.profileImageUrl == null
+120:                       ? Text(
+121:                           creator.displayName.isNotEmpty ? creator.displayName[0].toUpperCase() : 'C',
+122:                           style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+123:                         )
+124:                       : null,
+125:                 ),
+126:                 const SizedBox(width: 16),
+127:                 Expanded(
+128:                   child: Column(
+129:                     crossAxisAlignment: CrossAxisAlignment.start,
+130:                     children: [
+131:                       Text(creator.displayName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+132:                       const SizedBox(height: 4),
+133:                       Container(
+134:                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+135:                         decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(6)),
+136:                         child: const Text('CREATOR', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 1)),
+137:                       ),
+138:                     ],
+139:                   ),
+140:                 ),
+141:               ],
+142:             ),
+143:           ),
+144:           const SizedBox(height: 20),
+145: 
+146:           // Stats Grid
+147:           Row(
+148:             children: [
+149:               Expanded(child: _StatCard(icon: 'Followers', label: 'Followers', value: _formatNumber(creator.followers), color: MigoColors.primary)),
+150:               const SizedBox(width: 12),
+151:               Expanded(child: _StatCard(icon: 'Coins', label: 'Coins', value: _formatNumber(creator.coinsEarned), color: MigoColors.success)),
+152:             ],
+153:           ),
+154:           const SizedBox(height: 12),
+155:           Row(
+156:             children: [
+157:               Expanded(child: _StatCard(icon: 'Shares', label: 'Shares', value: _formatNumber(creator.totalShares), color: const Color(0xFF7C3AED))),
+158:               const SizedBox(width: 12),
+159:               Expanded(child: _StatCard(icon: 'Redemptions', label: 'Redemptions', value: _formatNumber(creator.totalRedemptions), color: MigoColors.warning)),
+160:             ],
+161:           ),
+162:           const SizedBox(height: 24),
+163: 
+164:           // Earnings Section
+165:           Row(
+166:             children: [
+167:               Expanded(
+168:                 child: Container(
+169:                   padding: const EdgeInsets.all(16),
+170:                   decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(12)),
+171:                   child: Column(
+172:                     crossAxisAlignment: CrossAxisAlignment.start,
+173:                     children: [
+174:                       const Text('Total Coins', style: TextStyle(fontSize: 12, color: Colors.grey)),
+175:                       const SizedBox(height: 8),
+176:                       FutureBuilder<QuerySnapshot>(
+177:                         future: FirebaseFirestore.instance.collection('creator_earnings').where('creatorId', isEqualTo: creator.userId).get(),
+178:                         builder: (context, snap) {
+179:                           if (!snap.hasData) return const Text('...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: MigoColors.primary));
+180:                           double total = 0;
+181:                           for (var doc in snap.data!.docs) {
+182:                             total += ((doc.data() as Map<String, dynamic>)['amount'] as num?)?.toDouble() ?? 0;
+183:                           }
+184:                           return Text('${total.toStringAsFixed(0)} Coins', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: MigoColors.primary));
+185:                         },
+186:                       ),
+187:                     ],
+188:                   ),
+189:                 ),
+190:               ),
+191:               const SizedBox(width: 12),
+192:               Expanded(
+193:                 child: Container(
+194:                   padding: const EdgeInsets.all(16),
+195:                   decoration: BoxDecoration(color: Colors.orange.shade100, borderRadius: BorderRadius.circular(12)),
+196:                   child: Column(
+197:                     crossAxisAlignment: CrossAxisAlignment.start,
+198:                     children: [
+199:                       const Text('Pending Coins', style: TextStyle(fontSize: 12, color: Colors.orange)),
+200:                       const SizedBox(height: 8),
+201:                       FutureBuilder<QuerySnapshot>(
+202:                         future: FirebaseFirestore.instance.collection('creator_earnings').where('creatorId', isEqualTo: creator.userId).where('status', isEqualTo: 'pending').get(),
+203:                         builder: (context, snap) {
+204:                           if (!snap.hasData) return const Text('...', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange));
+205:                           double pending = 0;
+206:                           for (var doc in snap.data!.docs) {
+207:                             pending += ((doc.data() as Map<String, dynamic>)['amount'] as num?)?.toDouble() ?? 0;
+208:                           }
+209:                           return Text('${pending.toStringAsFixed(0)} Coins', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange));
+210:                         },
+211:                       ),
+212:                     ],
+213:                   ),
+214:                 ),
+215:               ),
+216:             ],
+217:           ),
+218:           const SizedBox(height: 16),
+219:           SizedBox(
+220:             width: double.infinity,
+221:             height: 48,
+222:             child: ElevatedButton(
+223:               onPressed: () {
+224:                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payout request feature coming soon!')));
+225:               },
+226:               style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade300, foregroundColor: Colors.grey.shade600, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+227:               child: const Text('Request Payout'),
+228:             ),
+229:           ),
+230:           const SizedBox(height: 24),
+231:           const Text('Recent Coin Earnings', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+232:           const SizedBox(height: 12),
+233:           const Center(child: Padding(padding: EdgeInsets.all(20), child: Text('No earnings yet.', style: TextStyle(color: Colors.grey)))),
+234: 
+235:           const SizedBox(height: 24),
+236: 
+237:           // Creator Code
+238:           Container(
+239:             padding: const EdgeInsets.all(16),
+240:             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: MigoColors.dividerLight)),
+241:             child: Column(
+242:               crossAxisAlignment: CrossAxisAlignment.start,
+243:               children: [
+244:                 const Text('YOUR CREATOR CODE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.5, color: MigoColors.textSecondaryLight)),
+245:                 const SizedBox(height: 8),
+246:                 Row(
+247:                   children: [
+248:                     Expanded(child: Text(creator.referralCode, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: MigoColors.primary, letterSpacing: 2))),
+249:                     IconButton(
+250:                       onPressed: () {
+251:                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Code copied!')));
+252:                       },
+253:                       icon: const Icon(Icons.copy),
+254:                     ),
+255:                   ],
+256:                 ),
+257:               ],
+258:             ),
+259:           ),
+260:           const SizedBox(height: 16),
+261: 
+262:           // Actions
+263:           SizedBox(
+264:             width: double.infinity,
+265:             height: 52,
+266:             child: ElevatedButton.icon(
+267:               onPressed: () {
+268:                 Navigator.of(context).push(MaterialPageRoute(builder: (_) => EditCreatorProfileScreen(creatorId: creator.id)));
+269:               },
+270:               icon: const Icon(Icons.edit_outlined),
+271:               label: const Text('Edit My Profile', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+272:               style: ElevatedButton.styleFrom(backgroundColor: MigoColors.accent, foregroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+273:             ),
+274:           ),
+275:           const SizedBox(height: 12),
+276:           SizedBox(
+277:             width: double.infinity,
+278:             height: 52,
+279:             child: ElevatedButton.icon(
+280:               onPressed: () {
+281:                 Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CreatorAnalyticsScreen()));
+282:               },
+283:               icon: const Icon(Icons.analytics_outlined),
+284:               label: const Text('View Analytics', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+285:               style: ElevatedButton.styleFrom(backgroundColor: MigoColors.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+286:             ),
+287:           ),
+288:           const SizedBox(height: 12),
+289:           SizedBox(
+290:             width: double.infinity,
+291:             height: 52,
+292:             child: OutlinedButton.icon(
+293:               onPressed: () {
+294:                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Share feature coming soon!')));
+295:               },
+296:               icon: const Icon(Icons.share_outlined),
+297:               label: const Text('Share My Profile', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+298:               style: OutlinedButton.styleFrom(foregroundColor: MigoColors.primary, side: const BorderSide(color: MigoColors.primary), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+299:             ),
+300:           ),
+301:           const SizedBox(height: 12),
+302:           SizedBox(
+303:             width: double.infinity,
+304:             height: 52,
+305:             child: OutlinedButton.icon(
+306:               onPressed: () {
+307:                 final uid = FirebaseAuth.instance.currentUser?.uid;
+308:                 if (uid != null) {
+309:                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => CreatorProfileScreen(creatorId: uid)));
+310:                 }
+311:               },
+312:               icon: const Icon(Icons.person_outline),
+313:               label: const Text('View Public Profile', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+314:               style: OutlinedButton.styleFrom(foregroundColor: MigoColors.primary, side: const BorderSide(color: MigoColors.primary), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+315:             ),
+316:           ),
+317:           const SizedBox(height: 12),
+318:           SizedBox(
+319:             width: double.infinity,
+320:             height: 52,
+321:             child: OutlinedButton.icon(
+322:               onPressed: () {
+323:                 Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CreatorPerformanceScreen()));
+324:               },
+325:               icon: const Icon(Icons.trending_up),
+326:               label: const Text('My Performance', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+327:               style: OutlinedButton.styleFrom(foregroundColor: MigoColors.primary, side: const BorderSide(color: MigoColors.primary), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+328:             ),
+329:           ),
+330:         ],
+331:       ),
+332:     );
+333:   }
+334: 
+335:   String _formatNumber(int n) {
+336:     if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
+337:     if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
+338:     return n.toString();
+339:   }
+340: }
+341: 
+342: class _StatCard extends StatelessWidget {
+343:   const _StatCard({required this.icon, required this.label, required this.value, required this.color});
+344: 
+345:   final String icon;
+346:   final String label;
+347:   final String value;
+348:   final Color color;
+349: 
+350:   @override
+351:   Widget build(BuildContext context) {
+352:     return Container(
+353:       padding: const EdgeInsets.all(16),
+354:       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: MigoColors.dividerLight)),
+355:       child: Column(
+356:         crossAxisAlignment: CrossAxisAlignment.start,
+357:         children: [
+358:           Text(icon, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+359:           const SizedBox(height: 8),
+360:           Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: color)),
+361:           const SizedBox(height: 2),
+362:           Text(label, style: const TextStyle(fontSize: 12, color: MigoColors.textSecondaryLight)),
+363:         ],
+364:       ),
+365:     );
+366:   }
+367: }
+
+===== coin_settings_model.dart =====
+class CoinSettingsModel {
+  final int claimReward;
+  final int reviewReward;
+  final int referralReward;
+  final int signupReward;
+  final int dailyLimit;
+  final int monthlyLimit;
+  final int expiryDays;
+  final int maxRedemptionPercent;
+  final Map<String, double> countryRates; // ഉദാ: {'QA': 1.0, 'IN': 10.0}
+
+  CoinSettingsModel({
+    required this.claimReward,
+    required this.reviewReward,
+    required this.referralReward,
+    required this.signupReward,
+    required this.dailyLimit,
+    required this.monthlyLimit,
+    required this.expiryDays,
+    required this.maxRedemptionPercent,
+    required this.countryRates,
+  });
+
+  factory CoinSettingsModel.fromMap(Map<String, dynamic> map) {
+    final rewards = map['rewards'] as Map<String, dynamic>? ?? {};
+    final caps = map['caps'] as Map<String, dynamic>? ?? {};
+    final rawRates = map['countryRates'] as Map<String, dynamic>? ?? {};
+
+    return CoinSettingsModel(
+      claimReward: (rewards['claim'] as num?)?.toInt() ?? 10,
+      reviewReward: (rewards['review'] as num?)?.toInt() ?? 5,
+      referralReward: (rewards['referral'] as num?)?.toInt() ?? 50,
+      signupReward: (rewards['signup'] as num?)?.toInt() ?? 20,
+      dailyLimit: (caps['daily'] as num?)?.toInt() ?? 50,
+      monthlyLimit: (caps['monthly'] as num?)?.toInt() ?? 500,
+      expiryDays: (map['expiryDays'] as num?)?.toInt() ?? 60,
+      maxRedemptionPercent: (map['maxRedemptionPercent'] as num?)?.toInt() ?? 10,
+      countryRates: rawRates.map((key, value) => MapEntry(key, (value as num).toDouble())),
+    );
+  }
+
+  // ഒരു നിശ്ചിത രാജ്യത്തിന് 100 കോയിന്റെ മൂല്യം എത്രയെന്ന് കണ്ടെത്താൻ
+  double getValueFor100Coins(String countryCode) {
+    return countryRates[countryCode] ?? 1.0; // ഡിഫോൾട്ട് ആയി 1.0
+  }
+}
+
+===== ShareRewardsPage.jsx =====
+import { useEffect, useState } from 'react';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+
+export default function ShareRewardsPage() {
+  const [loading, setLoading] = useState(true);
+  const [enabled, setEnabled] = useState(true);
+  const [coinsPerRedeem, setCoinsPerRedeem] = useState(10);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    async function load() {
+      const snap = await getDoc(doc(db, 'config', 'share_rewards'));
+      if (snap.exists()) {
+        const data = snap.data();
+        setEnabled(data.enabled ?? true);
+        setCoinsPerRedeem(data.coinsPerRedeem ?? 10);
+      }
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  async function handleSave() {
+    setSaving(true);
+    await setDoc(doc(db, 'config', 'share_rewards'), {
+      enabled,
+      coinsPerRedeem: Number(coinsPerRedeem),
+      updatedAt: new Date(),
+    });
+    setSaving(false);
+    alert('Saved successfully!');
+  }
+
+  if (loading) return <div style={{ padding: 24 }}>Loading...</div>;
+
+  return (
+    <div style={{ padding: 24, maxWidth: 600 }}>
+      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24 }}>Share Rewards</h1>
+      <div style={{ backgroundColor: 'white', padding: 24, borderRadius: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+        
+        <div style={{ marginBottom: 24 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={enabled}
+              onChange={(e) => setEnabled(e.target.checked)}
+              style={{ width: 20, height: 20 }}
+            />
+            <span style={{ fontSize: 16, fontWeight: 600 }}>Enable Share Rewards</span>
+          </label>
+          <p style={{ fontSize: 13, color: '#6B7280', marginLeft: 32, marginTop: 4 }}>
+            When enabled, customers earn coins when their shared offer is redeemed.
+          </p>
+        </div>
+
+        <div style={{ marginBottom: 24 }}>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
+            Coins per Redeem
+          </label>
+          <input
+            type="number"
+            value={coinsPerRedeem}
+            onChange={(e) => setCoinsPerRedeem(e.target.value)}
+            min={1}
+            max={100}
+            style={{
+              width: '100%',
+              padding: 10,
+              border: '1px solid #d1d5db',
+              borderRadius: 6,
+              fontSize: 14,
+            }}
+          />
+          <p style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>
+            Number of coins awarded to the sharer when their shared link is redeemed.
+          </p>
+        </div>
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          style={{
+            padding: '10px 24px',
+            backgroundColor: saving ? '#9ca3af' : '#0B2B5B',
+            color: 'white',
+            border: 'none',
+            borderRadius: 6,
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: saving ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {saving ? 'Saving...' : 'Save Settings'}
+        </button>
+      </div>
+    </div>
+  );
+}

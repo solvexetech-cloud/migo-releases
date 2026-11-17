@@ -121,23 +121,42 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
             'trustScore': FieldValue.increment(1),
           });
         }
-        // 🆕 Creator Earnings: ക്രിയേറ്റർക്ക് എർണിംഗ് ഉണ്ടാക്കുക
+        // Creator Earnings: one earning per claim (doc id = claim id)
         final creatorId = claimData['creatorId'];
         final collabId = claimData['collabId'];
         if (creatorId != null && collabId != null) {
-          final collabSnap = await FirebaseFirestore.instance.collection('collabs').doc(collabId).get();
-          if (collabSnap.exists) {
-            final fee = (collabSnap.data()?['feePerRedemption'] as num?)?.toDouble() ?? 0;
+          try {
+            final collabSnap = await FirebaseFirestore.instance.collection('collabs').doc(collabId).get();
+            final collabData = collabSnap.data();
+            final collabEnds = (collabData?['endsAt'] as Timestamp?)?.toDate();
+            final claimedAtTs = (claimData['claimedAt'] as Timestamp?)?.toDate();
+            final collabOk = collabData != null &&
+                collabData['status'] == 'accepted' &&
+                collabData['shopId'] == widget.businessId &&
+                (collabEnds == null || claimedAtTs == null || claimedAtTs.isBefore(collabEnds));
+            final rewardSnap = await FirebaseFirestore.instance.collection('config').doc('creator_rewards').get();
+            final rewardData = rewardSnap.data();
+            final rewardsOn = (rewardData?['enabled'] as bool?) ?? true;
+            final coinsPerRedemption = (rewardData?['coinsPerRedemption'] as num?)?.toDouble() ?? 10;
+            final fee = (collabOk && rewardsOn) ? coinsPerRedemption : 0.0;
             if (fee > 0) {
-              await FirebaseFirestore.instance.collection('creator_earnings').add({
+              await FirebaseFirestore.instance
+                  .collection('creator_earnings')
+                  .doc(oldQuery.docs.first.id)
+                  .set({
                 'creatorId': creatorId,
+                'collabId': collabId,
                 'claimId': oldQuery.docs.first.id,
+                'businessId': widget.businessId,
                 'amount': fee,
-                'currency': 'QAR',
+                'currency': 'COINS',
+                'unit': 'coins',
                 'status': 'pending',
                 'createdAt': FieldValue.serverTimestamp(),
               });
             }
+          } catch (e) {
+            print('Creator earning error: $e'); if (mounted) { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Creator earning error: $e'), backgroundColor: Colors.red)); }
           }
         }
         if (!mounted) return;
