@@ -47,3 +47,19 @@ yarn-debug.log*
 yarn-error.log*
 # Exception: keep current master plan tracked
 !MIGO-MASTER-PLAN-v5.1.txt
+# Secrets
+serviceAccount*.json
+serviceAccountKey*.json
+*.json.bak
+.env
+*.keystore
+*.jks
+key.properties
+
+# Dependencies & Builds
+node_modules/
+build/
+.dart_tool/
+.gradle/
+*.apk
+*.aab
